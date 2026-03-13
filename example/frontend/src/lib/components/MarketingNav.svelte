@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Sun, Moon } from 'lucide-svelte';
-  import { logo } from '$lib/config/logo';
+  import { brand } from '$lib/config/logo';
 
   let isDark = $state(false);
 
@@ -18,8 +18,8 @@
 
 <nav class="marketing-nav">
   <a href="/" class="nav-brand">
-    <img src={logo.image} alt="" class="logo-icon" aria-hidden="true" />
-    <span>{logo.text}</span>
+    <img src={brand.image} alt="" class="logo-icon" aria-hidden="true" />
+    <span>{brand.text}</span>
   </a>
   <div class="flex items-center gap-3">
     <button

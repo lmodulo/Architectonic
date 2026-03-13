@@ -6,7 +6,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { hasPermission } from '$lib/permissions';
-  import { logo } from '$lib/config/logo';
+  import { brand } from '$lib/config/logo';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
 
@@ -26,6 +26,10 @@
     localStorage.setItem('color-scheme', isDark ? 'dark' : 'light');
   }
 </script>
+
+<svelte:head>
+  <title>{brand.text} — {brand.description}</title>
+</svelte:head>
 
 {#if data.user}
 
@@ -69,8 +73,8 @@
 
       <!-- Logo / Title -->
       <a href="/dashboard" class="flex items-center gap-2 flex-1 no-underline text-inherit">
-        <img src={logo.image} alt="" class="size-6 text-primary-500" aria-hidden="true" />
-        <span class="text-xl font-semibold">{logo.text}</span>
+        <img src={brand.image} alt="" class="size-6 text-primary-500" aria-hidden="true" />
+        <span class="text-xl font-semibold">{brand.text}</span>
       </a>
 
       <!-- Trail -->

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { logo } from '$lib/config/logo';
+  import { brand } from '$lib/config/logo';
 
   let { class: cls = '' }: { class?: string } = $props();
 </script>
 
 <span class="logo-brand {cls}">
-  <img src={logo.image} alt="" class="logo-icon" aria-hidden="true" />
-  <span class="logo-text">{logo.text}</span>
+  <img src={brand.image} alt="" class="logo-icon" aria-hidden="true" />
+  <span class="logo-text">{brand.text}</span>
 </span>
 
 <style>

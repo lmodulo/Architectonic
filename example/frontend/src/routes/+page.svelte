@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import MarketingNav from '$lib/components/MarketingNav.svelte';
+  import { brand } from '$lib/config/logo';
 
   // ── Honeycomb SVG generation ──────────────────────────────────────
   const SIZE  = 32;
@@ -150,7 +151,7 @@
 </script>
 
 <svelte:head>
-  <title>AppFramework — Build faster. Ship smarter.</title>
+  <title>{brand.text} — {brand.description}</title>
 </svelte:head>
 
 <!-- ── Fixed nav ──────────────────────────────────────────────────── -->
