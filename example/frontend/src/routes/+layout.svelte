@@ -81,6 +81,8 @@
             : data.user.username}
         </span>
 
+        <span class="hidden sm:block w-px h-5 bg-surface-300-700 opacity-60"></span>
+
         <button
           type="button"
           class="btn-icon hover:preset-tonal"

@@ -94,7 +94,7 @@
       name: 'Starter',
       price: 'Free',
       period: 'forever',
-      desc: 'Everything you need to launch a project today.',
+      desc: 'Everything you need to launch a project.',
       badge: null,
       features: ['Full source code', 'Auth & session management', 'SvelteKit + Fastify', 'Docker dev stack', 'MIT License'],
       cta: 'Clone Now',
