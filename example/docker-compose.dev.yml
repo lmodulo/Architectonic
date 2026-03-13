@@ -1,0 +1,27 @@
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# NOTE on bind mounts (cross-platform):
+#   Windows: paths use forward slashes in compose files, Docker Desktop handles translation.
+#   macOS:   works as-is. Performance may be slow with large node_modules.
+#            If sluggish, remove the bind mount and rebuild instead.
+
+services:
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/static:/app/static
+      - ./frontend/lmodulo-theme.css:/app/lmodulo-theme.css
+    environment:
+      - NODE_ENV=development
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./api/src:/app/src
+    environment:
+      - NODE_ENV=development
