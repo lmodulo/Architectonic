@@ -446,6 +446,10 @@
 </footer>
 
 <style>
+  /* ══════════════════════════════════════════════════════════════
+     LIGHT MODE (default)
+     ══════════════════════════════════════════════════════════════ */
+
   /* ── Hero ────────────────────────────────────────────────────── */
   .hero {
     position: relative;
@@ -454,13 +458,13 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: var(--color-surface-950);
+    background: var(--color-surface-100);
   }
 
   .hex-bg {
     position: absolute;
     inset: -10% -5%;
-    opacity: 0.22;
+    opacity: 0.18;
     pointer-events: none;
     will-change: transform;
   }
@@ -489,8 +493,8 @@
     background: radial-gradient(
       ellipse 70% 60% at 50% 50%,
       transparent 20%,
-      color-mix(in oklch, var(--color-surface-950) 60%, transparent) 70%,
-      var(--color-surface-950) 100%
+      color-mix(in oklch, var(--color-surface-100) 60%, transparent) 70%,
+      var(--color-surface-100) 100%
     );
     pointer-events: none;
   }
@@ -512,13 +516,13 @@
     font-weight: 800;
     line-height: 1.1;
     letter-spacing: -0.03em;
-    color: var(--color-surface-50);
+    color: var(--color-surface-950);
     margin-bottom: 1.5rem;
   }
 
   .hero-sub {
     font-size: 1.125rem;
-    color: var(--color-surface-300);
+    color: var(--color-surface-600);
     max-width: 36rem;
     margin-bottom: 2.5rem;
     line-height: 1.7;
@@ -526,9 +530,9 @@
 
   /* ── Stats ───────────────────────────────────────────────────── */
   .section-stats {
-    background: color-mix(in oklch, var(--color-primary-900) 40%, var(--color-surface-950));
-    border-top: 1px solid color-mix(in oklch, var(--color-primary-500) 20%, transparent);
-    border-bottom: 1px solid color-mix(in oklch, var(--color-primary-500) 20%, transparent);
+    background: color-mix(in oklch, var(--color-primary-100) 60%, white);
+    border-top: 1px solid color-mix(in oklch, var(--color-primary-300) 40%, transparent);
+    border-bottom: 1px solid color-mix(in oklch, var(--color-primary-300) 40%, transparent);
     padding: 2.5rem 1.5rem;
   }
 
@@ -547,32 +551,32 @@
     font-size: clamp(1.75rem, 4vw, 2.5rem);
     font-weight: 800;
     letter-spacing: -0.03em;
-    color: var(--color-primary-300);
+    color: var(--color-primary-600);
   }
 
   .stat-label {
     font-size: 0.875rem;
-    color: var(--color-surface-400);
+    color: var(--color-surface-500);
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
 
   /* ── Sections ────────────────────────────────────────────────── */
   .section-dark {
-    background: var(--color-surface-900);
+    background: var(--color-surface-100);
     padding: 6rem 1.5rem;
   }
 
   .section-mid {
-    background: var(--color-surface-950);
+    background: var(--color-surface-50);
     padding: 6rem 1.5rem;
   }
 
   .section-cta {
     background: linear-gradient(
       135deg,
-      color-mix(in oklch, var(--color-primary-900) 80%, var(--color-surface-950)),
-      color-mix(in oklch, var(--color-secondary-900) 60%, var(--color-surface-950))
+      color-mix(in oklch, var(--color-primary-200) 80%, white),
+      color-mix(in oklch, var(--color-secondary-200) 60%, white)
     );
     padding: 7rem 1.5rem;
   }
@@ -588,11 +592,11 @@
   .section-heading, .section-heading-alt {
     font-size: clamp(1.75rem, 4vw, 2.5rem);
     font-weight: 700;
-    color: var(--color-surface-50);
+    color: var(--color-surface-950);
   }
 
   .section-sub, .section-sub-alt {
-    color: var(--color-surface-400);
+    color: var(--color-surface-600);
     font-size: 1.0625rem;
   }
 
@@ -604,24 +608,24 @@
   }
 
   .feature-card {
-    background: color-mix(in oklch, var(--color-surface-800) 80%, transparent);
-    border: 1px solid color-mix(in oklch, var(--color-primary-500) 15%, transparent);
+    background: white;
+    border: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
     border-radius: var(--radius-container);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.625rem;
-    transition: border-color 200ms, background 200ms;
+    transition: border-color 200ms, background 200ms, box-shadow 200ms;
   }
 
   .feature-card:hover {
-    border-color: color-mix(in oklch, var(--color-primary-500) 40%, transparent);
-    background: color-mix(in oklch, var(--color-surface-700) 70%, transparent);
+    border-color: color-mix(in oklch, var(--color-primary-400) 60%, transparent);
+    box-shadow: 0 4px 16px color-mix(in oklch, var(--color-primary-400) 12%, transparent);
   }
 
   .feature-icon  { font-size: 1.75rem; }
-  .feature-title { font-size: 1rem; font-weight: 600; color: var(--color-surface-100); }
-  .feature-body  { font-size: 0.875rem; color: var(--color-surface-400); line-height: 1.6; }
+  .feature-title { font-size: 1rem; font-weight: 600; color: var(--color-surface-900); }
+  .feature-body  { font-size: 0.875rem; color: var(--color-surface-600); line-height: 1.6; }
 
   /* ── Steps ───────────────────────────────────────────────────── */
   .steps-grid {
@@ -635,9 +639,9 @@
     flex-direction: column;
     gap: 0.75rem;
     padding: 2rem 1.5rem;
-    border: 1px solid color-mix(in oklch, var(--color-primary-500) 12%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
     border-radius: var(--radius-container);
-    background: color-mix(in oklch, var(--color-surface-900) 60%, transparent);
+    background: white;
   }
 
   .step-num {
@@ -645,11 +649,11 @@
     font-weight: 800;
     line-height: 1;
     color: var(--color-primary-500);
-    opacity: 0.6;
+    opacity: 0.7;
   }
 
-  .step-title { font-size: 1.0625rem; font-weight: 600; color: var(--color-surface-100); }
-  .step-body  { font-size: 0.875rem;  color: var(--color-surface-400); line-height: 1.6; }
+  .step-title { font-size: 1.0625rem; font-weight: 600; color: var(--color-surface-900); }
+  .step-body  { font-size: 0.875rem;  color: var(--color-surface-600); line-height: 1.6; }
 
   /* ── Component showcase ──────────────────────────────────────── */
   .showcase-grid {
@@ -661,8 +665,8 @@
   .col-span-full { grid-column: 1 / -1; }
 
   .showcase-card {
-    background: color-mix(in oklch, var(--color-surface-800) 70%, transparent);
-    border: 1px solid color-mix(in oklch, var(--color-surface-600) 30%, transparent);
+    background: white;
+    border: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
     border-radius: var(--radius-container);
     padding: 1.5rem;
     display: flex;
@@ -694,8 +698,8 @@
   }
 
   .testimonial-card {
-    background: color-mix(in oklch, var(--color-surface-800) 70%, transparent);
-    border: 1px solid color-mix(in oklch, var(--color-primary-500) 12%, transparent);
+    background: white;
+    border: 1px solid color-mix(in oklch, var(--color-surface-300) 50%, transparent);
     border-radius: var(--radius-container);
     padding: 1.75rem;
     display: flex;
@@ -705,7 +709,7 @@
 
   .testimonial-quote {
     font-size: 0.9375rem;
-    color: var(--color-surface-300);
+    color: var(--color-surface-700);
     line-height: 1.65;
     flex: 1;
   }
@@ -729,7 +733,7 @@
     flex-shrink: 0;
   }
 
-  .testimonial-name { font-size: 0.875rem; font-weight: 600; color: var(--color-surface-100); }
+  .testimonial-name { font-size: 0.875rem; font-weight: 600; color: var(--color-surface-900); }
   .testimonial-role { font-size: 0.75rem;  color: var(--color-surface-500); }
 
   /* ── Pricing ─────────────────────────────────────────────────── */
@@ -741,8 +745,8 @@
   }
 
   .pricing-card {
-    background: color-mix(in oklch, var(--color-surface-900) 80%, transparent);
-    border: 1px solid color-mix(in oklch, var(--color-surface-700) 40%, transparent);
+    background: white;
+    border: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
     border-radius: var(--radius-container);
     padding: 2rem;
     display: flex;
@@ -751,24 +755,24 @@
   }
 
   .pricing-card--highlight {
-    background: color-mix(in oklch, var(--color-primary-900) 50%, var(--color-surface-900));
-    border-color: color-mix(in oklch, var(--color-primary-500) 50%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-primary-500) 30%, transparent);
+    background: color-mix(in oklch, var(--color-primary-50) 80%, white);
+    border-color: color-mix(in oklch, var(--color-primary-400) 60%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-primary-400) 30%, transparent);
   }
 
   .pricing-header { display: flex; flex-direction: column; gap: 0.5rem; }
-  .pricing-name   { font-size: 1.125rem; font-weight: 700; color: var(--color-surface-100); }
+  .pricing-name   { font-size: 1.125rem; font-weight: 700; color: var(--color-surface-900); }
 
   .pricing-price {
     font-size: 2rem;
     font-weight: 800;
     letter-spacing: -0.03em;
-    color: var(--color-surface-50);
+    color: var(--color-surface-950);
     line-height: 1;
   }
 
   .pricing-period { font-size: 0.875rem; font-weight: 400; color: var(--color-surface-500); }
-  .pricing-desc   { font-size: 0.875rem; color: var(--color-surface-400); line-height: 1.5; }
+  .pricing-desc   { font-size: 0.875rem; color: var(--color-surface-600); line-height: 1.5; }
 
   .pricing-features { display: flex; flex-direction: column; gap: 0.625rem; flex: 1; }
 
@@ -777,7 +781,7 @@
     align-items: flex-start;
     gap: 0.625rem;
     font-size: 0.875rem;
-    color: var(--color-surface-300);
+    color: var(--color-surface-700);
   }
 
   .feat-check {
@@ -791,11 +795,11 @@
   .cta-heading {
     font-size: clamp(1.75rem, 4vw, 2.75rem);
     font-weight: 700;
-    color: var(--color-surface-50);
+    color: var(--color-surface-950);
   }
 
   .cta-sub {
-    color: var(--color-surface-300);
+    color: var(--color-surface-700);
     font-size: 1.0625rem;
     max-width: 32rem;
     margin-inline: auto;
@@ -803,12 +807,12 @@
 
   /* ── Footer ──────────────────────────────────────────────────── */
   .footer {
-    background: var(--color-surface-950);
-    border-top: 1px solid color-mix(in oklch, var(--color-surface-800) 60%, transparent);
+    background: var(--color-surface-100);
+    border-top: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
     padding: 1.5rem;
     text-align: center;
     font-size: 0.8125rem;
-    color: var(--color-surface-600);
+    color: var(--color-surface-500);
   }
 
   /* ── Fade-in ─────────────────────────────────────────────────── */
@@ -821,5 +825,99 @@
   .fade-el.visible {
     opacity: 1;
     transform: translateY(0);
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     DARK MODE overrides
+     ══════════════════════════════════════════════════════════════ */
+
+  :global(.dark) .hero           { background: var(--color-surface-950); }
+  :global(.dark) .hero-vignette  {
+    background: radial-gradient(
+      ellipse 70% 60% at 50% 50%,
+      transparent 20%,
+      color-mix(in oklch, var(--color-surface-950) 60%, transparent) 70%,
+      var(--color-surface-950) 100%
+    );
+  }
+  :global(.dark) .hero-headline  { color: var(--color-surface-50); }
+  :global(.dark) .hero-sub       { color: var(--color-surface-300); }
+
+  :global(.dark) .section-stats  {
+    background: color-mix(in oklch, var(--color-primary-900) 40%, var(--color-surface-950));
+    border-color: color-mix(in oklch, var(--color-primary-500) 20%, transparent);
+  }
+  :global(.dark) .stat-value     { color: var(--color-primary-300); }
+  :global(.dark) .stat-label     { color: var(--color-surface-400); }
+
+  :global(.dark) .section-dark   { background: var(--color-surface-900); }
+  :global(.dark) .section-mid    { background: var(--color-surface-950); }
+  :global(.dark) .section-cta    {
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--color-primary-900) 80%, var(--color-surface-950)),
+      color-mix(in oklch, var(--color-secondary-900) 60%, var(--color-surface-950))
+    );
+  }
+
+  :global(.dark) .section-heading,
+  :global(.dark) .section-heading-alt { color: var(--color-surface-50); }
+  :global(.dark) .section-sub,
+  :global(.dark) .section-sub-alt     { color: var(--color-surface-400); }
+
+  :global(.dark) .feature-card   {
+    background: color-mix(in oklch, var(--color-surface-800) 80%, transparent);
+    border-color: color-mix(in oklch, var(--color-primary-500) 15%, transparent);
+  }
+  :global(.dark) .feature-card:hover {
+    border-color: color-mix(in oklch, var(--color-primary-500) 40%, transparent);
+    background: color-mix(in oklch, var(--color-surface-700) 70%, transparent);
+    box-shadow: none;
+  }
+  :global(.dark) .feature-title  { color: var(--color-surface-100); }
+  :global(.dark) .feature-body   { color: var(--color-surface-400); }
+
+  :global(.dark) .step-card      {
+    background: color-mix(in oklch, var(--color-surface-900) 60%, transparent);
+    border-color: color-mix(in oklch, var(--color-primary-500) 12%, transparent);
+  }
+  :global(.dark) .step-title     { color: var(--color-surface-100); }
+  :global(.dark) .step-body      { color: var(--color-surface-400); }
+
+  :global(.dark) .showcase-card  {
+    background: color-mix(in oklch, var(--color-surface-800) 70%, transparent);
+    border-color: color-mix(in oklch, var(--color-surface-600) 30%, transparent);
+  }
+
+  :global(.dark) .testimonial-card  {
+    background: color-mix(in oklch, var(--color-surface-800) 70%, transparent);
+    border-color: color-mix(in oklch, var(--color-primary-500) 12%, transparent);
+  }
+  :global(.dark) .testimonial-quote { color: var(--color-surface-300); }
+  :global(.dark) .testimonial-name  { color: var(--color-surface-100); }
+  :global(.dark) .testimonial-role  { color: var(--color-surface-500); }
+
+  :global(.dark) .pricing-card   {
+    background: color-mix(in oklch, var(--color-surface-900) 80%, transparent);
+    border-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
+  }
+  :global(.dark) .pricing-card--highlight {
+    background: color-mix(in oklch, var(--color-primary-900) 50%, var(--color-surface-900));
+    border-color: color-mix(in oklch, var(--color-primary-500) 50%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-primary-500) 30%, transparent);
+  }
+  :global(.dark) .pricing-name   { color: var(--color-surface-100); }
+  :global(.dark) .pricing-price  { color: var(--color-surface-50); }
+  :global(.dark) .pricing-period { color: var(--color-surface-500); }
+  :global(.dark) .pricing-desc   { color: var(--color-surface-400); }
+  :global(.dark) .pricing-feat   { color: var(--color-surface-300); }
+
+  :global(.dark) .cta-heading    { color: var(--color-surface-50); }
+  :global(.dark) .cta-sub        { color: var(--color-surface-300); }
+
+  :global(.dark) .footer {
+    background: var(--color-surface-950);
+    border-top-color: color-mix(in oklch, var(--color-surface-800) 60%, transparent);
+    color: var(--color-surface-600);
   }
 </style>

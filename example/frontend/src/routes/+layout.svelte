@@ -1,9 +1,10 @@
 <script lang="ts">
   import '../app.css';
   import { Navigation, Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
-  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users, ShieldCheck } from 'lucide-svelte';
-  import { navigating } from '$app/state';
+  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon } from 'lucide-svelte';
+  import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
   import { hasPermission } from '$lib/permissions';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -12,6 +13,17 @@
 
   let sidebarOpen = $state(false);
   let logoutForm: HTMLFormElement = $state()!;
+  let isDark = $state(false);
+
+  onMount(() => {
+    isDark = document.documentElement.classList.contains('dark');
+  });
+
+  function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.classList.toggle('dark', isDark);
+    localStorage.setItem('color-scheme', isDark ? 'dark' : 'light');
+  }
 </script>
 
 {#if data.user}
@@ -65,6 +77,19 @@
             : data.user.username}
         </span>
 
+        <button
+          type="button"
+          class="btn-icon hover:preset-tonal"
+          onclick={toggleTheme}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {#if isDark}
+            <Sun class="size-5" />
+          {:else}
+            <Moon class="size-5" />
+          {/if}
+        </button>
+
         <SkMenu positioning={{ placement: 'bottom-end' }}>
           <SkMenu.Trigger
             class="btn-icon hover:preset-tonal"
@@ -77,7 +102,7 @@
               <SkMenu.Item
                 value="profile"
                 onclick={() => goto('/profile')}
-                class="flex items-center gap-3 px-3 py-2 rounded-base hover:preset-tonal w-full text-left text-sm cursor-pointer"
+                class="flex items-center gap-3 px-3 py-2 rounded-base w-full text-left text-sm cursor-pointer {page.url.pathname === '/profile' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
               >
                 <User class="size-4 shrink-0" />
                 <span>Profile</span>
@@ -86,7 +111,7 @@
                 <SkMenu.Item
                   value="manage-users"
                   onclick={() => goto('/manage-users')}
-                  class="flex items-center gap-3 px-3 py-2 rounded-base hover:preset-tonal w-full text-left text-sm cursor-pointer"
+                  class="flex items-center gap-3 px-3 py-2 rounded-base w-full text-left text-sm cursor-pointer {page.url.pathname === '/manage-users' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
                 >
                   <Users class="size-4 shrink-0" />
                   <span>Manage Users</span>
@@ -96,7 +121,7 @@
                 <SkMenu.Item
                   value="roles"
                   onclick={() => goto('/roles')}
-                  class="flex items-center gap-3 px-3 py-2 rounded-base hover:preset-tonal w-full text-left text-sm cursor-pointer"
+                  class="flex items-center gap-3 px-3 py-2 rounded-base w-full text-left text-sm cursor-pointer {page.url.pathname === '/roles' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
                 >
                   <ShieldCheck class="size-4 shrink-0" />
                   <span>Roles</span>
@@ -147,7 +172,7 @@
             <Navigation.Group>
               <Navigation.TriggerAnchor
                 href="/dashboard"
-                class="flex items-center gap-3 p-3 rounded-base hover:preset-tonal w-full"
+                class="flex items-center gap-3 p-3 rounded-base w-full {page.url.pathname === '/dashboard' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
                 onclick={() => (sidebarOpen = false)}
               >
                 <House class="size-4 shrink-0" />
