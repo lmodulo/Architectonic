@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Sun, Moon } from 'lucide-svelte';
-  import { brand } from '$lib/config/logo';
+  import Logo from '$lib/components/Logo.svelte';
 
   let isDark = $state(false);
 
@@ -18,8 +18,7 @@
 
 <nav class="marketing-nav">
   <a href="/" class="nav-brand">
-    <img src={brand.image} alt="" class="logo-icon" aria-hidden="true" />
-    <span>{brand.text}</span>
+    <Logo />
   </a>
   <div class="flex items-center gap-3">
     <button
@@ -59,16 +58,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.125rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--color-primary-600);
     text-decoration: none;
-  }
-
-  .logo-icon {
-    width: 1.5rem;
-    height: 1.5rem;
   }
 
   .theme-toggle {
@@ -94,10 +84,6 @@
   :global(.dark) .marketing-nav {
     background: color-mix(in oklch, var(--color-surface-950) 85%, transparent);
     border-bottom-color: color-mix(in oklch, var(--color-primary-500) 20%, transparent);
-  }
-
-  :global(.dark) .nav-brand {
-    color: var(--color-primary-300);
   }
 
   :global(.dark) .theme-toggle {

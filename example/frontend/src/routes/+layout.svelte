@@ -6,6 +6,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { hasPermission } from '$lib/permissions';
+  import Logo from '$lib/components/Logo.svelte';
   import { brand } from '$lib/config/logo';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -73,8 +74,7 @@
 
       <!-- Logo / Title -->
       <a href="/dashboard" class="flex items-center gap-2 flex-1 no-underline text-inherit">
-        <img src={brand.image} alt="" class="size-6 text-primary-500" aria-hidden="true" />
-        <span class="text-xl font-semibold">{brand.text}</span>
+        <Logo />
       </a>
 
       <!-- Trail -->

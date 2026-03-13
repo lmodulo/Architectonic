@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import MarketingNav from '$lib/components/MarketingNav.svelte';
+  import Logo from '$lib/components/Logo.svelte';
   import { brand } from '$lib/config/logo';
 
   // ── Honeycomb SVG generation ──────────────────────────────────────
@@ -182,10 +183,16 @@
   <div class="hero-vignette"></div>
 
   <div class="hero-content">
+
+    <!-- Brand lockup -->
+    <div class="hero-brand">
+      <Logo />
+    </div>
+
     <span class="badge preset-tonal-primary mb-6">Production-ready scaffold</span>
 
     <h1 class="hero-headline">
-      Build faster.<br />Ship smarter.
+      {brand.description}
     </h1>
 
     <p class="hero-sub">
@@ -369,7 +376,7 @@
 
     <div class="fade-el text-center space-y-3" bind:this={fadeRefs[15]}>
       <h2 class="section-heading">Trusted by developers</h2>
-      <p class="section-sub">What people are saying after shipping with AppFramework.</p>
+      <p class="section-sub">What people are saying after shipping with {brand.text}.</p>
     </div>
 
     <div class="testimonials-grid fade-el" bind:this={fadeRefs[16]}>
@@ -443,7 +450,10 @@
 
 <!-- ── Footer ─────────────────────────────────────────────────────── -->
 <footer class="footer">
-  <p>AppFramework — MIT License</p>
+  <div class="footer-brand">
+    <Logo />
+  </div>
+  <p class="footer-copy">MIT License</p>
 </footer>
 
 <style>
@@ -510,6 +520,13 @@
     padding: 6rem 1.5rem 4rem;
     max-width: 52rem;
     margin-inline: auto;
+  }
+
+  .hero-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
   }
 
   .hero-headline {
@@ -814,6 +831,21 @@
     text-align: center;
     font-size: 0.8125rem;
     color: var(--color-surface-500);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .footer-copy {
+    font-size: 0.75rem;
+    color: var(--color-surface-400);
   }
 
   /* ── Fade-in ─────────────────────────────────────────────────── */
@@ -921,4 +953,5 @@
     border-top-color: color-mix(in oklch, var(--color-surface-800) 60%, transparent);
     color: var(--color-surface-600);
   }
+
 </style>
