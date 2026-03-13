@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { fade, scale } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import { Search, Pencil, Trash2, X } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
@@ -188,12 +190,16 @@
 <!-- Edit modal -->
 {#if editTarget}
   <div
+    transition:fade={{ duration: 200 }}
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     role="dialog"
     aria-modal="true"
     aria-label="Edit user"
   >
-    <div class="card preset-filled-surface-100-900 w-full max-w-md shadow-xl">
+    <div
+      transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
+      class="card preset-filled-surface-100-900 w-full max-w-md shadow-xl"
+    >
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
         <h2 class="text-lg font-semibold">Edit User</h2>
         <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (editTarget = null)} aria-label="Close">
@@ -241,12 +247,16 @@
 <!-- Delete confirm modal -->
 {#if deleteTarget}
   <div
+    transition:fade={{ duration: 200 }}
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     role="dialog"
     aria-modal="true"
     aria-label="Delete user"
   >
-    <div class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl">
+    <div
+      transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
+      class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl"
+    >
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
         <h2 class="text-lg font-semibold">Delete User</h2>
         <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (deleteTarget = null)} aria-label="Close">

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import MarketingNav from '$lib/components/MarketingNav.svelte';
   import type { ActionData } from './$types';
 
   let { form }: { form: ActionData } = $props();
@@ -9,7 +10,9 @@
   <title>Create Account</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center p-4">
+<MarketingNav />
+
+<div class="flex min-h-screen items-center justify-center p-4 pt-14">
   <div class="card preset-filled-surface-100-900 w-full max-w-md overflow-hidden">
 
     <header class="preset-filled-primary-500 p-8 text-center space-y-1">
