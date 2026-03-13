@@ -11,6 +11,7 @@
 
   let users = $state([...data.users]);
   let query = $state('');
+  let currentPage = $state(1);
 
   const filtered = $derived(
     query.trim()
@@ -23,6 +24,13 @@
         })
       : users
   );
+
+  const PAGE_SIZE  = 20;
+  const totalPages = $derived(Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
+  const pageUsers  = $derived(filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+
+  // Reset to page 1 whenever search query changes
+  $effect(() => { query; currentPage = 1; });
 
   // --- Edit modal ---
   let editTarget = $state<User | null>(null);
@@ -129,7 +137,7 @@
         </tr>
       </thead>
       <tbody>
-        {#each filtered as user}
+        {#each pageUsers as user}
           <tr class="border-b border-surface-200-800 last:border-0 hover:preset-tonal-surface transition-colors">
             <td class="px-4 py-3">
               {#if user.firstName || user.lastName}
@@ -180,11 +188,26 @@
         {/each}
       </tbody>
     </table>
-  </div>
 
-  <p class="text-sm text-surface-500">
-    {filtered.length} user{filtered.length !== 1 ? 's' : ''}
-  </p>
+    <!-- Pagination toolbar -->
+    <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800 text-sm">
+      <span class="text-surface-500 text-xs">
+        {filtered.length === 0
+          ? 'No users'
+          : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} of ${filtered.length}`}
+      </span>
+      {#if totalPages > 1}
+        <div class="flex items-center gap-1">
+          <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === 1}          onclick={() => (currentPage = 1)}           aria-label="First page">«</button>
+          <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === 1}          onclick={() => (currentPage -= 1)}          aria-label="Previous page">‹</button>
+          <span class="px-2 text-xs text-surface-500">{currentPage} / {totalPages}</span>
+          <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === totalPages} onclick={() => (currentPage += 1)}          aria-label="Next page">›</button>
+          <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === totalPages} onclick={() => (currentPage = totalPages)}   aria-label="Last page">»</button>
+        </div>
+      {/if}
+    </div>
+
+  </div>
 </div>
 
 <!-- Edit modal -->

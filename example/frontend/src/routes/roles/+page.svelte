@@ -1,12 +1,22 @@
 <script lang="ts">
+  import { Search } from 'lucide-svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 
-  const ACTIONS    = ['create', 'read', 'update', 'delete'] as const;
-  const RESOURCES  = ['dashboard', 'users', 'roles'] as const;
+  const ACTIONS   = ['create', 'read', 'update', 'delete'] as const;
+  const RESOURCES = ['dashboard', 'users', 'roles'] as const;
 
   function permLabel(action: string) { return action[0].toUpperCase(); }
+
+  // Accordion open state — track which role names are expanded
+  let openRoles = $state<Set<string>>(new Set([data.roles[0]?.name]));
+
+  function toggleRole(name: string) {
+    const next = new Set(openRoles);
+    next.has(name) ? next.delete(name) : next.add(name);
+    openRoles = next;
+  }
 
   // Local mutable users list for role select
   let users = $state([...data.users]);
@@ -21,6 +31,28 @@
       users = users.map(u => u.id === userId ? { ...u, role } : u);
     }
   }
+
+  // Search + pagination for User Assignments
+  const PAGE_SIZE   = 20;
+  let userQuery     = $state('');
+  let currentPage   = $state(1);
+
+  const filteredUsers = $derived(
+    userQuery.trim()
+      ? users.filter((u) => {
+          const q = userQuery.toLowerCase();
+          return u.username?.toLowerCase().includes(q)
+            || u.email?.toLowerCase().includes(q)
+            || u.firstName?.toLowerCase().includes(q)
+            || u.lastName?.toLowerCase().includes(q);
+        })
+      : users
+  );
+
+  const totalPages = $derived(Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE)));
+  const pageUsers  = $derived(filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+
+  $effect(() => { userQuery; currentPage = 1; });
 </script>
 
 <svelte:head>
@@ -34,53 +66,85 @@
     <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{data.error}</aside>
   {/if}
 
-  <div class="card preset-filled-surface-100-900 overflow-hidden">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-surface-200-800">
-          <th class="text-left px-4 py-3 font-semibold text-surface-500">Role</th>
-          {#each RESOURCES as resource}
-            <th class="text-center px-4 py-3 font-semibold text-surface-500 capitalize">{resource}</th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody>
-        {#each data.roles as role}
-          <tr class="border-b border-surface-200-800 last:border-0 hover:preset-tonal-surface transition-colors">
-            <td class="px-4 py-3">
-              <div class="font-medium">{role.label}</div>
-              <div class="text-xs text-surface-500">{role.name}</div>
-            </td>
-            {#each RESOURCES as resource}
-              <td class="px-4 py-3">
-                <div class="flex items-center justify-center gap-1">
-                  {#each ACTIONS as action}
-                    <span
-                      class="inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold {role.permissions?.[resource]?.[action] ? 'preset-filled-success-500' : 'preset-filled-surface-300-700 opacity-40'}"
-                      title="{action}"
-                    >
-                      {permLabel(action)}
-                    </span>
-                  {/each}
-                </div>
-              </td>
+  <!-- Roles accordion -->
+  <div class="card preset-filled-surface-100-900 divide-y divide-surface-200-800 overflow-hidden">
+    {#each data.roles as role}
+      {@const open = openRoles.has(role.name)}
+      <!-- Accordion header -->
+      <button
+        type="button"
+        class="w-full flex items-center justify-between px-4 py-3 text-left hover:preset-tonal-surface transition-colors"
+        onclick={() => toggleRole(role.name)}
+        aria-expanded={open}
+      >
+        <div>
+          <span class="font-semibold">{role.label}</span>
+          <span class="ml-2 text-xs text-surface-500">{role.name}</span>
+        </div>
+        <svg
+          class="size-4 text-surface-400 transition-transform duration-200 {open ? 'rotate-180' : ''}"
+          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+        >
+          <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+
+      <!-- Accordion body -->
+      {#if open}
+        <div class="px-4 py-4 border-t border-surface-200-800 bg-surface-50-950/30">
+          <!-- 5-column grid: label col + 4 action cols per resource -->
+          <div class="grid gap-x-4 gap-y-3" style="grid-template-columns: minmax(7rem,1fr) repeat(4, 2.5rem);">
+
+            <!-- Header row -->
+            <div class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Resource</div>
+            {#each ACTIONS as action}
+              <div class="text-xs font-semibold text-surface-500 uppercase tracking-wide text-center">{action[0].toUpperCase()}</div>
             {/each}
-          </tr>
-        {:else}
-          <tr>
-            <td colspan={RESOURCES.length + 1} class="px-4 py-8 text-center text-surface-500">
-              No roles found.
-            </td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
+
+            <!-- One row per resource -->
+            {#each RESOURCES as resource}
+              <div class="flex items-center text-sm capitalize font-medium">{resource}</div>
+              {#each ACTIONS as action}
+                <div class="flex items-center justify-center">
+                  <span
+                    class="inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold {role.permissions?.[resource]?.[action] ? 'preset-filled-success-500' : 'preset-filled-surface-300-700 opacity-40'}"
+                    title="{action}"
+                  >
+                    {permLabel(action)}
+                  </span>
+                </div>
+              {/each}
+            {/each}
+
+          </div>
+          <p class="mt-3 text-xs text-surface-400">
+            C = create &nbsp; R = read &nbsp; U = update &nbsp; D = delete
+          </p>
+        </div>
+      {/if}
+    {:else}
+      <div class="px-4 py-8 text-center text-surface-500 text-sm">No roles found.</div>
+    {/each}
   </div>
 
-  <!-- User role assignments -->
+  <!-- User Assignments -->
   {#if data.canAssign && users.length > 0}
     <div class="space-y-3">
       <h2 class="text-lg font-semibold">User Assignments</h2>
+
+      <!-- Search -->
+      <div class="input-group grid-cols-[auto_1fr]">
+        <div class="ig-cell preset-tonal">
+          <Search class="size-4" />
+        </div>
+        <input
+          type="search"
+          placeholder="Search by name or email…"
+          class="ig-input"
+          bind:value={userQuery}
+        />
+      </div>
+
       <div class="card preset-filled-surface-100-900 overflow-hidden">
         <table class="w-full text-sm">
           <thead>
@@ -91,7 +155,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each users as user}
+            {#each pageUsers as user}
               <tr class="border-b border-surface-200-800 last:border-0">
                 <td class="px-4 py-3">
                   {#if user.firstName || user.lastName}
@@ -117,11 +181,27 @@
             {/each}
           </tbody>
         </table>
+
+        <!-- Pagination toolbar -->
+        <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800 text-sm">
+          <span class="text-surface-500 text-xs">
+            {filteredUsers.length === 0
+              ? 'No users'
+              : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filteredUsers.length)} of ${filteredUsers.length}`}
+          </span>
+          {#if totalPages > 1}
+            <div class="flex items-center gap-1">
+              <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === 1}          onclick={() => (currentPage = 1)}           aria-label="First page">«</button>
+              <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === 1}          onclick={() => (currentPage -= 1)}          aria-label="Previous page">‹</button>
+              <span class="px-2 text-xs text-surface-500">{currentPage} / {totalPages}</span>
+              <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === totalPages} onclick={() => (currentPage += 1)}          aria-label="Next page">›</button>
+              <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === totalPages} onclick={() => (currentPage = totalPages)}   aria-label="Last page">»</button>
+            </div>
+          {/if}
+        </div>
+
       </div>
     </div>
   {/if}
 
-  <div class="text-xs text-surface-500 space-y-1">
-    <p><span class="font-semibold">C</span> = create &nbsp; <span class="font-semibold">R</span> = read &nbsp; <span class="font-semibold">U</span> = update &nbsp; <span class="font-semibold">D</span> = delete</p>
-  </div>
 </div>

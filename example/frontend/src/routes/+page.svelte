@@ -465,7 +465,7 @@
   .hex-bg {
     position: absolute;
     inset: -10% -5%;
-    opacity: 0.18;
+    opacity: 0.66;
     pointer-events: none;
     will-change: transform;
   }
