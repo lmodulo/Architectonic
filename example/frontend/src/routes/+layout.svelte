@@ -1,9 +1,10 @@
 <script lang="ts">
   import '../app.css';
   import { Navigation, Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
-  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users } from 'lucide-svelte';
+  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users, ShieldCheck } from 'lucide-svelte';
   import { navigating } from '$app/state';
   import { goto } from '$app/navigation';
+  import { hasPermission } from '$lib/permissions';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
 
@@ -58,7 +59,11 @@
 
       <!-- Trail -->
       <div class="flex items-center gap-2">
-        <span class="text-sm opacity-60 hidden sm:inline">{data.user.username}</span>
+        <span class="text-sm opacity-60 hidden sm:inline">
+          {data.user.firstName && data.user.lastName
+            ? `${data.user.firstName} ${data.user.lastName}`
+            : data.user.username}
+        </span>
 
         <SkMenu positioning={{ placement: 'bottom-end' }}>
           <SkMenu.Trigger
@@ -77,14 +82,26 @@
                 <User class="size-4 shrink-0" />
                 <span>Profile</span>
               </SkMenu.Item>
-              <SkMenu.Item
-                value="manage-users"
-                onclick={() => goto('/manage-users')}
-                class="flex items-center gap-3 px-3 py-2 rounded-base hover:preset-tonal w-full text-left text-sm cursor-pointer"
-              >
-                <Users class="size-4 shrink-0" />
-                <span>Manage Users</span>
-              </SkMenu.Item>
+              {#if hasPermission(data.user, 'users', 'read')}
+                <SkMenu.Item
+                  value="manage-users"
+                  onclick={() => goto('/manage-users')}
+                  class="flex items-center gap-3 px-3 py-2 rounded-base hover:preset-tonal w-full text-left text-sm cursor-pointer"
+                >
+                  <Users class="size-4 shrink-0" />
+                  <span>Manage Users</span>
+                </SkMenu.Item>
+              {/if}
+              {#if hasPermission(data.user, 'roles', 'read')}
+                <SkMenu.Item
+                  value="roles"
+                  onclick={() => goto('/roles')}
+                  class="flex items-center gap-3 px-3 py-2 rounded-base hover:preset-tonal w-full text-left text-sm cursor-pointer"
+                >
+                  <ShieldCheck class="size-4 shrink-0" />
+                  <span>Roles</span>
+                </SkMenu.Item>
+              {/if}
               <SkMenu.Separator class="my-1 border-t border-surface-200-800" />
               <SkMenu.Item
                 value="logout"
@@ -135,22 +152,6 @@
               >
                 <House class="size-4 shrink-0" />
                 <Navigation.TriggerText>Dashboard</Navigation.TriggerText>
-              </Navigation.TriggerAnchor>
-              <Navigation.TriggerAnchor
-                href="/profile"
-                class="flex items-center gap-3 p-3 rounded-base hover:preset-tonal w-full"
-                onclick={() => (sidebarOpen = false)}
-              >
-                <User class="size-4 shrink-0" />
-                <Navigation.TriggerText>Profile</Navigation.TriggerText>
-              </Navigation.TriggerAnchor>
-              <Navigation.TriggerAnchor
-                href="/manage-users"
-                class="flex items-center gap-3 p-3 rounded-base hover:preset-tonal w-full"
-                onclick={() => (sidebarOpen = false)}
-              >
-                <Users class="size-4 shrink-0" />
-                <Navigation.TriggerText>Manage Users</Navigation.TriggerText>
               </Navigation.TriggerAnchor>
             </Navigation.Group>
           </Navigation.Menu>

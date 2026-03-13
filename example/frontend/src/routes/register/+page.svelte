@@ -25,6 +25,34 @@
       {/if}
 
       <form method="POST" use:enhance class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <label class="label">
+            <span class="label-text">First Name</span>
+            <input
+              class="input"
+              type="text"
+              name="firstName"
+              value={form?.firstName ?? ''}
+              maxlength="50"
+              autocomplete="given-name"
+              placeholder="Jane"
+            />
+          </label>
+
+          <label class="label">
+            <span class="label-text">Last Name</span>
+            <input
+              class="input"
+              type="text"
+              name="lastName"
+              value={form?.lastName ?? ''}
+              maxlength="50"
+              autocomplete="family-name"
+              placeholder="Doe"
+            />
+          </label>
+        </div>
+
         <label class="label">
           <span class="label-text">Username</span>
           <input

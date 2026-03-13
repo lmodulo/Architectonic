@@ -3,8 +3,10 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
-  let username = $state(data.user?.username ?? '');
-  let email    = $state(data.user?.email    ?? '');
+  let firstName = $state(data.user?.firstName ?? '');
+  let lastName  = $state(data.user?.lastName  ?? '');
+  let username  = $state(data.user?.username  ?? '');
+  let email     = $state(data.user?.email     ?? '');
 </script>
 
 <svelte:head>
@@ -30,6 +32,33 @@
     {/if}
 
     <form method="POST" class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <label class="label">
+          <span class="label-text text-sm font-medium">First Name</span>
+          <input
+            type="text"
+            name="firstName"
+            class="input mt-1"
+            bind:value={firstName}
+            maxlength="50"
+            autocomplete="given-name"
+            placeholder="Jane"
+          />
+        </label>
+        <label class="label">
+          <span class="label-text text-sm font-medium">Last Name</span>
+          <input
+            type="text"
+            name="lastName"
+            class="input mt-1"
+            bind:value={lastName}
+            maxlength="50"
+            autocomplete="family-name"
+            placeholder="Doe"
+          />
+        </label>
+      </div>
+
       <label class="label">
         <span class="label-text text-sm font-medium">Username</span>
         <input

@@ -1,11 +1,13 @@
 // See https://kit.svelte.dev/docs/types#app
+import type { UserWithPermissions } from '$lib/permissions';
+
 declare global {
   namespace App {
     interface Locals {
-      user: { id: string; username: string; email: string } | null;
+      user: UserWithPermissions | null;
     }
     interface PageData {
-      user?: { id: string; username: string; email: string } | null;
+      user?: UserWithPermissions | null;
     }
     // interface Error {}
     // interface Platform {}

@@ -7,6 +7,7 @@ export default async function ensureIndexes(app: FastifyInstance) {
     const db = app.mongo.db!;
     await db.collection('users').createIndex({ email: 1 },    { unique: true });
     await db.collection('users').createIndex({ username: 1 }, { unique: true });
+    await db.collection('roles').createIndex({ name: 1 },     { unique: true });
     // sessions TTL index is managed automatically by connect-mongo
   });
 }

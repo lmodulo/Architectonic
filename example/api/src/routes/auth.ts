@@ -5,9 +5,9 @@ import bcrypt from 'bcryptjs';
 const COLLECTION  = 'users';
 const SALT_ROUNDS = 12;
 
-interface RegisterBody { username: string; email: string; password: string }
+interface RegisterBody { username: string; email: string; password: string; firstName?: string; lastName?: string }
 interface LoginBody    { email: string; password: string }
-interface ProfileBody  { username?: string; email?: string }
+interface ProfileBody  { username?: string; email?: string; firstName?: string; lastName?: string }
 
 export default async function authRoutes(app: FastifyInstance) {
 
@@ -18,15 +18,17 @@ export default async function authRoutes(app: FastifyInstance) {
         type: 'object',
         required: ['username', 'email', 'password'],
         properties: {
-          username: { type: 'string', minLength: 2, maxLength: 50 },
-          email:    { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 8 }
+          username:  { type: 'string', minLength: 2, maxLength: 50 },
+          email:     { type: 'string', format: 'email' },
+          password:  { type: 'string', minLength: 8 },
+          firstName: { type: 'string', maxLength: 50 },
+          lastName:  { type: 'string', maxLength: 50 }
         }
       }
     }
   }, async (req, reply) => {
     const col = app.mongo.db!.collection(COLLECTION);
-    const { username, email, password } = req.body;
+    const { username, email, password, firstName, lastName } = req.body;
 
     const existing = await col.findOne({
       $or: [{ email: email.toLowerCase() }, { username }]
@@ -34,11 +36,16 @@ export default async function authRoutes(app: FastifyInstance) {
     if (existing) return reply.conflict('Username or email already in use');
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const now = new Date();
-    const result = await col.insertOne({
+    const now       = new Date();
+    const userCount = await col.countDocuments({});
+    const role      = userCount === 0 ? 'admin' : 'viewer';
+    const result    = await col.insertOne({
       username,
       email: email.toLowerCase(),
       passwordHash,
+      firstName: firstName ?? '',
+      lastName:  lastName  ?? '',
+      role,
       createdAt: now,
       updatedAt: now
     });
@@ -49,7 +56,7 @@ export default async function authRoutes(app: FastifyInstance) {
     await req.session.save();
 
     reply.code(201);
-    return { id: result.insertedId.toString(), username, email: email.toLowerCase() };
+    return { id: result.insertedId.toString(), username, email: email.toLowerCase(), role };
   });
 
   // POST /auth/login
@@ -94,19 +101,23 @@ export default async function authRoutes(app: FastifyInstance) {
       body: {
         type: 'object',
         properties: {
-          username: { type: 'string', minLength: 2, maxLength: 50 },
-          email:    { type: 'string', format: 'email' }
+          username:  { type: 'string', minLength: 2, maxLength: 50 },
+          email:     { type: 'string', format: 'email' },
+          firstName: { type: 'string', maxLength: 50 },
+          lastName:  { type: 'string', maxLength: 50 }
         }
       }
     }
   }, async (req, reply) => {
     if (!req.session.userId) return reply.unauthorized('Not authenticated');
     const col = app.mongo.db!.collection(COLLECTION);
-    const { username, email } = req.body;
+    const { username, email, firstName, lastName } = req.body;
 
     const updates: Record<string, unknown> = { updatedAt: new Date() };
-    if (username) updates.username = username;
-    if (email)    updates.email    = email.toLowerCase();
+    if (username)             updates.username  = username;
+    if (email)                updates.email     = email.toLowerCase();
+    if (firstName !== undefined) updates.firstName = firstName;
+    if (lastName  !== undefined) updates.lastName  = lastName;
 
     if (username || email) {
       const conflict = await col.findOne({
@@ -135,13 +146,28 @@ export default async function authRoutes(app: FastifyInstance) {
     };
   });
 
-  // GET /auth/me
+  // GET /auth/me — returns user with role + live permissions
   app.get('/me', async (req, reply) => {
     if (!req.session.userId) return reply.unauthorized('Not authenticated');
+
+    const db   = app.mongo.db!;
+    const user = await db.collection(COLLECTION).findOne(
+      { _id: new ObjectId(req.session.userId) },
+      { projection: { passwordHash: 0 } }
+    );
+    if (!user) return reply.unauthorized('User not found');
+
+    const roleDoc     = await db.collection('roles').findOne({ name: user.role });
+    const permissions = roleDoc?.permissions ?? {};
+
     return {
-      id:       req.session.userId,
-      username: req.session.username,
-      email:    req.session.email
+      id:          user._id.toString(),
+      username:    user.username,
+      email:       user.email,
+      firstName:   user.firstName ?? '',
+      lastName:    user.lastName  ?? '',
+      role:        user.role ?? 'viewer',
+      permissions
     };
   });
 }

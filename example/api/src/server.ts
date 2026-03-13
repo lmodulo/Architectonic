@@ -5,10 +5,13 @@ import sensible from '@fastify/sensible';
 import mongodb from '@fastify/mongodb';
 import sessionPlugin from './plugins/session.js';
 import ensureIndexes from './plugins/indexes.js';
-import healthRoutes from './routes/health.js';
+import authPlugin    from './plugins/auth.js';
+import seedPlugin    from './plugins/seed.js';
+import healthRoutes  from './routes/health.js';
 import exampleRoutes from './routes/example.js';
-import authRoutes from './routes/auth.js';
-import usersRoutes from './routes/users.js';
+import authRoutes    from './routes/auth.js';
+import usersRoutes   from './routes/users.js';
+import rolesRoutes   from './routes/roles.js';
 
 const HOST      = process.env.HOST      ?? '0.0.0.0';
 const PORT      = Number(process.env.PORT ?? 4000);
@@ -41,7 +44,9 @@ await app.register(mongodb, {
 });
 
 await app.register(sessionPlugin); // Must come after mongodb (shares MONGO_URI)
-await app.register(ensureIndexes); // Creates user indexes on first boot
+await app.register(ensureIndexes); // Creates user/roles indexes on first boot
+await app.register(authPlugin);    // Decorates requireAuth + requirePermission
+await app.register(seedPlugin);    // Upserts default roles on every boot
 
 // --- Routes ---
 
@@ -49,6 +54,7 @@ await app.register(healthRoutes);
 await app.register(exampleRoutes, { prefix: '/examples' });
 await app.register(authRoutes,    { prefix: '/auth' });
 await app.register(usersRoutes,   { prefix: '/users' });
+await app.register(rolesRoutes,   { prefix: '/roles' });
 
 // --- Start ---
 
