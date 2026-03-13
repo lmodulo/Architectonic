@@ -6,6 +6,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { hasPermission } from '$lib/permissions';
+  import { logo } from '$lib/config/logo';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
 
@@ -66,8 +67,11 @@
         {#if sidebarOpen}<X class="size-5" />{:else}<MenuIcon class="size-5" />{/if}
       </button>
 
-      <!-- Title -->
-      <span class="text-xl font-semibold flex-1">App Skeleton</span>
+      <!-- Logo / Title -->
+      <a href="/dashboard" class="flex items-center gap-2 flex-1 no-underline text-inherit">
+        <img src={logo.image} alt="" class="size-6 text-primary-500" aria-hidden="true" />
+        <span class="text-xl font-semibold">{logo.text}</span>
+      </a>
 
       <!-- Trail -->
       <div class="flex items-center gap-2">
