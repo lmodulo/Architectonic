@@ -1,5 +1,0 @@
-@import "tailwindcss";
-
-/* lmodulo custom theme — CSS custom properties for [data-theme="theme"] */
-@import "../lmodulo-theme.css";
-@import "@skeletonlabs/skeleton";
