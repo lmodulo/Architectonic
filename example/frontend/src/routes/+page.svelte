@@ -100,7 +100,7 @@
       badge: null,
       features: ['Full source code', 'Auth & session management', 'SvelteKit + Fastify', 'Docker dev stack', 'MIT License'],
       cta: 'Clone Now',
-      href: '/register',
+      href: '/login',
       highlight: false
     },
     {
@@ -111,7 +111,7 @@
       badge: 'Most Popular',
       features: ['Everything in Starter', 'RBAC roles & permissions', 'Admin dashboard', 'Manage Users UI', 'Priority support'],
       cta: 'Get Started',
-      href: '/register',
+      href: '/login',
       highlight: true
     },
     {
@@ -122,7 +122,7 @@
       badge: null,
       features: ['Everything in Pro', 'Unlimited team seats', 'Custom branding', 'Audit logging', 'SLA guarantee'],
       cta: 'Contact Sales',
-      href: '/register',
+      href: '/login',
       highlight: false
     }
   ];
@@ -201,7 +201,7 @@
     </p>
 
     <div class="flex flex-wrap gap-4 justify-center">
-      <a href="/register" class="btn preset-filled-primary-500 btn-lg">Get Started Free</a>
+      <a href="/login" class="btn preset-filled-primary-500 btn-lg">Get Started Free</a>
       <a href="/login"    class="btn preset-outlined-primary-500 btn-lg">Sign In</a>
     </div>
   </div>
@@ -444,7 +444,7 @@
   <div class="fade-el section-inner text-center space-y-6" bind:this={fadeRefs[19]}>
     <h2 class="cta-heading">Ready to build something?</h2>
     <p class="cta-sub">Create your account and have a running authenticated app in minutes.</p>
-    <a href="/register" class="btn preset-filled-primary-500 btn-lg">Start Building</a>
+    <a href="/login" class="btn preset-filled-primary-500 btn-lg">Start Building</a>
   </div>
 </section>
 

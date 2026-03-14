@@ -1,9 +1,48 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
+import bcrypt from 'bcryptjs';
 
-const COLLECTION = 'users';
+const COLLECTION  = 'users';
+const SALT_ROUNDS = 12;
 
 export default async function usersRoutes(app: FastifyInstance) {
+
+  // POST /users — admin creates a new user (no auto-login)
+  app.post<{ Body: { username: string; email: string; password: string; firstName?: string; lastName?: string } }>('/', {
+    preHandler: app.requirePermission('users', 'create'),
+    schema: {
+      body: {
+        type: 'object',
+        required: ['username', 'email', 'password'],
+        properties: {
+          username:  { type: 'string', minLength: 2, maxLength: 50 },
+          email:     { type: 'string', format: 'email' },
+          password:  { type: 'string', minLength: 8 },
+          firstName: { type: 'string', maxLength: 50 },
+          lastName:  { type: 'string', maxLength: 50 }
+        }
+      }
+    }
+  }, async (req, reply) => {
+    const col = app.mongo.db!.collection(COLLECTION);
+    const { username, email, password, firstName = '', lastName = '' } = req.body;
+
+    const existing = await col.findOne({ $or: [{ email: email.toLowerCase() }, { username }] });
+    if (existing) return reply.conflict('Username or email already in use');
+
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    const now = new Date();
+    const result = await col.insertOne({
+      username, email: email.toLowerCase(), passwordHash,
+      firstName, lastName, role: 'viewer', createdAt: now, updatedAt: now
+    });
+
+    reply.code(201);
+    return {
+      id: result.insertedId.toString(), username,
+      email: email.toLowerCase(), firstName, lastName, role: 'viewer', createdAt: now
+    };
+  });
 
   // GET /users
   app.get('/', {

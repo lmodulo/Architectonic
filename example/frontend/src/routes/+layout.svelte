@@ -7,6 +7,7 @@
   import { onMount } from 'svelte';
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
+  import ChatAssistant from '$lib/components/ChatAssistant.svelte';
   import { brand } from '$lib/config/logo';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -202,6 +203,8 @@
 
     </div>
   </div>
+
+  <ChatAssistant />
 
 {:else}
   <!-- Public / unauthenticated pages (login, register, etc.) -->

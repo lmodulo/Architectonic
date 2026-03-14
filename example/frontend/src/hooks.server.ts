@@ -7,7 +7,7 @@ import type { Action } from '$lib/permissions';
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
 // Pages that unauthenticated users may visit (and authenticated users are redirected away from)
-const AUTH_REDIRECT_PATHS = new Set(['/login', '/register']);
+const AUTH_REDIRECT_PATHS = new Set(['/login']);
 
 // Routes that require a specific permission beyond authentication
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {

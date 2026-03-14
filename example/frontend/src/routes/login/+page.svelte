@@ -59,10 +59,6 @@
       </form>
     </section>
 
-    <footer class="p-4 text-center text-sm opacity-60 border-t border-surface-200-800">
-      Don't have an account?
-      <a href="/register" class="anchor font-semibold ml-1">Register</a>
-    </footer>
 
   </div>
 </div>

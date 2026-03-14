@@ -16,6 +16,7 @@ services:
       - ./frontend/lmodulo-theme.css:/app/lmodulo-theme.css
     environment:
       - NODE_ENV=development
+      - OLLAMA_URL=http://host.docker.internal:11434
 
   api:
     build:

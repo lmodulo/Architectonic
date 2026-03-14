@@ -33,8 +33,7 @@
         <Moon class="size-4" />
       {/if}
     </button>
-    <a href="/register" class="btn preset-outlined-primary-500 btn-sm">Register</a>
-    <a href="/login"    class="btn preset-filled-primary-500 btn-sm">Sign In</a>
+    <a href="/login" class="btn preset-filled-primary-500 btn-sm">Sign In</a>
   </div>
 </nav>
 
