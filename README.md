@@ -213,6 +213,8 @@ place themed CSS file [themename-theme.css] into the frontend directory.
 
 ## Tasks
 [] password recovery
-[] create new user 
 [] change delete user to set `inactive`
 [] research hosting for dev (https://railway.com/pricing)
+[] research Stripe and Square integration
+[] dev/integration/staging/prod environments (dev/live switch)
+[] research module framework
