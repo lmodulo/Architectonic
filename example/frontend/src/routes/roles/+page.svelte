@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Search } from 'lucide-svelte';
+  import { Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { Pagination } from '@skeletonlabs/skeleton-svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -49,8 +50,7 @@
       : users
   );
 
-  const totalPages = $derived(Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE)));
-  const pageUsers  = $derived(filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+  const pageUsers = $derived(filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
 
   $effect(() => { userQuery; currentPage = 1; });
 </script>
@@ -183,21 +183,35 @@
         </table>
 
         <!-- Pagination toolbar -->
-        <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800 text-sm">
+        <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800">
           <span class="text-surface-500 text-xs">
             {filteredUsers.length === 0
               ? 'No users'
               : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filteredUsers.length)} of ${filteredUsers.length}`}
           </span>
-          {#if totalPages > 1}
-            <div class="flex items-center gap-1">
-              <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === 1}          onclick={() => (currentPage = 1)}           aria-label="First page">«</button>
-              <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === 1}          onclick={() => (currentPage -= 1)}          aria-label="Previous page">‹</button>
-              <span class="px-2 text-xs text-surface-500">{currentPage} / {totalPages}</span>
-              <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === totalPages} onclick={() => (currentPage += 1)}          aria-label="Next page">›</button>
-              <button type="button" class="btn btn-sm preset-tonal hover:preset-tonal-primary" disabled={currentPage === totalPages} onclick={() => (currentPage = totalPages)}   aria-label="Last page">»</button>
-            </div>
-          {/if}
+          <Pagination
+            count={filteredUsers.length}
+            pageSize={PAGE_SIZE}
+            page={currentPage}
+            onPageChange={(e) => (currentPage = e.page)}
+            siblingCount={1}
+          >
+            <Pagination.FirstTrigger class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronFirst class="size-4" /></Pagination.FirstTrigger>
+            <Pagination.PrevTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLeft  class="size-4" /></Pagination.PrevTrigger>
+            <Pagination.Context>
+              {#snippet children(pagination)}
+                {#each pagination().pages as p (p)}
+                  {#if p.type === 'page'}
+                    <Pagination.Item {...p} class="btn-icon btn-sm {p.value === currentPage ? 'preset-tonal-primary' : 'hover:preset-tonal'}">{p.value}</Pagination.Item>
+                  {:else}
+                    <Pagination.Ellipsis index={p.index} class="btn-icon btn-sm opacity-50">…</Pagination.Ellipsis>
+                  {/if}
+                {/each}
+              {/snippet}
+            </Pagination.Context>
+            <Pagination.NextTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronRight class="size-4" /></Pagination.NextTrigger>
+            <Pagination.LastTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLast  class="size-4" /></Pagination.LastTrigger>
+          </Pagination>
         </div>
 
       </div>

@@ -210,3 +210,9 @@ Import and use in any component:
 ## Custom CSS theme
 Build theme here: https://themes.skeleton.dev/themes/create
 place themed CSS file [themename-theme.css] into the frontend directory.
+
+## Tasks
+[] password recovery
+[] create new user 
+[] change delete user to set `inactive`
+[] research hosting for dev (https://railway.com/pricing)
