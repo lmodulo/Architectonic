@@ -28,7 +28,7 @@
 <!-- Trigger button -->
 <button
   type="button"
-  class="fixed bottom-6 right-6 z-50 btn-icon preset-filled-primary-500 shadow-lg rounded-full size-14"
+  class="fixed bottom-6 right-6 z-50 btn-icon preset-filled-primary-500 shadow-lg rounded-full size-12"
   onclick={toggleOpen}
   aria-label={isOpen() ? 'Close assistant' : 'Open assistant'}
 >

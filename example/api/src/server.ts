@@ -11,7 +11,8 @@ import healthRoutes  from './routes/health.js';
 import exampleRoutes from './routes/example.js';
 import authRoutes    from './routes/auth.js';
 import usersRoutes   from './routes/users.js';
-import rolesRoutes   from './routes/roles.js';
+import rolesRoutes    from './routes/roles.js';
+import messagesRoutes from './routes/messages.js';
 
 const HOST      = process.env.HOST      ?? '0.0.0.0';
 const PORT      = Number(process.env.PORT ?? 4000);
@@ -54,7 +55,8 @@ await app.register(healthRoutes);
 await app.register(exampleRoutes, { prefix: '/examples' });
 await app.register(authRoutes,    { prefix: '/auth' });
 await app.register(usersRoutes,   { prefix: '/users' });
-await app.register(rolesRoutes,   { prefix: '/roles' });
+await app.register(rolesRoutes,    { prefix: '/roles' });
+await app.register(messagesRoutes, { prefix: '/messages' });
 
 // --- Start ---
 

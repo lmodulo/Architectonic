@@ -200,7 +200,7 @@
       </thead>
       <tbody>
         {#each pageUsers as user}
-          <tr class="border-b border-surface-200-800 last:border-0 hover:preset-tonal-surface transition-colors">
+          <tr class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
             <td class="px-4 py-3">
               {#if user.firstName || user.lastName}
                 <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>

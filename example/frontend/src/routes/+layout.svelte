@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import { Navigation, Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
-  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon } from 'lucide-svelte';
+  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon, Mail as MailIcon } from 'lucide-svelte';
   import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -17,9 +17,20 @@
   let sidebarOpen = $state(false);
   let logoutForm: HTMLFormElement = $state()!;
   let isDark = $state(false);
+  let unreadCount = $state(data.unreadCount ?? 0);
 
   onMount(() => {
     isDark = document.documentElement.classList.contains('dark');
+  });
+
+  // Re-fetch unread count on every navigation
+  $effect(() => {
+    void page.url.pathname; // track route changes
+    if (!data.user) return;
+    fetch('/api/messages/unread-count')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) unreadCount = d.count; })
+      .catch(() => {});
   });
 
   function toggleTheme() {
@@ -100,6 +111,15 @@
             <Moon class="size-5" />
           {/if}
         </button>
+
+        <a href="/messages" class="btn-icon hover:preset-tonal relative" aria-label="Messages">
+          <MailIcon class="size-5" />
+          {#if unreadCount > 0}
+            <span class="preset-filled-error-500 absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          {/if}
+        </a>
 
         <SkMenu positioning={{ placement: 'bottom-end' }}>
           <SkMenu.Trigger
@@ -188,6 +208,17 @@
               >
                 <House class="size-4 shrink-0" />
                 <Navigation.TriggerText>Dashboard</Navigation.TriggerText>
+              </Navigation.TriggerAnchor>
+              <Navigation.TriggerAnchor
+                href="/messages"
+                class="flex items-center gap-3 p-3 rounded-base w-full {page.url.pathname.startsWith('/messages') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+                onclick={() => (sidebarOpen = false)}
+              >
+                <MailIcon class="size-4 shrink-0" />
+                <Navigation.TriggerText>Messages</Navigation.TriggerText>
+                {#if unreadCount > 0}
+                  <span class="ml-auto badge preset-filled-error-500 text-[10px] px-1.5 py-0.5">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                {/if}
               </Navigation.TriggerAnchor>
             </Navigation.Group>
           </Navigation.Menu>

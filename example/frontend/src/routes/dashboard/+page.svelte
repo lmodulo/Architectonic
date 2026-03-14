@@ -310,7 +310,7 @@
         </thead>
         <tbody>
           {#each pageRows as row}
-            <tr class="border-b border-surface-200-800 last:border-0 hover:preset-tonal-surface transition-colors">
+            <tr class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
               <td class="px-4 py-3 font-mono text-xs opacity-60">{row.id}</td>
               <td class="px-4 py-3 text-surface-500">{row.date.toLocaleDateString()}</td>
               <td class="px-4 py-3">{row.product}</td>
