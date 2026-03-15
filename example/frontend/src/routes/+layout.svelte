@@ -234,7 +234,9 @@
     </div>
   </div>
 
-  <ChatAssistant />
+  {#if data.chatEnabled}
+    <ChatAssistant />
+  {/if}
 
 {:else}
   <!-- Public / unauthenticated pages (login, register, etc.) -->

@@ -24,6 +24,16 @@ export default async function settingsRoutes(app: FastifyInstance) {
     }));
   });
 
+  // GET /settings/:key — requireAuth only: individual settings readable by all authenticated users
+  app.get<{ Params: { key: string } }>('/:key', {
+    preHandler: app.requireAuth,
+    schema: { summary: 'Get a single setting by key' }
+  }, async (req, reply) => {
+    const s = await app.mongo.db!.collection('settings').findOne({ key: req.params.key });
+    if (!s) return reply.notFound('Setting not found');
+    return { key: s.key, value: s.value, type: s.type, label: s.label, description: s.description, options: s.options ?? null };
+  });
+
   // PATCH /settings/:key
   app.patch<{ Params: { key: string }; Body: { value: unknown } }>('/:key', {
     preHandler: app.requirePermission('settings', 'update'),

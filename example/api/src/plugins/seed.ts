@@ -40,6 +40,13 @@ const DEFAULT_SETTINGS = [
     label: 'Default Theme',
     description: 'Application color scheme for new sessions',
     options: ['light', 'dark']
+  },
+  {
+    key: 'chat.enabled',
+    value: true,
+    type: 'boolean',
+    label: 'AI Assistant',
+    description: 'Show the AI chat assistant panel for authenticated users'
   }
 ];
 

@@ -16,5 +16,10 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
     .then((d: { count: number }) => d.count)
     .catch(() => 0);
 
-  return { user: locals.user, unreadCount };
+  const chatEnabled = await fetch(`${API_URL}/settings/chat.enabled`, { headers })
+    .then(r => r.ok ? r.json() : null)
+    .then((d: { value?: unknown } | null) => d?.value !== false)
+    .catch(() => true);
+
+  return { user: locals.user, unreadCount, chatEnabled };
 };
