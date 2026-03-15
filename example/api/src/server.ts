@@ -3,6 +3,7 @@ import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import sensible from '@fastify/sensible';
 import mongodb from '@fastify/mongodb';
+import swagger from '@fastify/swagger';
 import sessionPlugin from './plugins/session.js';
 import ensureIndexes from './plugins/indexes.js';
 import authPlugin    from './plugins/auth.js';
@@ -48,6 +49,20 @@ await app.register(sessionPlugin); // Must come after mongodb (shares MONGO_URI)
 await app.register(ensureIndexes); // Creates user/roles indexes on first boot
 await app.register(authPlugin);    // Decorates requireAuth + requirePermission
 await app.register(seedPlugin);    // Upserts default roles on every boot
+
+// API docs — dev only: GET /docs/yaml  GET /docs/json
+if (process.env.NODE_ENV !== 'production') {
+  await app.register(swagger, {
+    openapi: {
+      info: { title: 'Architectonic API', version: '1.0.0' },
+      components: {
+        securitySchemes: {
+          session: { type: 'apiKey', in: 'cookie', name: 'session' }
+        }
+      }
+    }
+  });
+}
 
 // --- Routes ---
 

@@ -11,7 +11,8 @@ export default async function rolesRoutes(app: FastifyInstance) {
 
   // GET /roles
   app.get('/', {
-    preHandler: app.requirePermission('roles', 'read')
+    preHandler: app.requirePermission('roles', 'read'),
+    schema: { summary: 'List all roles' }
   }, async (_req, _reply) => {
     const roles = await app.mongo.db!.collection('roles')
       .find({})
@@ -30,6 +31,7 @@ export default async function rolesRoutes(app: FastifyInstance) {
   app.post<{ Body: RoleBody }>('/', {
     preHandler: app.requirePermission('roles', 'create'),
     schema: {
+      summary: 'Create a new role',
       body: {
         type: 'object',
         required: ['name', 'label'],
@@ -55,7 +57,8 @@ export default async function rolesRoutes(app: FastifyInstance) {
 
   // GET /roles/:id
   app.get<{ Params: { id: string } }>('/:id', {
-    preHandler: app.requirePermission('roles', 'read')
+    preHandler: app.requirePermission('roles', 'read'),
+    schema: { summary: 'Get a role by ID' }
   }, async (req, reply) => {
     const role = await app.mongo.db!.collection('roles').findOne({ _id: new ObjectId(req.params.id) });
     if (!role) return reply.notFound('Role not found');
@@ -66,6 +69,7 @@ export default async function rolesRoutes(app: FastifyInstance) {
   app.patch<{ Params: { id: string }; Body: RoleBody }>('/:id', {
     preHandler: app.requirePermission('roles', 'update'),
     schema: {
+      summary: 'Update a role label or permissions',
       body: {
         type: 'object',
         properties: {
@@ -91,7 +95,8 @@ export default async function rolesRoutes(app: FastifyInstance) {
 
   // DELETE /roles/:id
   app.delete<{ Params: { id: string } }>('/:id', {
-    preHandler: app.requirePermission('roles', 'delete')
+    preHandler: app.requirePermission('roles', 'delete'),
+    schema: { summary: 'Delete a role (fails if users assigned)' }
   }, async (req, reply) => {
     const db   = app.mongo.db!;
     const role = await db.collection('roles').findOne({ _id: new ObjectId(req.params.id) });

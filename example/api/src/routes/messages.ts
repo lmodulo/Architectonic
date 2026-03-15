@@ -4,7 +4,32 @@ import { ObjectId } from '@fastify/mongodb';
 const MSGS   = 'messages';
 const STATES = 'message_state';
 
-// Shape returned for thread list items
+// ── Private helpers ───────────────────────────────────────────────────────────
+
+type RawMsg = Record<string, any>;
+
+/** Deduplicates messages by threadId, keeping the first (latest) per thread. */
+function latestPerThread(msgs: RawMsg[]): Map<string, RawMsg> {
+  const map = new Map<string, RawMsg>();
+  for (const m of msgs) {
+    const tid = m.threadId.toString();
+    if (!map.has(tid)) map.set(tid, m);
+  }
+  return map;
+}
+
+/** Builds message_state insert rows for a new message: one for sender (read) + one per recipient (unread). */
+function buildStateRows(msgId: ObjectId, recipientIds: ObjectId[], senderId: ObjectId, now: Date) {
+  return [
+    { messageId: msgId, userId: senderId, read: true,  readAt: now,  archived: false, deleted: false },
+    ...recipientIds.map(uid => ({
+      messageId: msgId, userId: uid,      read: false, readAt: null, archived: false, deleted: false,
+    })),
+  ];
+}
+
+// ── Shape returned for thread list items ─────────────────────────────────────
+
 interface ThreadSummary {
   threadId:    string;
   subject:     string;
@@ -17,7 +42,7 @@ interface ThreadSummary {
 export default async function messagesRoutes(app: FastifyInstance) {
 
   // ── GET /messages — inbox ────────────────────────────────────────────────
-  app.get('/', { preHandler: app.requireAuth }, async (req) => {
+  app.get('/', { preHandler: app.requireAuth, schema: { summary: 'Inbox — undeleted threads where user is a recipient' } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -40,11 +65,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
       .toArray();
 
     // Group by threadId, keep only latest per thread
-    const threadMap = new Map<string, typeof msgs[0]>();
-    for (const m of msgs) {
-      const tid = m.threadId.toString();
-      if (!threadMap.has(tid)) threadMap.set(tid, m);
-    }
+    const threadMap = latestPerThread(msgs);
 
     // Count unread per thread
     const stateMap = new Map(states.map(s => [s.messageId.toString(), s]));
@@ -71,7 +92,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/unread-count ───────────────────────────────────────────
-  app.get('/unread-count', { preHandler: app.requireAuth }, async (req) => {
+  app.get('/unread-count', { preHandler: app.requireAuth, schema: { summary: 'Count of unread messages for the authenticated user' } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -85,7 +106,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/sent ───────────────────────────────────────────────────
-  app.get('/sent', { preHandler: app.requireAuth }, async (req) => {
+  app.get('/sent', { preHandler: app.requireAuth, schema: { summary: 'Sent threads — threads where user is the sender' } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -94,12 +115,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
       .sort({ createdAt: -1 })
       .toArray();
 
-    // Group by threadId, keep latest per thread
-    const threadMap = new Map<string, typeof msgs[0]>();
-    for (const m of msgs) {
-      const tid = m.threadId.toString();
-      if (!threadMap.has(tid)) threadMap.set(tid, m);
-    }
+    const threadMap = latestPerThread(msgs);
 
     return [...threadMap.values()].map(m => ({
       threadId:   m.threadId.toString(),
@@ -112,7 +128,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/archived ───────────────────────────────────────────────
-  app.get('/archived', { preHandler: app.requireAuth }, async (req) => {
+  app.get('/archived', { preHandler: app.requireAuth, schema: { summary: 'Archived threads for the authenticated user' } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -128,11 +144,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
       .sort({ createdAt: -1 })
       .toArray();
 
-    const threadMap = new Map<string, typeof msgs[0]>();
-    for (const m of msgs) {
-      const tid = m.threadId.toString();
-      if (!threadMap.has(tid)) threadMap.set(tid, m);
-    }
+    const threadMap = latestPerThread(msgs);
 
     return [...threadMap.values()].map(m => ({
       threadId:    m.threadId.toString(),
@@ -145,7 +157,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/:threadId — full thread ────────────────────────────────
-  app.get<{ Params: { threadId: string } }>('/:threadId', { preHandler: app.requireAuth }, async (req, reply) => {
+  app.get<{ Params: { threadId: string } }>('/:threadId', { preHandler: app.requireAuth, schema: { summary: 'Get full thread; marks all messages as read' } }, async (req, reply) => {
     const db       = app.mongo.db!;
     const userId   = new ObjectId(req.session.userId!);
     let   threadId: ObjectId;
@@ -207,6 +219,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   app.post<{ Body: { to: string[]; cc?: string[]; subject: string; body: string } }>('/', {
     preHandler: app.requireAuth,
     schema: {
+      summary: 'Compose a new message thread',
       body: {
         type: 'object',
         required: ['to', 'subject', 'body'],
@@ -238,17 +251,8 @@ export default async function messagesRoutes(app: FastifyInstance) {
     });
 
     // Create state rows for all recipients + sender
-    const allRecipients = [...new Set([...toIds, ...ccIds])];
-    const stateRows = [
-      // Sender — already read
-      { messageId: msgId, userId: from, read: true, readAt: now, archived: false, deleted: false },
-      // Recipients — unread
-      ...allRecipients.map(uid => ({
-        messageId: msgId, userId: uid,
-        read: false, readAt: null, archived: false, deleted: false,
-      })),
-    ];
-    await db.collection(STATES).insertMany(stateRows);
+    const allRecipients = [...new Set([...toIds.map(String), ...ccIds.map(String)])].map(id => new ObjectId(id));
+    await db.collection(STATES).insertMany(buildStateRows(msgId, allRecipients, from, now));
 
     reply.code(201);
     return { threadId: threadId.toString(), messageId: msgId.toString() };
@@ -258,6 +262,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   app.post<{ Params: { threadId: string }; Body: { body: string } }>('/:threadId/reply', {
     preHandler: app.requireAuth,
     schema: {
+      summary: 'Reply to a thread',
       body: {
         type: 'object',
         required: ['body'],
@@ -297,15 +302,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
       createdAt: now, updatedAt: now,
     });
 
-    // State rows
-    const stateRows = [
-      { messageId: msgId, userId: from, read: true, readAt: now, archived: false, deleted: false },
-      ...toIds.map(uid => ({
-        messageId: msgId, userId: uid,
-        read: false, readAt: null, archived: false, deleted: false,
-      })),
-    ];
-    await db.collection(STATES).insertMany(stateRows);
+    await db.collection(STATES).insertMany(buildStateRows(msgId, toIds, from, now));
 
     reply.code(201);
     return { threadId: threadId.toString(), messageId: msgId.toString() };
@@ -318,6 +315,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   }>('/:threadId/state', {
     preHandler: app.requireAuth,
     schema: {
+      summary: 'Update read/archived/deleted state for a thread',
       body: {
         type: 'object',
         properties: {

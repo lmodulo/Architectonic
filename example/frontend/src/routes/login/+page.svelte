@@ -3,7 +3,10 @@
   import MarketingNav from '$lib/components/MarketingNav.svelte';
   import type { ActionData } from './$types';
 
+  import { page } from '$app/stores';
+
   let { form }: { form: ActionData } = $props();
+  let resetSuccess = $derived($page.url.searchParams.get('reset') === '1');
 </script>
 
 <svelte:head>
@@ -21,6 +24,12 @@
     </header>
 
     <section class="p-8 space-y-4">
+      {#if resetSuccess}
+        <div class="preset-filled-success-500 rounded-base p-3 text-sm">
+          Password reset successfully. Sign in with your new password.
+        </div>
+      {/if}
+
       {#if form?.error}
         <div class="preset-filled-error-500 rounded-base p-3 text-sm">
           {form.error}
@@ -56,6 +65,10 @@
         <button type="submit" class="btn preset-filled-primary-500 w-full">
           Sign In
         </button>
+
+        <p class="text-center text-sm opacity-60">
+          <a href="/forgot-password" class="anchor">Forgot password?</a>
+        </p>
       </form>
     </section>
 

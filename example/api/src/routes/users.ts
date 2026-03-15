@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
+import { checkDuplicateUser } from '../lib/users.js';
 
 const COLLECTION  = 'users';
 const SALT_ROUNDS = 12;
@@ -11,6 +12,7 @@ export default async function usersRoutes(app: FastifyInstance) {
   app.post<{ Body: { username: string; email: string; password: string; firstName?: string; lastName?: string } }>('/', {
     preHandler: app.requirePermission('users', 'create'),
     schema: {
+      summary: 'Create a new user (admin)',
       body: {
         type: 'object',
         required: ['username', 'email', 'password'],
@@ -27,8 +29,8 @@ export default async function usersRoutes(app: FastifyInstance) {
     const col = app.mongo.db!.collection(COLLECTION);
     const { username, email, password, firstName = '', lastName = '' } = req.body;
 
-    const existing = await col.findOne({ $or: [{ email: email.toLowerCase() }, { username }] });
-    if (existing) return reply.conflict('Username or email already in use');
+    const conflict = await checkDuplicateUser(col, { email, username });
+    if (conflict) return reply.conflict(conflict);
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const now = new Date();
@@ -46,7 +48,8 @@ export default async function usersRoutes(app: FastifyInstance) {
 
   // GET /users
   app.get('/', {
-    preHandler: app.requirePermission('users', 'read')
+    preHandler: app.requirePermission('users', 'read'),
+    schema: { summary: 'List all users' }
   }, async (_req, _reply) => {
     const users = await app.mongo.db!.collection(COLLECTION)
       .find({}, { projection: { passwordHash: 0 } })
@@ -66,6 +69,7 @@ export default async function usersRoutes(app: FastifyInstance) {
   app.patch<{ Params: { id: string }; Body: { username?: string; email?: string; firstName?: string; lastName?: string } }>('/:id', {
     preHandler: app.requirePermission('users', 'update'),
     schema: {
+      summary: 'Update a user profile field',
       body: {
         type: 'object',
         properties: {
@@ -95,7 +99,8 @@ export default async function usersRoutes(app: FastifyInstance) {
 
   // DELETE /users/:id — remove a user
   app.delete<{ Params: { id: string } }>('/:id', {
-    preHandler: app.requirePermission('users', 'delete')
+    preHandler: app.requirePermission('users', 'delete'),
+    schema: { summary: 'Delete a user' }
   }, async (req, reply) => {
     const result = await app.mongo.db!.collection(COLLECTION).deleteOne(
       { _id: new ObjectId(req.params.id) }
@@ -108,6 +113,7 @@ export default async function usersRoutes(app: FastifyInstance) {
   app.patch<{ Params: { id: string }; Body: { role: string } }>('/:id/role', {
     preHandler: app.requirePermission('users', 'update'),
     schema: {
+      summary: 'Assign a role to a user',
       body: {
         type: 'object',
         required: ['role'],

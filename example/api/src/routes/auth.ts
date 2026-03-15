@@ -1,19 +1,25 @@
+import crypto from 'crypto';
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
+import { checkDuplicateUser } from '../lib/users.js';
+import { sendPasswordResetEmail } from '../lib/email.js';
 
 const COLLECTION  = 'users';
 const SALT_ROUNDS = 12;
 
-interface RegisterBody { username: string; email: string; password: string; firstName?: string; lastName?: string }
-interface LoginBody    { email: string; password: string }
-interface ProfileBody  { username?: string; email?: string; firstName?: string; lastName?: string }
+interface RegisterBody      { username: string; email: string; password: string; firstName?: string; lastName?: string }
+interface LoginBody         { email: string; password: string }
+interface ProfileBody       { username?: string; email?: string; firstName?: string; lastName?: string }
+interface ForgotPasswordBody { email: string }
+interface ResetPasswordBody  { token: string; password: string }
 
 export default async function authRoutes(app: FastifyInstance) {
 
   // POST /auth/register
   app.post<{ Body: RegisterBody }>('/register', {
     schema: {
+      summary: 'Register a new user account',
       body: {
         type: 'object',
         required: ['username', 'email', 'password'],
@@ -30,10 +36,8 @@ export default async function authRoutes(app: FastifyInstance) {
     const col = app.mongo.db!.collection(COLLECTION);
     const { username, email, password, firstName, lastName } = req.body;
 
-    const existing = await col.findOne({
-      $or: [{ email: email.toLowerCase() }, { username }]
-    });
-    if (existing) return reply.conflict('Username or email already in use');
+    const conflict = await checkDuplicateUser(col, { email, username });
+    if (conflict) return reply.conflict(conflict);
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const now       = new Date();
@@ -62,6 +66,7 @@ export default async function authRoutes(app: FastifyInstance) {
   // POST /auth/login
   app.post<{ Body: LoginBody }>('/login', {
     schema: {
+      summary: 'Authenticate and create a session',
       body: {
         type: 'object',
         required: ['email', 'password'],
@@ -90,7 +95,7 @@ export default async function authRoutes(app: FastifyInstance) {
   });
 
   // POST /auth/logout
-  app.post('/logout', async (req, reply) => {
+  app.post('/logout', { schema: { summary: 'Destroy the current session' } }, async (req, reply) => {
     await req.session.destroy();
     reply.code(204).send();
   });
@@ -98,6 +103,7 @@ export default async function authRoutes(app: FastifyInstance) {
   // PATCH /auth/profile
   app.patch<{ Body: ProfileBody }>('/profile', {
     schema: {
+      summary: "Update the authenticated user's profile",
       body: {
         type: 'object',
         properties: {
@@ -146,8 +152,75 @@ export default async function authRoutes(app: FastifyInstance) {
     };
   });
 
+  // POST /auth/forgot-password
+  app.post<{ Body: ForgotPasswordBody }>('/forgot-password', {
+    schema: {
+      summary: 'Request a password reset email',
+      body: {
+        type: 'object',
+        required: ['email'],
+        properties: { email: { type: 'string', format: 'email' } }
+      }
+    }
+  }, async (req, reply) => {
+    const col  = app.mongo.db!.collection(COLLECTION);
+    const user = await col.findOne({ email: req.body.email.toLowerCase() });
+
+    // Always 204 — prevents email enumeration
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const hash     = crypto.createHash('sha256').update(rawToken).digest('hex');
+      await col.updateOne(
+        { _id: user._id },
+        { $set: { resetToken: hash, resetTokenExpires: new Date(Date.now() + 3_600_000) } }
+      );
+      const appUrl   = process.env.APP_URL ?? 'http://localhost:3000';
+      const resetUrl = `${appUrl}/reset-password?token=${rawToken}`;
+      sendPasswordResetEmail(user.email as string, resetUrl).catch(err =>
+        console.error('[email] Failed to send password reset email:', err)
+      );
+    }
+
+    reply.code(204).send();
+  });
+
+  // POST /auth/reset-password
+  app.post<{ Body: ResetPasswordBody }>('/reset-password', {
+    schema: {
+      summary: 'Set a new password using a reset token',
+      body: {
+        type: 'object',
+        required: ['token', 'password'],
+        properties: {
+          token:    { type: 'string', minLength: 1 },
+          password: { type: 'string', minLength: 8 }
+        }
+      }
+    }
+  }, async (req, reply) => {
+    const col  = app.mongo.db!.collection(COLLECTION);
+    const hash = crypto.createHash('sha256').update(req.body.token).digest('hex');
+
+    const user = await col.findOne({
+      resetToken:        hash,
+      resetTokenExpires: { $gt: new Date() }
+    });
+    if (!user) return reply.badRequest('Invalid or expired token');
+
+    const passwordHash = await bcrypt.hash(req.body.password, SALT_ROUNDS);
+    await col.updateOne(
+      { _id: user._id },
+      {
+        $set:   { passwordHash, updatedAt: new Date() },
+        $unset: { resetToken: '', resetTokenExpires: '' }
+      }
+    );
+
+    reply.code(204).send();
+  });
+
   // GET /auth/me — returns user with role + live permissions
-  app.get('/me', async (req, reply) => {
+  app.get('/me', { schema: { summary: 'Get authenticated user with role and permissions' } }, async (req, reply) => {
     if (!req.session.userId) return reply.unauthorized('Not authenticated');
 
     const db   = app.mongo.db!;

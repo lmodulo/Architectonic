@@ -8,6 +8,38 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-15
+
+### Added
+- **API self-documentation via `@fastify/swagger`** — OpenAPI 3.0 spec auto-generated from existing route schemas. Dev-only (skipped when `NODE_ENV=production`).
+  - `GET /docs/yaml` — human-readable YAML listing all endpoints, summaries, and request body schemas.
+  - `GET /docs/json` — equivalent JSON (compatible with Insomnia, Postman, VS Code OpenAPI extensions).
+  - Zero schema duplication: the plugin reads the JSON schemas already defined on every Fastify route.
+  - OpenAPI metadata: title `Architectonic API`, `session` cookie security scheme declared.
+- **Route summaries** added to all 26 routes across `auth.ts`, `users.ts`, `roles.ts`, `messages.ts`, and `health.ts` — one-line description per route, surfaced in the YAML output.
+- **`@fastify/swagger`** added to API dependencies.
+
+---
+
+## 2026-03-15
+
+### Added
+- **Password reset flow** — full forgot-password → email token → reset-password recovery path.
+  - `POST /auth/forgot-password` — accepts email, generates a 32-byte cryptographic token, stores the SHA-256 hash + 1-hour expiry on the user document, and fires a reset email. Always returns 204 regardless of whether the email exists (prevents user enumeration).
+  - `POST /auth/reset-password` — accepts raw token + new password; hashes the token, finds the matching (non-expired) user, updates `passwordHash` with bcrypt (12 rounds), and clears the token fields. Returns 400 on invalid or expired tokens.
+  - Token security: raw token never stored in MongoDB — only SHA-256 hash. Single-use; fields are `$unset` on successful reset.
+- **`api/src/lib/email.ts`** — Nodemailer transport helper.
+  - If `SMTP_HOST` is set: uses configured SMTP credentials (compatible with any provider — Resend, Postmark, Mailgun, etc.).
+  - If `SMTP_HOST` is unset (default dev): auto-provisions an [Ethereal](https://ethereal.email) catch-all account and logs the email preview URL to the API console after each send.
+  - Exports `sendPasswordResetEmail(to, resetUrl)`.
+- **`/forgot-password` page** — email input form; after submission always shows a neutral “if that email is registered…” message.
+- **`/reset-password` page** — new password + confirm fields; client-side mismatch validation; redirects to `/login?reset=1` on success.
+- **Login page** — “Forgot password?” link below the submit button; success banner shown when arriving via `?reset=1`.
+- **SMTP env vars** added to `.env.example` and forwarded to the `api` service in `docker-compose.yml`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `APP_URL`.
+- **`nodemailer`** added to API dependencies.
+
+---
+
 ## 2026-03-14
 
 ### Added
