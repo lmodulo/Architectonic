@@ -131,7 +131,10 @@ export async function syncGithub(
   const contribCol = db.collection(CONTRIBUTIONS_COL);
   const now = new Date().toISOString();
 
+  const activeIds: number[] = [];
+
   for (const repo of repos) {
+    activeIds.push(repo.githubId);
     await reposCol.updateOne(
       { githubId: repo.githubId },
       { $set: repo },
@@ -151,6 +154,11 @@ export async function syncGithub(
       errors.push(`${repo.name}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
+
+  // Remove repos and their contributions that no longer exist on GitHub
+  const activeFullNames = repos.map(r => `${owner}/${r.name}`);
+  await reposCol.deleteMany({ githubId: { $nin: activeIds } });
+  await contribCol.deleteMany({ repo: { $nin: activeFullNames } });
 
   return { repos: repos.length, errors };
 }

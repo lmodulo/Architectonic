@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Skeleton built-in theme — provides color palette for [data-theme="nosh"] */
-@import "@skeletonlabs/skeleton/themes/nosh";
+@import "@skeletonlabs/skeleton/themes/terminus";
 
 /* lmodulo overrides — typography/spacing on top of the base theme */
 @import "../lmodulo-theme.css";

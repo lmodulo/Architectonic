@@ -12,7 +12,6 @@ export const POST: RequestHandler = async ({ cookies }) => {
     res = await fetch(`${API_URL}/github/sync`, {
       method: 'POST',
       headers: {
-        'content-type': 'application/json',
         ...(sessionCookie ? { cookie: `session=${sessionCookie}` } : {})
       }
     });
