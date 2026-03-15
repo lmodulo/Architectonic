@@ -1,0 +1,90 @@
+{
+  "admin": {
+    "users": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    },
+    "dashboard": {
+      "create": false,
+      "read": true,
+      "update": false,
+      "delete": false
+    },
+    "roles": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    },
+    "messages": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    },
+    "audit": {
+      "create": false,
+      "read": true,
+      "update": false,
+      "delete": false
+    },
+    "settings": {
+      "create": false,
+      "read": true,
+      "update": true,
+      "delete": false
+    },
+    "github": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    }
+  },
+  "viewer": {
+    "users": {
+      "create": false,
+      "read": true,
+      "update": false,
+      "delete": false
+    },
+    "dashboard": {
+      "create": false,
+      "read": true,
+      "update": false,
+      "delete": false
+    },
+    "roles": {
+      "create": false,
+      "read": false,
+      "update": false,
+      "delete": false
+    },
+    "messages": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    },
+    "audit": {
+      "create": false,
+      "read": false,
+      "update": false,
+      "delete": false
+    },
+    "settings": {
+      "create": false,
+      "read": false,
+      "update": false,
+      "delete": false
+    },
+    "github": {
+      "create": false,
+      "read": true,
+      "update": false,
+      "delete": false
+    }
+  }
+}

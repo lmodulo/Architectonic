@@ -1,0 +1,23 @@
+{
+  "name": "github",
+  "description": "GitHub repository integration with permission-gated sidebar link",
+  "nav": [
+    {
+      "label": "GitHub",
+      "href": "/github",
+      "icon": "Github",
+      "permission": "github.read"
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "github",
+      "actions": ["create", "read", "update", "delete"]
+    }
+  ],
+  "dependencies": {
+    "frontend": {},
+    "api": {}
+  },
+  "env": []
+}

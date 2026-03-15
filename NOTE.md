@@ -11,6 +11,26 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 session end
 update the CLAUDE.md file with necessary context.
 
+Create module `github` in `modules/github/` with these files:
+
+**module.json** — nav label "GitHub", href "/github", icon `Github` from lucide-svelte, permission "github.read". Permissions: resource "github", actions create/read/update/delete. No extra dependencies or env vars.
+
+**API route** — `api/src/routes/github/index.ts`. Single GET `/` endpoint, requirePermission('github', 'read'), returns `{ items: [] }`.
+
+**Frontend proxy** — `frontend/src/routes/api/github/+server.ts`. Proxy GET to `${API_URL}/github`.
+
+**Page server** — `frontend/src/routes/github/+page.server.ts`. Load from `/api/github`, return `{ items }`.
+
+**Page** — `frontend/src/routes/github/+page.svelte`. Page heading "GitHub", empty state text "No repositories connected." Follow existing page conventions from the scaffold (shell, header layout).
+
+Then run: `node arch.js create architectonic --modules github`
+
+Verify the built project at `projects/architectonic/` has the nav entry, permissions seed, and route files in place.
+
+---
+
+That's the full prompt. It separates module authoring from project creation so each step is independently verifiable. If you wanted to skip having Claude write the module and instead just test the build tool with an already-written module, the prompt shortens to just the `node arch.js create` line and the verification step.
+
 
 # Theme
 [data-theme='lmodulo'] {
