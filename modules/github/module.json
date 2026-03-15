@@ -1,6 +1,6 @@
 {
   "name": "github",
-  "description": "GitHub repository integration with permission-gated sidebar link",
+  "description": "GitHub repository viewer and contribution charts",
   "nav": [
     {
       "label": "GitHub",
@@ -19,5 +19,17 @@
     "frontend": {},
     "api": {}
   },
-  "env": []
+  "env": [
+    { "key": "GITHUB_TOKEN", "required": true, "default": "", "description": "GitHub PAT with repo scope" },
+    { "key": "GITHUB_OWNER", "required": true, "default": "", "description": "GitHub username or org name" },
+    { "key": "GITHUB_OWNER_TYPE", "required": false, "default": "user", "description": "user or org" }
+  ],
+  "widgets": [
+    {
+      "component": "ContributionChart",
+      "import": "$lib/components/github/ContributionChart.svelte",
+      "permission": "github.read",
+      "order": 10
+    }
+  ]
 }

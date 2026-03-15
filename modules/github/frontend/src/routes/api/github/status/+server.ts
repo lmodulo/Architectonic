@@ -4,23 +4,19 @@ import type { RequestHandler } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
-export const GET: RequestHandler = async ({ cookies, url }) => {
+export const GET: RequestHandler = async ({ cookies }) => {
   const sessionCookie = cookies.get('session');
-  const language = url.searchParams.get('language');
-  const apiUrl = language
-    ? `${API_URL}/github?language=${encodeURIComponent(language)}`
-    : `${API_URL}/github`;
 
   let res: Response;
   try {
-    res = await fetch(apiUrl, {
+    res = await fetch(`${API_URL}/github/status`, {
       headers: sessionCookie ? { cookie: `session=${sessionCookie}` } : {}
     });
   } catch {
     throw error(503, 'Cannot reach the API server');
   }
 
-  const data = await res.json().catch(() => ({ items: [] }));
+  const data = await res.json().catch(() => ({ configured: false, repoCount: 0, lastSync: null }));
   if (!res.ok) throw error(res.status, (data as { message?: string }).message ?? 'Failed');
   return json(data);
 };

@@ -9,5 +9,5 @@ export interface NavItem {
 }
 
 export const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: House }
+  { label: 'Dashboard', href: '/dashboard', icon: House },
 ];

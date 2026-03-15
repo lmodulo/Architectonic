@@ -31,6 +31,9 @@ services:
       - SMTP_PASS=${SMTP_PASS:-}
       - SMTP_FROM=${SMTP_FROM:-Architectonic <noreply@example.com>}
       - APP_URL=${APP_URL:-http://localhost:3000}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_OWNER=${GITHUB_OWNER:-}
+      - GITHUB_OWNER_TYPE=${GITHUB_OWNER_TYPE:-user}
     depends_on:
       mongo:
         condition: service_healthy

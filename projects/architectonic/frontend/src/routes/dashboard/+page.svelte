@@ -3,6 +3,8 @@
   import { Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight,
            TrendingUp, ShoppingCart, DollarSign, MapPin, ChevronUp, ChevronDown } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import { dashboardWidgets } from '$lib/config/dashboard-widgets';
+  import { hasPermission } from '$lib/permissions';
 
   let { data }: { data: PageData } = $props();
 
@@ -157,6 +159,9 @@
   const maxDayRevenue = $derived(
     Math.max(...calDays.filter(Boolean).map(d => d!.revenue), 1)
   );
+
+  // ── Dashboard widgets (injected by modules) ────────────────────────
+  const sortedWidgets = $derived([...dashboardWidgets].sort((a, b) => a.order - b.order));
 </script>
 
 <svelte:head><title>Dashboard</title></svelte:head>
@@ -404,5 +409,12 @@
 
     </div>
   </div>
+
+  <!-- Module Widgets -->
+  {#each sortedWidgets as w}
+    {#if hasPermission(data.user, w.permission.resource, w.permission.action)}
+      <w.component />
+    {/if}
+  {/each}
 
 </div>

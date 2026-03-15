@@ -1,22 +1,47 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import RepoTable from '$lib/components/github/RepoTable.svelte';
 
   let { data }: { data: PageData } = $props();
+
+  function relativeTime(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}mo ago`;
+    return `${Math.floor(months / 12)}y ago`;
+  }
 </script>
 
+<svelte:head><title>GitHub</title></svelte:head>
+
 <div class="space-y-6">
-  <div>
-    <h1 class="h3 font-bold">GitHub</h1>
-    <p class="text-sm opacity-60 mt-1">Connected repositories.</p>
+
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold">GitHub</h1>
+      <p class="text-sm opacity-60 mt-0.5">
+        {#if data.status.lastSync}
+          {data.status.repoCount} {data.status.repoCount === 1 ? 'repository' : 'repositories'} — synced {relativeTime(data.status.lastSync)}
+        {:else}
+          No sync yet
+        {/if}
+      </p>
+    </div>
   </div>
 
-  <div class="card preset-filled-surface-100-900 divide-y divide-surface-200-800">
-    {#if data.items.length === 0}
-      <p class="px-5 py-8 text-sm opacity-50 text-center">No repositories connected.</p>
-    {:else}
-      {#each data.items as item}
-        <div class="px-5 py-4 text-sm">{JSON.stringify(item)}</div>
-      {/each}
-    {/if}
-  </div>
+  {#if !data.status.configured}
+    <div class="card preset-filled-warning-100-900 border border-warning-300-700 px-5 py-4 text-sm space-y-1">
+      <p class="font-semibold">GitHub not configured</p>
+      <p class="opacity-70">Set <code class="font-mono">GITHUB_TOKEN</code> and <code class="font-mono">GITHUB_OWNER</code> in your <code class="font-mono">.env</code> file, then rebuild the API container.</p>
+    </div>
+  {/if}
+
+  <RepoTable repos={data.repos} user={data.user} configured={data.status.configured} />
+
 </div>

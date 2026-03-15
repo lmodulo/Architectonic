@@ -3,6 +3,9 @@
 /* Force class-based dark mode — overrides Tailwind v4's default @media query */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* lmodulo custom theme — CSS custom properties for [data-theme="theme"] */
+/* Skeleton built-in theme — provides color palette for [data-theme="nosh"] */
+@import "@skeletonlabs/skeleton/themes/nosh";
+
+/* lmodulo overrides — typography/spacing on top of the base theme */
 @import "../lmodulo-theme.css";
 @import "@skeletonlabs/skeleton";

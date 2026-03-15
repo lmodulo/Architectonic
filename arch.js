@@ -172,11 +172,52 @@ for (const { name: modName, dir: modDir, mod } of loadedModules) {
       }
       const entry = `  { label: '${item.label}', href: '${item.href}', icon: ${icon}${permStr} },`;
 
+      // Ensure the last existing entry has a trailing comma before inserting
+      navContent = navContent.replace(/([}\w'"`])([ \t]*\n[ \t]*\];)/, '$1,$2');
+
       // Insert before closing ];
       navContent = navContent.replace(/^(\s*\];)/m, `${entry}\n$1`);
     }
 
     fs.writeFileSync(navPath, navContent);
+  }
+
+  // ── Merge dashboard widgets ────────────────────────────────────────────────
+
+  if (mod.widgets && mod.widgets.length > 0) {
+    const widgetsPath = path.join(dest, 'frontend', 'src', 'lib', 'config', 'dashboard-widgets.ts');
+    if (fs.existsSync(widgetsPath)) {
+      let wContent = fs.readFileSync(widgetsPath, 'utf8');
+
+      for (const item of mod.widgets) {
+        const { component, import: importPath, permission, order = 0 } = item;
+        const [resource, action] = permission.split('.');
+
+        // Inject import if not already present
+        if (!wContent.includes(`from '${importPath}'`)) {
+          // Insert after the last import line
+          const importMatches = [...wContent.matchAll(/^import .+;/gm)];
+          if (importMatches.length > 0) {
+            const last = importMatches[importMatches.length - 1];
+            const insertAt = last.index + last[0].length;
+            wContent = wContent.slice(0, insertAt) +
+              `\nimport ${component} from '${importPath}';` +
+              wContent.slice(insertAt);
+          } else {
+            wContent = `import ${component} from '${importPath}';\n` + wContent;
+          }
+        }
+
+        // Ensure last entry has trailing comma before inserting
+        wContent = wContent.replace(/([}\w'"`])([ \t]*\n[ \t]*\];)/, '$1,$2');
+
+        // Build entry and insert before closing ];
+        const entry = `  { component: ${component}, permission: { resource: '${resource}', action: '${action}' }, order: ${order} },`;
+        wContent = wContent.replace(/^(\s*\];)/m, `${entry}\n$1`);
+      }
+
+      fs.writeFileSync(widgetsPath, wContent);
+    }
   }
 
   // ── Merge permissions ──────────────────────────────────────────────────────
