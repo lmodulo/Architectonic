@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
+import { logAudit } from '../lib/audit.js';
 
 interface RoleBody {
   name?:        string;
@@ -51,6 +52,9 @@ export default async function rolesRoutes(app: FastifyInstance) {
 
     const now    = new Date();
     const result = await col.insertOne({ name, label, permissions, createdAt: now, updatedAt: now });
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'role.create', resourceId: result.insertedId.toString(), meta: { name, label }, ip: req.ip });
+
     reply.code(201);
     return { id: result.insertedId.toString(), name, label, permissions };
   });
@@ -90,6 +94,9 @@ export default async function rolesRoutes(app: FastifyInstance) {
       { $set: updates }
     );
     if (result.matchedCount === 0) return reply.notFound('Role not found');
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'role.update', resourceId: req.params.id, ip: req.ip });
+
     return { updated: true };
   });
 
@@ -108,6 +115,9 @@ export default async function rolesRoutes(app: FastifyInstance) {
     }
 
     await db.collection('roles').deleteOne({ _id: new ObjectId(req.params.id) });
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'role.delete', resourceId: req.params.id, meta: { name: role.name }, ip: req.ip });
+
     reply.code(204).send();
   });
 }

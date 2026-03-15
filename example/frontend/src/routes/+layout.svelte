@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import { Navigation, Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
-  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon, Mail as MailIcon } from 'lucide-svelte';
+  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon, Mail as MailIcon, Settings } from 'lucide-svelte';
   import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -156,6 +156,16 @@
                 >
                   <ShieldCheck class="size-4 shrink-0" />
                   <span>Roles</span>
+                </SkMenu.Item>
+              {/if}
+              {#if hasPermission(data.user, 'settings', 'read')}
+                <SkMenu.Item
+                  value="settings"
+                  onclick={() => goto('/settings')}
+                  class="flex items-center gap-3 px-3 py-2 rounded-base w-full text-left text-sm cursor-pointer {page.url.pathname === '/settings' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+                >
+                  <Settings class="size-4 shrink-0" />
+                  <span>Settings</span>
                 </SkMenu.Item>
               {/if}
               <SkMenu.Separator class="my-1 border-t border-surface-200-800" />

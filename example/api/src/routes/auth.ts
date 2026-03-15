@@ -4,6 +4,7 @@ import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
 import { checkDuplicateUser } from '../lib/users.js';
 import { sendPasswordResetEmail } from '../lib/email.js';
+import { logAudit } from '../lib/audit.js';
 
 const COLLECTION  = 'users';
 const SALT_ROUNDS = 12;
@@ -59,6 +60,8 @@ export default async function authRoutes(app: FastifyInstance) {
     req.session.email    = email.toLowerCase();
     await req.session.save();
 
+    logAudit(app.mongo.db!, { userId: req.session.userId, username, action: 'auth.register', ip: req.ip });
+
     reply.code(201);
     return { id: result.insertedId.toString(), username, email: email.toLowerCase(), role };
   });
@@ -91,11 +94,16 @@ export default async function authRoutes(app: FastifyInstance) {
     req.session.email    = user.email    as string;
     await req.session.save();
 
+    logAudit(app.mongo.db!, { userId: req.session.userId, username: req.session.username, action: 'auth.login', ip: req.ip });
+
     return { id: user._id.toString(), username: user.username, email: user.email };
   });
 
   // POST /auth/logout
   app.post('/logout', { schema: { summary: 'Destroy the current session' } }, async (req, reply) => {
+    if (req.session.userId) {
+      logAudit(app.mongo.db!, { userId: req.session.userId, username: req.session.username ?? '', action: 'auth.logout', ip: req.ip });
+    }
     await req.session.destroy();
     reply.code(204).send();
   });
@@ -145,6 +153,8 @@ export default async function authRoutes(app: FastifyInstance) {
     if (email)    req.session.email    = email.toLowerCase();
     await req.session.save();
 
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'auth.profile_update', ip: req.ip });
+
     return {
       id:       req.session.userId,
       username: req.session.username,
@@ -179,6 +189,7 @@ export default async function authRoutes(app: FastifyInstance) {
       sendPasswordResetEmail(user.email as string, resetUrl).catch(err =>
         console.error('[email] Failed to send password reset email:', err)
       );
+      logAudit(app.mongo.db!, { userId: user._id.toString(), username: user.username as string, action: 'auth.password_reset_request', ip: req.ip });
     }
 
     reply.code(204).send();
@@ -215,6 +226,8 @@ export default async function authRoutes(app: FastifyInstance) {
         $unset: { resetToken: '', resetTokenExpires: '' }
       }
     );
+
+    logAudit(app.mongo.db!, { userId: user._id.toString(), username: user.username as string, action: 'auth.password_reset', ip: req.ip });
 
     reply.code(204).send();
   });

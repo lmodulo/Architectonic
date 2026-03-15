@@ -8,6 +8,19 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-15 (audit log)
+
+### Added
+- **Audit log** — `audit_logs` MongoDB collection recording privileged and auth events.
+  - Fire-and-forget `logAudit()` helper in `api/src/lib/audit.ts` — sync, returns void, errors logged to console only (no request impact).
+  - `GET /audit` endpoint (admin-only, `requirePermission('audit', 'read')`) with `limit` (max 200) and `skip` pagination, sorted newest-first.
+  - 14 events instrumented across 4 route files: `auth.register`, `auth.login`, `auth.logout`, `auth.profile_update`, `auth.password_reset_request`, `auth.password_reset`, `user.create`, `user.update`, `user.delete`, `user.role_change`, `role.create`, `role.update`, `role.delete`, `message.send`, `message.reply`.
+  - Each entry records: `userId`, `username` (denormalized), `action`, `resourceId`, `meta`, `ip`, `createdAt`.
+  - Three indexes on `audit_logs`: `createdAt`, `userId+createdAt`, `action+createdAt`.
+  - `audit` resource added to default role permissions: admin gets `read: true`; viewer gets no access.
+
+---
+
 ## 2026-03-15
 
 ### Added

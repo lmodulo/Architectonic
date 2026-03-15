@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
 import { checkDuplicateUser } from '../lib/users.js';
+import { logAudit } from '../lib/audit.js';
 
 const COLLECTION  = 'users';
 const SALT_ROUNDS = 12;
@@ -38,6 +39,8 @@ export default async function usersRoutes(app: FastifyInstance) {
       username, email: email.toLowerCase(), passwordHash,
       firstName, lastName, role: 'viewer', createdAt: now, updatedAt: now
     });
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'user.create', resourceId: result.insertedId.toString(), meta: { target: username }, ip: req.ip });
 
     reply.code(201);
     return {
@@ -94,6 +97,9 @@ export default async function usersRoutes(app: FastifyInstance) {
       { $set }
     );
     if (result.matchedCount === 0) return reply.notFound('User not found');
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'user.update', resourceId: req.params.id, ip: req.ip });
+
     return { updated: true };
   });
 
@@ -106,6 +112,9 @@ export default async function usersRoutes(app: FastifyInstance) {
       { _id: new ObjectId(req.params.id) }
     );
     if (result.deletedCount === 0) return reply.notFound('User not found');
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'user.delete', resourceId: req.params.id, ip: req.ip });
+
     return { deleted: true };
   });
 
@@ -134,6 +143,8 @@ export default async function usersRoutes(app: FastifyInstance) {
       { $set: { role, updatedAt: new Date() } }
     );
     if (result.matchedCount === 0) return reply.notFound('User not found');
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'user.role_change', resourceId: req.params.id, meta: { role }, ip: req.ip });
 
     return { updated: true, role };
   });

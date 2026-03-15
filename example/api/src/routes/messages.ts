@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
+import { logAudit } from '../lib/audit.js';
 
 const MSGS   = 'messages';
 const STATES = 'message_state';
@@ -254,6 +255,8 @@ export default async function messagesRoutes(app: FastifyInstance) {
     const allRecipients = [...new Set([...toIds.map(String), ...ccIds.map(String)])].map(id => new ObjectId(id));
     await db.collection(STATES).insertMany(buildStateRows(msgId, allRecipients, from, now));
 
+    logAudit(app.mongo.db!, { userId: from.toString(), username: req.session.username!, action: 'message.send', resourceId: threadId.toString(), meta: { subject }, ip: req.ip });
+
     reply.code(201);
     return { threadId: threadId.toString(), messageId: msgId.toString() };
   });
@@ -303,6 +306,8 @@ export default async function messagesRoutes(app: FastifyInstance) {
     });
 
     await db.collection(STATES).insertMany(buildStateRows(msgId, toIds, from, now));
+
+    logAudit(app.mongo.db!, { userId: from.toString(), username: req.session.username!, action: 'message.reply', resourceId: threadId.toString(), ip: req.ip });
 
     reply.code(201);
     return { threadId: threadId.toString(), messageId: msgId.toString() };
