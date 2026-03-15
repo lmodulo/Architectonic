@@ -219,17 +219,6 @@
                 <House class="size-4 shrink-0" />
                 <Navigation.TriggerText>Dashboard</Navigation.TriggerText>
               </Navigation.TriggerAnchor>
-              <Navigation.TriggerAnchor
-                href="/messages"
-                class="flex items-center gap-3 p-3 rounded-base w-full {page.url.pathname.startsWith('/messages') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
-                onclick={() => (sidebarOpen = false)}
-              >
-                <MailIcon class="size-4 shrink-0" />
-                <Navigation.TriggerText>Messages</Navigation.TriggerText>
-                {#if unreadCount > 0}
-                  <span class="ml-auto badge preset-filled-error-500 text-[10px] px-1.5 py-0.5">{unreadCount > 99 ? '99+' : unreadCount}</span>
-                {/if}
-              </Navigation.TriggerAnchor>
             </Navigation.Group>
           </Navigation.Menu>
         </Navigation>
