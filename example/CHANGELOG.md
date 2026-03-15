@@ -8,6 +8,36 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-15 (settings)
+
+### Added
+- **Settings page** — admin-only key/value configuration store backed by a  MongoDB collection.
+  -  and  API endpoints, both gated by .
+  - Three default settings seeded on boot:  (string),  (boolean),  (select: light/dark).
+  - Seed uses  on  — user-edited values survive restarts; structural fields (, , ) stay current.
+  - Unique index on .
+  - Frontend  page with inline row editing; input renders as checkbox, select, or text/number based on .
+  - Settings link added to user menu dropdown, gated by .
+  -  audit log event on every save.
+  -  permission added to both default roles: admin gets read + update; viewer gets none.
+
+---
+
+## 2026-03-15 (settings)
+
+### Added
+- **Settings page** — admin-only key/value configuration store backed by a `settings` MongoDB collection.
+  - `GET /settings` and `PATCH /settings/:key` API endpoints, both gated by `requirePermission('settings', ...)`.
+  - Three default settings seeded on boot: `app.name` (string), `app.registration_open` (boolean), `theme.mode` (select: light/dark).
+  - Seed uses `$setOnInsert` on `value` — user-edited values survive restarts; structural fields (`label`, `description`, `type`) stay current.
+  - Unique index on `settings.key`.
+  - Frontend `/settings` page with inline row editing; input renders as checkbox, select, or text/number based on `type`.
+  - Settings link added to user menu dropdown, gated by `hasPermission(data.user, 'settings', 'read')`.
+  - `setting.update` audit log event on every save.
+  - `settings` permission added to both default roles: admin gets read + update; viewer gets none.
+
+---
+
 ## 2026-03-15 (audit log)
 
 ### Added
