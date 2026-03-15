@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 
 export default async function healthRoutes(app: FastifyInstance) {
-  app.get('/health', {
+  app.get('/', {
     schema: {
       summary: 'Server health check',
       response: {

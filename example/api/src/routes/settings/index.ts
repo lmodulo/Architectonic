@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { logAudit } from '../lib/audit.js';
+import { logAudit } from '../../lib/audit.js';
 
 export default async function settingsRoutes(app: FastifyInstance) {
 

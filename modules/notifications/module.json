@@ -1,0 +1,23 @@
+{
+  "name": "notifications",
+  "description": "User notification feed with permission-gated sidebar link",
+  "nav": [
+    {
+      "label": "Notifications",
+      "href": "/notifications",
+      "icon": "Bell",
+      "permission": "notifications.read"
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "notifications",
+      "actions": ["create", "read", "update", "delete"]
+    }
+  ],
+  "dependencies": {
+    "frontend": {},
+    "api": {}
+  },
+  "env": []
+}

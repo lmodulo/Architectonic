@@ -4,18 +4,15 @@ import cors from '@fastify/cors';
 import sensible from '@fastify/sensible';
 import mongodb from '@fastify/mongodb';
 import swagger from '@fastify/swagger';
+import autoload from '@fastify/autoload';
+import { fileURLToPath } from 'url';
+import { join, dirname } from 'path';
 import sessionPlugin from './plugins/session.js';
 import ensureIndexes from './plugins/indexes.js';
 import authPlugin    from './plugins/auth.js';
 import seedPlugin    from './plugins/seed.js';
-import healthRoutes  from './routes/health.js';
-import exampleRoutes from './routes/example.js';
-import authRoutes    from './routes/auth.js';
-import usersRoutes   from './routes/users.js';
-import rolesRoutes    from './routes/roles.js';
-import messagesRoutes from './routes/messages.js';
-import auditRoutes    from './routes/audit.js';
-import settingsRoutes from './routes/settings.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const HOST      = process.env.HOST      ?? '0.0.0.0';
 const PORT      = Number(process.env.PORT ?? 4000);
@@ -68,14 +65,10 @@ if (process.env.NODE_ENV !== 'production') {
 
 // --- Routes ---
 
-await app.register(healthRoutes);
-await app.register(exampleRoutes, { prefix: '/examples' });
-await app.register(authRoutes,    { prefix: '/auth' });
-await app.register(usersRoutes,   { prefix: '/users' });
-await app.register(rolesRoutes,    { prefix: '/roles' });
-await app.register(messagesRoutes, { prefix: '/messages' });
-await app.register(auditRoutes,    { prefix: '/audit' });
-await app.register(settingsRoutes, { prefix: '/settings' });
+await app.register(autoload, {
+  dir: join(__dirname, 'routes'),
+  dirNameRoutePrefix: true
+});
 
 // --- Start ---
 

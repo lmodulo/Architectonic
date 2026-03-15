@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
-import { checkDuplicateUser } from '../lib/users.js';
-import { logAudit } from '../lib/audit.js';
+import { checkDuplicateUser } from '../../lib/users.js';
+import { logAudit } from '../../lib/audit.js';
 
 const COLLECTION  = 'users';
 const SALT_ROUNDS = 12;

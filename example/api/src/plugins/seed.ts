@@ -1,22 +1,13 @@
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import type { FastifyInstance } from 'fastify';
 
-const ADMIN_PERMS = {
-  users:     { create: true,  read: true,  update: true,  delete: true  },
-  dashboard: { create: false, read: true,  update: false, delete: false },
-  roles:     { create: true,  read: true,  update: true,  delete: true  },
-  messages:  { create: true,  read: true,  update: true,  delete: true  },
-  audit:     { create: false, read: true,  update: false, delete: false },
-  settings:  { create: false, read: true,  update: true,  delete: false }
-};
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const VIEWER_PERMS = {
-  users:     { create: false, read: true,  update: false, delete: false },
-  dashboard: { create: false, read: true,  update: false, delete: false },
-  roles:     { create: false, read: false, update: false, delete: false },
-  messages:  { create: true,  read: true,  update: true,  delete: true  },
-  audit:     { create: false, read: false, update: false, delete: false },
-  settings:  { create: false, read: false, update: false, delete: false }
-};
+const perms = JSON.parse(
+  readFileSync(join(__dirname, '../data/permissions.json'), 'utf8')
+) as Record<string, Record<string, Record<string, boolean>>>;
 
 const DEFAULT_SETTINGS = [
   {
@@ -60,8 +51,8 @@ export default async function seedPlugin(app: FastifyInstance) {
     // Roles
     const roles = db.collection('roles');
     for (const [name, label, permissions] of [
-      ['admin',  'Administrator', ADMIN_PERMS],
-      ['viewer', 'Viewer',        VIEWER_PERMS]
+      ['admin',  'Administrator', perms.admin],
+      ['viewer', 'Viewer',        perms.viewer]
     ] as const) {
       await roles.updateOne(
         { name },

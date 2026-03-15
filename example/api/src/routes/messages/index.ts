@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
-import { logAudit } from '../lib/audit.js';
+import { logAudit } from '../../lib/audit.js';
 
 const MSGS   = 'messages';
 const STATES = 'message_state';

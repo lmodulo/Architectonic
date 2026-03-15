@@ -1,7 +1,8 @@
 <script lang="ts">
   import '../app.css';
   import { Navigation, Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
-  import { Menu as MenuIcon, House, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon, Mail as MailIcon, Settings } from 'lucide-svelte';
+  import { Menu as MenuIcon, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon, Mail as MailIcon, Settings } from 'lucide-svelte';
+  import { navItems } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -211,14 +212,19 @@
         <Navigation layout="sidebar" class="h-full p-3">
           <Navigation.Menu>
             <Navigation.Group>
-              <Navigation.TriggerAnchor
-                href="/dashboard"
-                class="flex items-center gap-3 p-3 rounded-base w-full {page.url.pathname === '/dashboard' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
-                onclick={() => (sidebarOpen = false)}
-              >
-                <House class="size-4 shrink-0" />
-                <Navigation.TriggerText>Dashboard</Navigation.TriggerText>
-              </Navigation.TriggerAnchor>
+              {#each navItems as item}
+                {#if !item.permission || hasPermission(data.user, item.permission.resource, item.permission.action)}
+                  <Navigation.TriggerAnchor
+                    href={item.href}
+                    class="flex items-center gap-3 p-3 rounded-base w-full {page.url.pathname === item.href ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+                    onclick={() => (sidebarOpen = false)}
+                  >
+                    {@const Icon = item.icon}
+                    <Icon class="size-4 shrink-0" />
+                    <Navigation.TriggerText>{item.label}</Navigation.TriggerText>
+                  </Navigation.TriggerAnchor>
+                {/if}
+              {/each}
             </Navigation.Group>
           </Navigation.Menu>
         </Navigation>
