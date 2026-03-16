@@ -1,0 +1,119 @@
+# Changelog
+
+All notable changes to the Architectonic framework and its modules are documented here.
+
+Entries are tagged:
+- `CORE` — changes to the scaffold in `example/` that apply to all projects
+- `MODULE: <name>` — changes to a specific module in `modules/<name>/`
+
+---
+
+## [Unreleased]
+
+---
+
+## 2026-03-16
+
+### Added
+- `CORE` **Dynamic app name and logo** — `Application Name` from Settings now updates the header and browser title in real time. Admin can upload a custom logo image to replace the default SVG icon.
+  - `app.logo` setting added to seed (string, default empty — falls back to SVG icon).
+  - `POST /settings/logo` API endpoint — multipart upload, writes to `uploads/logo/`, updates `app.logo` setting, logs audit event.
+  - `+layout.server.ts` fetches `app.name` and `app.logo` on every authenticated load alongside the existing `chat.enabled` fetch.
+  - `Logo.svelte` refactored to accept `name` and `logo` props; renders `<img>` when a URL is set, `<LogoIcon>` SVG otherwise.
+  - `frontend/src/routes/uploads/[...path]` proxy — forwards all `/uploads/...` requests from the browser to the API (also fixes product image display).
+  - `frontend/src/routes/api/settings/logo` proxy — multipart passthrough with `duplex: 'half'`.
+  - Settings page gains a logo upload card with preview, Upload, and Remove actions.
+
+- `MODULE: commerce` **Commerce admin UI** — full admin frontend for the commerce module.
+  - **Products** (`/commerce/products`) — searchable/filterable list with status and category filters, pagination (25/page), quick-create modal (redirects to detail page on create), archive confirmation modal.
+  - **Product detail** (`/commerce/products/[id]`) — full edit page: Basic Info, Images (upload/remove), Variant Options (axis builder + cartesian generator), Variants grid (inline stock ±1 with API PATCH, editable SKU/price/threshold), Discounts (percentage/fixed/quantity-tier entries with date ranges), single Save PATCH.
+  - **Orders** (`/commerce/orders`) — list with order number, customer, status badge, total, date; search + status filter; pagination.
+  - **Order detail** (`/commerce/orders/[id]`) — status update dropdown + notes field, line items table, discount and totals summary.
+  - **Categories** (`/commerce/categories`) — list with create/edit/delete modals; delete guarded server-side if active products reference the category.
+  - **Inventory** (`/commerce/inventory`) — read-only low-stock report; variants at or below threshold shown per product; color-coded (red = 0, orange = ≤ threshold).
+  - All pages permission-gated (`commerce_products`, `commerce_orders`, `commerce_categories`).
+  - Nav updated to 4 entries: Products, Orders, Categories, Inventory.
+  - All SvelteKit API proxy routes created for the full commerce API surface.
+  - Applied to both `projects/potency/frontend/` and `modules/commerce/frontend/`.
+
+---
+
+## 2026-03-15
+
+### Added
+- `MODULE: commerce` **Commerce backend** — products, categories, orders, and inventory API with local/S3 image storage.
+  - **Products** — full CRUD with slug generation, text search index, image upload (local or S3 via `STORAGE_PROVIDER` env), variant option axes, cartesian variant grid with per-SKU price override and stock, embedded discounts (percentage/fixed/quantity-tier with date ranges and active toggle). Soft delete (`status: archived`).
+  - **Atomic stock adjustment** — `PATCH /commerce/products/:id/variants/:sku/stock` with `arrayFilters` + `$inc`; conditional filter prevents negative stock.
+  - **Categories** — CRUD with slug uniqueness, delete guarded by active product count.
+  - **Orders** — list + detail, atomic order number via `counters` collection (`ORD-YYYY-NNNNNN`), status update with audit log (captures previous status via `returnDocument: 'before'`).
+  - **Inventory** — `GET /commerce/inventory` returns active products with at least one variant at or below `lowStockThreshold` (default 5).
+  - **Storage abstraction** — `example/api/src/lib/storage.ts`; `LocalStorage` writes to `uploads/products/`, `S3Storage` lazy-imports `@aws-sdk/client-s3`. Selected by `STORAGE_PROVIDER=local|s3`.
+  - **`example/api/src/lib/slug.ts`** — `toSlug()` helper.
+  - **`example/api/src/lib/orderNumber.ts`** — atomic counter helper.
+  - **3 permission resources** — `commerce_products`, `commerce_orders`, `commerce_categories` (replaces single `commerce` stub). Admin gets full CRUD; viewer gets read.
+  - MongoDB indexes: unique slug on products and categories, text index on products, unique orderNumber on orders, status/category/userId indexes.
+  - `@fastify/multipart`, `@fastify/static`, `nanoid` added to API dependencies.
+  - `uploads` Docker named volume added to `docker-compose.yml`.
+  - Applied to `projects/potency/api/` and `modules/commerce/api/`.
+
+- `CORE` **Build-time module system** — features composed into projects via `arch.js` at build time; no runtime plugin layer.
+  - `node arch.js create <name> [--modules a,b] [--no-install]` — copies scaffold, merges modules, runs `npm install`.
+  - `node arch.js list` / `node arch.js info <module>` — module discovery commands.
+  - Five automated merge points: routes (autoload), nav (deduped icon imports), permissions (JSON merge), package deps (semver warn on conflict), env vars (append if absent).
+  - Collision safety — validates all source trees before writing any files.
+  - `modules/notifications/` stub module validates the full pipeline.
+  - Scaffold changes: `@fastify/autoload` replaces 8 manual route registrations; `frontend/src/lib/config/nav.ts` extracted for nav merging; `api/src/data/permissions.json` extracted from `seed.ts`.
+
+- `CORE` **Settings page** — key/value configuration store backed by a `settings` MongoDB collection.
+  - `GET /settings`, `PATCH /settings/:key`, `GET /settings/:key` (auth-only) API endpoints.
+  - Default settings: `app.name`, `app.registration_open`, `theme.mode`, `chat.enabled`.
+  - Seed uses `$setOnInsert` on `value` — user edits survive restarts.
+  - Frontend inline row editing: checkbox (boolean), select, or text/number input by type.
+  - `setting.update` audit log event.
+  - `settings` permission: admin gets read + update; viewer gets none.
+
+- `CORE` **Audit log** — `audit_logs` collection recording privileged and auth events.
+  - `logAudit()` fire-and-forget helper in `api/src/lib/audit.ts`.
+  - `GET /audit` endpoint (admin-only) with `limit`/`skip` pagination.
+  - 14 instrumented events: auth register/login/logout/profile/password reset, user CRUD + role change, role CRUD, message send/reply, setting update.
+  - Three indexes: `createdAt`, `userId+createdAt`, `action+createdAt`.
+
+- `CORE` **API self-documentation** — `@fastify/swagger` generates OpenAPI 3.0 spec from existing route schemas (dev only).
+  - `GET /docs/yaml` and `GET /docs/json`.
+  - Route summaries added to all 26 routes.
+
+- `CORE` **Password reset flow** — forgot-password → email token → reset-password.
+  - SHA-256 hashed token stored (never raw), 1-hour expiry, single-use.
+  - Nodemailer transport (`api/src/lib/email.ts`) — SMTP when configured, Ethereal catch-all in dev.
+  - `/forgot-password` and `/reset-password` frontend pages.
+  - SMTP env vars: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `APP_URL`.
+
+---
+
+## 2026-03-14
+
+### Added
+- `CORE` **In-app messaging system** — full email-style messaging between authenticated users.
+  - Thread-based model; per-user `message_state` tracks read/archived/deleted independently.
+  - 7 API routes: inbox, unread count, sent, archived, thread detail (auto-marks read), compose, reply, state PATCH.
+  - 7 SvelteKit proxy routes mirroring the API surface.
+  - `MessageEditor` (Tiptap rich-text) and `MessageListItem` components.
+  - Two-panel messages layout: 288 px sidebar + scrollable content.
+  - Inbox, compose, thread detail, and sent/archive pages.
+  - Unread badge on Mail icon in header; re-fetched on every route change.
+  - Tiptap packages: `@tiptap/core`, `@tiptap/starter-kit`, `@tiptap/extension-underline`, `@tiptap/extension-placeholder`, `svelte-tiptap@3.0.1`.
+  - MongoDB indexes on `messages` and `message_state`.
+
+---
+
+## 2026-03-13
+
+### Added
+- `CORE` **Create user from admin** — "New User" modal on Manage Users page (permission-gated). `POST /users` API endpoint creates user with bcrypt password hash, assigns `viewer` role.
+
+### Removed
+- `CORE` **Public registration page** — `/register` route removed; all entry points now point to `/login`. `AUTH_REDIRECT_PATHS` updated.
+
+### Fixed
+- `CORE` Dashboard welcome message uses `firstName` when available, falls back to `username`.
+- `CORE` Dashboard currency formatter renamed from `$c` to `fmt` (Svelte 5 reserved `$` prefix).

@@ -73,7 +73,8 @@ docker compose down -v     # stop, delete volumes
 - **RBAC** — roles + permissions in MongoDB, enforced on API and frontend; Manage Users and Roles admin pages
 - **Messaging** — in-app email-style messaging with threads, replies, inbox/sent/archive, unread badge, Tiptap rich-text editor
 - **Settings** — admin-only key/value config store; `GET /settings`, `PATCH /settings/:key`; typed inputs (string/boolean/number/select)
-- **Audit log** — fire-and-forget `logAudit()` helper; 14 events across auth/users/roles/messages/settings; `GET /audit` with pagination
+- **App branding** — `app.name` setting updates the header and browser title in real time; admins can upload a custom logo image to replace the default SVG icon
+- **Audit log** — fire-and-forget `logAudit()` helper; events across auth/users/roles/messages/settings; `GET /audit` with pagination
 - **Dashboard** — placeholder with pure-SVG charts
 - **Chat assistant** — Ollama-backed fixed panel (`OLLAMA_URL=http://host.docker.internal:11434`); can be disabled via `chat.enabled` setting
 - **Theme toggle** — dark/light, persisted to localStorage
@@ -115,7 +116,11 @@ example/                        # The scaffold — clone this for new projects
         └── lib/                # checkDuplicateUser, email, audit helpers
 
 modules/                        # Build-time feature modules
-└── notifications/              # Example module (stub)
+├── commerce/                   # E-commerce: products, categories, orders, inventory
+│   ├── module.json
+│   ├── api/src/routes/commerce/
+│   └── frontend/src/routes/commerce/
+└── notifications/              # Example stub module
     ├── module.json
     ├── api/src/routes/notifications/
     └── frontend/src/routes/notifications/
@@ -204,11 +209,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 Build a custom theme: https://themes.skeleton.dev/themes/create — place the CSS file in `frontend/` and import it in `app.css`.
 
 ## Tasks
-[] change delete user to set `inactive`
-[] research hosting for dev (https://railway.com/pricing)
-[x] research module framework. decide on core vs module
-[] research Stripe and Square integration
-[] research store front and shopping cart and admin backend
-[] dev/integration/staging/prod environments (dev/live switch)
-[] add a catch all for the private vs public routes.
-[x] password recovery
+
+- [ ] change delete user to set `inactive`
+- [ ] research hosting for dev
+- [x] research module framework — decided on build-time composition via `arch.js`
+- [ ] research Stripe and Square integration
+- [x] commerce module — products, categories, orders, inventory (backend + admin UI)
+- [ ] dev/integration/staging/prod environments
+- [ ] catch-all for private vs public routes
+- [x] password recovery (forgot-password → email token → reset page)
+- [x] app name and logo configurable from Settings

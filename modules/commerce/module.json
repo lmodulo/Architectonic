@@ -1,0 +1,84 @@
+{
+  "name": "commerce",
+  "description": "Product catalog, inventory management, and order tracking",
+  "nav": [
+    {
+      "label": "Products",
+      "href": "/commerce/products",
+      "icon": "Package",
+      "permission": "commerce_products.read"
+    },
+    {
+      "label": "Orders",
+      "href": "/commerce/orders",
+      "icon": "ShoppingCart",
+      "permission": "commerce_orders.read"
+    },
+    {
+      "label": "Categories",
+      "href": "/commerce/categories",
+      "icon": "Layers",
+      "permission": "commerce_categories.read"
+    },
+    {
+      "label": "Inventory",
+      "href": "/commerce/inventory",
+      "icon": "BarChart2",
+      "permission": "commerce_products.read"
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "commerce_products",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "commerce_orders",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "commerce_categories",
+      "actions": ["create", "read", "update", "delete"]
+    }
+  ],
+  "dependencies": {
+    "frontend": {},
+    "api": {
+      "@fastify/multipart": "^9.0.0",
+      "@aws-sdk/client-s3": "^3.0.0",
+      "nanoid": "^5.0.0"
+    }
+  },
+  "env": [
+    {
+      "key": "STORAGE_PROVIDER",
+      "required": false,
+      "default": "local",
+      "description": "Image storage backend: 'local' (default) or 's3'"
+    },
+    {
+      "key": "AWS_BUCKET",
+      "required": false,
+      "default": "",
+      "description": "S3 bucket name (required when STORAGE_PROVIDER=s3)"
+    },
+    {
+      "key": "AWS_REGION",
+      "required": false,
+      "default": "us-east-1",
+      "description": "S3 region (required when STORAGE_PROVIDER=s3)"
+    },
+    {
+      "key": "AWS_ACCESS_KEY_ID",
+      "required": false,
+      "default": "",
+      "description": "S3 access key (required when STORAGE_PROVIDER=s3)"
+    },
+    {
+      "key": "AWS_SECRET_ACCESS_KEY",
+      "required": false,
+      "default": "",
+      "description": "S3 secret key (required when STORAGE_PROVIDER=s3)"
+    }
+  ]
+}

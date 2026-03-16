@@ -11,21 +11,21 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 session end
 update the CLAUDE.md file with necessary context.
 
-Create module `github` in `modules/github/` with these files:
+Create module `commerce` in `modules/commerce/` with these files:
 
-**module.json** — nav label "GitHub", href "/github", icon `Github` from lucide-svelte, permission "github.read". Permissions: resource "github", actions create/read/update/delete. No extra dependencies or env vars.
+**module.json** — nav label "Commerce", href "/commerce", icon `store` from lucide-svelte, permission "commerce.read". Permissions: resource "commerce", actions create/read/update/delete. No extra dependencies or env vars.
 
-**API route** — `api/src/routes/github/index.ts`. Single GET `/` endpoint, requirePermission('github', 'read'), returns `{ items: [] }`.
+**API route** — `api/src/routes/commerce/index.ts`. Single GET `/` endpoint, requirePermission('commerce', 'read'), returns `{ items: [] }`.
 
-**Frontend proxy** — `frontend/src/routes/api/github/+server.ts`. Proxy GET to `${API_URL}/github`.
+**Frontend proxy** — `frontend/src/routes/api/commerce/+server.ts`. Proxy GET to `${API_URL}/commerce`.
 
-**Page server** — `frontend/src/routes/github/+page.server.ts`. Load from `/api/github`, return `{ items }`.
+**Page server** — `frontend/src/routes/commerce/+page.server.ts`. Load from `/api/commerce`, return `{ items }`.
 
-**Page** — `frontend/src/routes/github/+page.svelte`. Page heading "GitHub", empty state text "No repositories connected." Follow existing page conventions from the scaffold (shell, header layout).
+**Page** — `frontend/src/routes/commerce/+page.svelte`. Page heading "Commerce", empty state text "Commerce." Follow existing page conventions from the scaffold (shell, header layout).
 
-Then run: `node arch.js create architectonic --modules github`
+Then run: `node arch.js create potency --modules commerce`
 
-Verify the built project at `projects/architectonic/` has the nav entry, permissions seed, and route files in place.
+Verify the built project at `projects/potency/` has the nav entry, permissions seed, and route files in place.
 
 ---
 

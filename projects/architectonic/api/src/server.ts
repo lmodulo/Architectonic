@@ -49,7 +49,7 @@ await app.register(ensureIndexes); // Creates user/roles indexes on first boot
 await app.register(authPlugin);    // Decorates requireAuth + requirePermission
 await app.register(seedPlugin);    // Upserts default roles on every boot
 
-// API docs — dev only: GET /docs/yaml  GET /docs/json
+// API docs — dev only: GET /docs/json
 if (process.env.NODE_ENV !== 'production') {
   await app.register(swagger, {
     openapi: {
@@ -61,6 +61,8 @@ if (process.env.NODE_ENV !== 'production') {
       }
     }
   });
+
+  app.get('/docs/json', async () => app.swagger());
 }
 
 // --- Routes ---

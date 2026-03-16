@@ -69,8 +69,12 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 - `$lib/chat.svelte.ts` — chat store (module-level `$state`, persists across navigation)
 
 ### Logo
-- Always use `<Logo />` (icon + text) or `<LogoIcon />` (SVG only) — never `<img>` for the logo
+- Use `<Logo name={appName} logo={appLogo} />` — accepts `name` (string) and optional `logo` (URL string)
+- When `logo` is set it renders an `<img>`; when empty it falls back to `<LogoIcon />`
 - `LogoIcon.svelte` uses `fill="currentColor"` so it inherits CSS `color`
+- `appName` and `appLogo` come from `data.appName` / `data.appLogo` in the layout (fetched from `app.name` / `app.logo` settings)
+- Upload endpoint: `POST /api/settings/logo` (multipart); remove by PATCHing `app.logo` with `value: ''`
+- Static uploads proxied through SvelteKit at `/uploads/[...path]` → API `/uploads/[...path]`
 
 ### Svelte 5 rules
 - Never name variables/functions starting with `$` in component scripts (reserved prefix)
