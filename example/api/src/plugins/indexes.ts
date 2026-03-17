@@ -52,5 +52,10 @@ export default async function ensureIndexes(app: FastifyInstance) {
 
     // notification_preferences
     await db.collection('notification_preferences').createIndex({ userId: 1 }, { unique: true });
+
+    // events
+    await db.collection('events').createIndex({ startDate: 1 });
+    await db.collection('events').createIndex({ endDate: 1 });
+    await db.collection('events').createIndex({ title: 'text' });
   });
 }

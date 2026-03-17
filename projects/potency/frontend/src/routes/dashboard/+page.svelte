@@ -2,10 +2,13 @@
   import { Pagination } from '@skeletonlabs/skeleton-svelte';
   import { Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight,
            TrendingUp, ShoppingCart, DollarSign, Package, ChevronUp, ChevronDown,
-           LayoutDashboard } from 'lucide-svelte';
+           LayoutDashboard, Plus, X } from 'lucide-svelte';
+  import { fade, scale } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import type { PageData } from './$types';
   import { dashboardWidgets } from '$lib/config/dashboard-widgets';
   import { hasPermission } from '$lib/permissions';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -113,6 +116,145 @@
   function nextMonth() { calMonth === 11 ? (calMonth = 0, calYear++) : calMonth++; }
 
   const maxDayRevenue = $derived(Math.max(...calDays.filter(Boolean).map(d => d!.revenue), 1));
+
+  // ── Events ────────────────────────────────────────────────────────
+  type CalEvent = {
+    id: string;
+    title: string;
+    content: string;
+    startDate: string; // YYYY-MM-DD
+    endDate: string;   // YYYY-MM-DD
+    singleDay: boolean;
+  };
+
+  function toDateStr(val: unknown): string {
+    if (!val) return '';
+    const d = new Date(val as string);
+    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+  }
+
+  let events = $state<CalEvent[]>(
+    ((data.events ?? []) as Record<string, unknown>[]).map(e => ({
+      id:        String(e.id ?? ''),
+      title:     String(e.title ?? ''),
+      content:   String(e.content ?? ''),
+      startDate: toDateStr(e.startDate),
+      endDate:   toDateStr(e.endDate),
+      singleDay: Boolean(e.singleDay),
+    }))
+  );
+
+  let eventQuery         = $state('');
+  let eventSearchOpen    = $state(false);
+  let eventModalOpen     = $state(false);
+  let eventDeleteConfirm = $state(false);
+  let editingEventId     = $state<string | null>(null);
+  let eventForm = $state({ title: '', content: '', startDate: '', endDate: '', singleDay: true });
+  let eventLoading  = $state(false);
+  let eventError    = $state('');
+
+  const eventMatches = $derived(
+    eventQuery.trim().length > 0
+      ? events.filter(e => e.title.toLowerCase().includes(eventQuery.toLowerCase()))
+      : []
+  );
+
+  $effect(() => { if (eventForm.singleDay) eventForm.endDate = eventForm.startDate; });
+
+  function eventsForDay(year: number, month: number, day: number): CalEvent[] {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return events.filter(e => e.startDate <= dateStr && dateStr <= e.endDate);
+  }
+
+  function selectEventFromSearch(ev: CalEvent) {
+    eventQuery = '';
+    eventSearchOpen = false;
+    openEditEvent(ev);
+  }
+
+  function openNewEvent() {
+    editingEventId = null;
+    const todayStr = today.toISOString().slice(0, 10);
+    eventForm = { title: '', content: '', startDate: todayStr, endDate: todayStr, singleDay: true };
+    eventError = '';
+    eventModalOpen = true;
+  }
+
+  function openEditEvent(ev: CalEvent) {
+    editingEventId = ev.id;
+    eventForm = { title: ev.title, content: ev.content, startDate: ev.startDate, endDate: ev.endDate, singleDay: ev.singleDay };
+    eventError = '';
+    eventModalOpen = true;
+  }
+
+  async function saveEvent() {
+    if (!eventForm.title.trim()) { eventError = 'Title is required'; return; }
+    if (!eventForm.startDate)    { eventError = 'Start date is required'; return; }
+
+    eventLoading = true; eventError = '';
+
+    const body = {
+      title:     eventForm.title.trim(),
+      content:   eventForm.content,
+      startDate: eventForm.startDate,
+      endDate:   eventForm.singleDay ? eventForm.startDate : (eventForm.endDate || eventForm.startDate),
+      singleDay: eventForm.singleDay,
+    };
+
+    try {
+      const res = await fetch(editingEventId ? `/api/events/${editingEventId}` : '/api/events', {
+        method: editingEventId ? 'PUT' : 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        eventError = (d as { message?: string }).message ?? 'Save failed';
+        return;
+      }
+
+      const saved = await res.json();
+      const normalized: CalEvent = {
+        id:        editingEventId ?? String(saved.id ?? ''),
+        title:     String(saved.title ?? body.title),
+        content:   String(saved.content ?? body.content),
+        startDate: toDateStr(saved.startDate) || body.startDate,
+        endDate:   toDateStr(saved.endDate)   || body.endDate,
+        singleDay: Boolean(saved.singleDay ?? body.singleDay),
+      };
+
+      events = editingEventId
+        ? events.map(e => e.id === editingEventId ? normalized : e)
+        : [...events, normalized];
+
+      eventModalOpen = false;
+    } catch {
+      eventError = 'Network error';
+    } finally {
+      eventLoading = false;
+    }
+  }
+
+  async function confirmDeleteEvent() {
+    if (!editingEventId) return;
+    eventLoading = true;
+    try {
+      const res = await fetch(`/api/events/${editingEventId}`, { method: 'DELETE' });
+      if (res.status !== 204 && !res.ok) {
+        const d = await res.json().catch(() => ({}));
+        eventError = (d as { message?: string }).message ?? 'Delete failed';
+        return;
+      }
+      events = events.filter(e => e.id !== editingEventId);
+      eventDeleteConfirm = false;
+      eventModalOpen     = false;
+    } catch {
+      eventError = 'Network error';
+    } finally {
+      eventLoading = false;
+    }
+  }
 
   // ── Dashboard widgets ──────────────────────────────────────────────
   const sortedWidgets = $derived([...dashboardWidgets].sort((a, b) => a.order - b.order));
@@ -334,9 +476,49 @@
     </div>
   </div>
 
-  <!-- Calendar -->
+  <!-- Order Calendar -->
   <div class="space-y-3">
     <h2 class="text-lg font-semibold">Order Calendar</h2>
+
+    <!-- Event search + New Event -->
+    <div class="flex items-center gap-3">
+      <div class="relative flex-1">
+        <div class="input-group grid-cols-[auto_1fr]">
+          <div class="ig-cell preset-tonal"><Search class="size-4" /></div>
+          <input
+            type="search"
+            class="ig-input"
+            placeholder="Search events by title…"
+            autocomplete="off"
+            bind:value={eventQuery}
+            onfocus={() => (eventSearchOpen = true)}
+            onblur={() => setTimeout(() => (eventSearchOpen = false), 150)}
+          />
+        </div>
+        {#if eventSearchOpen && eventMatches.length > 0}
+          <div class="absolute top-full left-0 right-0 z-30 mt-1 card preset-filled-surface-100-900 shadow-xl overflow-hidden border border-surface-200-800">
+            {#each eventMatches as ev}
+              <button
+                type="button"
+                class="w-full text-left px-4 py-2.5 text-sm hover:preset-tonal transition-colors border-b border-surface-200-800 last:border-0"
+                onmousedown={() => selectEventFromSearch(ev)}
+              >
+                <span class="font-medium">{ev.title}</span>
+                <span class="text-xs opacity-50 ml-2">
+                  {new Date(ev.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
+      {#if hasPermission(data.user, 'events', 'create')}
+        <button type="button" class="btn preset-filled-primary-500 whitespace-nowrap" onclick={openNewEvent}>
+          <Plus class="size-4" /> New Event
+        </button>
+      {/if}
+    </div>
+
     <div class="card preset-filled-surface-100-900 overflow-hidden">
 
       <div class="card-header flex items-center justify-between px-5 py-3 border-b border-surface-200-800">
@@ -376,6 +558,16 @@
                   <p class="text-[10px] opacity-40">{cell.count} order{cell.count !== 1 ? 's' : ''}</p>
                 </div>
               {/if}
+              <!-- Event pills -->
+              {#each eventsForDay(calYear, calMonth, cell.day) as ev}
+                <button
+                  type="button"
+                  class="mt-1 w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
+                    bg-tertiary-500 text-white hover:bg-tertiary-600 transition-colors"
+                  onclick={() => openEditEvent(ev)}
+                  title={ev.title}
+                >{ev.title}</button>
+              {/each}
             {/if}
           </div>
         {/each}
@@ -392,3 +584,100 @@
   {/each}
 
 </div>
+
+<!-- ── Event Modal ──────────────────────────────────────────────────── -->
+{#if eventModalOpen}
+  <div
+    transition:fade={{ duration: 200 }}
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    role="dialog" aria-modal="true" aria-label="{editingEventId ? 'Edit Event' : 'New Event'}"
+  >
+    <div
+      transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
+      class="card preset-filled-surface-100-900 w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
+    >
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800 shrink-0">
+        <h2 class="text-lg font-semibold">{editingEventId ? 'Edit Event' : 'New Event'}</h2>
+        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (eventModalOpen = false)} aria-label="Close">
+          <X class="size-5" />
+        </button>
+      </header>
+
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        {#if eventError}
+          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{eventError}</aside>
+        {/if}
+
+        <div class="space-y-1">
+          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
+          <input id="ev-title" type="text" class="input w-full" placeholder="Event title" bind:value={eventForm.title} maxlength="200" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
+            <input id="ev-start" type="date" class="input w-full" bind:value={eventForm.startDate} />
+          </div>
+          <div class="space-y-1">
+            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
+            <input id="ev-end" type="date" class="input w-full" bind:value={eventForm.endDate}
+              disabled={eventForm.singleDay} min={eventForm.startDate} />
+          </div>
+        </div>
+
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" class="checkbox" bind:checked={eventForm.singleDay} />
+          <span class="text-sm">Single-day event</span>
+        </label>
+
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={eventForm.content} placeholder="Event description…" />
+        </div>
+      </div>
+
+      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-surface-200-800 shrink-0">
+        <div>
+          {#if editingEventId && hasPermission(data.user, 'events', 'delete')}
+            <button type="button" class="btn preset-tonal-error" disabled={eventLoading}
+              onclick={() => (eventDeleteConfirm = true)}>Delete this event</button>
+          {/if}
+        </div>
+        <div class="flex gap-3">
+          <button type="button" class="btn preset-tonal" onclick={() => (eventModalOpen = false)}>Cancel</button>
+          <button type="button" class="btn preset-filled-primary-500" disabled={eventLoading} onclick={saveEvent}>
+            {eventLoading ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+{/if}
+
+<!-- ── Delete Confirm Modal ─────────────────────────────────────────── -->
+{#if eventDeleteConfirm}
+  <div
+    transition:fade={{ duration: 150 }}
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+    role="dialog" aria-modal="true" aria-label="Confirm delete"
+  >
+    <div
+      transition:scale={{ duration: 250, start: 0.95, easing: cubicOut }}
+      class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl mx-4"
+    >
+      <div class="p-6 space-y-3">
+        <h2 class="text-lg font-semibold">Delete event?</h2>
+        <p class="text-sm opacity-70">"<strong>{eventForm.title}</strong>" will be permanently removed. This cannot be undone.</p>
+        {#if eventError}
+          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{eventError}</aside>
+        {/if}
+      </div>
+      <footer class="flex justify-end gap-3 px-6 pb-5">
+        <button type="button" class="btn preset-tonal" onclick={() => (eventDeleteConfirm = false)}>Cancel</button>
+        <button type="button" class="btn preset-filled-error-500" disabled={eventLoading} onclick={confirmDeleteEvent}>
+          {eventLoading ? 'Deleting…' : 'Delete'}
+        </button>
+      </footer>
+    </div>
+  </div>
+{/if}

@@ -1,7 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import type { WebSocket } from 'ws';
-import websocket from '@fastify/websocket';
 
 const COLL  = 'notifications';
 const PREFS = 'notification_preferences';
@@ -23,9 +22,6 @@ async function getOrCreatePrefs(db: ReturnType<FastifyInstance['mongo']['db']>, 
 }
 
 export default async function notificationsRoutes(app: FastifyInstance) {
-
-  // Register websocket plugin in this scope (idempotent — safe if already registered at root)
-  await app.register(websocket);
 
   // ── WebSocket /notifications/ws ───────────────────────────────────────────
   app.get('/ws', { websocket: true }, (socket: WebSocket, request) => {

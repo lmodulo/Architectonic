@@ -10,7 +10,7 @@ const API_URL = env.API_URL ?? 'http://localhost:4000';
 const AUTH_REDIRECT_PATHS = new Set(['/login', '/register']);
 
 // Routes customers (role: 'customer') may visit when authenticated
-const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout']);
+const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout', '/upcoming-events']);
 
 // Routes that require a specific permission beyond authentication
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {
@@ -44,7 +44,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   // Redirect unauthenticated users to login
-  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && !path.startsWith('/api/') && !path.startsWith('/uploads/')) {
+  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/upcoming-events' && !path.startsWith('/api/') && !path.startsWith('/uploads/')) {
     redirect(303, '/login');
   }
 
