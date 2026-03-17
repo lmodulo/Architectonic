@@ -70,7 +70,7 @@
 
   /* ── HERO ──────────────────────────────────────────────── */
   .page-hero {
-    background: var(--color-tertiary-500);
+    background: var(--color-secondary-500);
     padding: calc(var(--spacing) * 20) calc(var(--spacing) * 8);
   }
 

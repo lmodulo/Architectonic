@@ -52,23 +52,29 @@
 
   .landing-header {
     text-align: center;
-    margin-bottom: 4rem;
+    padding: calc(var(--spacing) * 20) calc(var(--spacing) * 8) calc(var(--spacing) * 16);
+    margin-bottom: 0;
   }
 
   .landing-title {
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 200;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--color-surface-900);
-    margin: 0 0 0.5rem;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-font-weight);
+    line-height: 1.1;
+    color: var(--color-surface-950);
+    margin: 0;
+  }
+
+  :global(.dark) .landing-title {
+    color: var(--color-surface-50);
   }
 
   .landing-sub {
-    font-size: 0.9375rem;
-    color: var(--color-surface-400);
-    margin: 0;
-    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-primary-500);
+    margin: 0 0 calc(var(--spacing) * 3);
   }
 
   .category-grid {
@@ -144,10 +150,6 @@
     padding: 6rem 0;
     color: var(--color-surface-400);
     font-size: 0.9375rem;
-  }
-
-  :global(.dark) .landing-title {
-    color: var(--color-surface-100);
   }
 
   :global(.dark) .category-card {

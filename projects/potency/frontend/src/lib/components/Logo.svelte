@@ -9,4 +9,4 @@
 {:else}
   <LogoIcon class="size-6 text-primary-700 dark:text-primary-200" />
 {/if}
-<span class="text-xl font-semibold">{name}</span>
+<span class="text-xl font-semibold" style="font-family: var(--heading-font-family);">{name}</span>

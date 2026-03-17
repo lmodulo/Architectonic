@@ -1,11 +1,14 @@
 
 # TERMINAL
+kill
+docker stop potency-api-1 potency-mongo-1 2>&1
+
 rebuild restart frontend
 docker compose -f docker-compose.yml -f docker-compose.dev.yml build web
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d web
 
 
-rebuild restart API
+rebuild restart backend
 docker compose -f docker-compose.yml -f docker-compose.dev.yml build api
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 
@@ -19,9 +22,9 @@ update the CLAUDE.md file with necessary context.
 # TODO
 [x] diagnose ws server client error
 [x] update public page content from PDFs
-[] Add calendar events (dashboard/Upcoming Events)
+[x] Add calendar events (dashboard/Upcoming Events)
 [] Add oAuth registration for Google/Facebook
-[] write a style guide: components + context (+tools) + color theme elements
+[x] write a style guide: components + context (+tools) + color theme elements
 [] Shopping cart
 [] Stripe integration
 [] Square integration

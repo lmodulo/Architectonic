@@ -3,6 +3,7 @@
   import { Sun, Moon, Menu, X } from 'lucide-svelte';
   import Logo from '$lib/components/Logo.svelte';
   import { brand } from '$lib/config/logo';
+  import { page } from '$app/state';
 
   const branding = getContext<{ name: string; logo: string }>('appBranding') ?? { name: brand.text, logo: '' };
 
@@ -20,11 +21,15 @@
   }
 
   const navLinks = [
-    { href: '/shop', label: 'Shop' },
-    { href: '/about-me', label: 'About Me' },
-    { href: '/affiliates', label: 'Affiliates' },
-    { href: '/upcoming-events', label: 'Upcoming Events' },
+    { href: '/shop',            label: 'Shop',            activeColor: 'var(--color-primary-500)' },
+    { href: '/about-me',        label: 'About Me',        activeColor: 'var(--color-secondary-500)' },
+    { href: '/affiliates',      label: 'Affiliates',      activeColor: 'var(--color-primary-700)' },
+    { href: '/upcoming-events', label: 'Upcoming Events', activeColor: 'var(--color-warning-600)' },
   ];
+
+  function isActive(href: string) {
+    return page.url.pathname === href || page.url.pathname.startsWith(href + '/');
+  }
 </script>
 
 <nav class="marketing-nav">
@@ -37,7 +42,12 @@
   <!-- Desktop links -->
   <div class="nav-center-zone">
     {#each navLinks as link}
-      <a href={link.href} class="nav-link">{link.label}</a>
+      <a
+        href={link.href}
+        class="nav-link"
+        class:nav-link-active={isActive(link.href)}
+        style={isActive(link.href) ? `--active-color: ${link.activeColor}` : ''}
+      >{link.label}</a>
     {/each}
   </div>
 
@@ -77,7 +87,13 @@
 {#if menuOpen}
   <div class="mobile-menu" role="dialog" aria-label="Navigation">
     {#each navLinks as link}
-      <a href={link.href} class="mobile-link" onclick={() => (menuOpen = false)}>{link.label}</a>
+      <a
+        href={link.href}
+        class="mobile-link"
+        class:mobile-link-active={isActive(link.href)}
+        style={isActive(link.href) ? `--active-color: ${link.activeColor}` : ''}
+        onclick={() => (menuOpen = false)}
+      >{link.label}</a>
     {/each}
     <div class="mobile-divider"></div>
     <a href="/login" class="mobile-link mobile-signin" onclick={() => (menuOpen = false)}>Sign In</a>
@@ -186,6 +202,12 @@
     color: var(--color-surface-950);
   }
 
+  .nav-link-active {
+    color: var(--active-color) !important;
+    border-bottom: 2px solid var(--active-color);
+    margin-bottom: -2px;
+  }
+
   .theme-toggle {
     display: flex;
     align-items: center;
@@ -237,6 +259,12 @@
   .mobile-link:hover {
     background: color-mix(in oklch, var(--color-surface-500) 8%, transparent);
     color: var(--color-surface-950);
+  }
+
+  .mobile-link-active {
+    color: var(--active-color) !important;
+    border-left: 3px solid var(--active-color);
+    padding-left: calc(calc(var(--spacing) * 6) - 3px);
   }
 
   .mobile-divider {

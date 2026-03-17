@@ -268,11 +268,27 @@
 
   /* Left panel */
   .hero-left {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: calc(var(--spacing) * 20) calc(var(--spacing) * 12);
     background: color-mix(in oklch, var(--color-primary-500) 12%, var(--body-background-color));
+  }
+
+  .hero-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('/splash-pattern.jpg');
+    background-repeat: repeat;
+    background-size: auto;
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
+  .hero-left > * {
+    position: relative;
   }
 
   :global(.dark) .hero-left {
