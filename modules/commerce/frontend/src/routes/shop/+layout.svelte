@@ -18,7 +18,7 @@
 
 <style>
   .shop-shell {
-    padding-top: 64px;
+    padding-top: 3.5rem;
     min-height: 100vh;
     background: var(--body-background-color);
   }

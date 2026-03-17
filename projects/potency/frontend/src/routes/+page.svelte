@@ -1,861 +1,875 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import MarketingNav from '$lib/components/MarketingNav.svelte';
-  import Logo from '$lib/components/Logo.svelte';
-  import { brand } from '$lib/config/logo';
+  import { activeDiscount, applyDiscount, formatPrice } from '$lib/utils/price';
+  import type { PageData } from './$types';
 
-  // ── Fade-in refs ──────────────────────────────────────────────────
-  let fadeRefs: (Element | undefined)[] = $state(Array(30).fill(undefined));
+  let { data }: { data: PageData } = $props();
 
-  // ── Data ──────────────────────────────────────────────────────────
-  const features = [
-    { icon: '🔐', title: 'Secure Authentication', body: 'Login and registration with bcrypt hashing, server-side session validation on every request, and redirect guards.' },
-    { icon: '🗄️', title: 'Session Management',    body: 'MongoDB-backed sessions via connect-mongo with configurable TTL, signed HTTP-only cookies, and auto cleanup.' },
-    { icon: '🎨', title: 'UI Component System',    body: 'Skeleton v4 with Tailwind v4 — buttons, badges, cards, forms, navigation, and a custom branded theme.' },
-    { icon: '🐳', title: 'Docker Dev Stack',        body: 'One command brings up SvelteKit, Fastify, and MongoDB with bind-mount hot reload and health-checked startup order.' },
-    { icon: '⚡', title: 'Type-Safe API',           body: 'Fastify v5 with TypeScript, JSON Schema request validation, plugin encapsulation, and a structured route layout.' },
-    { icon: '🚀', title: 'Production Ready',        body: 'Separate dev and prod Docker configs, environment-aware security settings, and health endpoints built in.' }
-  ];
+  const products = $derived(data.products ?? []);
 
-  const stats = [
-    { value: '10k+',   label: 'Developers' },
-    { value: '< 5min', label: 'Setup Time' },
-    { value: '100%',   label: 'TypeScript' },
-    { value: 'MIT',    label: 'License'    }
-  ];
+  function productSalePrice(product: any) {
+    const sale = activeDiscount(product.discounts ?? []);
+    return sale ? applyDiscount(product.basePrice, sale) : null;
+  }
 
-  const steps = [
-    { num: '01', title: 'Clone the repo',       body: 'One git clone pulls the entire scaffold — API, frontend, and database all configured and ready.' },
-    { num: '02', title: 'Set your env vars',     body: 'Copy .env.example, add a session secret and Mongo URI. Everything else has sensible defaults.' },
-    { num: '03', title: 'Deploy anywhere',       body: 'Docker Compose for local dev. Drop the same image into any cloud provider for production.' }
-  ];
-
-  const buttons = [
-    { label: 'Primary',   cls: 'btn preset-filled-primary-500'   },
-    { label: 'Secondary', cls: 'btn preset-tonal-secondary-500'  },
-    { label: 'Outlined',  cls: 'btn preset-outlined-primary-500' },
-    { label: 'Error',     cls: 'btn preset-tonal-error-500'      },
-    { label: 'Success',   cls: 'btn preset-tonal-success-500'    },
-    { label: 'Warning',   cls: 'btn preset-tonal-warning-500'    }
-  ];
-
-  const badges = [
-    { label: 'primary',   cls: 'badge preset-tonal-primary'   },
-    { label: 'secondary', cls: 'badge preset-tonal-secondary' },
-    { label: 'success',   cls: 'badge preset-tonal-success'   },
-    { label: 'warning',   cls: 'badge preset-tonal-warning'   },
-    { label: 'error',     cls: 'badge preset-tonal-error'     },
-    { label: 'surface',   cls: 'badge preset-tonal-surface'   }
-  ];
-
-  const alerts = [
-    { preset: 'preset-tonal-success', label: 'Success', msg: 'Your changes have been saved successfully.' },
-    { preset: 'preset-tonal-warning', label: 'Warning', msg: 'This action will affect all team members.' },
-    { preset: 'preset-tonal-error',   label: 'Error',   msg: 'Connection failed. Please try again.' }
-  ];
-
-  const testimonials = [
-    { quote: 'Saved me two weeks of boilerplate. Auth, roles, and a polished UI all wired before I wrote a single line of business logic.', name: 'Alex Rivera',  role: 'Senior Engineer',    initials: 'AR', hue: 'var(--color-primary-500)'   },
-    { quote: "The RBAC system is exactly what I needed. Per-route guards and component-level permission checks that actually work.", name: 'Sam Chen',    role: 'Fullstack Developer',  initials: 'SC', hue: 'var(--color-secondary-500)' },
-    { quote: "Best scaffold I've tried. SvelteKit + Fastify is a killer combo and the Skeleton UI themes are gorgeous out of the box.", name: 'Jamie Brooks', role: 'Indie Hacker',         initials: 'JB', hue: 'var(--color-tertiary-500)'  }
-  ];
-
-  const plans = [
-    {
-      name: 'Starter',
-      price: 'Free',
-      period: 'forever',
-      desc: 'Everything you need to launch a project.',
-      badge: null,
-      features: ['Full source code', 'Auth & session management', 'SvelteKit + Fastify', 'Docker dev stack', 'MIT License'],
-      cta: 'Clone Now',
-      href: '/login',
-      highlight: false
-    },
-    {
-      name: 'Pro',
-      price: '$12',
-      period: 'per month',
-      desc: 'Advanced features for growing applications.',
-      badge: 'Most Popular',
-      features: ['Everything in Starter', 'RBAC roles & permissions', 'Admin dashboard', 'Manage Users UI', 'Priority support'],
-      cta: 'Get Started',
-      href: '/login',
-      highlight: true
-    },
-    {
-      name: 'Team',
-      price: '$49',
-      period: 'per month',
-      desc: 'Built for teams that ship fast.',
-      badge: null,
-      features: ['Everything in Pro', 'Unlimited team seats', 'Custom branding', 'Audit logging', 'SLA guarantee'],
-      cta: 'Contact Sales',
-      href: '/login',
-      highlight: false
-    }
-  ];
-
-  const stack = [
-    'SvelteKit 2', 'Svelte 5', 'Fastify 5', 'MongoDB 7',
-    'TypeScript', 'Tailwind v4', 'Skeleton v4', 'Docker'
-  ];
-
-  onMount(() => {
-    const onScroll = () => { scrollY = window.scrollY; };
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) e.target.classList.add('visible');
-      }),
-      { threshold: 0.1 }
-    );
-    fadeRefs.forEach((el) => el && io.observe(el));
-
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      io.disconnect();
-    };
-  });
+  function productSale(product: any) {
+    return activeDiscount(product.discounts ?? []);
+  }
 </script>
 
 <svelte:head>
-  <title>Potency by Potamus</title>
+  <title>Potency By Potamus — Holistic Wellness Products</title>
+  <meta name="description" content="Natural balms, bath soaps, and holistic wellness products handcrafted with care. Shop online or visit us in Endicott, WA." />
 </svelte:head>
 
-<!-- ── Fixed nav ──────────────────────────────────────────────────── -->
 <MarketingNav />
 
-<!-- ── Hero ───────────────────────────────────────────────────────── -->
-<section class="hero">
+<div class="page-wrap">
 
-  <div class="hero-content">
-
-    <!-- Brand lockup -->
-    <div class="hero-brand">
-      <Logo />
-    </div>
-
-    <span class="badge preset-tonal-primary mb-6">Production-ready scaffold</span>
-
-    <h1 class="hero-headline">
-      Potency by Potamus
-    </h1>
-
-    <p class="hero-sub">
-      A full-stack SvelteKit + Fastify scaffold with authentication, RBAC, session management,
-      MongoDB, and a polished Skeleton UI — clone it and start shipping.
-    </p>
-
-    <div class="flex flex-wrap gap-4 justify-center">
-      <a href="/login" class="btn preset-filled-primary-500 btn-lg">Get Started Free</a>
-      <a href="/login" class="btn preset-outlined-primary-500 btn-lg">Sign In</a>
-    </div>
-  </div>
-</section>
-
-<!-- ── Stats ──────────────────────────────────────────────────────── -->
-<section class="section-stats">
-  <div class="stats-inner fade-el" bind:this={fadeRefs[0]}>
-    {#each stats as s}
-      <div class="stat-item">
-        <span class="stat-value">{s.value}</span>
-        <span class="stat-label">{s.label}</span>
+  <!-- ── HERO ──────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="hero-eyebrow">Handcrafted Holistic Wellness</p>
+      <div class="hero-logo">
+        <img src="/logo.png" alt="Potency By Potamus" class="hero-logo-img" />
       </div>
-    {/each}
-  </div>
-</section>
-
-<!-- ── Features ───────────────────────────────────────────────────── -->
-<section class="section-dark">
-  <div class="section-inner">
-
-    <div class="fade-el text-center space-y-3" bind:this={fadeRefs[1]}>
-      <h2 class="section-heading">Everything wired up on day one</h2>
-      <p class="section-sub">No boilerplate hunting. Every layer is configured and connected.</p>
-    </div>
-
-    <div class="features-grid">
-      {#each features as f, i}
-        <div
-          class="feature-card fade-el"
-          style="transition-delay: {i * 70}ms"
-          bind:this={fadeRefs[i + 2]}
-        >
-          <span class="feature-icon">{f.icon}</span>
-          <h3 class="feature-title">{f.title}</h3>
-          <p class="feature-body">{f.body}</p>
-        </div>
-      {/each}
-    </div>
-
-  </div>
-</section>
-
-<!-- ── How it works ───────────────────────────────────────────────── -->
-<section class="section-mid">
-  <div class="section-inner">
-
-    <div class="fade-el text-center space-y-3" bind:this={fadeRefs[9]}>
-      <h2 class="section-heading-alt">Up and running in three steps</h2>
-      <p class="section-sub-alt">From zero to authenticated app in under five minutes.</p>
-    </div>
-
-    <div class="steps-grid fade-el" bind:this={fadeRefs[10]}>
-      {#each steps as s}
-        <div class="step-card">
-          <span class="step-num">{s.num}</span>
-          <h3 class="step-title">{s.title}</h3>
-          <p class="step-body">{s.body}</p>
-        </div>
-      {/each}
-    </div>
-
-  </div>
-</section>
-
-<!-- ── Component showcase ─────────────────────────────────────────── -->
-<section class="section-dark">
-  <div class="section-inner">
-
-    <div class="fade-el text-center space-y-3" bind:this={fadeRefs[11]}>
-      <h2 class="section-heading">UI components included</h2>
-      <p class="section-sub">Skeleton v4 ships dozens of pre-styled, themeable components ready to use.</p>
-    </div>
-
-    <div class="showcase-grid fade-el" bind:this={fadeRefs[12]}>
-
-      <!-- Buttons -->
-      <div class="showcase-card">
-        <p class="showcase-label">Buttons</p>
-        <div class="flex flex-wrap gap-2">
-          {#each buttons as b}
-            <button type="button" class="{b.cls} btn-sm">{b.label}</button>
-          {/each}
-        </div>
+      <p class="hero-sub">
+        Small-batch balms, bath soaps, and botanical blends — made with intention,
+        rooted in nature. Find us online, in-store, or at a festival near you.
+      </p>
+      <div class="hero-actions">
+        <a href="/shop" class="btn preset-filled-primary-500">Shop Now</a>
+        <a href="#locations" class="btn preset-tonal-surface">Find Us</a>
       </div>
+    </div>
+    <div class="hero-deco" aria-hidden="true">
+      <div class="hero-deco-circle hero-deco-circle-1"></div>
+      <div class="hero-deco-circle hero-deco-circle-2"></div>
+    </div>
+  </section>
 
-      <!-- Badges -->
-      <div class="showcase-card">
-        <p class="showcase-label">Badges</p>
-        <div class="flex flex-wrap gap-2">
-          {#each badges as b}
-            <span class={b.cls}>{b.label}</span>
-          {/each}
-        </div>
-      </div>
-
-      <!-- Alerts -->
-      <div class="showcase-card col-span-full">
-        <p class="showcase-label">Alerts</p>
-        <div class="space-y-2">
-          {#each alerts as a}
-            <div class="alert {a.preset} p-3 rounded-base text-sm flex items-center gap-2">
-              <span class="font-semibold">{a.label}:</span>
-              <span>{a.msg}</span>
-            </div>
-          {/each}
-        </div>
-      </div>
-
-      <!-- Card -->
-      <div class="showcase-card">
-        <p class="showcase-label">Card</p>
-        <div class="card preset-filled-surface-100-900 overflow-hidden text-sm">
-          <header class="preset-filled-primary-500 px-4 py-3 font-semibold">Card Header</header>
-          <div class="p-4 space-y-2 text-surface-300">
-            <p>Card body with any content — text, forms, tables, or nested components.</p>
-            <div class="flex gap-2 pt-1">
-              <button type="button" class="btn btn-sm preset-filled-primary-500">Action</button>
-              <button type="button" class="btn btn-sm preset-tonal">Cancel</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Progress -->
-      <div class="showcase-card">
-        <p class="showcase-label">Progress</p>
-        <div class="space-y-3">
-          {#each [
-            { label: 'Storage',    pct: 72, cls: 'bg-primary-500'   },
-            { label: 'Bandwidth',  pct: 45, cls: 'bg-secondary-500' },
-            { label: 'API Quota',  pct: 91, cls: 'bg-error-500'     }
-          ] as row}
-            <div class="space-y-1">
-              <div class="flex justify-between text-xs text-surface-400">
-                <span>{row.label}</span>
-                <span>{row.pct}%</span>
+  <!-- ── BEST SELLERS ──────────────────────────────────────── -->
+  {#if products.length > 0}
+    <section class="section">
+      <div class="section-inner">
+        <p class="section-label">Best Sellers</p>
+        <h2 class="section-heading">Our Most Loved Products</h2>
+        <div class="product-grid">
+          {#each products as product (product.id)}
+            {@const sale = productSale(product)}
+            {@const salePrice = productSalePrice(product)}
+            {@const img = product.images?.[0]}
+            <a
+              href="/shop/{product.categorySlug ?? product.category}/{product.slug}"
+              class="product-card"
+            >
+              <div class="product-img-wrap">
+                {#if img}
+                  <img src={img} alt={product.name} class="product-img" />
+                {:else}
+                  <div class="product-img-placeholder"></div>
+                {/if}
+                {#if sale}
+                  <span class="product-badge">
+                    {sale.type === 'percentage' ? `-${sale.value}%` : 'SALE'}
+                  </span>
+                {/if}
               </div>
-              <div class="w-full h-2 rounded-full bg-surface-700">
-                <div class="h-2 rounded-full {row.cls}" style="width: {row.pct}%"></div>
+              <div class="product-info">
+                <p class="product-name">{product.name}</p>
+                <div class="product-price">
+                  {#if salePrice !== null}
+                    <span class="price-original">{formatPrice(product.basePrice)}</span>
+                    <span class="price-sale">{formatPrice(salePrice)}</span>
+                  {:else}
+                    <span class="price-base">{formatPrice(product.basePrice)}</span>
+                  {/if}
+                </div>
               </div>
-            </div>
+            </a>
           {/each}
         </div>
+        <div class="section-cta">
+          <a href="/shop" class="btn preset-tonal-surface">View All Products</a>
+        </div>
       </div>
+    </section>
+  {/if}
 
+  <!-- ── ABOUT ─────────────────────────────────────────────── -->
+  <section class="section section-alt">
+    <div class="section-inner about-grid">
+      <div class="about-text">
+        <p class="section-label">Our Story</p>
+        <h2 class="section-heading">Crafted with Care</h2>
+        <p class="about-body">
+          Potency By Potamus was born from a love of plants, healing, and community.
+          Every product is small-batch, handcrafted in the Pacific Northwest using
+          thoughtfully sourced botanicals and skin-loving ingredients.
+        </p>
+        <p class="about-body">
+          Whether you're soothing tired muscles with a warming balm or unwinding with
+          one of our artisan bath soaks, you're bringing a little of the wild into
+          your daily ritual.
+        </p>
+      </div>
+      <div class="about-values">
+        {#each [
+          { icon: '🌿', label: 'Plant-Based Ingredients' },
+          { icon: '🤲', label: 'Small-Batch, Handcrafted' },
+          { icon: '💚', label: 'Made with Intention' },
+          { icon: '🌲', label: 'Pacific Northwest Rooted' }
+        ] as item}
+          <div class="value-item">
+            <span class="value-icon">{item.icon}</span>
+            <span class="value-label">{item.label}</span>
+          </div>
+        {/each}
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Stack ──────────────────────────────────────────────────────── -->
-<section class="section-mid">
-  <div class="section-inner">
+  <!-- ── LOCATIONS ─────────────────────────────────────────── -->
+  <section class="section" id="locations">
+    <div class="section-inner">
+      <p class="section-label">Where to Find Us</p>
+      <h2 class="section-heading">Online &amp; In Person</h2>
+      <div class="locations-grid">
 
-    <div class="fade-el text-center space-y-3" bind:this={fadeRefs[13]}>
-      <h2 class="section-heading-alt">The stack</h2>
-      <p class="section-sub-alt">Modern, opinionated, and fully typed end to end.</p>
-    </div>
+        <div class="location-card">
+          <div class="location-icon">🛒</div>
+          <h3 class="location-title">Online Store</h3>
+          <p class="location-body">
+            Shop our full catalog anytime. Orders ship across the US.
+            New products drop regularly — follow us to stay in the loop.
+          </p>
+          <a href="/shop" class="btn preset-filled-primary-500 location-btn">Shop Online</a>
+        </div>
 
-    <div class="fade-el stack-grid" bind:this={fadeRefs[14]}>
-      {#each stack as tech}
-        <span class="badge preset-tonal-primary text-sm px-4 py-2">{tech}</span>
-      {/each}
-    </div>
+        <div class="location-card">
+          <div class="location-icon">🏪</div>
+          <h3 class="location-title">Visit Us in Endicott</h3>
+          <p class="location-body">
+            Come see us in person at our home base in Endicott, WA. Bring your questions
+            — we love talking about what goes into each product.
+          </p>
+          <address class="location-address">
+            <strong>Potency By Potamus</strong><br />
+            207 C Street<br />
+            Endicott, WA 99125<br />
+            <a href="tel:+15099875588">(509) 987-5588</a>
+          </address>
+        </div>
 
-  </div>
-</section>
-
-<!-- ── Testimonials ───────────────────────────────────────────────── -->
-<section class="section-dark">
-  <div class="section-inner">
-
-    <div class="fade-el text-center space-y-3" bind:this={fadeRefs[15]}>
-      <h2 class="section-heading">Trusted by developers</h2>
-      <p class="section-sub">What people are saying after shipping with {brand.text}.</p>
-    </div>
-
-    <div class="testimonials-grid fade-el" bind:this={fadeRefs[16]}>
-      {#each testimonials as t}
-        <div class="testimonial-card">
-          <p class="testimonial-quote">"{t.quote}"</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar" style="background: {t.hue}">{t.initials}</div>
-            <div>
-              <div class="testimonial-name">{t.name}</div>
-              <div class="testimonial-role">{t.role}</div>
-            </div>
+        <div class="location-card">
+          <div class="location-icon">🎪</div>
+          <h3 class="location-title">Festival Events</h3>
+          <p class="location-body">
+            We travel year-round to festivals and markets across the Pacific Northwest.
+            Follow us on social media to find out where we'll be next.
+          </p>
+          <div class="social-row">
+            <a
+              href="https://facebook.com/potencybypotamus"
+              class="social-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+            >
+              <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.313 0 2.686.236 2.686.236v2.97h-1.514c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+              </svg>
+              Facebook
+            </a>
+            <a
+              href="https://instagram.com/potencybypotamus"
+              class="social-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+            >
+              <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+              </svg>
+              Instagram
+            </a>
           </div>
         </div>
-      {/each}
+
+      </div>
     </div>
+  </section>
 
-  </div>
-</section>
-
-<!-- ── Pricing ────────────────────────────────────────────────────── -->
-<section class="section-mid">
-  <div class="section-inner">
-
-    <div class="fade-el text-center space-y-3" bind:this={fadeRefs[17]}>
-      <h2 class="section-heading-alt">Simple, transparent pricing</h2>
-      <p class="section-sub-alt">Start free. Scale when you're ready.</p>
-    </div>
-
-    <div class="pricing-grid fade-el" bind:this={fadeRefs[18]}>
-      {#each plans as plan}
-        <div class="pricing-card {plan.highlight ? 'pricing-card--highlight' : ''}">
-          <div class="pricing-header">
-            <div class="flex items-start justify-between gap-2">
-              <h3 class="pricing-name">{plan.name}</h3>
-              {#if plan.badge}
-                <span class="badge preset-filled-primary-500 text-xs">{plan.badge}</span>
-              {/if}
-            </div>
-            <div class="pricing-price">
-              {plan.price}<span class="pricing-period"> / {plan.period}</span>
-            </div>
-            <p class="pricing-desc">{plan.desc}</p>
+  <!-- ── CONTACT ───────────────────────────────────────────── -->
+  <section class="section section-alt">
+    <div class="section-inner contact-inner">
+      <p class="section-label">Get in Touch</p>
+      <h2 class="section-heading">We'd Love to Hear from You</h2>
+      <div class="contact-details">
+        <div class="contact-item">
+          <span class="contact-icon">📍</span>
+          <div>
+            <strong>Potency By Potamus</strong><br />
+            207 C Street, Endicott, WA 99125
           </div>
-          <ul class="pricing-features">
-            {#each plan.features as feat}
-              <li class="pricing-feat">
-                <span class="feat-check">✓</span>
-                {feat}
-              </li>
-            {/each}
-          </ul>
-          <a href={plan.href} class="btn w-full {plan.highlight ? 'preset-filled-primary-500' : 'preset-outlined-primary-500'}">
-            {plan.cta}
+        </div>
+        <div class="contact-item">
+          <span class="contact-icon">📞</span>
+          <a href="tel:+15099875588">(509) 987-5588</a>
+        </div>
+        <div class="contact-item">
+          <span class="contact-icon">✉️</span>
+          <a href="mailto:potencybypotamus@gmail.com">potencybypotamus@gmail.com</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FDA DISCLAIMER ────────────────────────────────────── -->
+  <section class="disclaimer-section">
+    <div class="section-inner">
+      <p class="disclaimer-label">FDA Disclaimer</p>
+      <p class="disclaimer-text">
+        These statements have not been evaluated by the Food and Drug Administration.
+        These products are not intended to diagnose, treat, cure, or prevent any disease.
+        The information provided on this site is for educational purposes only and is not
+        intended as a substitute for advice from your physician or other health care
+        professional. You should not use this information for diagnosis or treatment of
+        any health problem or for prescription of any medication or other treatment.
+        Consult with a healthcare professional before starting any diet, exercise, or
+        supplementation program, before taking any medication, or if you have or suspect
+        you might have a health problem.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <p class="footer-name">Potency By Potamus</p>
+        <p class="footer-tagline">Holistic wellness, handcrafted with love.</p>
+        <div class="footer-social">
+          <a
+            href="https://facebook.com/potencybypotamus"
+            class="footer-social-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+          >
+            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.313 0 2.686.236 2.686.236v2.97h-1.514c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+            </svg>
+          </a>
+          <a
+            href="https://instagram.com/potencybypotamus"
+            class="footer-social-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+          >
+            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+            </svg>
           </a>
         </div>
-      {/each}
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="/privacy-policy" class="footer-link">Privacy Policy</a>
+        <a href="/terms-and-conditions" class="footer-link">Terms &amp; Conditions</a>
+        <a href="/certificate-of-analysis" class="footer-link">Certificate Of Analysis</a>
+        <a href="/shipping-return-policy" class="footer-link">Shipping &amp; Return Policy</a>
+      </nav>
+      <p class="footer-copy">&copy; {new Date().getFullYear()} Potency By Potamus. All rights reserved.</p>
     </div>
+  </footer>
 
-  </div>
-</section>
-
-<!-- ── CTA ────────────────────────────────────────────────────────── -->
-<section class="section-cta">
-  <div class="fade-el section-inner text-center space-y-6" bind:this={fadeRefs[19]}>
-    <h2 class="cta-heading">Ready to build something?</h2>
-    <p class="cta-sub">Create your account and have a running authenticated app in minutes.</p>
-    <a href="/login" class="btn preset-filled-primary-500 btn-lg">Start Building</a>
-  </div>
-</section>
-
-<!-- ── Footer ─────────────────────────────────────────────────────── -->
-<footer class="footer">
-  <div class="footer-brand">
-    <Logo />
-  </div>
-  <p class="footer-copy">MIT License</p>
-</footer>
+</div>
 
 <style>
-  /* ══════════════════════════════════════════════════════════════
-     LIGHT MODE (default)
-     ══════════════════════════════════════════════════════════════ */
+  .page-wrap {
+    min-height: 100vh;
+    background: var(--body-background-color);
+    font-family: var(--base-font-family);
+    font-weight: var(--base-font-weight);
+  }
 
-  /* ── Hero ────────────────────────────────────────────────────── */
+  :global(.dark) .page-wrap {
+    background: var(--body-background-color-dark);
+  }
+
+  /* ── HERO ──────────────────────────────────────────────── */
   .hero {
     position: relative;
-    min-height: 100svh;
+    min-height: 92vh;
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: calc(var(--spacing) * 32) calc(var(--spacing) * 8) calc(var(--spacing) * 20);
     overflow: hidden;
-    background: linear-gradient(
-      135deg,
-      var(--color-primary-950, oklch(15% 0.08 142)),
-      var(--color-primary-800, oklch(35% 0.14 142)) 40%,
-      var(--color-secondary-800, oklch(35% 0.14 200)) 70%,
-      var(--color-primary-950, oklch(15% 0.08 142))
-    );
   }
 
-  .hero-content {
+  .hero-inner {
     position: relative;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 6rem 1.5rem 4rem;
+    z-index: 1;
     max-width: 52rem;
-    margin-inline: auto;
+    margin: 0 auto;
+    text-align: center;
   }
 
-  .hero-brand {
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-primary-500);
+    margin: 0 0 calc(var(--spacing) * 4);
+  }
+
+  .hero-logo {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
+    justify-content: center;
+    margin: 0 0 calc(var(--spacing) * 6);
   }
 
-  .hero-headline {
-    font-size: clamp(2.5rem, 7vw, 5rem);
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-    color: #ffffff;
-    margin-bottom: 1.5rem;
+  .hero-logo-img {
+    max-width: min(30rem, 80vw);
+    height: auto;
   }
 
   .hero-sub {
-    font-size: 1.125rem;
-    color: rgba(255, 255, 255, 0.72);
-    max-width: 36rem;
-    margin-bottom: 2.5rem;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--color-surface-400);
     line-height: 1.7;
+    margin: 0 0 calc(var(--spacing) * 10);
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  /* ── Stats ───────────────────────────────────────────────────── */
-  .section-stats {
-    background: color-mix(in oklch, var(--color-primary-100) 60%, white);
-    border-top: 1px solid color-mix(in oklch, var(--color-primary-300) 40%, transparent);
-    border-bottom: 1px solid color-mix(in oklch, var(--color-primary-300) 40%, transparent);
-    padding: 2.5rem 1.5rem;
+  :global(.dark) .hero-sub {
+    color: var(--color-surface-300);
   }
 
-  .stats-inner {
-    max-width: 56rem;
-    margin-inline: auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    gap: 2rem;
-    text-align: center;
+  .hero-actions {
+    display: flex;
+    gap: calc(var(--spacing) * 4);
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
-  .stat-item { display: flex; flex-direction: column; gap: 0.25rem; }
-
-  .stat-value {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--color-primary-600);
+  .hero-deco {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
   }
 
-  .stat-label {
-    font-size: 0.875rem;
-    color: var(--color-surface-500);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+  .hero-deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.06;
   }
 
-  /* ── Sections ────────────────────────────────────────────────── */
-  .section-dark {
-    background: var(--color-surface-100);
-    padding: 6rem 1.5rem;
+  .hero-deco-circle-1 {
+    width: 70vw;
+    height: 70vw;
+    background: var(--color-primary-500);
+    top: -20vw;
+    right: -20vw;
   }
 
-  .section-mid {
-    background: var(--color-surface-50);
-    padding: 6rem 1.5rem;
+  .hero-deco-circle-2 {
+    width: 40vw;
+    height: 40vw;
+    background: var(--color-secondary-500, var(--color-primary-300));
+    bottom: -10vw;
+    left: -10vw;
   }
 
-  .section-cta {
-    background: linear-gradient(
-      135deg,
-      color-mix(in oklch, var(--color-primary-200) 80%, white),
-      color-mix(in oklch, var(--color-secondary-200) 60%, white)
-    );
-    padding: 7rem 1.5rem;
+  /* ── SECTIONS ──────────────────────────────────────────── */
+  .section {
+    padding: calc(var(--spacing) * 24) calc(var(--spacing) * 8);
+  }
+
+  .section-alt {
+    background: color-mix(in oklch, var(--color-surface-950) 3%, transparent);
+  }
+
+  :global(.dark) .section-alt {
+    background: color-mix(in oklch, var(--color-surface-50) 4%, transparent);
   }
 
   .section-inner {
-    max-width: 64rem;
-    margin-inline: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
+    max-width: 72rem;
+    margin: 0 auto;
   }
 
-  .section-heading, .section-heading-alt {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 700;
-    color: var(--color-surface-950);
-  }
-
-  .section-sub, .section-sub-alt {
-    color: var(--color-surface-600);
-    font-size: 1.0625rem;
-  }
-
-  /* ── Features grid ───────────────────────────────────────────── */
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-    gap: 1.25rem;
-  }
-
-  .feature-card {
-    background: white;
-    border: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
-    border-radius: var(--radius-container);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-    transition: border-color 200ms, background 200ms, box-shadow 200ms;
-  }
-
-  .feature-card:hover {
-    border-color: color-mix(in oklch, var(--color-primary-400) 60%, transparent);
-    box-shadow: 0 4px 16px color-mix(in oklch, var(--color-primary-400) 12%, transparent);
-  }
-
-  .feature-icon  { font-size: 1.75rem; }
-  .feature-title { font-size: 1rem; font-weight: 600; color: var(--color-surface-900); }
-  .feature-body  { font-size: 0.875rem; color: var(--color-surface-600); line-height: 1.6; }
-
-  /* ── Steps ───────────────────────────────────────────────────── */
-  .steps-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-    gap: 1.5rem;
-  }
-
-  .step-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 2rem 1.5rem;
-    border: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
-    border-radius: var(--radius-container);
-    background: white;
-  }
-
-  .step-num {
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--color-primary-500);
-    opacity: 0.7;
-  }
-
-  .step-title { font-size: 1.0625rem; font-weight: 600; color: var(--color-surface-900); }
-  .step-body  { font-size: 0.875rem;  color: var(--color-surface-600); line-height: 1.6; }
-
-  /* ── Component showcase ──────────────────────────────────────── */
-  .showcase-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-    gap: 1.25rem;
-  }
-
-  .col-span-full { grid-column: 1 / -1; }
-
-  .showcase-card {
-    background: white;
-    border: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
-    border-radius: var(--radius-container);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .showcase-label {
-    font-size: 0.75rem;
-    font-weight: 600;
+  .section-label {
+    font-size: 0.6875rem;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    color: var(--color-primary-500);
+    margin: 0 0 calc(var(--spacing) * 3);
+  }
+
+  .section-heading {
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-font-weight);
+    color: var(--color-surface-950);
+    margin: 0 0 calc(var(--spacing) * 12);
+    line-height: 1.2;
+  }
+
+  :global(.dark) .section-heading {
+    color: var(--color-surface-50);
+  }
+
+  .section-cta {
+    display: flex;
+    justify-content: center;
+    margin-top: calc(var(--spacing) * 12);
+  }
+
+  /* ── PRODUCTS ──────────────────────────────────────────── */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: calc(var(--spacing) * 8);
+  }
+
+  .product-card {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 4);
+    transition: transform 250ms;
+  }
+
+  .product-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .product-img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: color-mix(in oklch, var(--color-surface-950) 5%, transparent);
+  }
+
+  :global(.dark) .product-img-wrap {
+    background: color-mix(in oklch, var(--color-surface-50) 8%, transparent);
+  }
+
+  .product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 500ms;
+  }
+
+  .product-card:hover .product-img {
+    transform: scale(1.05);
+  }
+
+  .product-img-placeholder {
+    width: 100%;
+    height: 100%;
+  }
+
+  .product-badge {
+    position: absolute;
+    top: calc(var(--spacing) * 3);
+    right: calc(var(--spacing) * 3);
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+    font-size: 0.6875rem;
+    background: var(--color-error-500);
+    color: white;
+  }
+
+  .product-info {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 2);
+  }
+
+  .product-name {
+    font-size: 0.9375rem;
+    color: var(--color-surface-700);
+    margin: 0;
+  }
+
+  :global(.dark) .product-name {
+    color: var(--color-surface-200);
+  }
+
+  .product-price {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+  }
+
+  .price-base {
+    font-size: 1rem;
+    color: var(--color-surface-700);
+  }
+
+  :global(.dark) .price-base {
+    color: var(--color-surface-100);
+  }
+
+  .price-original {
+    font-size: 0.875rem;
+    text-decoration: line-through;
+    opacity: 0.5;
     color: var(--color-surface-500);
   }
 
-  /* ── Stack badges ─────────────────────────────────────────────── */
-  .stack-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    justify-content: center;
+  .price-sale {
+    font-size: 1rem;
+    color: var(--color-error-600);
   }
 
-  /* ── Testimonials ────────────────────────────────────────────── */
-  .testimonials-grid {
+  :global(.dark) .price-sale {
+    color: var(--color-error-400);
+  }
+
+  /* ── ABOUT ─────────────────────────────────────────────── */
+  .about-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: 1fr;
+    gap: calc(var(--spacing) * 16);
   }
 
-  .testimonial-card {
-    background: white;
-    border: 1px solid color-mix(in oklch, var(--color-surface-300) 50%, transparent);
-    border-radius: var(--radius-container);
-    padding: 1.75rem;
+  @media (min-width: 1024px) {
+    .about-grid {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+    }
+  }
+
+  .about-text .section-heading {
+    margin-bottom: calc(var(--spacing) * 6);
+  }
+
+  .about-body {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--color-surface-400);
+    margin: 0 0 calc(var(--spacing) * 5);
+  }
+
+  :global(.dark) .about-body {
+    color: var(--color-surface-300);
+  }
+
+  .about-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(var(--spacing) * 4);
+  }
+
+  .value-item {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 6);
+    border: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 12%, transparent);
   }
 
-  .testimonial-quote {
-    font-size: 0.9375rem;
-    color: var(--color-surface-700);
-    line-height: 1.65;
+  :global(.dark) .value-item {
+    border-color: color-mix(in oklch, var(--color-surface-50) 12%, transparent);
+  }
+
+  .value-icon {
+    font-size: 1.5rem;
+  }
+
+  .value-label {
+    font-size: 0.875rem;
+    color: var(--color-surface-500);
+  }
+
+  :global(.dark) .value-label {
+    color: var(--color-surface-300);
+  }
+
+  /* ── LOCATIONS ─────────────────────────────────────────── */
+  .locations-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: calc(var(--spacing) * 8);
+  }
+
+  @media (min-width: 768px) {
+    .locations-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .location-card {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 8);
+    border: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 12%, transparent);
+  }
+
+  :global(.dark) .location-card {
+    border-color: color-mix(in oklch, var(--color-surface-50) 12%, transparent);
+  }
+
+  .location-icon {
+    font-size: 2rem;
+  }
+
+  .location-title {
+    font-size: 1.0625rem;
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-font-weight);
+    color: var(--color-surface-950);
+    margin: 0;
+  }
+
+  :global(.dark) .location-title {
+    color: var(--color-surface-50);
+  }
+
+  .location-body {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--color-surface-400);
+    margin: 0;
     flex: 1;
   }
 
-  .testimonial-author {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  :global(.dark) .location-body {
+    color: var(--color-surface-300);
   }
 
-  .testimonial-avatar {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #fff;
-    flex-shrink: 0;
+  .location-btn {
+    align-self: flex-start;
   }
 
-  .testimonial-name { font-size: 0.875rem; font-weight: 600; color: var(--color-surface-900); }
-  .testimonial-role { font-size: 0.75rem;  color: var(--color-surface-500); }
-
-  /* ── Pricing ─────────────────────────────────────────────────── */
-  .pricing-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-    gap: 1.25rem;
-    align-items: start;
-  }
-
-  .pricing-card {
-    background: white;
-    border: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
-    border-radius: var(--radius-container);
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .pricing-card--highlight {
-    background: color-mix(in oklch, var(--color-primary-50) 80%, white);
-    border-color: color-mix(in oklch, var(--color-primary-400) 60%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-primary-400) 30%, transparent);
-  }
-
-  .pricing-header { display: flex; flex-direction: column; gap: 0.5rem; }
-  .pricing-name   { font-size: 1.125rem; font-weight: 700; color: var(--color-surface-900); }
-
-  .pricing-price {
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--color-surface-950);
-    line-height: 1;
-  }
-
-  .pricing-period { font-size: 0.875rem; font-weight: 400; color: var(--color-surface-500); }
-  .pricing-desc   { font-size: 0.875rem; color: var(--color-surface-600); line-height: 1.5; }
-
-  .pricing-features { display: flex; flex-direction: column; gap: 0.625rem; flex: 1; }
-
-  .pricing-feat {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.625rem;
+  .location-address {
     font-size: 0.875rem;
-    color: var(--color-surface-700);
+    font-style: normal;
+    line-height: 1.8;
+    color: var(--color-surface-400);
   }
 
-  .feat-check {
-    color: var(--color-success-500);
-    font-weight: 700;
+  :global(.dark) .location-address {
+    color: var(--color-surface-300);
+  }
+
+  .location-address a {
+    color: var(--color-primary-500);
+    text-decoration: none;
+  }
+
+  .location-address a:hover {
+    text-decoration: underline;
+  }
+
+  .social-row {
+    display: flex;
+    gap: calc(var(--spacing) * 4);
+    align-items: center;
+  }
+
+  .social-link {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    font-size: 0.875rem;
+    color: var(--color-surface-400);
+    text-decoration: none;
+    transition: color 150ms;
+  }
+
+  :global(.dark) .social-link {
+    color: var(--color-surface-300);
+  }
+
+  .social-link:hover {
+    color: var(--color-primary-500);
+  }
+
+  .social-icon {
+    width: 1.125rem;
+    height: 1.125rem;
     flex-shrink: 0;
-    margin-top: 0.05rem;
   }
 
-  /* ── CTA ─────────────────────────────────────────────────────── */
-  .cta-heading {
-    font-size: clamp(1.75rem, 4vw, 2.75rem);
-    font-weight: 700;
-    color: var(--color-surface-950);
-  }
-
-  .cta-sub {
-    color: var(--color-surface-700);
-    font-size: 1.0625rem;
-    max-width: 32rem;
-    margin-inline: auto;
-  }
-
-  /* ── Footer ──────────────────────────────────────────────────── */
-  .footer {
-    background: var(--color-surface-100);
-    border-top: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
-    padding: 1.5rem;
+  /* ── CONTACT ───────────────────────────────────────────── */
+  .contact-inner {
     text-align: center;
-    font-size: 0.8125rem;
-    color: var(--color-surface-500);
+  }
+
+  .contact-inner .section-heading {
+    margin-bottom: calc(var(--spacing) * 10);
+  }
+
+  .contact-details {
     display: flex;
     flex-direction: column;
+    gap: calc(var(--spacing) * 5);
     align-items: center;
-    gap: 0.375rem;
   }
 
-  .footer-brand {
+  .contact-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: calc(var(--spacing) * 3);
+    font-size: 0.9375rem;
+    color: var(--color-surface-500);
+  }
+
+  :global(.dark) .contact-item {
+    color: var(--color-surface-300);
+  }
+
+  .contact-item strong {
+    color: var(--color-surface-700);
+  }
+
+  :global(.dark) .contact-item strong {
+    color: var(--color-surface-100);
+  }
+
+  .contact-item a {
+    color: var(--color-primary-500);
+    text-decoration: none;
+  }
+
+  .contact-item a:hover {
+    text-decoration: underline;
+  }
+
+  .contact-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  /* ── FDA DISCLAIMER ────────────────────────────────────── */
+  .disclaimer-section {
+    padding: calc(var(--spacing) * 12) calc(var(--spacing) * 8);
+    border-top: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 10%, transparent);
+  }
+
+  :global(.dark) .disclaimer-section {
+    border-top-color: color-mix(in oklch, var(--color-surface-50) 10%, transparent);
+  }
+
+  .disclaimer-label {
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-surface-300);
+    margin: 0 0 calc(var(--spacing) * 3);
+  }
+
+  .disclaimer-text {
+    font-size: 0.8125rem;
+    line-height: 1.75;
+    color: var(--color-surface-300);
+    margin: 0;
+    max-width: 72rem;
+  }
+
+  :global(.dark) .disclaimer-text {
+    color: var(--color-surface-500);
+  }
+
+  /* ── FOOTER ─────────────────────────────────────────────── */
+  .site-footer {
+    background: color-mix(in oklch, var(--color-surface-950) 5%, transparent);
+    border-top: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 10%, transparent);
+    padding: calc(var(--spacing) * 12) calc(var(--spacing) * 8);
+  }
+
+  :global(.dark) .site-footer {
+    background: color-mix(in oklch, var(--color-surface-50) 4%, transparent);
+    border-top-color: color-mix(in oklch, var(--color-surface-50) 10%, transparent);
+  }
+
+  .footer-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 8);
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-name {
+    font-size: 1rem;
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-font-weight);
+    color: var(--color-surface-700);
+    margin: 0 0 calc(var(--spacing) * 1);
+  }
+
+  :global(.dark) .footer-name {
+    color: var(--color-surface-100);
+  }
+
+  .footer-tagline {
+    font-size: 0.8125rem;
+    color: var(--color-surface-300);
+    margin: 0 0 calc(var(--spacing) * 4);
+  }
+
+  .footer-social {
+    display: flex;
+    gap: calc(var(--spacing) * 4);
+    justify-content: center;
+  }
+
+  .footer-social-link {
+    display: flex;
+    align-items: center;
+    color: var(--color-surface-300);
+    transition: color 150ms;
+  }
+
+  .footer-social-link:hover {
+    color: var(--color-primary-500);
+  }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
+    justify-content: center;
+  }
+
+  .footer-link {
+    font-size: 0.8125rem;
+    color: var(--color-surface-300);
+    text-decoration: none;
+    transition: color 150ms;
+  }
+
+  :global(.dark) .footer-link {
+    color: var(--color-surface-400);
+  }
+
+  .footer-link:hover {
+    color: var(--color-surface-700);
+  }
+
+  :global(.dark) .footer-link:hover {
+    color: var(--color-surface-100);
   }
 
   .footer-copy {
     font-size: 0.75rem;
-    color: var(--color-surface-400);
+    color: var(--color-surface-200);
+    margin: 0;
   }
 
-  /* ── Fade-in ─────────────────────────────────────────────────── */
-  .fade-el {
-    opacity: 0;
-    transform: translateY(1.5rem);
-    transition: opacity 0.65s ease, transform 0.65s ease;
+  :global(.dark) .footer-copy {
+    color: var(--color-surface-500);
   }
-
-  .fade-el.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* ══════════════════════════════════════════════════════════════
-     DARK MODE overrides
-     ══════════════════════════════════════════════════════════════ */
-
-  :global(.dark) .section-stats  {
-    background: color-mix(in oklch, var(--color-primary-900) 40%, var(--color-surface-950));
-    border-color: color-mix(in oklch, var(--color-primary-500) 20%, transparent);
-  }
-  :global(.dark) .stat-value     { color: var(--color-primary-300); }
-  :global(.dark) .stat-label     { color: var(--color-surface-400); }
-
-  :global(.dark) .section-dark   { background: var(--color-surface-900); }
-  :global(.dark) .section-mid    { background: var(--color-surface-950); }
-  :global(.dark) .section-cta    {
-    background: linear-gradient(
-      135deg,
-      color-mix(in oklch, var(--color-primary-900) 80%, var(--color-surface-950)),
-      color-mix(in oklch, var(--color-secondary-900) 60%, var(--color-surface-950))
-    );
-  }
-
-  :global(.dark) .section-heading,
-  :global(.dark) .section-heading-alt { color: var(--color-surface-50); }
-  :global(.dark) .section-sub,
-  :global(.dark) .section-sub-alt     { color: var(--color-surface-400); }
-
-  :global(.dark) .feature-card   {
-    background: color-mix(in oklch, var(--color-surface-800) 80%, transparent);
-    border-color: color-mix(in oklch, var(--color-primary-500) 15%, transparent);
-  }
-  :global(.dark) .feature-card:hover {
-    border-color: color-mix(in oklch, var(--color-primary-500) 40%, transparent);
-    background: color-mix(in oklch, var(--color-surface-700) 70%, transparent);
-    box-shadow: none;
-  }
-  :global(.dark) .feature-title  { color: var(--color-surface-100); }
-  :global(.dark) .feature-body   { color: var(--color-surface-400); }
-
-  :global(.dark) .step-card      {
-    background: color-mix(in oklch, var(--color-surface-900) 60%, transparent);
-    border-color: color-mix(in oklch, var(--color-primary-500) 12%, transparent);
-  }
-  :global(.dark) .step-title     { color: var(--color-surface-100); }
-  :global(.dark) .step-body      { color: var(--color-surface-400); }
-
-  :global(.dark) .showcase-card  {
-    background: color-mix(in oklch, var(--color-surface-800) 70%, transparent);
-    border-color: color-mix(in oklch, var(--color-surface-600) 30%, transparent);
-  }
-
-  :global(.dark) .testimonial-card  {
-    background: color-mix(in oklch, var(--color-surface-800) 70%, transparent);
-    border-color: color-mix(in oklch, var(--color-primary-500) 12%, transparent);
-  }
-  :global(.dark) .testimonial-quote { color: var(--color-surface-300); }
-  :global(.dark) .testimonial-name  { color: var(--color-surface-100); }
-  :global(.dark) .testimonial-role  { color: var(--color-surface-500); }
-
-  :global(.dark) .pricing-card   {
-    background: color-mix(in oklch, var(--color-surface-900) 80%, transparent);
-    border-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
-  }
-  :global(.dark) .pricing-card--highlight {
-    background: color-mix(in oklch, var(--color-primary-900) 50%, var(--color-surface-900));
-    border-color: color-mix(in oklch, var(--color-primary-500) 50%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-primary-500) 30%, transparent);
-  }
-  :global(.dark) .pricing-name   { color: var(--color-surface-100); }
-  :global(.dark) .pricing-price  { color: var(--color-surface-50); }
-  :global(.dark) .pricing-period { color: var(--color-surface-500); }
-  :global(.dark) .pricing-desc   { color: var(--color-surface-400); }
-  :global(.dark) .pricing-feat   { color: var(--color-surface-300); }
-
-  :global(.dark) .cta-heading    { color: var(--color-surface-50); }
-  :global(.dark) .cta-sub        { color: var(--color-surface-300); }
-
-  :global(.dark) .footer {
-    background: var(--color-surface-950);
-    border-top-color: color-mix(in oklch, var(--color-surface-800) 60%, transparent);
-    color: var(--color-surface-600);
-  }
-
 </style>

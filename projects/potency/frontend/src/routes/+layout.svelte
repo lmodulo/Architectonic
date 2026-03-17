@@ -47,7 +47,7 @@
   <title>{data.appName ?? brand.text} — {brand.description}</title>
 </svelte:head>
 
-{#if data.user}
+{#if data.user && page.url.pathname !== '/' && !page.url.pathname.startsWith('/shop')}
 
   <!-- Navigation loading overlay -->
   {#if navigating.to !== null}

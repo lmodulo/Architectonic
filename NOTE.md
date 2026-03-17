@@ -23,6 +23,64 @@ update the CLAUDE.md file with necessary context.
 [] Shipping matrix calculations
 [] print labels from oder detail page
 
+# THEME SWAP
+Skeleton Built-in Theme
+Skeleton ships themes like cerberus, vintage, rose, seafoam, etc.
+
+1. frontend/src/app.html — change data-theme:
+
+
+<html lang="en" data-theme="cerberus">
+2. frontend/src/app.css — swap the import:
+
+
+@import "@skeletonlabs/skeleton/themes/cerberus";
+@import "@skeletonlabs/skeleton";
+That's it. No custom theme file needed.
+
+Custom Theme (lmodulo pattern)
+A custom theme overrides the CSS variables for a named data-theme value.
+
+1. frontend/lmodulo-theme.css — the theme file lives in the frontend root. The selector must match the data-theme value you choose:
+
+
+[data-theme='mytheme'] {
+  --base-font-family: ...;
+  --color-primary-500: oklch(...);
+  /* etc */
+}
+2. frontend/src/app.html — set the matching theme name:
+
+
+<html lang="en" data-theme="mytheme">
+3. frontend/src/app.css — two options:
+
+Option A — custom only (what potency does — no built-in base):
+
+
+@import "tailwindcss";
+@layer theme { .dark { color-scheme: dark; } }
+@import "../lmodulo-theme.css";
+@import "@skeletonlabs/skeleton";
+Option B — built-in base + custom overrides (what architectonic does — inherits a built-in, then patches variables):
+
+
+@import "@skeletonlabs/skeleton/themes/vintage";
+@import "../lmodulo-theme.css";   /* overrides on top */
+@import "@skeletonlabs/skeleton";
+Option B is useful when your custom theme only changes a few variables and you want to inherit the rest from a built-in.
+
+To generate a custom theme
+Use the Skeleton theme generator — it outputs the full CSS variable block ready to paste into lmodulo-theme.css.
+
+After any theme change
+Rebuild the web container — the theme CSS is processed at build time by Tailwind v4:
+
+
+docker compose -f docker-compose.yml -f docker-compose.dev.yml build web
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d web
+(The vite.config.ts has a themeHotReload() plugin that watches lmodulo-theme.css in dev, but on Windows inside Docker the FS events don't fire reliably, so a rebuild is always the safe path.)
+
 # NEW PROJECT
 Create module `commerce` in `modules/commerce/` with these files:
 

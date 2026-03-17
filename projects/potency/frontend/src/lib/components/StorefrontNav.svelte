@@ -122,8 +122,8 @@
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    height: 64px;
-    padding: 0 calc(var(--spacing) * 8);
+    height: 3.5rem;
+    padding: 0 calc(var(--spacing) * 4);
     background: color-mix(in oklch, var(--body-background-color) 94%, transparent);
     backdrop-filter: blur(12px);
     border-bottom: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-300) 25%, transparent);
@@ -139,6 +139,7 @@
   .nav-brand {
     display: flex;
     align-items: center;
+    gap: calc(var(--spacing) * 2);
     text-decoration: none;
   }
 
@@ -173,7 +174,7 @@
   /* Mega menu */
   .mega-menu {
     position: fixed;
-    top: 64px;
+    top: 3.5rem;
     left: 0;
     right: 0;
     z-index: 60;

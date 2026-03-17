@@ -157,7 +157,7 @@
 
   .gallery-col {
     position: sticky;
-    top: calc(64px + var(--spacing) * 4);
+    top: calc(3.5rem + var(--spacing) * 4);
   }
 
   .gallery-primary {
