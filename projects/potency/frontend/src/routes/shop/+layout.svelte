@@ -3,6 +3,7 @@
   import type { Snippet } from 'svelte';
   import StorefrontNav from '$lib/components/StorefrontNav.svelte';
   import ShopBreadcrumb from '$lib/components/ShopBreadcrumb.svelte';
+  import PublicFooter from '$lib/components/PublicFooter.svelte';
 
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
 </script>
@@ -14,6 +15,7 @@
   <main class="shop-main">
     {@render children()}
   </main>
+  <PublicFooter />
 </div>
 
 <style>

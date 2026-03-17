@@ -1,4 +1,4 @@
-import { House, Package, ShoppingCart, Layers, BarChart2, Store } from 'lucide-svelte';
+import { House, Package, ShoppingCart, Layers, BarChart2, Store, Bell } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
 export interface NavItem {
@@ -21,7 +21,8 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 }
 
 export const navItems: NavEntry[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: House },
+  { label: 'Dashboard',     href: '/dashboard',     icon: House },
+  { label: 'Notifications', href: '/notifications', icon: Bell  },
   {
     label: 'Commerce',
     icon: Store,

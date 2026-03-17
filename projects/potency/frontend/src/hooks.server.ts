@@ -9,8 +9,15 @@ const API_URL = env.API_URL ?? 'http://localhost:4000';
 // Pages that unauthenticated users may visit (and authenticated users are redirected away from)
 const AUTH_REDIRECT_PATHS = new Set(['/login', '/register']);
 
+// Public marketing pages — accessible to everyone
+const PUBLIC_MARKETING_PATHS = new Set([
+  '/about-me', '/affiliates', '/upcoming-events',
+  '/privacy-policy', '/terms-and-conditions',
+  '/certificate-of-analysis', '/shipping-return-policy'
+]);
+
 // Routes customers (role: 'customer') may visit when authenticated
-const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout']);
+const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout', ...PUBLIC_MARKETING_PATHS]);
 
 // Routes that require a specific permission beyond authentication
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {
@@ -44,7 +51,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   // Redirect unauthenticated users to login
-  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/forgot-password' && !path.startsWith('/reset-password') && !path.startsWith('/api/') && !path.startsWith('/shop') && !path.startsWith('/uploads/')) {
+  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/forgot-password' && !path.startsWith('/reset-password') && !path.startsWith('/api/') && !path.startsWith('/shop') && !path.startsWith('/uploads/') && !PUBLIC_MARKETING_PATHS.has(path)) {
     redirect(303, '/login');
   }
 

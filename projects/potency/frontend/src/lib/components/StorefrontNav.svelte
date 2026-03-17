@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, getContext } from 'svelte';
-  import { Sun, Moon } from 'lucide-svelte';
+  import { Sun, Moon, Menu, X } from 'lucide-svelte';
   import Logo from '$lib/components/Logo.svelte';
   import { brand } from '$lib/config/logo';
 
@@ -12,8 +12,13 @@
   let { meta }: { meta: Meta } = $props();
 
   let isDark = $state(false);
-  let menuOpen = $state(false);
-  let navEl: HTMLElement | null = $state(null);
+  let mobileOpen = $state(false);
+
+  const extraLinks = [
+    { href: '/about-me', label: 'About Me' },
+    { href: '/affiliates', label: 'Affiliates' },
+    { href: '/upcoming-events', label: 'Upcoming Events' },
+  ];
 
   onMount(() => {
     isDark = document.documentElement.classList.contains('dark');
@@ -25,74 +30,71 @@
     localStorage.setItem('color-scheme', isDark ? 'dark' : 'light');
   }
 
-  function handleClickOutside(e: MouseEvent) {
-    if (menuOpen && navEl && !navEl.contains(e.target as Node)) {
-      menuOpen = false;
-    }
-  }
-
-  function closeMenu() {
-    menuOpen = false;
+  function closeMobile() {
+    mobileOpen = false;
   }
 </script>
 
-<svelte:window onmousedown={handleClickOutside} />
-
-<nav class="storefront-nav" bind:this={navEl} onmouseleave={() => (menuOpen = false)}>
+<nav class="storefront-nav">
   <!-- Left: brand -->
   <div class="nav-brand-zone">
-    <a href="/" class="nav-brand" onclick={closeMenu}>
+    <a href="/" class="nav-brand" onclick={closeMobile}>
       <Logo name={branding.name} logo={branding.logo} />
     </a>
   </div>
 
-  <!-- Center: primary links -->
+  <!-- Center: primary links (desktop only) -->
   <div class="nav-center-zone">
-    <div class="products-trigger" onmouseenter={() => (menuOpen = true)}>
-      <a href="/shop" class="nav-link" onclick={closeMenu}>Products</a>
 
-      {#if menuOpen}
-        <div class="mega-menu" role="dialog" aria-label="Products menu">
-          <div class="mega-inner">
-            <div class="mega-col">
-              <p class="mega-heading">Categories</p>
-              <ul>
-                {#each meta.categories as cat (cat.id)}
-                  <li><a href="/shop/{cat.slug}" class="mega-link" onclick={closeMenu}>{cat.name}</a></li>
-                {/each}
-                {#if meta.categories.length === 0}
-                  <li class="mega-empty">No categories yet</li>
-                {/if}
-              </ul>
-            </div>
+    <!-- Products with hover mega-menu -->
+    <div class="products-trigger">
+      <a href="/shop" class="nav-link">Products</a>
 
-            <div class="mega-col">
-              <p class="mega-heading">Shop by Type</p>
-              <ul>
-                {#each meta.variantTypes as vt (vt)}
-                  <li><a href="/shop?variant={encodeURIComponent(vt)}" class="mega-link" onclick={closeMenu}>{vt}</a></li>
-                {/each}
-                {#if meta.variantTypes.length === 0}
-                  <li class="mega-empty">—</li>
-                {/if}
-              </ul>
-            </div>
+      <div class="mega-menu" role="dialog" aria-label="Products menu">
+        <div class="mega-inner">
+          <div class="mega-col">
+            <p class="mega-heading">Categories</p>
+            <ul>
+              {#each meta.categories as cat (cat.id)}
+                <li><a href="/shop/{cat.slug}" class="mega-link">{cat.name}</a></li>
+              {/each}
+              {#if meta.categories.length === 0}
+                <li class="mega-empty">No categories yet</li>
+              {/if}
+            </ul>
+          </div>
 
-            <div class="mega-col">
-              <p class="mega-heading">Collections</p>
-              <ul>
-                {#each meta.tags as tag (tag)}
-                  <li><a href="/shop?tag={encodeURIComponent(tag)}" class="mega-link" onclick={closeMenu}>{tag}</a></li>
-                {/each}
-                {#if meta.tags.length === 0}
-                  <li class="mega-empty">—</li>
-                {/if}
-              </ul>
-            </div>
+          <div class="mega-col">
+            <p class="mega-heading">Shop by Type</p>
+            <ul>
+              {#each meta.variantTypes as vt (vt)}
+                <li><a href="/shop?variant={encodeURIComponent(vt)}" class="mega-link">{vt}</a></li>
+              {/each}
+              {#if meta.variantTypes.length === 0}
+                <li class="mega-empty">—</li>
+              {/if}
+            </ul>
+          </div>
+
+          <div class="mega-col">
+            <p class="mega-heading">Collections</p>
+            <ul>
+              {#each meta.tags as tag (tag)}
+                <li><a href="/shop?tag={encodeURIComponent(tag)}" class="mega-link">{tag}</a></li>
+              {/each}
+              {#if meta.tags.length === 0}
+                <li class="mega-empty">—</li>
+              {/if}
+            </ul>
           </div>
         </div>
-      {/if}
+      </div>
     </div>
+
+    {#each extraLinks as link}
+      <a href={link.href} class="nav-link">{link.label}</a>
+    {/each}
+
   </div>
 
   <!-- Right: controls -->
@@ -109,9 +111,36 @@
         <Moon class="size-4" />
       {/if}
     </button>
-    <a href="/login" class="btn preset-filled-primary-500 btn-sm">Sign In</a>
+    <a href="/login" class="btn preset-filled-primary-500 btn-sm nav-signin">Sign In</a>
+
+    <!-- Mobile hamburger -->
+    <button
+      type="button"
+      class="hamburger"
+      onclick={() => (mobileOpen = !mobileOpen)}
+      aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+      aria-expanded={mobileOpen}
+    >
+      {#if mobileOpen}
+        <X class="size-5" />
+      {:else}
+        <Menu class="size-5" />
+      {/if}
+    </button>
   </div>
 </nav>
+
+<!-- Mobile dropdown -->
+{#if mobileOpen}
+  <div class="mobile-menu" role="dialog" aria-label="Navigation">
+    <a href="/shop" class="mobile-link" onclick={closeMobile}>Products</a>
+    {#each extraLinks as link}
+      <a href={link.href} class="mobile-link" onclick={closeMobile}>{link.label}</a>
+    {/each}
+    <div class="mobile-divider"></div>
+    <a href="/login" class="mobile-link mobile-signin" onclick={closeMobile}>Sign In</a>
+  </div>
+{/if}
 
 <style>
   .storefront-nav {
@@ -143,10 +172,19 @@
     text-decoration: none;
   }
 
+  /* Desktop center links */
   .nav-center-zone {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
+    gap: calc(var(--spacing) * 1);
+    align-self: stretch;
+  }
+
+  @media (min-width: 768px) {
+    .nav-center-zone {
+      display: flex;
+    }
   }
 
   .nav-trail-zone {
@@ -156,23 +194,28 @@
     gap: calc(var(--spacing) * 3);
   }
 
-  .nav-link {
-    display: block;
-    font-size: 0.8125rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    text-decoration: none;
-    color: var(--color-surface-300);
-    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-    transition: color 150ms;
+  /* Sign In hidden on mobile */
+  .nav-signin {
+    display: none;
   }
 
-  .nav-link:hover {
-    color: var(--color-surface-950);
+  @media (min-width: 768px) {
+    .nav-signin {
+      display: inline-flex;
+    }
   }
 
-  /* Mega menu */
+  /* Products trigger — stretches full nav height so there's no gap above the mega menu */
+  .products-trigger {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  /* Mega menu — hidden until .products-trigger is hovered */
   .mega-menu {
+    display: none;
     position: fixed;
     top: 3.5rem;
     left: 0;
@@ -182,6 +225,10 @@
     backdrop-filter: blur(16px);
     border-bottom: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-300) 25%, transparent);
     box-shadow: 0 calc(var(--spacing) * 8) calc(var(--spacing) * 8) color-mix(in oklch, var(--color-surface-950) 6%, transparent);
+  }
+
+  .products-trigger:hover .mega-menu {
+    display: block;
   }
 
   .mega-inner {
@@ -236,6 +283,21 @@
     color: var(--color-surface-200);
   }
 
+  .nav-link {
+    display: block;
+    font-size: 0.8125rem;
+    font-family: var(--base-font-family);
+    font-weight: var(--base-font-weight);
+    text-decoration: none;
+    color: var(--color-surface-500);
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    transition: color 150ms;
+  }
+
+  .nav-link:hover {
+    color: var(--color-surface-950);
+  }
+
   .theme-toggle {
     display: flex;
     align-items: center;
@@ -245,7 +307,7 @@
     border-radius: var(--radius-base);
     border: none;
     background: transparent;
-    color: var(--color-surface-300);
+    color: var(--color-surface-500);
     cursor: pointer;
     transition: background 150ms, color 150ms;
   }
@@ -255,14 +317,85 @@
     color: var(--color-surface-950);
   }
 
-  /* Dark overrides */
+  /* Hamburger hidden on desktop */
+  .hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--spacing) * 8);
+    height: calc(var(--spacing) * 8);
+    border-radius: var(--radius-base);
+    border: none;
+    background: transparent;
+    color: var(--color-surface-500);
+    cursor: pointer;
+    transition: background 150ms, color 150ms;
+  }
+
+  .hamburger:hover {
+    background: color-mix(in oklch, var(--color-surface-300) 15%, transparent);
+    color: var(--color-surface-950);
+  }
+
+  @media (min-width: 768px) {
+    .hamburger {
+      display: none;
+    }
+  }
+
+  /* Mobile dropdown */
+  .mobile-menu {
+    position: fixed;
+    inset-inline: 0;
+    top: 3.5rem;
+    z-index: 49;
+    display: flex;
+    flex-direction: column;
+    background: color-mix(in oklch, var(--body-background-color) 97%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-300) 25%, transparent);
+    padding: calc(var(--spacing) * 2) 0;
+    font-family: var(--base-font-family);
+  }
+
+  @media (min-width: 768px) {
+    .mobile-menu {
+      display: none;
+    }
+  }
+
+  .mobile-link {
+    font-size: 0.9375rem;
+    text-decoration: none;
+    color: var(--color-surface-600);
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 6);
+    transition: background 150ms, color 150ms;
+  }
+
+  .mobile-link:hover {
+    background: color-mix(in oklch, var(--color-surface-500) 8%, transparent);
+    color: var(--color-surface-950);
+  }
+
+  .mobile-divider {
+    height: var(--default-border-width);
+    background: color-mix(in oklch, var(--color-surface-300) 25%, transparent);
+    margin: calc(var(--spacing) * 2) 0;
+  }
+
+  .mobile-signin {
+    color: var(--color-primary-500);
+    font-weight: 500;
+  }
+
+  /* ── Dark mode ─────────────────────────────────────────── */
   :global(.dark) .storefront-nav {
     background: color-mix(in oklch, var(--body-background-color-dark) 90%, transparent);
     border-bottom-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
   }
 
   :global(.dark) .nav-link {
-    color: var(--color-surface-100);
+    color: var(--color-surface-300);
   }
 
   :global(.dark) .nav-link:hover {
@@ -287,11 +420,38 @@
   }
 
   :global(.dark) .theme-toggle {
-    color: var(--color-surface-100);
+    color: var(--color-surface-300);
   }
 
   :global(.dark) .theme-toggle:hover {
     background: color-mix(in oklch, var(--color-surface-700) 50%, transparent);
     color: var(--color-surface-50);
+  }
+
+  :global(.dark) .hamburger {
+    color: var(--color-surface-300);
+  }
+
+  :global(.dark) .hamburger:hover {
+    background: color-mix(in oklch, var(--color-surface-700) 50%, transparent);
+    color: var(--color-surface-50);
+  }
+
+  :global(.dark) .mobile-menu {
+    background: color-mix(in oklch, var(--body-background-color-dark) 95%, transparent);
+    border-bottom-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
+  }
+
+  :global(.dark) .mobile-link {
+    color: var(--color-surface-200);
+  }
+
+  :global(.dark) .mobile-link:hover {
+    background: color-mix(in oklch, var(--color-surface-300) 8%, transparent);
+    color: var(--color-surface-50);
+  }
+
+  :global(.dark) .mobile-divider {
+    background: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
   }
 </style>

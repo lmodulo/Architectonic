@@ -1,5 +1,6 @@
 <script lang="ts">
   import MarketingNav from '$lib/components/MarketingNav.svelte';
+  import PublicFooter from '$lib/components/PublicFooter.svelte';
   import { activeDiscount, applyDiscount, formatPrice } from '$lib/utils/price';
   import type { PageData } from './$types';
 
@@ -225,64 +226,7 @@
     </div>
   </section>
 
-  <!-- ── FDA DISCLAIMER ────────────────────────────────────── -->
-  <section class="disclaimer-section">
-    <div class="section-inner">
-      <p class="disclaimer-label">FDA Disclaimer</p>
-      <p class="disclaimer-text">
-        These statements have not been evaluated by the Food and Drug Administration.
-        These products are not intended to diagnose, treat, cure, or prevent any disease.
-        The information provided on this site is for educational purposes only and is not
-        intended as a substitute for advice from your physician or other health care
-        professional. You should not use this information for diagnosis or treatment of
-        any health problem or for prescription of any medication or other treatment.
-        Consult with a healthcare professional before starting any diet, exercise, or
-        supplementation program, before taking any medication, or if you have or suspect
-        you might have a health problem.
-      </p>
-    </div>
-  </section>
-
-  <!-- ── FOOTER ────────────────────────────────────────────── -->
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <p class="footer-name">Potency By Potamus</p>
-        <p class="footer-tagline">Holistic wellness, handcrafted with love.</p>
-        <div class="footer-social">
-          <a
-            href="https://facebook.com/potencybypotamus"
-            class="footer-social-link"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Facebook"
-          >
-            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.313 0 2.686.236 2.686.236v2.97h-1.514c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
-            </svg>
-          </a>
-          <a
-            href="https://instagram.com/potencybypotamus"
-            class="footer-social-link"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-          >
-            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-            </svg>
-          </a>
-        </div>
-      </div>
-      <nav class="footer-links" aria-label="Footer">
-        <a href="/privacy-policy" class="footer-link">Privacy Policy</a>
-        <a href="/terms-and-conditions" class="footer-link">Terms &amp; Conditions</a>
-        <a href="/certificate-of-analysis" class="footer-link">Certificate Of Analysis</a>
-        <a href="/shipping-return-policy" class="footer-link">Shipping &amp; Return Policy</a>
-      </nav>
-      <p class="footer-copy">&copy; {new Date().getFullYear()} Potency By Potamus. All rights reserved.</p>
-    </div>
-  </footer>
+  <PublicFooter />
 
 </div>
 
@@ -750,126 +694,4 @@
     flex-shrink: 0;
   }
 
-  /* ── FDA DISCLAIMER ────────────────────────────────────── */
-  .disclaimer-section {
-    padding: calc(var(--spacing) * 12) calc(var(--spacing) * 8);
-    border-top: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 10%, transparent);
-  }
-
-  :global(.dark) .disclaimer-section {
-    border-top-color: color-mix(in oklch, var(--color-surface-50) 10%, transparent);
-  }
-
-  .disclaimer-label {
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--color-surface-300);
-    margin: 0 0 calc(var(--spacing) * 3);
-  }
-
-  .disclaimer-text {
-    font-size: 0.8125rem;
-    line-height: 1.75;
-    color: var(--color-surface-300);
-    margin: 0;
-    max-width: 72rem;
-  }
-
-  :global(.dark) .disclaimer-text {
-    color: var(--color-surface-500);
-  }
-
-  /* ── FOOTER ─────────────────────────────────────────────── */
-  .site-footer {
-    background: color-mix(in oklch, var(--color-surface-950) 5%, transparent);
-    border-top: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 10%, transparent);
-    padding: calc(var(--spacing) * 12) calc(var(--spacing) * 8);
-  }
-
-  :global(.dark) .site-footer {
-    background: color-mix(in oklch, var(--color-surface-50) 4%, transparent);
-    border-top-color: color-mix(in oklch, var(--color-surface-50) 10%, transparent);
-  }
-
-  .footer-inner {
-    max-width: 72rem;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: calc(var(--spacing) * 8);
-    align-items: center;
-    text-align: center;
-  }
-
-  .footer-name {
-    font-size: 1rem;
-    font-family: var(--heading-font-family);
-    font-weight: var(--heading-font-weight);
-    color: var(--color-surface-700);
-    margin: 0 0 calc(var(--spacing) * 1);
-  }
-
-  :global(.dark) .footer-name {
-    color: var(--color-surface-100);
-  }
-
-  .footer-tagline {
-    font-size: 0.8125rem;
-    color: var(--color-surface-300);
-    margin: 0 0 calc(var(--spacing) * 4);
-  }
-
-  .footer-social {
-    display: flex;
-    gap: calc(var(--spacing) * 4);
-    justify-content: center;
-  }
-
-  .footer-social-link {
-    display: flex;
-    align-items: center;
-    color: var(--color-surface-300);
-    transition: color 150ms;
-  }
-
-  .footer-social-link:hover {
-    color: var(--color-primary-500);
-  }
-
-  .footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
-    justify-content: center;
-  }
-
-  .footer-link {
-    font-size: 0.8125rem;
-    color: var(--color-surface-300);
-    text-decoration: none;
-    transition: color 150ms;
-  }
-
-  :global(.dark) .footer-link {
-    color: var(--color-surface-400);
-  }
-
-  .footer-link:hover {
-    color: var(--color-surface-700);
-  }
-
-  :global(.dark) .footer-link:hover {
-    color: var(--color-surface-100);
-  }
-
-  .footer-copy {
-    font-size: 0.75rem;
-    color: var(--color-surface-200);
-    margin: 0;
-  }
-
-  :global(.dark) .footer-copy {
-    color: var(--color-surface-500);
-  }
 </style>

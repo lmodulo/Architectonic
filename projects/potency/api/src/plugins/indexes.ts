@@ -43,5 +43,14 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('orders').createIndex({ orderNumber: 1 }, { unique: true });
     await db.collection('orders').createIndex({ userId: 1, createdAt: -1 });
     await db.collection('orders').createIndex({ status: 1, createdAt: -1 });
+
+    // notifications
+    await db.collection('notifications').createIndex({ userId: 1, read: 1, createdAt: -1 });
+    await db.collection('notifications').createIndex({ userId: 1, createdAt: -1 });
+    await db.collection('notifications').createIndex({ userId: 1, groupKey: 1 });
+    await db.collection('notifications').createIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 }); // 90-day TTL
+
+    // notification_preferences
+    await db.collection('notification_preferences').createIndex({ userId: 1 }, { unique: true });
   });
 }

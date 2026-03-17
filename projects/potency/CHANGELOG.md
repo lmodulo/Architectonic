@@ -8,6 +8,21 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-16 (notifications)
+
+### Added
+- **Real-time notification system** — WebSocket-push notifications with persistent storage, unread badge, and per-user preferences.
+  - **`app.notify()` decorator** — registered on the Fastify instance; call from any route with `app.notify({ userId, type, title, ... })`.
+  - **Grouping** — `groupKey` deduplication prevents notification flooding from high-frequency events.
+  - **`@fastify/websocket`** added; `wsConnections` Map decorated on root Fastify instance.
+  - **REST API** — list (paginated), unread count, recent (bell dropdown), mark read, mark all read, preferences CRUD, WebSocket upgrade at `GET /notifications/ws`.
+  - **WebSocket store** (`notifications.svelte.ts`) — exponential-backoff reconnection, `sync` on reconnect, `_id` deduplication.
+  - **`NotificationBell`** in header with unread badge and dropdown.
+  - **`/notifications`** and **`/notifications/settings`** pages.
+  - `@fastify/websocket: ^9.0.0` added to API dependencies.
+
+---
+
 ## 2026-03-16 (user management)
 
 ### Changed

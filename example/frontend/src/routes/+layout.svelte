@@ -9,6 +9,8 @@
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
+  import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
+  import { connect, disconnect } from '$lib/stores/notifications.svelte';
   import { brand } from '$lib/config/logo';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -53,6 +55,14 @@
     document.documentElement.classList.toggle('dark', isDark);
     localStorage.setItem('color-scheme', isDark ? 'dark' : 'light');
   }
+
+  // WebSocket notifications — connect when authenticated, disconnect on logout
+  $effect(() => {
+    if (data.user) {
+      connect();
+      return () => disconnect();
+    }
+  });
 </script>
 
 <svelte:head>
@@ -135,6 +145,8 @@
             </span>
           {/if}
         </a>
+
+        <NotificationBell />
 
         <SkMenu positioning={{ placement: 'bottom-end' }}>
           <SkMenu.Trigger

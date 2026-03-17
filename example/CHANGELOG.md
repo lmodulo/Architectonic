@@ -8,6 +8,28 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-16 (notifications)
+
+### Added
+- `CORE` **Real-time notification system** — WebSocket-push notifications with persistent storage, unread badge, and per-user preferences.
+  - **`notifications` + `notification_preferences` collections** — persisted notifications with 90-day TTL, groupKey deduplication, delivery tracking; preferences with channel toggles, mute list, and quiet hours.
+  - **`app.notify()` decorator** (`api/src/lib/notifications/dispatch.ts`) — registered on the Fastify instance; other modules call it without importing internals. Checks mute preferences and quiet hours before persisting, then pushes to active WebSocket connections. Guard with `app.hasDecorator('notify')` if the module may not be present.
+  - **Grouping** — `groupKey` deduplication: repeated events on the same key update the existing unread notification in place instead of flooding the list.
+  - **`@fastify/websocket`** added to API (`^9.0.0`); `wsConnections` Map decorated on the root Fastify instance.
+  - **REST API** — `GET /notifications`, `GET /notifications/unread-count`, `GET /notifications/recent`, `PUT /notifications/:id/read`, `PUT /notifications/read-all`, `GET|PUT /notifications/preferences`, `GET /notifications/ws` (WebSocket upgrade).
+  - **WebSocket protocol** — server → client: `init`, `notification`, `count-update`, `read-confirmed`, `sync-response`. Client → server: `mark-read`, `mark-all-read`, `sync`.
+  - **`notifications.svelte.ts` store** — module-level `$state`; manages connection lifecycle with exponential-backoff reconnection; sends `sync` with last timestamp on reconnect; deduplicates by `_id`.
+  - **`NotificationBell.svelte`** — header bell with unread badge, `SkMenu` dropdown of 10 most recent notifications, mark-all-read, "View all" link.
+  - **`NotificationItem.svelte`** — notification row with type-mapped icon, unread dot, title, body, relative time.
+  - **`+layout.svelte`** — `NotificationBell` added to header; `$effect` drives `connect()`/`disconnect()` lifecycle.
+  - **`/notifications` page** — All/Unread filter tabs, load-more pagination.
+  - **`/notifications/settings` page** — channel toggles, per-type mute checkboxes, quiet hours.
+  - **SvelteKit catch-all proxy** at `api/notifications/[...path]`.
+  - **`header-widgets.ts`** config added for future module-injectable header components.
+  - Notifications nav entry added (Bell icon).
+
+---
+
 ## 2026-03-16 (user management)
 
 ### Changed

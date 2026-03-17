@@ -15,6 +15,7 @@ session end
 update the CLAUDE.md file with necessary context.
 
 # TODO
+[] diagnose ws server client error
 [] CMS. multipart page creation. default templates + custom. drag n drop UI for generating multipart content, snap to grid
 [] CRM lead tracking and conversion
 [] Shopping cart
@@ -24,7 +25,8 @@ update the CLAUDE.md file with necessary context.
 [] print labels from oder detail page
 [] Markdown not applied properly in rendered messages
 [] strategies for dealing with large datasets in document based databases
-[redis and memcached]
+[] index strategies (build test suite?)
+[] redis and memcached
 
 # THEME SWAP
 Skeleton Built-in Theme

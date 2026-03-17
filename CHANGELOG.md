@@ -12,6 +12,39 @@ Entries are tagged:
 
 ---
 
+## 2026-03-16 (notifications)
+
+### Added
+- `CORE` **Real-time notification system** — WebSocket-push notifications with persistent storage, unread badge, and per-user preferences.
+  - **`notifications` collection** — stores per-user notification documents with `type`, `title`, `body`, `link`, `read`, `createdAt`, `source`, `groupKey`, and `delivered` fields. 90-day TTL index auto-expires old records. Four additional indexes for common query patterns.
+  - **`notification_preferences` collection** — per-user document (created lazily) with `channels` (websocket/email toggles), `muted` type list, and `quiet` hours config (start/end/timezone). Unique index on `userId`.
+  - **`dispatch()` function** (`api/src/lib/notifications/dispatch.ts`) — internal delivery engine registered as `app.notify()` decorator. Accepts single or batch `userId`, checks mute preferences and quiet hours before persisting, then pushes immediately to any active WebSocket connections and updates `delivered.websocket`. Other modules call `app.notify()` without importing any notifications internals; guard with `app.hasDecorator('notify')` when the module may not be installed.
+  - **Grouping** (`api/src/lib/notifications/grouping.ts`) — `groupKey` deduplication: if an unread notification with the same `groupKey` already exists for the user, its `title`/`body`/`createdAt` are updated in place rather than inserting a new document. Prevents flooding from high-frequency events (e.g. chat threads).
+  - **`@fastify/websocket` registered** in `api/src/server.ts`; `wsConnections` Map (`Map<string, Set<WebSocket>>`) decorated onto the Fastify instance at root level for use by any module.
+  - **REST API** (`api/src/routes/notifications/index.ts`):
+    - `GET /notifications` — paginated list with `filter=all|unread` and `page` params
+    - `GET /notifications/unread-count` — badge count
+    - `GET /notifications/recent` — last 10 for the bell dropdown
+    - `PUT /notifications/:id/read` — mark single read, returns updated count
+    - `PUT /notifications/read-all` — mark all read
+    - `GET /notifications/preferences` — get or lazily-create preferences
+    - `PUT /notifications/preferences` — update channels, muted types, quiet hours
+    - `GET /notifications/ws` — WebSocket upgrade endpoint
+  - **WebSocket protocol** — server pushes `init` (unread count on connect), `notification` (new delivery), `count-update` (after any read operation), `read-confirmed`. Client sends `mark-read`, `mark-all-read`, `sync` (with `since` timestamp for missed notifications).
+  - **`notifications.svelte.ts` store** (`frontend/src/lib/stores/`) — module-level `$state`; manages WebSocket lifecycle with exponential-backoff reconnection (1s → 2s → 4s → 8s, cap 30s). On reconnect sends `sync` with last known timestamp. Deduplicates incoming notifications by `_id`. Exports `connect()`, `disconnect()`, `markRead()`, `markAllRead()`, `getUnreadCount()`, `getNotifications()`.
+  - **`NotificationBell.svelte`** — bell icon with red unread badge in the header (between Messages and user avatar). Opens a `SkMenu` dropdown showing the 10 most recent notifications, with mark-all-read and "View all" links. Fetches `/api/notifications/recent` on dropdown open.
+  - **`NotificationItem.svelte`** — notification row with type-mapped icon (`Mail`, `ShieldCheck`, `Users`, `ShoppingCart`, `Package`, `Bell`), unread dot, title, optional body, and relative timestamp ("2m ago").
+  - **`+layout.svelte`** — imports `NotificationBell` and renders it in the header; `$effect` calls `connect()` when `data.user` is set and returns `disconnect()` as cleanup.
+  - **`/notifications` page** — full list with All/Unread filter tabs, load-more pagination, mark-all-read. Clicking an item marks it read and navigates to `link`.
+  - **`/notifications/settings` page** — delivery channel toggles (push always-on, email opt-in), per-type mute checkboxes grouped by source (Messages, Account, Storefront), quiet hours window with time pickers and timezone select. Saved via SvelteKit form action.
+  - **SvelteKit proxy** (`frontend/src/routes/api/notifications/[...path]`) — catch-all GET/PUT proxy forwarding session cookie; WS connects directly to the API at port 4000.
+  - **`header-widgets.ts`** config (`frontend/src/lib/config/`) — empty typed array for future module-injectable header components (`position: 'before-avatar' | 'after-avatar'`), following the `dashboard-widgets.ts` pattern.
+  - **Notifications nav entry** added to `nav.ts` (Bell icon, `/notifications`).
+  - `@fastify/websocket: ^9.0.0` added to API dependencies.
+  - Applied to both `example/` and `projects/potency/`.
+
+---
+
 ## 2026-03-16 (user management)
 
 ### Changed

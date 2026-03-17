@@ -9,6 +9,8 @@
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
+  import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
+  import { connect, disconnect } from '$lib/stores/notifications.svelte';
   import { brand } from '$lib/config/logo';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -16,6 +18,12 @@
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
   setContext('appBranding', { get name() { return data.appName ?? brand.text; }, get logo() { return data.appLogo ?? ''; } });
+
+  const PUBLIC_PATHS = new Set([
+    '/', '/about-me', '/affiliates', '/upcoming-events',
+    '/privacy-policy', '/terms-and-conditions',
+    '/certificate-of-analysis', '/shipping-return-policy'
+  ]);
 
   let sidebarOpen = $state(false);
   let logoutForm: HTMLFormElement = $state()!;
@@ -56,13 +64,21 @@
     document.documentElement.classList.toggle('dark', isDark);
     localStorage.setItem('color-scheme', isDark ? 'dark' : 'light');
   }
+
+  // WebSocket notifications — connect when authenticated, disconnect on logout
+  $effect(() => {
+    if (data.user) {
+      connect();
+      return () => disconnect();
+    }
+  });
 </script>
 
 <svelte:head>
   <title>{data.appName ?? brand.text} — {brand.description}</title>
 </svelte:head>
 
-{#if data.user && page.url.pathname !== '/' && !page.url.pathname.startsWith('/shop')}
+{#if data.user && !PUBLIC_PATHS.has(page.url.pathname) && !page.url.pathname.startsWith('/shop')}
 
   <!-- Navigation loading overlay -->
   {#if navigating.to !== null}
@@ -138,6 +154,8 @@
             </span>
           {/if}
         </a>
+
+        <NotificationBell />
 
         <SkMenu positioning={{ placement: 'bottom-end' }}>
           <SkMenu.Trigger
