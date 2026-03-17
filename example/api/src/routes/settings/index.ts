@@ -47,16 +47,16 @@ export default async function settingsRoutes(app: FastifyInstance) {
 
     const url = `/uploads/logo/${filename}`;
 
-    await app.mongo.db!.collection('settings').updateOne(
-      { key: 'app.logo' },
-      { $set: { value: url, updatedAt: new Date(), updatedBy: req.session.userId ?? null } }
-    );
+    await app.mongo.db!.collection('settings').bulkWrite([
+      { updateOne: { filter: { key: 'brand.logo' }, update: { $set: { value: url,  updatedAt: new Date(), updatedBy: req.session.userId ?? null } } } },
+      { updateOne: { filter: { key: 'brand.name' }, update: { $set: { value: '',   updatedAt: new Date(), updatedBy: req.session.userId ?? null } } } }
+    ]);
 
     logAudit(app.mongo.db!, {
       userId:     req.session.userId!,
       username:   req.session.username!,
       action:     'setting.update',
-      resourceId: 'app.logo',
+      resourceId: 'brand.logo',
       meta:       { url },
       ip:         req.ip
     });

@@ -59,39 +59,98 @@
 
   const canEdit = $derived(hasPermission(data.user, 'settings', 'update'));
 
-  // --- Logo upload ---
-  const currentLogo = $derived((data.settings.find(s => s.key === 'app.logo')?.value as string) ?? '');
+  // --- Brand ---
+  const currentLogo = $derived((data.settings.find(s => s.key === 'brand.logo')?.value as string) ?? '');
+  const currentBrandName = $derived((data.settings.find(s => s.key === 'brand.name')?.value as string) ?? '');
+
+  // Logo upload
   let logoFiles = $state<FileList | null>(null);
   let uploading = $state(false);
-  let logoError = $state('');
+  let brandError = $state('');
 
   async function uploadLogo() {
     if (!logoFiles?.length) return;
-    uploading = true; logoError = '';
+    uploading = true; brandError = '';
     const fd = new FormData();
     fd.append('file', logoFiles[0]);
     try {
       const res = await fetch('/api/settings/logo', { method: 'POST', body: fd });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); logoError = b.message ?? 'Upload failed'; return; }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); brandError = b.message ?? 'Upload failed'; return; }
       logoFiles = null;
       await invalidateAll();
-    } catch { logoError = 'Network error'; }
+    } catch { brandError = 'Network error'; }
     finally { uploading = false; }
   }
 
   async function removeLogo() {
-    uploading = true; logoError = '';
+    uploading = true; brandError = '';
     try {
-      const res = await fetch('/api/settings/app.logo', {
+      const res = await fetch('/api/settings/brand.logo', {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ value: '' })
       });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); logoError = b.message ?? 'Remove failed'; return; }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); brandError = b.message ?? 'Remove failed'; return; }
       await invalidateAll();
-    } catch { logoError = 'Network error'; }
+    } catch { brandError = 'Network error'; }
     finally { uploading = false; }
   }
+
+  // Brand name edit
+  let brandNameInput = $state('');
+  let editingBrandName = $state(false);
+  let savingBrandName = $state(false);
+
+  function startBrandNameEdit() {
+    brandNameInput = currentBrandName;
+    editingBrandName = true;
+    brandError = '';
+  }
+
+  function cancelBrandNameEdit() {
+    editingBrandName = false;
+    brandError = '';
+  }
+
+  async function saveBrandName() {
+    savingBrandName = true; brandError = '';
+    try {
+      // Save brand name and clear logo
+      const [nameRes, logoRes] = await Promise.all([
+        fetch('/api/settings/brand.name', {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ value: brandNameInput })
+        }),
+        fetch('/api/settings/brand.logo', {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ value: '' })
+        })
+      ]);
+      if (!nameRes.ok || !logoRes.ok) { brandError = 'Save failed'; return; }
+      editingBrandName = false;
+      await invalidateAll();
+    } catch { brandError = 'Network error'; }
+    finally { savingBrandName = false; }
+  }
+
+  async function clearBrandName() {
+    savingBrandName = true; brandError = '';
+    try {
+      const res = await fetch('/api/settings/brand.name', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ value: '' })
+      });
+      if (!res.ok) { brandError = 'Clear failed'; return; }
+      await invalidateAll();
+    } catch { brandError = 'Network error'; }
+    finally { savingBrandName = false; }
+  }
+
+  // Filter out brand settings from the generic table (managed in the Brand card above)
+  const genericSettings = $derived(data.settings.filter(s => s.key !== 'brand.name' && s.key !== 'brand.logo'));
 </script>
 
 <div class="space-y-6">
@@ -100,39 +159,75 @@
     <p class="text-sm opacity-60 mt-1">Application-wide configuration. Changes take effect immediately.</p>
   </div>
 
-  <!-- Logo upload -->
-  <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-    <h2 class="font-semibold text-sm">Application Logo</h2>
-    {#if logoError}<aside class="alert preset-tonal-error p-3 rounded-base text-sm">{logoError}</aside>{/if}
-    <div class="flex items-center gap-4">
-      <div class="size-12 shrink-0 flex items-center justify-center rounded border border-surface-200-800 overflow-hidden bg-surface-50-950">
-        {#if currentLogo}
-          <img src={currentLogo} alt="App logo" class="size-full object-contain p-1" />
-        {:else}
-          <LogoIcon class="size-6 text-surface-400" />
-        {/if}
-      </div>
-      <div class="flex-1 space-y-2">
-        {#if canEdit}
-          <div class="flex items-center gap-2 flex-wrap">
-            <input type="file" class="input text-sm flex-1 min-w-0" accept="image/*" bind:files={logoFiles} />
-            <button type="button" class="btn btn-sm preset-filled-primary-500 shrink-0" disabled={uploading || !logoFiles?.length} onclick={uploadLogo}>
-              {uploading ? 'Uploading…' : 'Upload'}
-            </button>
-            {#if currentLogo}
-              <button type="button" class="btn btn-sm preset-tonal-error shrink-0" disabled={uploading} onclick={removeLogo}>
-                Remove
-              </button>
+  <!-- Brand card -->
+  <div class="card preset-filled-surface-100-900 p-5 space-y-4">
+    <div>
+      <h2 class="font-semibold text-sm">Brand</h2>
+      <p class="text-xs opacity-50 mt-0.5">Choose one: Brand Name (text) or Logo (image). Setting one clears the other.</p>
+    </div>
+
+    {#if brandError}<aside class="alert preset-tonal-error p-3 rounded-base text-sm">{brandError}</aside>{/if}
+
+    <!-- Brand Name -->
+    <div class="space-y-1">
+      <p class="text-xs font-medium opacity-70">Brand Name</p>
+      {#if editingBrandName}
+        <div class="flex items-center gap-2">
+          <input
+            type="text"
+            class="input text-sm flex-1"
+            placeholder="e.g. Acme Corp"
+            bind:value={brandNameInput}
+          />
+          <button type="button" class="btn btn-sm preset-filled-primary-500 shrink-0" disabled={savingBrandName} onclick={saveBrandName}>
+            {savingBrandName ? 'Saving…' : 'Save'}
+          </button>
+          <button type="button" class="btn btn-sm preset-tonal shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>Cancel</button>
+        </div>
+      {:else}
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-mono opacity-80 flex-1">{currentBrandName || '—'}</span>
+          {#if canEdit}
+            <button type="button" class="btn btn-sm preset-tonal shrink-0" onclick={startBrandNameEdit}>Edit</button>
+            {#if currentBrandName}
+              <button type="button" class="btn btn-sm preset-tonal-error shrink-0" disabled={savingBrandName} onclick={clearBrandName}>Clear</button>
             {/if}
-          </div>
-        {/if}
-        <p class="text-xs opacity-50">Square PNG or SVG recommended, at least 64×64px. Replaces the default icon in the header.</p>
+          {/if}
+        </div>
+      {/if}
+    </div>
+
+    <!-- Logo -->
+    <div class="space-y-1">
+      <p class="text-xs font-medium opacity-70">Logo</p>
+      <div class="flex items-center gap-4">
+        <div class="size-12 shrink-0 flex items-center justify-center rounded border border-surface-200-800 overflow-hidden bg-surface-50-950">
+          {#if currentLogo}
+            <img src={currentLogo} alt="Brand logo" class="size-full object-contain p-1" />
+          {:else}
+            <LogoIcon class="size-6 text-surface-400" />
+          {/if}
+        </div>
+        <div class="flex-1 space-y-2">
+          {#if canEdit}
+            <div class="flex items-center gap-2 flex-wrap">
+              <input type="file" class="input text-sm flex-1 min-w-0" accept="image/*" bind:files={logoFiles} />
+              <button type="button" class="btn btn-sm preset-filled-primary-500 shrink-0" disabled={uploading || !logoFiles?.length} onclick={uploadLogo}>
+                {uploading ? 'Uploading…' : 'Upload'}
+              </button>
+              {#if currentLogo}
+                <button type="button" class="btn btn-sm preset-tonal-error shrink-0" disabled={uploading} onclick={removeLogo}>Remove</button>
+              {/if}
+            </div>
+          {/if}
+          <p class="text-xs opacity-50">Square PNG or SVG recommended, at least 64×64px.</p>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="card preset-filled-surface-100-900 divide-y divide-surface-200-800">
-    {#each data.settings as setting (setting.key)}
+    {#each genericSettings as setting (setting.key)}
       <div class="flex items-start gap-4 px-5 py-4">
 
         <!-- Label + description -->
@@ -223,7 +318,7 @@
       </div>
     {/each}
 
-    {#if !data.settings.length}
+    {#if !genericSettings.length}
       <p class="px-5 py-8 text-sm opacity-50 text-center">No settings found.</p>
     {/if}
   </div>

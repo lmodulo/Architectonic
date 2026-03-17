@@ -5,7 +5,7 @@
   import { navItems } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
+  import { onMount, setContext } from 'svelte';
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
@@ -14,6 +14,8 @@
   import type { LayoutData } from './$types';
 
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
+
+  setContext('appBranding', { get name() { return data.appName ?? brand.text; }, get logo() { return data.appLogo ?? ''; } });
 
   let sidebarOpen = $state(false);
   let logoutForm: HTMLFormElement = $state()!;

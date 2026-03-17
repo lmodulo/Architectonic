@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, getContext } from 'svelte';
   import { Sun, Moon } from 'lucide-svelte';
   import Logo from '$lib/components/Logo.svelte';
+  import { brand } from '$lib/config/logo';
+
+  const branding = getContext<{ name: string; logo: string }>('appBranding') ?? { name: brand.text, logo: '' };
 
   let isDark = $state(false);
 
@@ -18,7 +21,7 @@
 
 <nav class="marketing-nav">
   <a href="/" class="nav-brand">
-    <Logo />
+    <Logo name={branding.name} logo={branding.logo} />
   </a>
   <div class="flex items-center gap-3">
     <button

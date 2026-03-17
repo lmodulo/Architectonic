@@ -64,9 +64,8 @@ export default async function settingsRoutes(app: FastifyInstance) {
     return { url };
   });
 
-  // GET /settings/:key — requireAuth only: individual settings readable by all authenticated users
+  // GET /settings/:key — public: branding and feature-flag settings are not sensitive
   app.get<{ Params: { key: string } }>('/:key', {
-    preHandler: app.requireAuth,
     schema: { summary: 'Get a single setting by key' }
   }, async (req, reply) => {
     const s = await app.mongo.db!.collection('settings').findOne({ key: req.params.key });

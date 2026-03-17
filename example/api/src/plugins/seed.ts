@@ -11,18 +11,18 @@ const perms = JSON.parse(
 
 const DEFAULT_SETTINGS = [
   {
-    key: 'app.name',
-    value: 'Architectonic',
-    type: 'string',
-    label: 'Application Name',
-    description: 'Display name shown in the browser title and header'
-  },
-  {
-    key: 'app.logo',
+    key: 'brand.name',
     value: '',
     type: 'string',
-    label: 'Application Logo',
-    description: 'Logo image URL shown in the header (managed via the logo upload UI)'
+    label: 'Brand Name',
+    description: 'Text shown in the app header (mutually exclusive with Brand Logo)'
+  },
+  {
+    key: 'brand.logo',
+    value: '',
+    type: 'string',
+    label: 'Brand Logo',
+    description: 'Logo image URL shown in the header (managed via the logo upload UI; mutually exclusive with Brand Name)'
   },
   {
     key: 'app.registration_open',

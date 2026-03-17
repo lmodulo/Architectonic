@@ -42,7 +42,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.appName ?? brand.text} — {brand.description}</title>
+  <title>{data.appName ?? 'Application'} — {brand.description}</title>
 </svelte:head>
 
 {#if data.user}
@@ -87,7 +87,7 @@
 
       <!-- Logo / Title -->
       <a href="/dashboard" class="flex items-center gap-2 flex-1 no-underline text-inherit">
-        <Logo name={data.appName ?? brand.text} logo={data.appLogo ?? ''} />
+        <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
       </a>
 
       <!-- Trail -->
