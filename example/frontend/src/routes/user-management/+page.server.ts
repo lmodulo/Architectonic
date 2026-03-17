@@ -6,19 +6,24 @@ import type { PageServerLoad } from './$types';
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
-  if (!hasPermission(locals.user, 'roles', 'read')) redirect(303, '/403');
+  const canReadUsers = hasPermission(locals.user, 'users', 'read');
+  const canReadRoles = hasPermission(locals.user, 'roles', 'read');
+
+  if (!canReadUsers && !canReadRoles) redirect(303, '/403');
 
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
   try {
-    const [rolesRes, usersRes] = await Promise.all([
-      fetch(`${API_URL}/roles`, { headers }),
-      fetch(`${API_URL}/users`, { headers })
+    const [usersRes, rolesRes] = await Promise.all([
+      fetch(`${API_URL}/users`, { headers }),
+      fetch(`${API_URL}/roles`, { headers })
     ]);
     return {
-      roles:       rolesRes.ok  ? await rolesRes.json()  : [],
-      users:       usersRes.ok  ? await usersRes.json()  : [],
+      users:       usersRes.ok ? await usersRes.json() : [],
+      roles:       rolesRes.ok ? await rolesRes.json() : [],
+      canReadUsers,
+      canReadRoles,
       canCreate:   hasPermission(locals.user, 'roles', 'create'),
       canUpdate:   hasPermission(locals.user, 'roles', 'update'),
       canDelete:   hasPermission(locals.user, 'roles', 'delete'),
@@ -26,6 +31,11 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
       error:       null
     };
   } catch {
-    return { roles: [], users: [], canCreate: false, canUpdate: false, canDelete: false, canAssign: false, error: 'Cannot reach the API server' };
+    return {
+      users: [], roles: [],
+      canReadUsers, canReadRoles,
+      canCreate: false, canUpdate: false, canDelete: false, canAssign: false,
+      error: 'Cannot reach the API server'
+    };
   }
 };

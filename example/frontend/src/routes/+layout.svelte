@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import { Navigation, Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
-  import { Menu as MenuIcon, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon, Mail as MailIcon, Settings, ChevronRight, ChevronDown } from 'lucide-svelte';
+  import { Menu as MenuIcon, CircleUser, LogOut, X, User, Users, Sun, Moon, Mail as MailIcon, Settings, ChevronRight, ChevronDown } from 'lucide-svelte';
   import { navItems, isNavGroup } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
@@ -153,24 +153,14 @@
                 <User class="size-4 shrink-0" />
                 <span>Profile</span>
               </SkMenu.Item>
-              {#if hasPermission(data.user, 'users', 'read')}
+              {#if hasPermission(data.user, 'users', 'read') || hasPermission(data.user, 'roles', 'read')}
                 <SkMenu.Item
-                  value="manage-users"
-                  onclick={() => goto('/manage-users')}
-                  class="flex items-center gap-3 px-3 py-2 rounded-base w-full text-left text-sm cursor-pointer {page.url.pathname === '/manage-users' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+                  value="user-management"
+                  onclick={() => goto('/user-management')}
+                  class="flex items-center gap-3 px-3 py-2 rounded-base w-full text-left text-sm cursor-pointer {page.url.pathname === '/user-management' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
                 >
                   <Users class="size-4 shrink-0" />
-                  <span>Manage Users</span>
-                </SkMenu.Item>
-              {/if}
-              {#if hasPermission(data.user, 'roles', 'read')}
-                <SkMenu.Item
-                  value="roles"
-                  onclick={() => goto('/roles')}
-                  class="flex items-center gap-3 px-3 py-2 rounded-base w-full text-left text-sm cursor-pointer {page.url.pathname === '/roles' ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
-                >
-                  <ShieldCheck class="size-4 shrink-0" />
-                  <span>Roles</span>
+                  <span>User Management</span>
                 </SkMenu.Item>
               {/if}
               {#if hasPermission(data.user, 'settings', 'read')}

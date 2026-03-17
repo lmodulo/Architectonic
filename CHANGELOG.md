@@ -12,6 +12,20 @@ Entries are tagged:
 
 ---
 
+## 2026-03-16 (user management)
+
+### Changed
+- `CORE` **Consolidated User Management page** — `/manage-users` and `/roles` merged into a single tabbed `/user-management` route. Server load requires `users.read` OR `roles.read` (redirects to `/403` if neither); each tab renders only when the user holds the relevant permission.
+  - **Users tab** — full CRUD table (search, pagination, create/edit/delete modals) preserved from the old `/manage-users` page.
+  - **Roles tab** — accordion permission matrix and User Assignments table preserved from the old `/roles` page. Role changes in the Assignments table now also update the Users tab's local state reactively.
+  - User menu dropdown consolidates "Manage Users" and "Roles" into a single **User Management** entry; `ShieldCheck` import removed from layout.
+  - Old `/manage-users` and `/roles` routes removed from both `example/` and `projects/potency/`.
+
+### Added
+- `CORE` **Collapsible nav groups** — `nav.ts` now exports a `NavGroup` type alongside `NavItem`; the sidebar renders group entries as collapsible accordions with CSS grid `grid-template-rows` animation. Active group auto-expands on load via `$effect`. `NavEntry` union type and `isNavGroup()` type guard exported for layout consumption.
+
+---
+
 ## 2026-03-16
 
 ### Added

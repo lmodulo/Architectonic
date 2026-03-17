@@ -8,6 +8,20 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-16 (user management)
+
+### Changed
+- **Consolidated User Management page** — `/manage-users` and `/roles` merged into a single tabbed `/user-management` route. Server load requires `users.read` OR `roles.read`; fetches users and roles in parallel.
+  - **Users tab** — full CRUD table (search, pagination, create/edit/delete modals).
+  - **Roles tab** — permission accordion + User Assignments table; role changes sync back to Users tab state.
+  - User menu dropdown reduces "Manage Users" + "Roles" to a single **User Management** entry; `ShieldCheck` import removed.
+  - Old `/manage-users` and `/roles` routes removed.
+
+### Added
+- **Collapsible nav groups** — `nav.ts` exports `NavGroup`, `NavEntry`, and `isNavGroup()`. Sidebar renders groups as animated accordions (CSS grid `grid-template-rows`); active group auto-expands via `$effect`.
+
+---
+
 ## 2026-03-16 (commerce module — storefront & dashboard)
 
 ### Added

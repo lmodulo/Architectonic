@@ -8,6 +8,59 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-16 (user management)
+
+### Changed
+- **Consolidated User Management page** — `/manage-users` and `/roles` merged into a single tabbed `/user-management` route. Server load fetches users + roles in parallel; requires `users.read` OR `roles.read` (403 redirect if neither).
+  - **Users tab** — full CRUD table (search, pagination, create/edit/delete modals).
+  - **Roles tab** — permission accordion + User Assignments table; role changes sync back to the Users tab state reactively.
+  - User menu dropdown reduced to a single **User Management** entry visible with either users or roles read permission.
+  - Old `/manage-users` and `/roles` routes removed.
+
+---
+
+## 2026-03-16 (storefront & commerce dashboard)
+
+### Added
+- **Public storefront** — customer-facing shop accessible without authentication.
+  - `StorefrontNav` — CSS grid `1fr auto 1fr` nav with hover mega-menu, frosted-glass backdrop, theme toggle, Sign In CTA. Brand name/logo read from `getContext('appBranding')`.
+  - `ShopBreadcrumb` — persistent Shop › Category › Product trail.
+  - `/shop` — category grid with first-product image per category (server-side aggregation).
+  - `/shop/[category]` — product grid with `ProductCard` (sale badges, hover zoom).
+  - `/shop/[category]/[slug]` — sticky image gallery + variant selectors, Add to Cart (disabled), stock status.
+  - `price.ts` — `formatPrice`, `applyDiscount`, `activeDiscount`, `discountLabel`.
+  - Storefront API: `/storefront/meta` (categories, variant types, tags), `/storefront/products` (filterable), `/storefront/products/:slug`.
+  - Frontend proxy `api/storefront/[...path]` — no session forwarded (public).
+- **Analytics API** — `GET /analytics` returns all dashboard data in one request: daily revenue (30d), monthly revenue (12mo), revenue by product, stock by product, recent orders, calendar data (90d), KPIs.
+- **Commerce dashboard** — replaces dummy data with real MongoDB aggregations.
+  - 4 pure-SVG charts: Daily Revenue (line+area), Revenue by Product (hbar), Inventory Stock (hbar), Monthly Revenue (area).
+  - KPI cards: Total Revenue, Total Orders, Avg Order Value, Top Product.
+  - Orders table with pagination.
+  - Order Calendar heat-map by revenue.
+- **Seed data** — 3 categories, 7 products (variants, discounts, stock), 60 orders generated with deterministic LCG RNG (seed `8675309`). Idempotent.
+- **`start.ps1`** — single command to build and start all services.
+
+### Fixed
+- `fastifyStatic` root path corrected from `../../uploads` to `../uploads` — resolves to `/app/uploads` in the Docker container (was resolving to filesystem root).
+- Unauthenticated requests to `/uploads/*` were redirected to `/login`; added `/uploads/` to public path exceptions in `hooks.server.ts`.
+- `StorefrontNav` brand name now reads `getContext('appBranding')` instead of static `brand.text`.
+
+---
+
+## 2026-03-16 (nav groups & design)
+
+### Added
+- **Collapsible nav groups** — sidebar supports `NavGroup` entries (label + icon + children array) with CSS grid accordion animation. Active group auto-expands on load.
+- **Commerce nav group** — Products, Orders, Categories, Inventory grouped under a collapsible "Commerce" section with `Store` icon.
+
+### Changed
+- **Custom theme** — `lmodulo-theme.css` applied; `app.css` uses Option A (custom-only, no built-in base). `app.html` sets `data-theme="lmodulo"`.
+- **Marketing page** redesigned — full-page hero, feature sections, and pricing reworked to match the lmodulo design system.
+- **`MarketingNav`** updated with Sign In / Sign Up links and correct branding.
+- **`StorefrontNav`** background and layout tweaks for lmodulo theme compatibility.
+
+---
+
 ## 2026-03-16 (customer role)
 
 ### Added
