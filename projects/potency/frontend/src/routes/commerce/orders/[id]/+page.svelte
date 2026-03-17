@@ -93,7 +93,7 @@
 
   <!-- Line items -->
   <div class="card preset-filled-surface-100-900 overflow-hidden">
-    <div class="px-4 py-3 border-b border-surface-200-800 font-semibold">Items</div>
+    <div class="card-header px-4 py-3 border-b border-surface-200-800 font-semibold">Items</div>
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-surface-200-800">

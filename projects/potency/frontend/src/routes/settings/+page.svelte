@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Settings } from 'lucide-svelte';
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
   import LogoIcon from '$lib/components/LogoIcon.svelte';
@@ -96,7 +97,10 @@
 
 <div class="space-y-6">
   <div>
-    <h1 class="h3 font-bold">Settings</h1>
+    <div class="flex items-center gap-2">
+      <Settings class="size-5 text-primary-500" />
+      <h1 class="h3 font-bold">Settings</h1>
+    </div>
     <p class="text-sm opacity-60 mt-1">Application-wide configuration. Changes take effect immediately.</p>
   </div>
 

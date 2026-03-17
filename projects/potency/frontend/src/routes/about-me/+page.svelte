@@ -15,8 +15,10 @@
   <!-- ── HERO ──────────────────────────────────────────────── -->
   <section class="page-hero">
     <div class="page-hero-inner">
-      <p class="page-eyebrow">The Principle</p>
-      <h1 class="page-title">Nickapotamus</h1>
+      <div class="hero-text">
+        <p class="page-eyebrow">The Principle</p>
+        <h1 class="page-title">Nickapotamus</h1>
+      </div>
       <div class="principle-photo-wrap">
         <img src="/principle.jpg" alt="Nick — Nickapotamus" class="principle-photo" />
       </div>
@@ -69,13 +71,20 @@
   /* ── HERO ──────────────────────────────────────────────── */
   .page-hero {
     background: linear-gradient(to right, #f43f5e, #f97316, #eab308, #22c55e, #3b82f6, #8b5cf6);
-    padding: calc(var(--spacing) * 32) calc(var(--spacing) * 8) calc(var(--spacing) * 16);
-    text-align: center;
+    padding: calc(var(--spacing) * 20) calc(var(--spacing) * 8);
   }
 
   .page-hero-inner {
-    max-width: 52rem;
+    max-width: 50rem;
     margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: calc(var(--spacing) * 12);
+  }
+
+  .hero-text {
+    text-align: left;
   }
 
   .page-eyebrow {
@@ -91,22 +100,22 @@
     font-family: var(--heading-font-family);
     font-weight: var(--heading-font-weight);
     color: #fff;
-    margin: 0 0 calc(var(--spacing) * 10);
+    margin: 0;
     line-height: 1.1;
   }
 
   .principle-photo-wrap {
-    display: flex;
-    justify-content: center;
+    flex-shrink: 0;
   }
 
   .principle-photo {
-    width: min(20rem, 87.5vw);
-    height: min(20rem, 87.5vw);
+    width: min(18rem, 40vw);
+    height: min(18rem, 40vw);
     object-fit: cover;
-    border-radius: 50%;
+    border-radius: calc(var(--spacing) * 3);
     border: 4px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+    display: block;
   }
 
   /* ── SECTIONS ──────────────────────────────────────────── */

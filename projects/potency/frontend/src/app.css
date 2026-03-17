@@ -7,5 +7,24 @@
 @import "../lmodulo-theme.css";
  */
 
-@import "@skeletonlabs/skeleton/themes/nouveau";
+@import "@skeletonlabs/skeleton/themes/pine";
 @import "@skeletonlabs/skeleton";
+
+/* ── Private app: visual header backgrounds ──────────────────────────── */
+/* Targets modal <header> elements and <thead> rows inside the app's
+   <main> content area. The AppBar <header> and <aside> are siblings of
+   <main> in the layout, so they are not affected by this selector.
+   .card > button targets accordion trigger rows.
+   .card-header is a utility for non-semantic card header divs. */
+.app-main header,
+.app-main thead tr,
+.app-main .card > button,
+.app-main .card-header {
+  background: color-mix(in oklch, var(--color-tertiary-500) 10%, transparent);
+}
+
+/* Clip header/thead backgrounds to card rounded corners */
+.app-main .card:has(> header:first-child),
+.app-main .card:has(> .card-header:first-child) {
+  overflow: hidden;
+}

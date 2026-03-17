@@ -29,25 +29,34 @@
 
   <!-- ── HERO ──────────────────────────────────────────────── -->
   <section class="hero">
-    <div class="hero-inner">
-      <p class="hero-eyebrow">Handcrafted Holistic Wellness</p>
-      <div class="hero-logo">
-        <img src="/logo.png" alt="Potency By Potamus" class="hero-logo-img" />
-      </div>
-      <p class="hero-sub">
-        Small-batch balms, bath soaps, and botanical blends — made with intention,
-        rooted in nature. Find us online, in-store, or at a festival near you.
-      </p>
+    <div class="hero-left">
+      <img src="/logo.png" alt="Potency By Potamus" class="hero-logo-img" />
+      <h1 class="hero-headline">Feel Better.<br />Hurt Less.</h1>
+      <p class="hero-founder">Handcrafted by Nick in Endicott, WA — for his family, and yours.</p>
       <div class="hero-actions">
-        <a href="/shop" class="btn preset-filled-primary-500">Shop Now</a>
-        <a href="#locations" class="btn preset-tonal-surface">Find Us</a>
+        <a href="/shop" class="btn preset-filled-primary-500">Shop Products</a>
+        <a href="/about-me" class="btn preset-tonal-surface">Our Story</a>
       </div>
     </div>
-    <div class="hero-deco" aria-hidden="true">
-      <div class="hero-deco-circle hero-deco-circle-1"></div>
-      <div class="hero-deco-circle hero-deco-circle-2"></div>
+    <div class="hero-right" aria-hidden="true">
+      <img src="/principle.jpg" alt="" class="hero-portrait" />
+      <div class="hero-right-overlay"></div>
     </div>
   </section>
+
+  <!-- ── TRUST BAR ──────────────────────────────────────────── -->
+  <div class="trust-bar">
+    {#each [
+      { icon: '🔬', text: 'Third-Party Lab Tested' },
+      { icon: '🌿', text: 'Less Than 0.3% THC' },
+      { icon: '🤲', text: 'Small-Batch Handcrafted' },
+    ] as item}
+      <div class="trust-item">
+        <span class="trust-icon">{item.icon}</span>
+        <span class="trust-text">{item.text}</span>
+      </div>
+    {/each}
+  </div>
 
   <!-- ── BEST SELLERS ──────────────────────────────────────── -->
   {#if products.length > 0}
@@ -244,89 +253,146 @@
 
   /* ── HERO ──────────────────────────────────────────────── */
   .hero {
-    position: relative;
-    min-height: 92vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 3.5rem);
+    margin-top: 3.5rem;
+  }
+
+  @media (max-width: 767px) {
+    .hero {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+  }
+
+  /* Left panel */
+  .hero-left {
     display: flex;
-    align-items: center;
-    padding: calc(var(--spacing) * 32) calc(var(--spacing) * 8) calc(var(--spacing) * 20);
-    overflow: hidden;
-  }
-
-  .hero-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 52rem;
-    margin: 0 auto;
-    text-align: center;
-  }
-
-  .hero-eyebrow {
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--color-primary-500);
-    margin: 0 0 calc(var(--spacing) * 4);
-  }
-
-  .hero-logo {
-    display: flex;
+    flex-direction: column;
     justify-content: center;
-    margin: 0 0 calc(var(--spacing) * 6);
+    padding: calc(var(--spacing) * 20) calc(var(--spacing) * 12);
+    background: var(--body-background-color);
+  }
+
+  :global(.dark) .hero-left {
+    background: var(--body-background-color-dark);
+  }
+
+  @media (max-width: 767px) {
+    .hero-left {
+      padding: calc(var(--spacing) * 16) calc(var(--spacing) * 8) calc(var(--spacing) * 10);
+      align-items: center;
+      text-align: center;
+    }
   }
 
   .hero-logo-img {
-    max-width: min(30rem, 80vw);
+    width: min(22rem, 75vw);
     height: auto;
+    margin-bottom: calc(var(--spacing) * 8);
   }
 
-  .hero-sub {
-    font-size: clamp(1rem, 2vw, 1.25rem);
+  .hero-headline {
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-font-weight);
+    color: var(--color-surface-950);
+    line-height: 1.1;
+    margin: 0 0 calc(var(--spacing) * 5);
+  }
+
+  :global(.dark) .hero-headline {
+    color: var(--color-surface-50);
+  }
+
+  .hero-founder {
+    font-size: 0.9375rem;
     color: var(--color-surface-400);
-    line-height: 1.7;
+    line-height: 1.6;
     margin: 0 0 calc(var(--spacing) * 10);
-    max-width: 40rem;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 28rem;
   }
 
-  :global(.dark) .hero-sub {
-    color: var(--color-surface-300);
+  :global(.dark) .hero-founder {
+    color: var(--color-surface-400);
   }
 
   .hero-actions {
     display: flex;
     gap: calc(var(--spacing) * 4);
-    justify-content: center;
     flex-wrap: wrap;
   }
 
-  .hero-deco {
+  @media (max-width: 767px) {
+    .hero-actions {
+      justify-content: center;
+    }
+  }
+
+  /* Right panel — portrait */
+  .hero-right {
+    position: relative;
+    overflow: hidden;
+    min-height: 28rem;
+  }
+
+  .hero-portrait {
     position: absolute;
     inset: 0;
-    pointer-events: none;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
   }
 
-  .hero-deco-circle {
+  .hero-right-overlay {
     position: absolute;
-    border-radius: 50%;
-    opacity: 0.06;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      oklch(32% 0.12 145 / 0.55) 0%,
+      oklch(22% 0.08 145 / 0.35) 100%
+    );
   }
 
-  .hero-deco-circle-1 {
-    width: 70vw;
-    height: 70vw;
-    background: var(--color-primary-500);
-    top: -20vw;
-    right: -20vw;
+  /* ── TRUST BAR ─────────────────────────────────────────── */
+  .trust-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--spacing) * 12);
+    padding: calc(var(--spacing) * 5) calc(var(--spacing) * 8);
+    background: color-mix(in oklch, var(--color-primary-500) 8%, transparent);
+    border-bottom: var(--default-border-width) solid color-mix(in oklch, var(--color-primary-500) 15%, transparent);
+    flex-wrap: wrap;
   }
 
-  .hero-deco-circle-2 {
-    width: 40vw;
-    height: 40vw;
-    background: var(--color-secondary-500, var(--color-primary-300));
-    bottom: -10vw;
-    left: -10vw;
+  :global(.dark) .trust-bar {
+    background: color-mix(in oklch, var(--color-primary-500) 10%, transparent);
+    border-bottom-color: color-mix(in oklch, var(--color-primary-500) 20%, transparent);
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+  }
+
+  .trust-icon {
+    font-size: 1.1rem;
+  }
+
+  .trust-text {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--color-surface-600);
+    text-transform: uppercase;
+  }
+
+  :global(.dark) .trust-text {
+    color: var(--color-surface-300);
   }
 
   /* ── SECTIONS ──────────────────────────────────────────── */

@@ -76,7 +76,7 @@
 
   <!-- Thread subject header -->
   {#if messages.length > 0}
-    <div class="px-6 py-3 border-b border-surface-200-800 shrink-0">
+    <div class="card-header px-6 py-3 border-b border-surface-200-800 shrink-0">
       <h1 class="text-base font-semibold truncate">{messages[0].subject}</h1>
       <p class="text-xs opacity-50 mt-0.5">{messages.length} message{messages.length !== 1 ? 's' : ''}</p>
     </div>

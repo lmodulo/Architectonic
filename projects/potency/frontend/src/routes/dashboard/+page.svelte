@@ -1,7 +1,8 @@
 <script lang="ts">
   import { Pagination } from '@skeletonlabs/skeleton-svelte';
   import { Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight,
-           TrendingUp, ShoppingCart, DollarSign, Package, ChevronUp, ChevronDown } from 'lucide-svelte';
+           TrendingUp, ShoppingCart, DollarSign, Package, ChevronUp, ChevronDown,
+           LayoutDashboard } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { dashboardWidgets } from '$lib/config/dashboard-widgets';
   import { hasPermission } from '$lib/permissions';
@@ -123,13 +124,16 @@
 
   <!-- Header -->
   <div>
-    <h1 class="text-2xl font-bold">Dashboard</h1>
+    <div class="flex items-center gap-2">
+      <LayoutDashboard class="size-5 text-primary-500" />
+      <h1 class="text-2xl font-bold">Dashboard</h1>
+    </div>
     <p class="text-sm opacity-60 mt-0.5">Welcome back, <strong>{data.user?.firstName ?? data.user?.username}</strong></p>
   </div>
 
   <!-- KPI Cards -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
+    <div class="card p-5 flex items-start gap-4" style="background: color-mix(in oklch, var(--color-primary-500) 12%, transparent)">
       <div class="p-2 rounded-lg preset-tonal-primary"><DollarSign class="size-5 text-primary-500" /></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Revenue</p>
@@ -137,7 +141,7 @@
         <p class="text-xs opacity-50 mt-0.5">completed orders</p>
       </div>
     </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
+    <div class="card p-5 flex items-start gap-4" style="background: color-mix(in oklch, var(--color-secondary-500) 12%, transparent)">
       <div class="p-2 rounded-lg preset-tonal-secondary"><ShoppingCart class="size-5 text-secondary-500" /></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Orders</p>
@@ -145,7 +149,7 @@
         <p class="text-xs opacity-50 mt-0.5">all time</p>
       </div>
     </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
+    <div class="card p-5 flex items-start gap-4" style="background: color-mix(in oklch, var(--color-success-500) 12%, transparent)">
       <div class="p-2 rounded-lg preset-tonal-success"><TrendingUp class="size-5 text-success-500" /></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Avg Order Value</p>
@@ -153,7 +157,7 @@
         <p class="text-xs opacity-50 mt-0.5">per transaction</p>
       </div>
     </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
+    <div class="card p-5 flex items-start gap-4" style="background: color-mix(in oklch, var(--color-warning-500) 12%, transparent)">
       <div class="p-2 rounded-lg preset-tonal-warning"><Package class="size-5 text-warning-500" /></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Top Product</p>
@@ -167,83 +171,99 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
     <!-- Line/Area: Daily Revenue -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Daily Revenue — Last 30 Days</h2>
-      {#if dailyData.length > 1}
-        <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-          {#each [0.25, 0.5, 0.75, 1] as frac}
-            <line x1="16" x2="464"
-              y1={(140 - 16 - frac * (140 - 32)).toFixed(1)}
-              y2={(140 - 16 - frac * (140 - 32)).toFixed(1)}
-              stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
-          {/each}
-          <path d={areaPath(dailyData.map(d => ({ value: d.revenue })))} fill="var(--color-primary-500)" fill-opacity="0.15"/>
-          <polyline points={linePoints(dailyData.map(d => ({ value: d.revenue })))} fill="none" stroke="var(--color-primary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-          {#each dailyData as d, i}
-            {#if i % 5 === 0}
-              <text x={(16 + (i / 29) * (480 - 32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
-            {/if}
-          {/each}
-        </svg>
-      {:else}
-        <p class="text-sm opacity-40 py-8 text-center">No data yet</p>
-      {/if}
+    <div class="card preset-filled-surface-100-900 overflow-hidden">
+      <div class="card-header px-5 py-3 border-b border-surface-200-800">
+        <h2 class="text-sm font-semibold">Daily Revenue — Last 30 Days</h2>
+      </div>
+      <div class="p-5">
+        {#if dailyData.length > 1}
+          <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
+            {#each [0.25, 0.5, 0.75, 1] as frac}
+              <line x1="16" x2="464"
+                y1={(140 - 16 - frac * (140 - 32)).toFixed(1)}
+                y2={(140 - 16 - frac * (140 - 32)).toFixed(1)}
+                stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
+            {/each}
+            <path d={areaPath(dailyData.map(d => ({ value: d.revenue })))} fill="var(--color-primary-500)" fill-opacity="0.15"/>
+            <polyline points={linePoints(dailyData.map(d => ({ value: d.revenue })))} fill="none" stroke="var(--color-primary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            {#each dailyData as d, i}
+              {#if i % 5 === 0}
+                <text x={(16 + (i / 29) * (480 - 32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
+              {/if}
+            {/each}
+          </svg>
+        {:else}
+          <p class="text-sm opacity-40 py-8 text-center">No data yet</p>
+        {/if}
+      </div>
     </div>
 
     <!-- HBar: Revenue by Product -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Revenue by Product</h2>
-      {#if productBars.length > 0}
-        {@const chartH = Math.max(productBars.length * 32 + 20, 140)}
-        <svg viewBox="0 0 460 {chartH}" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-          {#each productBars as b, i}
-            <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
-            <rect x={b.x} y={b.y} width={b.w} height={b.bh} rx="3" fill="var(--color-primary-500)" fill-opacity="0.8"/>
-            <text x={b.x + b.w + 5} y={b.midY + 3.5} font-size="9" fill="currentColor" fill-opacity="0.5">{fmt(b.value)}</text>
-          {/each}
-        </svg>
-      {:else}
-        <p class="text-sm opacity-40 py-8 text-center">No data yet</p>
-      {/if}
+    <div class="card preset-filled-surface-100-900 overflow-hidden">
+      <div class="card-header px-5 py-3 border-b border-surface-200-800">
+        <h2 class="text-sm font-semibold">Revenue by Product</h2>
+      </div>
+      <div class="p-5">
+        {#if productBars.length > 0}
+          {@const chartH = Math.max(productBars.length * 32 + 20, 140)}
+          <svg viewBox="0 0 460 {chartH}" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
+            {#each productBars as b, i}
+              <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
+              <rect x={b.x} y={b.y} width={b.w} height={b.bh} rx="3" fill="var(--color-primary-500)" fill-opacity="0.8"/>
+              <text x={b.x + b.w + 5} y={b.midY + 3.5} font-size="9" fill="currentColor" fill-opacity="0.5">{fmt(b.value)}</text>
+            {/each}
+          </svg>
+        {:else}
+          <p class="text-sm opacity-40 py-8 text-center">No data yet</p>
+        {/if}
+      </div>
     </div>
 
     <!-- HBar: Inventory Stock -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Inventory Stock by Product</h2>
-      {#if stockBars.length > 0}
-        {@const chartH = Math.max(stockBars.length * 32 + 20, 140)}
-        <svg viewBox="0 0 460 {chartH}" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-          {#each stockBars as b, i}
-            <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
-            <rect x={b.x} y={b.y} width={b.w} height={b.bh} rx="3" fill="var(--color-secondary-500)" fill-opacity="0.8"/>
-            <text x={b.x + b.w + 5} y={b.midY + 3.5} font-size="9" fill="currentColor" fill-opacity="0.5">{b.value} units</text>
-          {/each}
-        </svg>
-      {:else}
-        <p class="text-sm opacity-40 py-8 text-center">No data yet</p>
-      {/if}
+    <div class="card preset-filled-surface-100-900 overflow-hidden">
+      <div class="card-header px-5 py-3 border-b border-surface-200-800">
+        <h2 class="text-sm font-semibold">Inventory Stock by Product</h2>
+      </div>
+      <div class="p-5">
+        {#if stockBars.length > 0}
+          {@const chartH = Math.max(stockBars.length * 32 + 20, 140)}
+          <svg viewBox="0 0 460 {chartH}" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
+            {#each stockBars as b, i}
+              <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
+              <rect x={b.x} y={b.y} width={b.w} height={b.bh} rx="3" fill="var(--color-secondary-500)" fill-opacity="0.8"/>
+              <text x={b.x + b.w + 5} y={b.midY + 3.5} font-size="9" fill="currentColor" fill-opacity="0.5">{b.value} units</text>
+            {/each}
+          </svg>
+        {:else}
+          <p class="text-sm opacity-40 py-8 text-center">No data yet</p>
+        {/if}
+      </div>
     </div>
 
     <!-- Area: Monthly Revenue -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Monthly Revenue — Last 12 Months</h2>
-      {#if monthlyData.length > 1}
-        <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-          {#each [0.25, 0.5, 0.75, 1] as frac}
-            <line x1="16" x2="464"
-              y1={(140 - 16 - frac * (140 - 32)).toFixed(1)}
-              y2={(140 - 16 - frac * (140 - 32)).toFixed(1)}
-              stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
-          {/each}
-          <path d={areaPath(monthlyData.map(d => ({ value: d.revenue })))} fill="var(--color-success-500)" fill-opacity="0.18"/>
-          <polyline points={linePoints(monthlyData.map(d => ({ value: d.revenue })))} fill="none" stroke="var(--color-success-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-          {#each monthlyData as d, i}
-            <text x={(16 + (i / 11) * (480 - 32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
-          {/each}
-        </svg>
-      {:else}
-        <p class="text-sm opacity-40 py-8 text-center">No data yet</p>
-      {/if}
+    <div class="card preset-filled-surface-100-900 overflow-hidden">
+      <div class="card-header px-5 py-3 border-b border-surface-200-800">
+        <h2 class="text-sm font-semibold">Monthly Revenue — Last 12 Months</h2>
+      </div>
+      <div class="p-5">
+        {#if monthlyData.length > 1}
+          <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
+            {#each [0.25, 0.5, 0.75, 1] as frac}
+              <line x1="16" x2="464"
+                y1={(140 - 16 - frac * (140 - 32)).toFixed(1)}
+                y2={(140 - 16 - frac * (140 - 32)).toFixed(1)}
+                stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
+            {/each}
+            <path d={areaPath(monthlyData.map(d => ({ value: d.revenue })))} fill="var(--color-success-500)" fill-opacity="0.18"/>
+            <polyline points={linePoints(monthlyData.map(d => ({ value: d.revenue })))} fill="none" stroke="var(--color-success-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+            {#each monthlyData as d, i}
+              <text x={(16 + (i / 11) * (480 - 32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
+            {/each}
+          </svg>
+        {:else}
+          <p class="text-sm opacity-40 py-8 text-center">No data yet</p>
+        {/if}
+      </div>
     </div>
 
   </div>
@@ -272,7 +292,9 @@
         <tbody>
           {#each pageRows as row}
             <tr class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-              <td class="px-4 py-3 font-mono text-xs opacity-60">{row.orderNumber}</td>
+              <td class="px-4 py-3 font-mono text-xs opacity-60">
+                <a href="/commerce/orders/{row.id}" class="hover:text-primary-500 hover:underline transition-colors">{row.orderNumber}</a>
+              </td>
               <td class="px-4 py-3 text-surface-500">{new Date(row.createdAt).toLocaleDateString()}</td>
               <td class="px-4 py-3 text-surface-500">{row.guestEmail ?? '—'}</td>
               <td class="px-4 py-3 text-right">{row.itemCount}</td>
@@ -317,7 +339,7 @@
     <h2 class="text-lg font-semibold">Order Calendar</h2>
     <div class="card preset-filled-surface-100-900 overflow-hidden">
 
-      <div class="flex items-center justify-between px-5 py-3 border-b border-surface-200-800">
+      <div class="card-header flex items-center justify-between px-5 py-3 border-b border-surface-200-800">
         <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={prevMonth} aria-label="Previous month">
           <ChevronLeft class="size-4"/>
         </button>
@@ -327,7 +349,7 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-7 border-b border-surface-200-800">
+      <div class="card-header grid grid-cols-7 border-b border-surface-200-800">
         {#each ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as dow}
           <div class="px-2 py-2 text-center text-xs font-semibold text-surface-500 uppercase tracking-wide">{dow}</div>
         {/each}

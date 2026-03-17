@@ -32,7 +32,7 @@
     <div class="space-y-4">
       {#each data.products as product}
         <div class="card preset-filled-surface-100-900 overflow-hidden">
-          <div class="px-4 py-3 border-b border-surface-200-800 flex items-center justify-between">
+          <div class="card-header px-4 py-3 border-b border-surface-200-800 flex items-center justify-between">
             <div>
               <a href="/commerce/products/{product.id}" class="font-semibold hover:underline">{product.name}</a>
               <span class="ml-2 font-mono text-xs text-surface-500">{product.slug}</span>

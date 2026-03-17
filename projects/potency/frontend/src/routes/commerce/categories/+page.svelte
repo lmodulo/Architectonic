@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Plus, Pencil, Trash2, X } from 'lucide-svelte';
+  import { Search, Plus, Pencil, Trash2, X, Tag } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
 
@@ -118,7 +118,10 @@
 <svelte:head><title>Categories</title></svelte:head>
 
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold">Categories</h1>
+  <div class="flex items-center gap-2">
+    <Tag class="size-5 text-primary-500" />
+    <h1 class="text-2xl font-bold">Categories</h1>
+  </div>
 
   {#if data.error}
     <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{data.error}</aside>

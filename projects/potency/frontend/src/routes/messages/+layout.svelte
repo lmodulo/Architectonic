@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { goto, invalidateAll } from '$app/navigation';
-  import { SquarePen, Inbox, Send, Archive } from 'lucide-svelte';
+  import { SquarePen, Inbox, Send, Archive, Mail } from 'lucide-svelte';
   import MessageListItem from '$lib/components/MessageListItem.svelte';
   import type { LayoutData } from './$types';
   import type { Snippet } from 'svelte';
@@ -52,7 +52,10 @@
 
   <!-- Header -->
   <div class="shrink-0">
-    <h1 class="text-2xl font-bold">Messages</h1>
+    <div class="flex items-center gap-2">
+      <Mail class="size-5 text-primary-500" />
+      <h1 class="text-2xl font-bold">Messages</h1>
+    </div>
     <p class="text-sm opacity-60 mt-0.5">Inbox, sent mail, and archived conversations</p>
   </div>
 

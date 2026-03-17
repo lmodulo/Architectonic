@@ -15,15 +15,19 @@ session end
 update the CLAUDE.md file with necessary context.
 
 # TODO
-[] diagnose ws server client error
-[] CMS. multipart page creation. default templates + custom. drag n drop UI for generating multipart content, snap to grid
-[] CRM lead tracking and conversion
+[x] diagnose ws server client error
+[x] update public page content from PDFs
+[] Add calendar events (dashboard/Upcoming Events)
+[] Add oAuth registration for Google/Facebook
+[] write a style guide: components + context (+tools) + color theme elements
 [] Shopping cart
 [] Stripe integration
 [] Square integration
 [] Shipping matrix calculations
 [] print labels from oder detail page
-[] Markdown not applied properly in rendered messages
+[] Markdown not applied properly in rendered messages 
+[] CRM. lead tracking and conversion
+[] CMS. multipart page creation. default templates + custom. drag n drop UI for generating multipart content, snap to grid
 [] strategies for dealing with large datasets in document based databases
 [] index strategies (build test suite?)
 [] redis and memcached

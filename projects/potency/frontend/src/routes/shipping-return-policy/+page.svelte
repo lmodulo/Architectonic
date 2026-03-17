@@ -25,11 +25,64 @@
     <div class="section-inner">
       <p class="section-label">Orders &amp; Returns</p>
       <h2 class="section-heading">How It Works</h2>
+
+      <h3 class="policy-heading">Shipping</h3>
       <p class="body-text">
-        Our full shipping and return policy is being finalized. For questions about an
-        existing order or return, please contact us at
-        <a href="mailto:potencybypotamus@gmail.com">potencybypotamus@gmail.com</a>
-        or call <a href="tel:+15099875588">(509) 987-5588</a>.
+        All items will ship within 3–5 business days via USPS or UPS. Shipping time is 7 business
+        days or less. Tracking information will be emailed to the address provided on the order.
+      </p>
+      <p class="body-text">
+        Shipping cost is a flat rate of $6.25, or free on orders over $125.
+      </p>
+
+      <h3 class="policy-heading">Returns</h3>
+      <p class="body-text">
+        We accept returns. You can return unopened items in the original packaging within 30 days of
+        your purchase with receipt or proof of purchase. If 30 days or more have passed since your
+        purchase, we cannot offer you a refund or an exchange.
+      </p>
+      <p class="body-text">
+        Contact <a href="mailto:potencybypotamus@gmail.com">potencybypotamus@gmail.com</a> to get a
+        return authorization number. All returns will ship to:
+      </p>
+      <address class="address-block">
+        <span>Potency By Potamus</span>
+        <span>P.O. Box 418</span>
+        <span>Endicott, WA 99125</span>
+      </address>
+      <p class="body-text">
+        Upon receipt of the returned item, we will fully examine it and notify you via email, within
+        a reasonable period of time, whether you are entitled to a return. If you are entitled to a
+        return, we will refund your purchase price (minus a 20% restocking fee if the item was not
+        defective) and a credit will automatically be applied to your original method of payment.
+        Only regular priced items may be refunded. Sale items are non-refundable. To follow up on
+        the status of your return, please contact us at
+        <a href="mailto:potencybypotamus@gmail.com">potencybypotamus@gmail.com</a>.
+      </p>
+      <p class="body-text">
+        Refunds do not include any shipping and handling charges shown on the packaging slip or
+        invoice. Shipping charges for all returns must be prepaid and insured by you. You are
+        responsible for any loss or damage to hardware during shipment. We do not guarantee that we
+        will receive your returned item. Shipping and handling charges are not refundable. Any
+        amounts refunded will not include the cost of shipping.
+      </p>
+
+      <h3 class="policy-heading">Exchanges</h3>
+      <p class="body-text">
+        We only exchange goods if they are defective or damaged. In circumstances where you consider
+        that a product is defective, you should promptly contact us at
+        <a href="mailto:potencybypotamus@gmail.com">potencybypotamus@gmail.com</a> with details of
+        the product and the defect. You can send the item you consider defective to:
+      </p>
+      <address class="address-block">
+        <span>Potency By Potamus</span>
+        <span>P.O. Box 418</span>
+        <span>Endicott, WA 99125</span>
+      </address>
+      <p class="body-text">
+        Upon receipt of the returned product, we will fully examine it and notify you via email,
+        within a reasonable period of time, whether you are entitled to a replacement as a result of
+        the defect. If you are eligible, we will send you a replacement product.
       </p>
     </div>
   </section>
@@ -108,11 +161,28 @@
     color: var(--color-surface-50);
   }
 
+  .policy-heading {
+    font-size: 1.125rem;
+    font-family: var(--heading-font-family);
+    font-weight: var(--heading-font-weight);
+    color: var(--color-surface-950);
+    margin: calc(var(--spacing) * 10) 0 calc(var(--spacing) * 4);
+    line-height: 1.3;
+  }
+
+  .policy-heading:first-of-type {
+    margin-top: 0;
+  }
+
+  :global(.dark) .policy-heading {
+    color: var(--color-surface-50);
+  }
+
   .body-text {
     font-size: 1rem;
     line-height: 1.8;
     color: var(--color-surface-500);
-    margin: 0;
+    margin: 0 0 calc(var(--spacing) * 5);
   }
 
   :global(.dark) .body-text {
@@ -126,5 +196,22 @@
 
   .body-text a:hover {
     text-decoration: underline;
+  }
+
+  .address-block {
+    display: flex;
+    flex-direction: column;
+    font-style: normal;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--color-surface-500);
+    margin: 0 0 calc(var(--spacing) * 5);
+    padding-left: calc(var(--spacing) * 5);
+    border-left: 2px solid var(--color-surface-200);
+  }
+
+  :global(.dark) .address-block {
+    color: var(--color-surface-300);
+    border-left-color: var(--color-surface-700);
   }
 </style>

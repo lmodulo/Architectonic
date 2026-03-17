@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-svelte';
   import { Pagination } from '@skeletonlabs/skeleton-svelte';
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
@@ -50,7 +50,10 @@
 <svelte:head><title>Orders</title></svelte:head>
 
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold">Orders</h1>
+  <div class="flex items-center gap-2">
+    <ShoppingCart class="size-5 text-primary-500" />
+    <h1 class="text-2xl font-bold">Orders</h1>
+  </div>
 
   {#if data.error}
     <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{data.error}</aside>

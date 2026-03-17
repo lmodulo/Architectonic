@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { CircleUser } from 'lucide-svelte';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -14,7 +15,10 @@
 </svelte:head>
 
 <div class="max-w-lg">
-  <h1 class="text-2xl font-bold mb-6">Profile</h1>
+  <div class="flex items-center gap-2 mb-6">
+    <CircleUser class="size-5 text-primary-500" />
+    <h1 class="text-2xl font-bold">Profile</h1>
+  </div>
 
   <div class="card preset-filled-surface-100-900 p-6 space-y-5">
     <h2 class="text-lg font-semibold">Account Information</h2>

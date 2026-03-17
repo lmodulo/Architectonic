@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Pencil, Trash2, X, UserPlus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { Search, Pencil, Trash2, X, UserPlus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, Users } from 'lucide-svelte';
   import { Pagination } from '@skeletonlabs/skeleton-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
@@ -209,7 +209,10 @@
 </svelte:head>
 
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold">User Management</h1>
+  <div class="flex items-center gap-2">
+    <Users class="size-5 text-primary-500" />
+    <h1 class="text-2xl font-bold">User Management</h1>
+  </div>
 
   {#if data.error}
     <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{data.error}</aside>

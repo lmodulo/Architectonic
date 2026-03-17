@@ -12,6 +12,7 @@
   import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
   import { connect, disconnect } from '$lib/stores/notifications.svelte';
   import { brand } from '$lib/config/logo';
+  import AppFooter from '$lib/components/AppFooter.svelte';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
 
@@ -294,10 +295,11 @@
       </aside>
 
       <!-- Main content -->
-      <main class="flex-1 overflow-auto">
+      <main class="app-main flex-1 overflow-auto">
         <div class="container mx-auto p-6 max-w-5xl">
           {@render children()}
         </div>
+        <AppFooter />
       </main>
 
     </div>

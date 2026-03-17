@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Plus, Archive, X, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { Search, Plus, Archive, X, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, Package } from 'lucide-svelte';
   import { Pagination } from '@skeletonlabs/skeleton-svelte';
   import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
@@ -100,7 +100,10 @@
 <svelte:head><title>Products</title></svelte:head>
 
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold">Products</h1>
+  <div class="flex items-center gap-2">
+    <Package class="size-5 text-primary-500" />
+    <h1 class="text-2xl font-bold">Products</h1>
+  </div>
 
   <div class="flex flex-wrap items-center gap-3">
     <div class="input-group grid-cols-[auto_1fr] flex-1 min-w-48">
