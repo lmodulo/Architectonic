@@ -1,8 +1,8 @@
 <script lang="ts">
   import '../app.css';
   import { Navigation, Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
-  import { Menu as MenuIcon, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon, Mail as MailIcon, Settings } from 'lucide-svelte';
-  import { navItems } from '$lib/config/nav';
+  import { Menu as MenuIcon, CircleUser, LogOut, X, User, Users, ShieldCheck, Sun, Moon, Mail as MailIcon, Settings, ChevronRight, ChevronDown } from 'lucide-svelte';
+  import { navItems, isNavGroup } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
   import { onMount, setContext } from 'svelte';
@@ -21,6 +21,21 @@
   let logoutForm: HTMLFormElement = $state()!;
   let isDark = $state(false);
   let unreadCount = $state(data.unreadCount ?? 0);
+  let openGroups = $state<Record<string, boolean>>({});
+
+  // Auto-open any group that contains the current route
+  $effect(() => {
+    const pathname = page.url.pathname;
+    for (const entry of navItems) {
+      if (isNavGroup(entry) && entry.children.some(c => pathname.startsWith(c.href))) {
+        openGroups[entry.label] = true;
+      }
+    }
+  });
+
+  function toggleGroup(label: string) {
+    openGroups[label] = !openGroups[label];
+  }
 
   onMount(() => {
     isDark = document.documentElement.classList.contains('dark');
@@ -214,17 +229,55 @@
         <Navigation layout="sidebar" class="h-full p-3">
           <Navigation.Menu>
             <Navigation.Group>
-              {#each navItems as item}
-                {#if !item.permission || hasPermission(data.user, item.permission.resource, item.permission.action)}
-                  <Navigation.TriggerAnchor
-                    href={item.href}
-                    class="flex items-center gap-3 p-3 rounded-base w-full {page.url.pathname === item.href ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
-                    onclick={() => (sidebarOpen = false)}
-                  >
-                    {@const Icon = item.icon}
-                    <Icon class="size-4 shrink-0" />
-                    <Navigation.TriggerText>{item.label}</Navigation.TriggerText>
-                  </Navigation.TriggerAnchor>
+              {#each navItems as entry}
+                {#if isNavGroup(entry)}
+                  {@const anyChildActive = entry.children.some(c => page.url.pathname.startsWith(c.href))}
+                  {@const isOpen = openGroups[entry.label] ?? false}
+                  {@const GroupIcon = entry.icon}
+                  <div>
+                    <button
+                      type="button"
+                      class="flex items-center gap-3 p-3 rounded-base w-full text-sm {anyChildActive ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+                      onclick={() => toggleGroup(entry.label)}
+                    >
+                      <GroupIcon class="size-4 shrink-0" />
+                      <span class="flex-1 text-left">{entry.label}</span>
+                      {#if isOpen}
+                        <ChevronDown class="size-3 opacity-40" />
+                      {:else}
+                        <ChevronRight class="size-3 opacity-40" />
+                      {/if}
+                    </button>
+                    <div class="nav-subnav" class:nav-subnav-open={isOpen}>
+                      <div class="nav-subnav-inner">
+                        {#each entry.children as child}
+                          {#if !child.permission || hasPermission(data.user, child.permission.resource, child.permission.action)}
+                            {@const ChildIcon = child.icon}
+                            <a
+                              href={child.href}
+                              class="flex items-center gap-3 pl-9 pr-3 py-2 rounded-base w-full text-sm {page.url.pathname.startsWith(child.href) ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+                              onclick={() => (sidebarOpen = false)}
+                            >
+                              <ChildIcon class="size-3.5 shrink-0 opacity-70" />
+                              {child.label}
+                            </a>
+                          {/if}
+                        {/each}
+                      </div>
+                    </div>
+                  </div>
+                {:else}
+                  {#if !entry.permission || hasPermission(data.user, entry.permission.resource, entry.permission.action)}
+                    <Navigation.TriggerAnchor
+                      href={entry.href}
+                      class="flex items-center gap-3 p-3 rounded-base w-full {page.url.pathname === entry.href ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+                      onclick={() => (sidebarOpen = false)}
+                    >
+                      {@const Icon = entry.icon}
+                      <Icon class="size-4 shrink-0" />
+                      <Navigation.TriggerText>{entry.label}</Navigation.TriggerText>
+                    </Navigation.TriggerAnchor>
+                  {/if}
                 {/if}
               {/each}
             </Navigation.Group>
@@ -250,3 +303,23 @@
   <!-- Public / unauthenticated pages (login, register, etc.) -->
   {@render children()}
 {/if}
+
+<style>
+  .nav-subnav {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 200ms ease;
+  }
+
+  .nav-subnav.nav-subnav-open {
+    grid-template-rows: 1fr;
+  }
+
+  .nav-subnav-inner {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding-bottom: 0.25rem;
+  }
+</style>
