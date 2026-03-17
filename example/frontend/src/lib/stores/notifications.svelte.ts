@@ -38,7 +38,7 @@ export function disconnect() {
 
 function openSocket() {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const url   = `${proto}//${window.location.hostname}:4000/notifications/ws`;
+  const url   = `${proto}//${window.location.host}/notifications/ws`;
 
   ws = new WebSocket(url);
 

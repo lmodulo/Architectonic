@@ -8,6 +8,14 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-17 (websocket fixes)
+
+### Fixed
+- **Double `@fastify/websocket` registration** — `api/src/routes/notifications/index.ts` was re-registering the plugin that `server.ts` already registers globally. Removed the redundant `import` and `app.register(websocket)` call; the global registration makes `{ websocket: true }` available in all scopes.
+- **WS URL hardcoded to port 4000** — `notifications.svelte.ts` connected directly to `ws://localhost:4000`, bypassing SvelteKit entirely. The browser now connects to `ws://<host>/notifications/ws` (same origin as the frontend). A Vite dev-server proxy (`/notifications/ws` → `ws://api:4000`) forwards the upgrade request through the internal Docker network, keeping session-cookie handling consistent with all other API traffic. Production deployments should add a matching `proxy_pass` in nginx.
+
+---
+
 ## 2026-03-16 (notifications)
 
 ### Added

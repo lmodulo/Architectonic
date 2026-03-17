@@ -27,6 +27,13 @@ export default defineConfig({
 		themeHotReload()
 	],
 	server: {
+		proxy: {
+			'/notifications/ws': {
+				target:      'ws://api:4000',
+				ws:          true,
+				changeOrigin: true,
+			},
+		},
 		watch: {
 			// Windows bind mounts don't emit inotify events into the container.
 			// Polling ensures file changes are detected reliably.
