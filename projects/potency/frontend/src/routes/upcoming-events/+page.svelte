@@ -102,7 +102,7 @@
   }
 
   .page-hero {
-    background: oklch(55% 0.14 55);
+    background: var(--color-warning-600);
     padding: calc(var(--spacing) * 36) calc(var(--spacing) * 8) calc(var(--spacing) * 20);
     text-align: center;
   }
@@ -142,7 +142,7 @@
     font-size: 0.6875rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--color-primary-500);
+    color: var(--color-warning-600);
     margin: 0 0 calc(var(--spacing) * 3);
   }
 
@@ -171,7 +171,7 @@
   }
 
   .body-text a {
-    color: var(--color-primary-500);
+    color: var(--color-warning-600);
     text-decoration: none;
   }
 
@@ -191,8 +191,8 @@
     gap: calc(var(--spacing) * 5);
     padding: calc(var(--spacing) * 6);
     border-radius: calc(var(--spacing) * 3);
-    background: color-mix(in oklch, oklch(55% 0.14 55) 8%, transparent);
-    border: 1px solid color-mix(in oklch, oklch(55% 0.14 55) 20%, transparent);
+    background: color-mix(in oklch, var(--color-warning-600) 8%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-warning-600) 20%, transparent);
   }
 
   .event-date-badge {
@@ -204,7 +204,7 @@
     width: 3.5rem;
     height: 3.5rem;
     border-radius: calc(var(--spacing) * 2);
-    background: oklch(55% 0.14 55);
+    background: var(--color-warning-600);
     color: #fff;
   }
 
@@ -242,7 +242,7 @@
 
   .event-date-range {
     font-size: 0.8125rem;
-    color: oklch(55% 0.14 55);
+    color: var(--color-warning-600);
     margin: 0 0 calc(var(--spacing) * 3);
   }
 

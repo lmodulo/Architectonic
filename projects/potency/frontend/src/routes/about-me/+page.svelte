@@ -70,7 +70,7 @@
 
   /* ── HERO ──────────────────────────────────────────────── */
   .page-hero {
-    background: linear-gradient(to right, #f43f5e, #f97316, #eab308, #22c55e, #3b82f6, #8b5cf6);
+    background: var(--color-tertiary-500);
     padding: calc(var(--spacing) * 20) calc(var(--spacing) * 8);
   }
 

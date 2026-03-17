@@ -272,11 +272,11 @@
     flex-direction: column;
     justify-content: center;
     padding: calc(var(--spacing) * 20) calc(var(--spacing) * 12);
-    background: var(--body-background-color);
+    background: color-mix(in oklch, var(--color-primary-500) 12%, var(--body-background-color));
   }
 
   :global(.dark) .hero-left {
-    background: var(--body-background-color-dark);
+    background: color-mix(in oklch, var(--color-primary-500) 10%, var(--body-background-color-dark));
   }
 
   @media (max-width: 767px) {
@@ -351,8 +351,16 @@
     inset: 0;
     background: linear-gradient(
       135deg,
-      oklch(32% 0.12 145 / 0.55) 0%,
-      oklch(22% 0.08 145 / 0.35) 100%
+      color-mix(in oklch, var(--color-primary-500) 55%, transparent) 0%,
+      color-mix(in oklch, var(--color-primary-900) 35%, transparent) 100%
+    );
+  }
+
+  :global(.dark) .hero-right-overlay {
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--color-primary-700) 55%, transparent) 0%,
+      color-mix(in oklch, var(--color-primary-950) 45%, transparent) 100%
     );
   }
 
@@ -583,11 +591,13 @@
     flex-direction: column;
     gap: calc(var(--spacing) * 2);
     padding: calc(var(--spacing) * 6);
-    border: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 12%, transparent);
+    background: color-mix(in oklch, var(--color-secondary-500) 8%, transparent);
+    border: var(--default-border-width) solid color-mix(in oklch, var(--color-secondary-500) 20%, transparent);
   }
 
   :global(.dark) .value-item {
-    border-color: color-mix(in oklch, var(--color-surface-50) 12%, transparent);
+    background: color-mix(in oklch, var(--color-secondary-500) 7%, transparent);
+    border-color: color-mix(in oklch, var(--color-secondary-500) 18%, transparent);
   }
 
   .value-icon {
@@ -621,11 +631,13 @@
     flex-direction: column;
     gap: calc(var(--spacing) * 4);
     padding: calc(var(--spacing) * 8);
-    border: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 12%, transparent);
+    background: color-mix(in oklch, var(--color-secondary-500) 8%, transparent);
+    border: var(--default-border-width) solid color-mix(in oklch, var(--color-secondary-500) 20%, transparent);
   }
 
   :global(.dark) .location-card {
-    border-color: color-mix(in oklch, var(--color-surface-50) 12%, transparent);
+    background: color-mix(in oklch, var(--color-secondary-500) 7%, transparent);
+    border-color: color-mix(in oklch, var(--color-secondary-500) 18%, transparent);
   }
 
   .location-icon {

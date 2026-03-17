@@ -12,8 +12,8 @@
 
 <div class="shop-landing">
   <header class="landing-header">
-    <h1 class="landing-title">Shop</h1>
     <p class="landing-sub">Explore our collections</p>
+    <h1 class="landing-title">Shop</h1>
   </header>
 
   {#if categories.length > 0}
@@ -47,7 +47,7 @@
   .shop-landing {
     max-width: 80rem;
     margin: 0 auto;
-    padding: 4rem 2rem 6rem;
+    padding: 0 2rem 6rem;
   }
 
   .landing-header {

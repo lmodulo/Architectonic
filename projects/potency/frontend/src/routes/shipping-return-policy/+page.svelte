@@ -104,7 +104,7 @@
   }
 
   .page-hero {
-    background: oklch(44% 0.09 220);
+    background: var(--color-secondary-600);
     padding: calc(var(--spacing) * 36) calc(var(--spacing) * 8) calc(var(--spacing) * 20);
     text-align: center;
   }
