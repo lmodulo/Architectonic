@@ -58,8 +58,9 @@ export default async function seedPlugin(app: FastifyInstance) {
     // Roles
     const roles = db.collection('roles');
     for (const [name, label, permissions] of [
-      ['admin',  'Administrator', perms.admin],
-      ['viewer', 'Viewer',        perms.viewer]
+      ['admin',    'Administrator', perms.admin],
+      ['viewer',   'Viewer',       perms.viewer],
+      ['customer', 'Customer',     perms.customer]
     ] as const) {
       await roles.updateOne(
         { name },

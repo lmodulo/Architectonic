@@ -8,6 +8,22 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-16 (customer role)
+
+### Added
+- **`customer` role** — new role seeded on boot alongside `admin` and `viewer`. Permissions: `commerce_products` read, `commerce_orders` create + read, `commerce_categories` read. No access to admin resources (users, roles, settings, audit, messages, dashboard).
+- **Public registration** (`/register`) — customers self-register via a new `/register` page and server action. Calls `POST /auth/register`; sets session cookie and redirects to `/`. Login page now shows a "Sign up" link.
+- **Customer route guard** (`hooks.server.ts`) — authenticated customers are restricted to `/`, `/profile`, and `/logout`. Any other route redirects to `/`. Staff (admin/viewer) are unaffected.
+- **Role-based login redirect** — login action reads `role` from the API response and redirects customers to `/` and staff to `/dashboard`.
+- **`UserProfile` interface** (`api/src/lib/users.ts`) — typed `profile` subdocument shape (`shippingAddresses`, `billingAddress`, `stripeCustomerId`, `marketingOptIn`) for future customer-specific data.
+
+### Changed
+- `POST /auth/register` assigns `customer` role to all non-first-user registrations (previously `viewer`). First user still becomes `admin`.
+- `POST /auth/login` response now includes `role` field.
+- `GET /users` excludes documents with `role: 'customer'` — staff user list stays clean. A dedicated Customer section will be added separately.
+
+---
+
 ## 2026-03-15 (module system)
 
 ### Added

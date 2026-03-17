@@ -7,7 +7,10 @@ import type { Action } from '$lib/permissions';
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
 // Pages that unauthenticated users may visit (and authenticated users are redirected away from)
-const AUTH_REDIRECT_PATHS = new Set(['/login']);
+const AUTH_REDIRECT_PATHS = new Set(['/login', '/register']);
+
+// Routes customers (role: 'customer') may visit when authenticated
+const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout']);
 
 // Routes that require a specific permission beyond authentication
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {
@@ -37,15 +40,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   // Redirect authenticated users away from login/register
   if (event.locals.user && AUTH_REDIRECT_PATHS.has(path)) {
-    redirect(303, '/dashboard');
+    redirect(303, event.locals.user.role === 'customer' ? '/' : '/dashboard');
   }
 
   // Redirect unauthenticated users to login
-  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/forgot-password' && path !== '/register' && !path.startsWith('/reset-password') && !path.startsWith('/api/')) {
+  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/forgot-password' && !path.startsWith('/reset-password') && !path.startsWith('/api/')) {
     redirect(303, '/login');
   }
 
-  // Permission-based route guards
+  // Customers may only access their allowed paths
+  if (event.locals.user?.role === 'customer' && !CUSTOMER_ALLOWED_PATHS.has(path) && !path.startsWith('/api/')) {
+    redirect(303, '/');
+  }
+
+  // Permission-based route guards (staff only — customers already redirected above)
   if (event.locals.user) {
     const permEntry = Object.entries(ROUTE_PERMISSIONS).find(([prefix]) =>
       path.startsWith(prefix)

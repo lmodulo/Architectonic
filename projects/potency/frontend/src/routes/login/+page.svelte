@@ -69,6 +69,10 @@
         <p class="text-center text-sm opacity-60">
           <a href="/forgot-password" class="anchor">Forgot password?</a>
         </p>
+
+        <p class="text-center text-sm opacity-60">
+          Don't have an account? <a href="/register" class="anchor">Sign up</a>
+        </p>
       </form>
     </section>
 

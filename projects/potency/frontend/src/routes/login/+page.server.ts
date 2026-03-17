@@ -48,6 +48,7 @@ export const actions: Actions = {
       }
     }
 
-    redirect(303, '/dashboard');
+    const body = await apiRes.json().catch(() => ({})) as { role?: string };
+    redirect(303, body.role === 'customer' ? '/' : '/dashboard');
   }
 };

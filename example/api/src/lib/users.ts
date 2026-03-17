@@ -1,6 +1,13 @@
 import type { Collection } from 'mongodb';
 import { ObjectId } from '@fastify/mongodb';
 
+export interface UserProfile {
+  shippingAddresses: object[];
+  billingAddress:    object;
+  stripeCustomerId?: string;
+  marketingOptIn:    boolean;
+}
+
 /**
  * Returns a conflict message if another user already has the given email or username,
  * or null if no conflict. Pass `excludeId` to skip the check for the user being updated.

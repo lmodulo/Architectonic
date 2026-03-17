@@ -55,7 +55,7 @@ export default async function usersRoutes(app: FastifyInstance) {
     schema: { summary: 'List all users' }
   }, async (_req, _reply) => {
     const users = await app.mongo.db!.collection(COLLECTION)
-      .find({}, { projection: { passwordHash: 0 } })
+      .find({ role: { $ne: 'customer' } }, { projection: { passwordHash: 0 } })
       .toArray();
     return users.map(u => ({
       id:        u._id.toString(),

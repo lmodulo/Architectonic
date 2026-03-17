@@ -43,7 +43,7 @@ export default async function authRoutes(app: FastifyInstance) {
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const now       = new Date();
     const userCount = await col.countDocuments({});
-    const role      = userCount === 0 ? 'admin' : 'viewer';
+    const role      = userCount === 0 ? 'admin' : 'customer';
     const result    = await col.insertOne({
       username,
       email: email.toLowerCase(),
@@ -96,7 +96,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
     logAudit(app.mongo.db!, { userId: req.session.userId, username: req.session.username, action: 'auth.login', ip: req.ip });
 
-    return { id: user._id.toString(), username: user.username, email: user.email };
+    return { id: user._id.toString(), username: user.username, email: user.email, role: user.role };
   });
 
   // POST /auth/logout
