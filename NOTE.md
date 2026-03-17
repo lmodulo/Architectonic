@@ -7,10 +7,23 @@ rebuild restart API
 docker compose -f docker-compose.yml -f docker-compose.dev.yml build api
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 
+cd "c:\Application Framework\projects\potency"
+.\start.ps1
+
 # PROMPT
 session end
 update the CLAUDE.md file with necessary context.
 
+# TODO
+[] CMS. multipart page creation. default templates + custom. drag n drop UI for generating multipart content, snap to grid
+[] CRM lead tracking and conversion
+[] Shopping cart
+[] Stripe integration
+[] Square integration
+[] Shipping matrix calculations
+[] print labels from oder detail page
+
+# NEW PROJECT
 Create module `commerce` in `modules/commerce/` with these files:
 
 **module.json** — nav label "Commerce", href "/commerce", icon `store` from lucide-svelte, permission "commerce.read". Permissions: resource "commerce", actions create/read/update/delete. No extra dependencies or env vars.

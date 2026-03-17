@@ -44,7 +44,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   // Redirect unauthenticated users to login
-  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && !path.startsWith('/api/')) {
+  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && !path.startsWith('/api/') && !path.startsWith('/uploads/')) {
     redirect(303, '/login');
   }
 

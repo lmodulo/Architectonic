@@ -20,10 +20,17 @@
 </script>
 
 <nav class="marketing-nav">
-  <a href="/" class="nav-brand">
-    <Logo name={branding.name} logo={branding.logo} />
-  </a>
-  <div class="flex items-center gap-3">
+  <div class="nav-brand-zone">
+    <a href="/" class="nav-brand">
+      <Logo name={branding.name} logo={branding.logo} />
+    </a>
+  </div>
+
+  <div class="nav-center-zone">
+    <a href="/shop" class="nav-link">Shop</a>
+  </div>
+
+  <div class="nav-trail-zone">
     <button
       type="button"
       class="theme-toggle"
@@ -41,59 +48,99 @@
 </nav>
 
 <style>
-  /* ── Light (default) ─────────────────────────────────────────── */
   .marketing-nav {
     position: fixed;
     inset-inline: 0;
     top: 0;
     z-index: 50;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 64px;
+    padding: 0 calc(var(--spacing) * 8);
+    background: color-mix(in oklch, var(--body-background-color) 92%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-300) 25%, transparent);
+    font-family: var(--base-font-family);
+    font-weight: var(--base-font-weight);
+  }
+
+  .nav-brand-zone {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1.5rem;
-    background: color-mix(in oklch, var(--color-surface-50) 92%, transparent);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid color-mix(in oklch, var(--color-surface-300) 60%, transparent);
   }
 
   .nav-brand {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
     text-decoration: none;
+  }
+
+  .nav-center-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-trail-zone {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: calc(var(--spacing) * 3);
+  }
+
+  .nav-link {
+    font-size: 0.8125rem;
+    font-family: var(--base-font-family);
+    font-weight: var(--base-font-weight);
+    text-decoration: none;
+    color: var(--color-surface-300);
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    transition: color 150ms;
+  }
+
+  .nav-link:hover {
+    color: var(--color-surface-950);
   }
 
   .theme-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    width: calc(var(--spacing) * 8);
+    height: calc(var(--spacing) * 8);
     border-radius: var(--radius-base);
     border: none;
     background: transparent;
-    color: var(--color-surface-600);
+    color: var(--color-surface-300);
     cursor: pointer;
     transition: background 150ms, color 150ms;
   }
 
   .theme-toggle:hover {
-    background: color-mix(in oklch, var(--color-surface-300) 40%, transparent);
-    color: var(--color-surface-900);
+    background: color-mix(in oklch, var(--color-surface-300) 15%, transparent);
+    color: var(--color-surface-950);
   }
 
-  /* ── Dark overrides ──────────────────────────────────────────── */
   :global(.dark) .marketing-nav {
-    background: color-mix(in oklch, var(--color-surface-950) 85%, transparent);
-    border-bottom-color: color-mix(in oklch, var(--color-primary-500) 20%, transparent);
+    background: color-mix(in oklch, var(--body-background-color-dark) 88%, transparent);
+    border-bottom-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
+  }
+
+  :global(.dark) .nav-link {
+    color: var(--color-surface-100);
+  }
+
+  :global(.dark) .nav-link:hover {
+    color: var(--color-surface-50);
   }
 
   :global(.dark) .theme-toggle {
-    color: var(--color-surface-400);
+    color: var(--color-surface-100);
   }
 
   :global(.dark) .theme-toggle:hover {
     background: color-mix(in oklch, var(--color-surface-700) 50%, transparent);
-    color: var(--color-surface-100);
+    color: var(--color-surface-50);
   }
 </style>

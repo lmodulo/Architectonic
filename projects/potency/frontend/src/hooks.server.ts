@@ -44,12 +44,12 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   // Redirect unauthenticated users to login
-  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/forgot-password' && !path.startsWith('/reset-password') && !path.startsWith('/api/')) {
+  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/forgot-password' && !path.startsWith('/reset-password') && !path.startsWith('/api/') && !path.startsWith('/shop') && !path.startsWith('/uploads/')) {
     redirect(303, '/login');
   }
 
   // Customers may only access their allowed paths
-  if (event.locals.user?.role === 'customer' && !CUSTOMER_ALLOWED_PATHS.has(path) && !path.startsWith('/api/')) {
+  if (event.locals.user?.role === 'customer' && !CUSTOMER_ALLOWED_PATHS.has(path) && !path.startsWith('/api/') && !path.startsWith('/shop')) {
     redirect(303, '/');
   }
 

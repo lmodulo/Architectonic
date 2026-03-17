@@ -44,7 +44,7 @@ await app.register(sensible); // Adds httpErrors, to, assert helpers
 await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } }); // 10 MB cap
 
 await app.register(fastifyStatic, {
-  root: join(__dirname, '../../uploads'),
+  root: join(__dirname, '../uploads'),
   prefix: '/uploads/'
 });
 

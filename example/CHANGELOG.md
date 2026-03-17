@@ -8,6 +8,37 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-03-16 (commerce module — storefront & dashboard)
+
+### Added
+- **Public storefront** (`modules/commerce/`) — Sandqvist-inspired shop accessible without authentication.
+  - `StorefrontNav` — CSS grid `1fr auto 1fr` nav with hover mega-menu (Categories / Shop by Type / Collections columns), frosted-glass backdrop, theme toggle, Sign In CTA. Brand name/logo sourced from `getContext('appBranding')` so DB-configured settings are respected.
+  - `ShopBreadcrumb` — persistent strip below the nav tracking Shop › Category › Product using `$app/stores` page params.
+  - `/shop` landing — category grid with first-product image per category (aggregated server-side), falls back to placeholder.
+  - `/shop/[category]` — product grid with `ProductCard` (sale badges, image hover zoom, transparent background).
+  - `/shop/[category]/[slug]` — split layout: sticky image gallery with thumbnail strip (left), product details with variant selectors, disabled Add to Cart, tags, stock status (right).
+  - `price.ts` utility — `formatPrice`, `applyDiscount`, `activeDiscount`, `discountLabel`.
+  - `/storefront/meta` API — returns categories (with first product image), variant types, and tags in one request.
+  - `/storefront/products` API — active products, filterable by category slug (resolved to `_id`), tag, and full-text search.
+  - `/storefront/products/:slug` API — single product by slug, 404 if not active.
+  - Frontend proxy `routes/api/storefront/[...path]` — no session cookie forwarded (public).
+- **Analytics API** (`routes/analytics/index.ts`) — single `GET /analytics` endpoint (`requireAuth`) returning all dashboard data in one request: daily revenue (30d, zero-filled), monthly revenue (12mo, zero-filled), revenue by product (`$unwind items`), stock by product, recent 50 orders, calendar data (90d), and KPIs (total revenue, total orders, avg order value, top product).
+- **Commerce dashboard** — replaces dummy RNG data with real MongoDB aggregations.
+  - 4 charts: Daily Revenue (line+area), Revenue by Product (hbar), Inventory Stock by Product (hbar), Monthly Revenue (area). All pure SVG, no chart libraries.
+  - KPI cards: Total Revenue, Total Orders, Avg Order Value, Top Product.
+  - Orders table: Order #, Date, Customer email, Items, Total, Status — paginated with Skeleton `Pagination`.
+  - Order Calendar: heat-map intensity by revenue, order count per day.
+- **Seed data** (`api/src/plugins/seed.ts`) — 3 categories, 7 products (with variants, discounts, stock), 60 orders seeded using a deterministic LCG RNG (seed `8675309`). Orders reference real product IDs; statuses distributed across all 6 states. Idempotent: orders only seeded if collection is empty.
+- **`start.ps1`** for `projects/potency/` — builds and starts all services in one command.
+
+### Fixed
+- **Static file upload path** (`api/src/server.ts`) — `fastifyStatic` root was `join(__dirname, '../../uploads')` which resolved to `/uploads` (filesystem root) in the compiled Docker container. Corrected to `join(__dirname, '../uploads')` → `/app/uploads`, matching the Docker named volume mount.
+- **Upload images accessible without auth** (`frontend/src/hooks.server.ts`) — unauthenticated requests to `/uploads/*` were redirected to `/login`. Added `/uploads/` to the public path exceptions alongside `/api/`.
+- **StorefrontNav brand name** — was reading `brand.text` from static config; now uses `getContext('appBranding')` so the DB-configured app name/logo is shown instead of the hardcoded fallback.
+- **Category/product grid background** — `product-grid` and `ProductCard` backgrounds changed from surface color variables to `transparent`, preventing a coloured fill when image slots are empty.
+
+---
+
 ## 2026-03-15 (module system)
 
 ### Added
