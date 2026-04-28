@@ -38,6 +38,6 @@ export const actions: Actions = {
       });
     }
 
-    redirect(303, '/login?reset=1');
+    redirect(303, '/signin?reset=1');
   }
 };

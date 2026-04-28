@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -12,7 +13,7 @@ const perms = JSON.parse(
 const DEFAULT_SETTINGS = [
   {
     key: 'app.name',
-    value: 'Architectonic',
+    value: 'Potency By Potamus',
     type: 'string',
     label: 'Application Name',
     description: 'Display name shown in the browser title and header'
@@ -85,16 +86,17 @@ export default async function seedPlugin(app: FastifyInstance) {
       );
     }
 
-    // Commerce — categories
+    // ── Commerce — categories ──────────────────────────────────────────
     const categories = db.collection('categories');
     const CATEGORIES = [
-      { slug: 'bags',        name: 'Bags',        description: 'Backpacks, totes, and travel bags.', order: 0 },
-      { slug: 'apparel',     name: 'Apparel',     description: 'Jackets, knitwear, and everyday basics.', order: 1 },
-      { slug: 'accessories', name: 'Accessories', description: 'Hats, wallets, and small goods.', order: 2 }
+      { slug: 'bath-and-body', name: 'Bath & Body',   description: 'CBD bath bombs, epsom salt soaks, and bathing products.',  order: 0 },
+      { slug: 'tinctures',     name: 'Tinctures',     description: 'Full spectrum CBD glycerin tinctures for topical use.',    order: 1 },
+      { slug: 'topicals',      name: 'Topicals',      description: 'CBD salves, lotions, and roll-on relief products.',        order: 2 },
+      { slug: 'merchandise',   name: 'Merchandise',   description: 'Stickers, apparel, and branded goods.',                   order: 3 }
     ];
     const catIds: Record<string, string> = {};
     for (const c of CATEGORIES) {
-      const result = await categories.updateOne(
+      await categories.updateOne(
         { slug: c.slug },
         { $setOnInsert: { ...c, parentId: null, createdAt: now, updatedAt: now } },
         { upsert: true }
@@ -103,141 +105,134 @@ export default async function seedPlugin(app: FastifyInstance) {
       catIds[c.slug] = doc!._id.toString();
     }
 
-    // Commerce — products (idempotent by slug)
+    // ── Commerce — products ────────────────────────────────────────────
+    //
+    // Source: Potency By Potamus product catalog CSV.
+    //
+    // Naming convention: the CSV encodes variants directly in product names.
+    //   "CBD Bath Bomb - Lavender"          → product "CBD Bath Bomb", variant Scent: Lavender
+    //   "2 Oz Hemp CBD Warming Salve Tin"   → product "CBD Salve Tin", variant Type: Warming, Size: 2 Oz
+    //   "Lavender 8 Oz Hemp CBD Epsom ..."  → product "CBD Epsom Salt Soak", variant Scent: Lavender, Size: 8 Oz
+    //
+    // Prices in cents. Where variants have different prices (size-dependent products),
+    // basePrice is set to the lowest variant and others use priceOverride.
+    //
     const products = db.collection('products');
     const PRODUCTS = [
+      // ── Bath & Body ──────────────────────────────────────────────────
       {
-        slug: 'rolltop-24l',
-        name: 'Rolltop 24L',
-        description: 'A versatile rolltop backpack built for daily use and weekend escapes. Water-resistant waxed canvas with padded laptop sleeve.',
-        basePrice: 18000,
-        category: catIds['bags'],
-        tags: ['waterproof', 'bestseller'],
+        slug: 'cbd-bath-bomb',
+        name: 'CBD Bath Bomb',
+        description: '30mg hemp CBD bath bombs infused with a full spectrum extraction of high CBD industrial hemp (less than 0.3% THC). Mix and match 4 for $25. Ingredients: baking soda, citric acid, epsom salt, corn starch, hemp-infused vegetable glycerin, hemp-infused olive and coconut oil blend, essential oils, and coloring.',
+        basePrice: 700,
+        category: catIds['bath-and-body'],
+        tags: ['cbd', 'bath', 'full-spectrum'],
         variantOptions: [
-          { name: 'Color', values: ['Black', 'Forest Green'] }
+          { name: 'Scent', values: ['Lemon / Eucalyptus', 'Spearmint', 'Lavender', 'Sweet Orange'] }
         ],
         variants: [
-          { sku: 'ROLL-24-BLK', combination: { Color: 'Black' },        stock: 12, lowStockThreshold: 3 },
-          { sku: 'ROLL-24-GRN', combination: { Color: 'Forest Green' }, stock: 6,  lowStockThreshold: 3 }
-        ],
-        discounts: []
-      },
-      {
-        slug: 'canvas-tote',
-        name: 'Canvas Tote',
-        description: 'Minimalist canvas tote with a single interior pocket and reinforced handles. Made from organic cotton canvas.',
-        basePrice: 9500,
-        category: catIds['bags'],
-        tags: ['everyday', 'organic'],
-        variantOptions: [
-          { name: 'Color', values: ['Black', 'Sand', 'Terracotta'] }
-        ],
-        variants: [
-          { sku: 'TOTE-BLK', combination: { Color: 'Black' },     stock: 20, lowStockThreshold: 5 },
-          { sku: 'TOTE-SND', combination: { Color: 'Sand' },      stock: 14, lowStockThreshold: 5 },
-          { sku: 'TOTE-TER', combination: { Color: 'Terracotta' }, stock: 8, lowStockThreshold: 5 }
-        ],
-        discounts: []
-      },
-      {
-        slug: 'weekend-bag',
-        name: 'Weekend Bag',
-        description: 'A structured duffel designed for two-night trips. Full-length zip, end pockets, and removable shoulder strap.',
-        basePrice: 22000,
-        category: catIds['bags'],
-        tags: ['travel'],
-        variantOptions: [
-          { name: 'Color', values: ['Black', 'Cognac'] }
-        ],
-        variants: [
-          { sku: 'WKND-BLK', combination: { Color: 'Black' },  stock: 7, lowStockThreshold: 2 },
-          { sku: 'WKND-COG', combination: { Color: 'Cognac' }, stock: 4, lowStockThreshold: 2 }
+          { sku: 'BATH-LEM', combination: { Scent: 'Lemon / Eucalyptus' }, priceOverride: null, stock: 8,  lowStockThreshold: 3 },
+          { sku: 'BATH-SPR', combination: { Scent: 'Spearmint' },          priceOverride: null, stock: 6,  lowStockThreshold: 3 },
+          { sku: 'BATH-LAV', combination: { Scent: 'Lavender' },           priceOverride: null, stock: 8,  lowStockThreshold: 3 },
+          { sku: 'BATH-ORG', combination: { Scent: 'Sweet Orange' },       priceOverride: null, stock: 6,  lowStockThreshold: 3 }
         ],
         discounts: [
-          { type: 'percentage', value: 15, label: 'Season Sale', active: true, startDate: null, endDate: null, minQuantity: null }
+          { type: 'bundle', value: 2500, label: 'Mix & Match 4 for $25', active: true, startDate: null, endDate: null, minQuantity: 4 }
         ]
       },
       {
-        slug: 'field-jacket',
-        name: 'Field Jacket',
-        description: 'A four-pocket field jacket in a durable ripstop shell. Relaxed fit, ideal over mid-layers.',
-        basePrice: 29000,
-        category: catIds['apparel'],
-        tags: ['outerwear', 'new'],
+        slug: 'cbd-epsom-salt-soak',
+        name: 'CBD Epsom Salt Soak',
+        description: 'Hemp CBD epsom salt bath soaks infused with hemp-infused vegetable glycerin and essential oils. Available in multiple scents and sizes.',
+        basePrice: 600,
+        category: catIds['bath-and-body'],
+        tags: ['cbd', 'bath', 'epsom-salt'],
         variantOptions: [
-          { name: 'Size',  values: ['S', 'M', 'L', 'XL'] },
-          { name: 'Color', values: ['Olive', 'Black'] }
+          { name: 'Scent', values: ['Eucalyptus', 'Lavender', 'Rosemary & Mint'] },
+          { name: 'Size',  values: ['8 Oz', '16 Oz'] }
         ],
         variants: [
-          { sku: 'FJ-S-OLV',  combination: { Size: 'S',  Color: 'Olive' }, stock: 4, lowStockThreshold: 2 },
-          { sku: 'FJ-M-OLV',  combination: { Size: 'M',  Color: 'Olive' }, stock: 6, lowStockThreshold: 2 },
-          { sku: 'FJ-L-OLV',  combination: { Size: 'L',  Color: 'Olive' }, stock: 5, lowStockThreshold: 2 },
-          { sku: 'FJ-XL-OLV', combination: { Size: 'XL', Color: 'Olive' }, stock: 3, lowStockThreshold: 2 },
-          { sku: 'FJ-S-BLK',  combination: { Size: 'S',  Color: 'Black' }, stock: 4, lowStockThreshold: 2 },
-          { sku: 'FJ-M-BLK',  combination: { Size: 'M',  Color: 'Black' }, stock: 7, lowStockThreshold: 2 },
-          { sku: 'FJ-L-BLK',  combination: { Size: 'L',  Color: 'Black' }, stock: 5, lowStockThreshold: 2 },
-          { sku: 'FJ-XL-BLK', combination: { Size: 'XL', Color: 'Black' }, stock: 2, lowStockThreshold: 2 }
+          { sku: 'EPSOM-EUC-8',  combination: { Scent: 'Eucalyptus',      Size: '8 Oz' },  priceOverride: null, stock: 9,  lowStockThreshold: 3 },
+          { sku: 'EPSOM-EUC-16', combination: { Scent: 'Eucalyptus',      Size: '16 Oz' }, priceOverride: 1100, stock: 6,  lowStockThreshold: 3 },
+          { sku: 'EPSOM-LAV-8',  combination: { Scent: 'Lavender',        Size: '8 Oz' },  priceOverride: null, stock: 15, lowStockThreshold: 3 },
+          { sku: 'EPSOM-LAV-16', combination: { Scent: 'Lavender',        Size: '16 Oz' }, priceOverride: 1100, stock: 6,  lowStockThreshold: 3 },
+          { sku: 'EPSOM-RM-8',   combination: { Scent: 'Rosemary & Mint', Size: '8 Oz' },  priceOverride: null, stock: 10, lowStockThreshold: 3 },
+          { sku: 'EPSOM-RM-16',  combination: { Scent: 'Rosemary & Mint', Size: '16 Oz' }, priceOverride: 800,  stock: 8,  lowStockThreshold: 3 }
+        ],
+        discounts: []
+      },
+
+      // ── Tinctures ────────────────────────────────────────────────────
+      {
+        slug: 'full-spectrum-cbd-tincture',
+        name: 'Full Spectrum CBD Tincture',
+        description: 'Extra strength full spectrum topical CBD glycerin tincture. Contains CBD, THC (<0.3%), CBG, CBC, and CBDv. For topical use.',
+        basePrice: 2500,
+        category: catIds['tinctures'],
+        tags: ['cbd', 'full-spectrum', 'tincture', 'extra-strength'],
+        variantOptions: [
+          { name: 'Size', values: ['1 Oz', '2 Oz', '4 Oz'] }
+        ],
+        variants: [
+          { sku: 'TINCT-1OZ', combination: { Size: '1 Oz' }, priceOverride: null, stock: 12, lowStockThreshold: 3 },
+          { sku: 'TINCT-2OZ', combination: { Size: '2 Oz' }, priceOverride: 4800, stock: 8,  lowStockThreshold: 3 },
+          { sku: 'TINCT-4OZ', combination: { Size: '4 Oz' }, priceOverride: 9400, stock: 3,  lowStockThreshold: 2 }
+        ],
+        discounts: []
+      },
+
+      // ── Topicals ─────────────────────────────────────────────────────
+      {
+        slug: 'cbd-salve-tin',
+        name: 'CBD Salve Tin',
+        description: 'Hemp CBD salve in a tin. Available in Lavender (with coconut oil, beeswax, shea butter, and high CBD hemp) and Warming (with olive oil, ginger, cinnamon, clove, and full spectrum high CBD hemp). Less than 0.3% THC.',
+        basePrice: 1300,
+        category: catIds['topicals'],
+        tags: ['cbd', 'salve', 'topical', 'full-spectrum'],
+        variantOptions: [
+          { name: 'Type', values: ['Lavender', 'Warming'] },
+          { name: 'Size', values: ['1 Oz', '2 Oz', '4 Oz'] }
+        ],
+        variants: [
+          { sku: 'SALV-TIN-LAV-1', combination: { Type: 'Lavender', Size: '1 Oz' }, priceOverride: null, stock: 16, lowStockThreshold: 4 },
+          { sku: 'SALV-TIN-LAV-2', combination: { Type: 'Lavender', Size: '2 Oz' }, priceOverride: 2400, stock: 1,  lowStockThreshold: 2 },
+          { sku: 'SALV-TIN-LAV-4', combination: { Type: 'Lavender', Size: '4 Oz' }, priceOverride: 4700, stock: 2,  lowStockThreshold: 2 },
+          { sku: 'SALV-TIN-WRM-1', combination: { Type: 'Warming',  Size: '1 Oz' }, priceOverride: 1500, stock: 24, lowStockThreshold: 4 },
+          { sku: 'SALV-TIN-WRM-2', combination: { Type: 'Warming',  Size: '2 Oz' }, priceOverride: 2900, stock: 8,  lowStockThreshold: 2 },
+          { sku: 'SALV-TIN-WRM-4', combination: { Type: 'Warming',  Size: '4 Oz' }, priceOverride: 5700, stock: 6,  lowStockThreshold: 2 }
         ],
         discounts: []
       },
       {
-        slug: 'merino-tee',
-        name: 'Merino T-Shirt',
-        description: 'A lightweight merino wool tee that regulates temperature and resists odour. Fits true to size.',
-        basePrice: 8500,
-        category: catIds['apparel'],
-        tags: ['merino', 'everyday'],
+        slug: 'cbd-salve-roll-on',
+        name: 'CBD Salve Roll On',
+        description: 'Hemp CBD salve in a convenient half-ounce roll-on applicator. Available in Lavender and Warming formulas. Less than 0.3% THC.',
+        basePrice: 800,
+        category: catIds['topicals'],
+        tags: ['cbd', 'salve', 'topical', 'roll-on'],
         variantOptions: [
-          { name: 'Size',  values: ['S', 'M', 'L', 'XL'] },
-          { name: 'Color', values: ['White', 'Black', 'Grey'] }
+          { name: 'Type', values: ['Lavender', 'Warming'] }
         ],
         variants: [
-          ...['S', 'M', 'L', 'XL'].flatMap(size =>
-            ['White', 'Black', 'Grey'].map(color => ({
-              sku:         `MT-${size}-${color.toUpperCase().slice(0, 3)}`,
-              combination: { Size: size, Color: color },
-              stock:       Math.ceil(Math.random() * 10) + 5,
-              lowStockThreshold: 3
-            }))
-          )
+          { sku: 'SALV-RO-LAV', combination: { Type: 'Lavender' }, priceOverride: null, stock: 4, lowStockThreshold: 2 },
+          { sku: 'SALV-RO-WRM', combination: { Type: 'Warming' },  priceOverride: 900,  stock: 9, lowStockThreshold: 2 }
         ],
         discounts: []
       },
+
+      // ── Merchandise ──────────────────────────────────────────────────
       {
-        slug: 'wool-cap',
-        name: 'Wool Cap',
-        description: 'A ribbed wool beanie with a turned-up cuff. Made from 100% lambswool.',
-        basePrice: 4500,
-        category: catIds['accessories'],
-        tags: ['winter', 'wool'],
-        variantOptions: [
-          { name: 'Color', values: ['Black', 'Forest Green', 'Camel'] }
-        ],
+        slug: 'maximus-minimus-sticker',
+        name: 'Maximus Minimus Sticker',
+        description: '3-inch die-cut Maximus Minimus sticker.',
+        basePrice: 700,
+        category: catIds['merchandise'],
+        tags: ['sticker', 'merch'],
+        variantOptions: [],
         variants: [
-          { sku: 'CAP-BLK', combination: { Color: 'Black' },        stock: 15, lowStockThreshold: 4 },
-          { sku: 'CAP-GRN', combination: { Color: 'Forest Green' }, stock: 10, lowStockThreshold: 4 },
-          { sku: 'CAP-CAM', combination: { Color: 'Camel' },        stock: 8,  lowStockThreshold: 4 }
+          { sku: 'STICKER-MM', combination: {}, priceOverride: null, stock: 16, lowStockThreshold: 5 }
         ],
         discounts: []
-      },
-      {
-        slug: 'card-wallet',
-        name: 'Card Wallet',
-        description: 'A slim bi-fold card wallet in full-grain leather. Holds up to six cards and folded notes.',
-        basePrice: 7500,
-        category: catIds['accessories'],
-        tags: ['leather', 'everyday'],
-        variantOptions: [
-          { name: 'Color', values: ['Black', 'Cognac', 'Tan'] }
-        ],
-        variants: [
-          { sku: 'WLT-BLK', combination: { Color: 'Black' },  stock: 18, lowStockThreshold: 5 },
-          { sku: 'WLT-COG', combination: { Color: 'Cognac' }, stock: 12, lowStockThreshold: 5 },
-          { sku: 'WLT-TAN', combination: { Color: 'Tan' },    stock: 9,  lowStockThreshold: 5 }
-        ],
-        discounts: [
-          { type: 'percentage', value: 10, label: 'Introductory Offer', active: true, startDate: null, endDate: null, minQuantity: null }
-        ]
       }
     ];
 
@@ -249,20 +244,40 @@ export default async function seedPlugin(app: FastifyInstance) {
       );
     }
 
-    // Fetch product IDs after upsert so we can reference them in orders
+    // ── Commerce — orders ──────────────────────────────────────────────
+    // Fetch product IDs after upsert so we can reference them in orders.
+    // Build a flat list of (slug, variantSku, effectivePrice, productName) for realistic order items.
     const prodDocs = await products.find(
       { slug: { $in: PRODUCTS.map(p => p.slug) } },
-      { projection: { _id: 1, slug: 1, name: 1, basePrice: 1 } }
+      { projection: { _id: 1, slug: 1, name: 1, basePrice: 1, variants: 1 } }
     ).toArray();
-    const prodMap: Record<string, { id: string; name: string; basePrice: number }> = {};
+
+    interface OrderableItem {
+      productId: string;
+      name: string;
+      sku: string;
+      unitPrice: number;
+      variantLabel: string;
+    }
+    const orderableItems: OrderableItem[] = [];
+
     for (const d of prodDocs) {
-      prodMap[d.slug] = { id: d._id.toString(), name: d.name, basePrice: d.basePrice };
+      for (const v of (d.variants || [])) {
+        const price = v.priceOverride ?? d.basePrice;
+        const comboLabel = Object.values(v.combination || {}).join(' / ');
+        orderableItems.push({
+          productId: d._id.toString(),
+          name: d.name,
+          sku: v.sku,
+          unitPrice: price,
+          variantLabel: comboLabel
+        });
+      }
     }
 
-    // Commerce — orders (only seed if none exist)
     const orders = db.collection('orders');
     const existingOrderCount = await orders.countDocuments();
-    if (existingOrderCount === 0) {
+    if (existingOrderCount === 0 && orderableItems.length > 0) {
       // Seeded LCG RNG (deterministic)
       let rngState = (8675309 >>> 0) || 1;
       function rng() {
@@ -286,7 +301,6 @@ export default async function seedPlugin(app: FastifyInstance) {
         'blake@example.com'
       ];
 
-      const prodSlugs = Object.keys(prodMap);
       const orderDocs = [];
 
       for (let i = 0; i < 60; i++) {
@@ -297,27 +311,29 @@ export default async function seedPlugin(app: FastifyInstance) {
 
         const items = [];
         let total = 0;
-        const usedSlugs = new Set<string>();
+        const usedSkus = new Set<string>();
 
         for (let j = 0; j < itemCount; j++) {
-          let slug = prodSlugs[Math.floor(rng() * prodSlugs.length)];
-          // avoid duplicates in one order
-          if (usedSlugs.has(slug)) slug = prodSlugs[Math.floor(rng() * prodSlugs.length)];
-          usedSlugs.add(slug);
-          const prod = prodMap[slug];
-          if (!prod) continue;
+          const item = orderableItems[Math.floor(rng() * orderableItems.length)];
+          // avoid duplicate SKUs in one order
+          if (usedSkus.has(item.sku)) continue;
+          usedSkus.add(item.sku);
+
           const qty = Math.floor(rng() * 3) + 1;
-          const lineTotal = prod.basePrice * qty;
+          const lineTotal = item.unitPrice * qty;
           total += lineTotal;
+
           items.push({
-            productId: prod.id,
-            name: prod.name,
-            sku: slug.toUpperCase().slice(0, 8),
+            productId: item.productId,
+            name: item.variantLabel ? `${item.name} — ${item.variantLabel}` : item.name,
+            sku: item.sku,
             quantity: qty,
-            unitPrice: prod.basePrice,
+            unitPrice: item.unitPrice,
             lineTotal
           });
         }
+
+        if (items.length === 0) continue;
 
         orderDocs.push({
           orderNumber: `ORD-${1000 + i}`,
@@ -335,6 +351,34 @@ export default async function seedPlugin(app: FastifyInstance) {
       if (orderDocs.length > 0) {
         await orders.insertMany(orderDocs);
       }
+    }
+
+    // ── Users ──────────────────────────────────────────────────────────
+    // Idempotent by email — never overwrites existing accounts.
+    const users = db.collection('users');
+    const SEED_USERS = [
+      { username: 'admin',    email: 'admin@example.com',    password: 'admin123',    role: 'admin',    firstName: 'Admin',    lastName: 'User' },
+      { username: 'viewer',   email: 'viewer@example.com',   password: 'viewer123',   role: 'viewer',   firstName: 'Viewer',   lastName: 'User' },
+      { username: 'customer', email: 'customer@example.com', password: 'customer123', role: 'customer', firstName: 'Customer', lastName: 'User' },
+    ];
+    for (const u of SEED_USERS) {
+      const passwordHash = await bcrypt.hash(u.password, 12);
+      await users.updateOne(
+        { email: u.email },
+        {
+          $setOnInsert: {
+            username:     u.username,
+            email:        u.email,
+            passwordHash,
+            firstName:    u.firstName,
+            lastName:     u.lastName,
+            role:         u.role,
+            createdAt:    now,
+            updatedAt:    now,
+          }
+        },
+        { upsert: true }
+      );
     }
   });
 }

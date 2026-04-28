@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, getContext } from 'svelte';
-  import { Sun, Moon, Menu, X } from 'lucide-svelte';
+  import { Sun, Moon, Menu, X, ShoppingCart } from 'lucide-svelte';
+  import { cart } from '$lib/stores/cart.svelte.ts';
   import Logo from '$lib/components/Logo.svelte';
   import { brand } from '$lib/config/logo';
 
@@ -111,7 +112,15 @@
         <Moon class="size-4" />
       {/if}
     </button>
-    <a href="/login" class="btn preset-filled-primary-500 btn-sm nav-signin">Sign In</a>
+
+    <button type="button" class="cart-btn" onclick={() => cart.openCart()} aria-label="Open cart">
+      <ShoppingCart class="size-5" />
+      {#if cart.count > 0}
+        <span class="cart-badge">{cart.count > 99 ? '99+' : cart.count}</span>
+      {/if}
+    </button>
+
+    <a href="/signin" class="btn preset-filled-primary-500 btn-sm nav-signin">Sign In</a>
 
     <!-- Mobile hamburger -->
     <button
@@ -138,7 +147,14 @@
       <a href={link.href} class="mobile-link" onclick={closeMobile}>{link.label}</a>
     {/each}
     <div class="mobile-divider"></div>
-    <a href="/login" class="mobile-link mobile-signin" onclick={closeMobile}>Sign In</a>
+    <button type="button" class="mobile-link mobile-cart-link" onclick={() => { closeMobile(); cart.openCart(); }}>
+      <ShoppingCart class="size-4" />
+      Cart
+      {#if cart.count > 0}
+        <span class="mobile-cart-badge">{cart.count > 99 ? '99+' : cart.count}</span>
+      {/if}
+    </button>
+    <a href="/signin" class="mobile-link mobile-signin" onclick={closeMobile}>Sign In</a>
   </div>
 {/if}
 
@@ -317,6 +333,69 @@
     color: var(--color-surface-950);
   }
 
+  .cart-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--spacing) * 8);
+    height: calc(var(--spacing) * 8);
+    border-radius: var(--radius-base);
+    border: none;
+    background: transparent;
+    color: var(--color-surface-500);
+    cursor: pointer;
+    transition: background 150ms, color 150ms;
+  }
+
+  .cart-btn:hover {
+    background: color-mix(in oklch, var(--color-surface-300) 15%, transparent);
+    color: var(--color-surface-950);
+  }
+
+  .cart-badge {
+    position: absolute;
+    top: -0.125rem;
+    right: -0.125rem;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 2px;
+    border-radius: 9999px;
+    background: var(--color-error-500);
+    color: white;
+    font-size: 10px;
+    line-height: 14px;
+    text-align: center;
+    font-family: var(--base-font-family);
+    font-weight: 600;
+  }
+
+  .mobile-cart-link {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mobile-cart-badge {
+    margin-left: auto;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9999px;
+    background: var(--color-error-500);
+    color: white;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    font-family: var(--base-font-family);
+    font-weight: 600;
+  }
+
   /* Hamburger hidden on desktop */
   .hamburger {
     display: flex;
@@ -424,6 +503,15 @@
   }
 
   :global(.dark) .theme-toggle:hover {
+    background: color-mix(in oklch, var(--color-surface-700) 50%, transparent);
+    color: var(--color-surface-50);
+  }
+
+  :global(.dark) .cart-btn {
+    color: var(--color-surface-300);
+  }
+
+  :global(.dark) .cart-btn:hover {
     background: color-mix(in oklch, var(--color-surface-700) 50%, transparent);
     color: var(--color-surface-50);
   }

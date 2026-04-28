@@ -64,7 +64,7 @@
         <Moon class="size-4" />
       {/if}
     </button>
-    <a href="/login" class="btn preset-filled-primary-500 btn-sm nav-signin">Sign In</a>
+    <a href="/signin" class="btn preset-filled-primary-500 btn-sm nav-signin">Sign In</a>
 
     <!-- Mobile hamburger -->
     <button
@@ -96,7 +96,7 @@
       >{link.label}</a>
     {/each}
     <div class="mobile-divider"></div>
-    <a href="/login" class="mobile-link mobile-signin" onclick={() => (menuOpen = false)}>Sign In</a>
+    <a href="/signin" class="mobile-link mobile-signin" onclick={() => (menuOpen = false)}>Sign In</a>
   </div>
 {/if}
 

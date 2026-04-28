@@ -101,7 +101,7 @@
   {/if}
 
   <!-- Hidden logout form -->
-  <form bind:this={logoutForm} method="POST" action="/logout" class="hidden"></form>
+  <form bind:this={logoutForm} method="POST" action="/signout" class="hidden"></form>
 
   <!-- Authenticated app shell -->
   <div class="h-screen flex flex-col overflow-hidden">

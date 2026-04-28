@@ -5,7 +5,7 @@ import type { LayoutServerLoad } from './$types';
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
 export const load: LayoutServerLoad = async ({ locals, cookies }) => {
-  if (!locals.user) redirect(303, '/login');
+  if (!locals.user) redirect(303, '/signin');
 
   const sessionCookie = cookies.get('session');
 

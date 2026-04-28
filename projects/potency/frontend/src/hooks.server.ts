@@ -7,7 +7,7 @@ import type { Action } from '$lib/permissions';
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
 // Pages that unauthenticated users may visit (and authenticated users are redirected away from)
-const AUTH_REDIRECT_PATHS = new Set(['/login', '/register']);
+const AUTH_REDIRECT_PATHS = new Set(['/signin', '/register']);
 
 // Public marketing pages — accessible to everyone
 const PUBLIC_MARKETING_PATHS = new Set([
@@ -17,7 +17,7 @@ const PUBLIC_MARKETING_PATHS = new Set([
 ]);
 
 // Routes customers (role: 'customer') may visit when authenticated
-const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout', ...PUBLIC_MARKETING_PATHS]);
+const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/signout', ...PUBLIC_MARKETING_PATHS]);
 
 // Routes that require a specific permission beyond authentication
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {
@@ -47,16 +47,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   // Redirect authenticated users away from login/register
   if (event.locals.user && AUTH_REDIRECT_PATHS.has(path)) {
-    redirect(303, event.locals.user.role === 'customer' ? '/' : '/dashboard');
+    redirect(303, event.locals.user.role === 'customer' ? '/shop' : '/dashboard');
   }
 
   // Redirect unauthenticated users to login
-  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/forgot-password' && !path.startsWith('/reset-password') && !path.startsWith('/api/') && !path.startsWith('/shop') && !path.startsWith('/uploads/') && !PUBLIC_MARKETING_PATHS.has(path)) {
-    redirect(303, '/login');
+  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/signout' && path !== '/forgot-password' && !path.startsWith('/reset-password') && !path.startsWith('/api/') && !path.startsWith('/shop') && !path.startsWith('/uploads/') && !PUBLIC_MARKETING_PATHS.has(path)) {
+    redirect(303, '/signin');
   }
 
   // Customers may only access their allowed paths
-  if (event.locals.user?.role === 'customer' && !CUSTOMER_ALLOWED_PATHS.has(path) && !path.startsWith('/api/') && !path.startsWith('/shop')) {
+  if (event.locals.user?.role === 'customer' && !CUSTOMER_ALLOWED_PATHS.has(path) && !path.startsWith('/api/') && !path.startsWith('/shop') && !path.startsWith('/uploads/')) {
     redirect(303, '/');
   }
 

@@ -1,0 +1,28 @@
+{
+  "name": "personal-budget",
+  "description": "Personal budgeting with Plaid bank connectivity, cash flow projections, and automation rules",
+  "nav": [
+    { "label": "Budget",       "href": "/budget/dashboard",    "icon": "LayoutDashboard", "permission": "budget_accounts.read" },
+    { "label": "Accounts",     "href": "/budget/accounts",     "icon": "CreditCard",      "permission": "budget_accounts.read" },
+    { "label": "Transactions", "href": "/budget/transactions", "icon": "ArrowLeftRight",  "permission": "budget_transactions.read" },
+    { "label": "Planning",     "href": "/budget/planning",     "icon": "CalendarRange",   "permission": "budget_planning.read" }
+  ],
+  "permissions": [
+    { "resource": "budget_accounts",     "actions": ["create", "read", "update", "delete"] },
+    { "resource": "budget_transactions", "actions": ["create", "read", "update", "delete"] },
+    { "resource": "budget_planning",     "actions": ["create", "read", "update", "delete"] }
+  ],
+  "dependencies": {
+    "frontend": {},
+    "api": {
+      "plaid": "^29.0.0",
+      "jose": "^5.0.0"
+    }
+  },
+  "env": [
+    { "key": "PLAID_CLIENT_ID",   "required": true,  "default": "",         "description": "Plaid client ID from dashboard.plaid.com" },
+    { "key": "PLAID_SECRET",      "required": true,  "default": "",         "description": "Plaid secret for the configured environment" },
+    { "key": "PLAID_ENV",         "required": false, "default": "sandbox",  "description": "Plaid environment: sandbox | development | production" },
+    { "key": "PLAID_WEBHOOK_URL", "required": true,  "default": "",         "description": "Public URL Plaid sends webhooks to (e.g. https://app.example.com/api/budget/plaid/webhook)" }
+  ]
+}

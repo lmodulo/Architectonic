@@ -78,7 +78,7 @@
         </form>
 
         <p class="text-center text-sm opacity-60">
-          <a href="/login" class="anchor">Back to Sign In</a>
+          <a href="/signin" class="anchor">Back to Sign In</a>
         </p>
       {/if}
     </section>

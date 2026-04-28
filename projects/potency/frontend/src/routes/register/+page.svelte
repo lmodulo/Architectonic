@@ -74,7 +74,7 @@
         </button>
 
         <p class="text-center text-sm opacity-60">
-          Already have an account? <a href="/login" class="anchor">Sign in</a>
+          Already have an account? <a href="/signin" class="anchor">Sign in</a>
         </p>
       </form>
     </section>

@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { activeDiscount, applyDiscount, formatPrice } from '$lib/utils/price';
+  import { page } from '$app/state';
+  import { cart } from '$lib/stores/cart.svelte.ts';
 
   let { data }: { data: PageData } = $props();
 
@@ -22,6 +24,25 @@
 
   function selectVariant(optionName: string, value: string) {
     selections = { ...selections, [optionName]: value };
+  }
+
+  const selectionsMet = $derived(
+    !product.variantOptions?.length ||
+    product.variantOptions.every((opt: { name: string }) => selections[opt.name])
+  );
+
+  function handleAddToCart() {
+    cart.addToCart({
+      productId: product._id,
+      slug: product.slug,
+      categorySlug: page.params.category,
+      name: product.name,
+      image: product.images?.[0] ?? null,
+      basePrice: product.basePrice,
+      salePrice,
+      selections,
+    });
+    cart.openCart();
   }
 </script>
 
@@ -108,10 +129,17 @@
         </div>
       {/if}
 
-      <button type="button" class="btn preset-filled-primary-500 add-to-cart" disabled>
+      <button
+        type="button"
+        class="btn preset-filled-primary-500 add-to-cart"
+        disabled={!selectionsMet || totalStock === 0}
+        onclick={handleAddToCart}
+      >
         Add to Cart
       </button>
-      <p class="cart-note">Cart functionality coming soon</p>
+      {#if !selectionsMet && product.variantOptions?.length > 0}
+        <p class="cart-note">Select all options to add to cart</p>
+      {/if}
 
       <div class="product-meta">
         {#if totalStock > 0}

@@ -2,8 +2,8 @@
 
 SvelteKit + Skeleton v4 + Fastify + MongoDB, containerized with Docker.
 
-The `example/` directory is the scaffold — clone it to start a new project.
-See [`example/CLAUDE.md`](example/CLAUDE.md) for the full project reference.
+The `Web/` directory is the scaffold.
+See [`Web/CLAUDE.md`](Web/CLAUDE.md) for the full project reference.
 
 ## Stack
 
@@ -26,8 +26,8 @@ See [`example/CLAUDE.md`](example/CLAUDE.md) for the full project reference.
 ## First-Time Setup
 
 ```bash
-cd example
-cp .env.example .env
+cd Web
+cp .env.Web .env
 # Edit .env — set SESSION_SECRET at minimum
 cd frontend && npm install && cd ..
 cd api && npm install && cd ..
@@ -207,15 +207,3 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | Nodemailer | https://nodemailer.com |
 
 Build a custom theme: https://themes.skeleton.dev/themes/create — place the CSS file in `frontend/` and import it in `app.css`.
-
-## Tasks
-
-- [ ] change delete user to set `inactive`
-- [ ] research hosting for dev
-- [x] research module framework — decided on build-time composition via `arch.js`
-- [ ] research Stripe and Square integration
-- [x] commerce module — products, categories, orders, inventory (backend + admin UI)
-- [ ] dev/integration/staging/prod environments
-- [ ] catch-all for private vs public routes
-- [x] password recovery (forgot-password → email token → reset page)
-- [x] app name and logo configurable from Settings

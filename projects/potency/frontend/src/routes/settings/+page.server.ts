@@ -7,7 +7,7 @@ const API_URL = env.API_URL ?? 'http://localhost:4000';
 
 export const load: PageServerLoad = async ({ cookies, parent }) => {
   const { user } = await parent();
-  if (!user) redirect(302, '/login');
+  if (!user) redirect(302, '/signin');
   if (!hasPermission(user, 'settings', 'read')) redirect(302, '/dashboard');
 
   const sessionCookie = cookies.get('session');
