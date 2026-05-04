@@ -1,0 +1,35 @@
+{
+  "name": "calendar-events",
+  "description": "Typed calendar events (upcoming events, deadlines, project scopes, announcements) with subscribe/notification model",
+  "nav": [
+    {
+      "label": "Calendar",
+      "href": "/calendar-events",
+      "icon": "CalendarDays"
+    },
+    {
+      "label": "Manage Events",
+      "href": "/calendar-events/admin",
+      "icon": "CalendarCog",
+      "permission": "calendar_events.create"
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "calendar_events",
+      "actions": ["create", "read", "update", "delete"]
+    }
+  ],
+  "dependencies": {
+    "frontend": {},
+    "api": {}
+  },
+  "env": [
+    {
+      "key": "CALENDAR_REMINDER_INTERVAL_MS",
+      "required": false,
+      "default": "1800000",
+      "description": "How often (ms) the reminder scheduler polls for upcoming events. Default: 30 minutes."
+    }
+  ]
+}

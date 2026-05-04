@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="terminus">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>notifications — Architectonic</title>
+  <link rel="stylesheet" href="../terminus.css">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">Architectonic</div>
+      <div class="sidebar-brand-sub">Documentation</div>
+    </div>
+    <div class="nav-label">Framework</div>
+    <a href="../index.html" class="nav-item">Overview</a>
+    <a href="../scaffold.html" class="nav-item">Scaffold</a>
+    <a href="../cli.html" class="nav-item">CLI Reference</a>
+    <div class="nav-label">Modules</div>
+    <a href="../modules.html" class="nav-item">Module System</a>
+    <div class="nav-sub"><a href="../modules/commerce.html" class="nav-item">commerce</a><a href="../modules/github.html" class="nav-item">github</a><a href="../modules/notifications.html" class="nav-item active">notifications</a><a href="../modules/personal-budget.html" class="nav-item">personal-budget</a></div>
+    <button class="dark-toggle" onclick="toggleDark()">Toggle dark mode</button>
+  </nav>
+  <main class="main">
+    <h1 class="sk-heading sk-heading-1">notifications</h1>
+<p class="sk-para">User notification feed with permission-gated sidebar link</p>
+<div class="mod-section">
+  <div class="mod-section-title">Integration</div>
+  <p class="sk-para">Add this module when creating a new project with <code class="inline-code">arch.js</code>:</p>
+  <div class="cmd-box">node arch.js create my-app --modules notifications</div>
+</div>
+<div class="mod-section">
+  <div class="mod-section-title">Navigation Items</div>
+  <table class="sk-table">
+    <thead><tr><th>Label</th><th>Route</th><th>Icon</th><th>Permission</th></tr></thead>
+    <tbody><tr>
+    <td><strong>Notifications</strong></td>
+    <td><code class="inline-code">/notifications</code></td>
+    <td><code class="inline-code">Bell</code></td>
+    <td><code class="inline-code">notifications.read</code></td>
+  </tr></tbody>
+  </table>
+</div>
+<div class="mod-section">
+  <div class="mod-section-title">Permissions</div>
+  <table class="sk-table">
+    <thead><tr><th>Resource</th><th>Actions</th></tr></thead>
+    <tbody><tr><td><code class="inline-code">notifications</code></td><td><span class="badge badge-success">create</span> <span class="badge badge-success">read</span> <span class="badge badge-success">update</span> <span class="badge badge-success">delete</span></td></tr></tbody>
+  </table>
+</div>
+  </main>
+  <script>
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('arch-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+    (function () {
+      var saved = localStorage.getItem('arch-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>

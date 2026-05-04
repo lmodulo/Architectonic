@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="terminus">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module System — Architectonic</title>
+  <link rel="stylesheet" href="./terminus.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">Architectonic</div>
+      <div class="sidebar-brand-sub">Documentation</div>
+    </div>
+    <div class="nav-label">Framework</div>
+    <a href="./index.html" class="nav-item">Overview</a>
+    <a href="./scaffold.html" class="nav-item">Scaffold</a>
+    <a href="./cli.html" class="nav-item">CLI Reference</a>
+    <div class="nav-label">Modules</div>
+    <a href="./modules.html" class="nav-item active">Module System</a>
+    <div class="nav-sub"><a href="./modules/commerce.html" class="nav-item">commerce</a><a href="./modules/github.html" class="nav-item">github</a><a href="./modules/notifications.html" class="nav-item">notifications</a><a href="./modules/personal-budget.html" class="nav-item">personal-budget</a></div>
+    <button class="dark-toggle" onclick="toggleDark()">Toggle dark mode</button>
+  </nav>
+  <main class="main">
+    <h1 id="module-integration-guide" class="sk-heading sk-heading-1">Module Integration Guide</h1>
+<p class="sk-para">This document describes the convention for adding optional feature modules to Architectonic without modifying core files.</p>
+<hr class="sk-divider">
+<h2 id="concept" class="sk-heading sk-heading-2">Concept</h2>
+<p class="sk-para">A module is a self-contained folder under <code class="inline-code">modules/</code> that declares its own API routes, frontend pages, nav items, and permissions. Enabling a module is a one-line uncomment in two registry files plus a container restart.</p>
+<hr class="sk-divider">
+<h2 id="module-directory-layout" class="sk-heading sk-heading-2">Module Directory Layout</h2>
+<pre class="code-block"><code>modules/
+  shop/
+    module.manifest.ts        ← declares nav items, permissions, API prefix
+    api/
+      index.ts                ← barrel: exports a Fastify plugin
+      products.ts             ← route handlers (same pattern as api/src/routes/)
+      orders.ts
+    frontend/
+      components/
+        ProductCard.svelte
+      stores/
+        cart.svelte.ts</code></pre>
+<blockquote class="sk-blockquote"><p><strong>Pages</strong> live in <code class="inline-code">frontend/src/routes/[module]/</code> by SvelteKit convention — no symlinks or magic needed.</p></blockquote>
+<hr class="sk-divider">
+<h2 id="module-manifest" class="sk-heading sk-heading-2">Module Manifest</h2>
+<pre class="code-block"><code class="language-ts">// modules/shop/module.manifest.ts
+import type { ModuleManifest } from '$lib/config/modules';
+
+export default {
+  id: 'shop',
+  apiPrefix: '/shop',
+  permissions: {
+    // Resource added to all seeded roles (admin gets full access, viewer gets read)
+    shop: { create: true, read: true, update: true, delete: true }
+  },
+  navItems: [
+    {
+      label:      'Shop',
+      href:       '/shop',
+      permission: { resource: 'shop', action: 'read' }
+    },
+    {
+      label:      'Shop Admin',
+      href:       '/shop/admin',
+      permission: { resource: 'shop', action: 'update' }
+    },
+  ]
+} satisfies ModuleManifest;</code></pre>
+<hr class="sk-divider">
+<h2 id="registries" class="sk-heading sk-heading-2">Registries</h2>
+<h3 id="frontend" class="sk-heading sk-heading-3">Frontend — <code class="inline-code">frontend/src/lib/config/modules.ts</code></h3>
+<pre class="code-block"><code class="language-ts">import type { Action } from '$lib/permissions';
+
+export interface NavItem {
+  label:      string;
+  href:       string;
+  permission: { resource: string; action: Action };
+}
+
+export interface ModuleManifest {
+  id:          string;
+  apiPrefix:   string;
+  permissions: Record&lt;string, Record&lt;Action, boolean&gt;&gt;;
+  navItems:    NavItem[];
+}
+
+// ── Enable modules here ──────────────────────────────────────────
+// import shopModule from '../../../../modules/shop/module.manifest';
+
+export const enabledModules: ModuleManifest[] = [
+  // shopModule,
+];</code></pre>
+<h3 id="api" class="sk-heading sk-heading-3">API — <code class="inline-code">api/src/modules.ts</code></h3>
+<pre class="code-block"><code class="language-ts">import type { FastifyPluginAsync } from 'fastify';
+
+// import shopRoutes from '../../modules/shop/api/index.js';
+
+export const moduleRoutes: { routes: FastifyPluginAsync; prefix: string }[] = [
+  // { routes: shopRoutes, prefix: '/shop' },
+];</code></pre>
+<hr class="sk-divider">
+<h2 id="core-wiring-one-time-setup" class="sk-heading sk-heading-2">Core Wiring (one-time setup)</h2>
+<p class="sk-para">These changes are made once to the core files and never need to change again as new modules are added.</p>
+<h3 id="" class="sk-heading sk-heading-3"><code class="inline-code">api/src/server.ts</code></h3>
+<pre class="code-block"><code class="language-ts">import { moduleRoutes } from './modules.js';
+
+// After the built-in routes:
+for (const m of moduleRoutes) {
+  await app.register(m.routes, { prefix: m.prefix });
+}</code></pre>
+<h3 id="" class="sk-heading sk-heading-3"><code class="inline-code">api/src/plugins/seed.ts</code></h3>
+<pre class="code-block"><code class="language-ts">import { moduleRoutes } from '../modules.js';
+
+// Before upserting roles, merge module permissions into ADMIN_PERMS:
+for (const m of enabledModules) {
+  Object.assign(ADMIN_PERMS, m.permissions);
+  // Viewer gets read-only on each module resource by default
+  for (const resource of Object.keys(m.permissions)) {
+    VIEWER_PERMS[resource] = { create: false, read: true, update: false, delete: false };
+  }
+}</code></pre>
+<h3 id="" class="sk-heading sk-heading-3"><code class="inline-code">frontend/src/routes/+layout.svelte</code></h3>
+<pre class="code-block"><code class="language-svelte">&lt;script&gt;
+  import { enabledModules } from '$lib/config/modules';
+&lt;/script&gt;
+
+&lt;!-- After core nav items, inside the authenticated nav: --&gt;
+{#each enabledModules as mod}
+  {#each mod.navItems as item}
+    {#if hasPermission(data.user, item.permission.resource, item.permission.action)}
+      &lt;SkMenu.Item href={item.href}&gt;{item.label}&lt;/SkMenu.Item&gt;
+    {/if}
+  {/each}
+{/each}</code></pre>
+<h3 id="" class="sk-heading sk-heading-3"><code class="inline-code">frontend/src/hooks.server.ts</code></h3>
+<pre class="code-block"><code class="language-ts">import { enabledModules } from '$lib/config/modules';
+
+const modulePerms = Object.fromEntries(
+  enabledModules.flatMap(m =&gt;
+    m.navItems.map(n =&gt; [n.href, n.permission])
+  )
+);
+
+const ROUTE_PERMISSIONS: Record&lt;string, { resource: string; action: Action }&gt; = {
+  '/manage-users': { resource: 'users', action: 'read' },
+  '/roles':        { resource: 'roles', action: 'read' },
+  ...modulePerms,
+};</code></pre>
+<hr class="sk-divider">
+<h2 id="adding-a-new-module" class="sk-heading sk-heading-2">Adding a New Module</h2>
+<ol class="sk-list-ordered"><li>Create <code class="inline-code">modules/[name]/</code> with <code class="inline-code">module.manifest.ts</code> and API route files</li><li>Add frontend pages to <code class="inline-code">frontend/src/routes/[name]/</code></li><li>Uncomment the import + entry in <code class="inline-code">frontend/src/lib/config/modules.ts</code></li><li>Uncomment the import + entry in <code class="inline-code">api/src/modules.ts</code></li><li>Restart both containers:</li></ol>
+<pre class="code-block"><code class="language-bash">   docker compose -f docker-compose.yml -f docker-compose.dev.yml restart web api</code></pre>
+<p class="sk-para">The nav item appears automatically, the route guard is applied, and the API routes are live.</p>
+<hr class="sk-divider">
+<h2 id="disabling-a-module" class="sk-heading sk-heading-2">Disabling a Module</h2>
+<p class="sk-para">Comment out the module entry in both registry files and restart. No database migrations, no file deletions.</p>
+<h2 class="sk-heading sk-heading-2">Available Modules</h2>
+<div class="module-cards">
+  
+  <a href="modules/commerce.html" class="module-card">
+    <h3>commerce</h3>
+    <p>Product catalog, inventory management, and order tracking</p>
+  </a>
+  <a href="modules/github.html" class="module-card">
+    <h3>github</h3>
+    <p>GitHub repository viewer and contribution charts</p>
+  </a>
+  <a href="modules/notifications.html" class="module-card">
+    <h3>notifications</h3>
+    <p>User notification feed with permission-gated sidebar link</p>
+  </a>
+  <a href="modules/personal-budget.html" class="module-card">
+    <h3>personal-budget</h3>
+    <p>Personal budgeting with Plaid bank connectivity, cash flow projections, and automation rules</p>
+  </a>
+</div>
+  </main>
+  <script>
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('arch-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+    (function () {
+      var saved = localStorage.getItem('arch-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="terminus">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview — Architectonic</title>
+  <link rel="stylesheet" href="./terminus.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">Architectonic</div>
+      <div class="sidebar-brand-sub">Documentation</div>
+    </div>
+    <div class="nav-label">Framework</div>
+    <a href="./index.html" class="nav-item active">Overview</a>
+    <a href="./scaffold.html" class="nav-item">Scaffold</a>
+    <a href="./cli.html" class="nav-item">CLI Reference</a>
+    <div class="nav-label">Modules</div>
+    <a href="./modules.html" class="nav-item">Module System</a>
+    <div class="nav-sub"><a href="./modules/commerce.html" class="nav-item">commerce</a><a href="./modules/github.html" class="nav-item">github</a><a href="./modules/notifications.html" class="nav-item">notifications</a><a href="./modules/personal-budget.html" class="nav-item">personal-budget</a></div>
+    <button class="dark-toggle" onclick="toggleDark()">Toggle dark mode</button>
+  </nav>
+  <main class="main">
+    <h1 id="architectonic" class="sk-heading sk-heading-1">Architectonic</h1>
+<p class="sk-para">SvelteKit + Skeleton v4 + Fastify + MongoDB, containerized with Docker.</p>
+<p class="sk-para">The <code class="inline-code">Web/</code> directory is the scaffold. See <a href="Web/CLAUDE.md" class="sk-anchor"><code class="inline-code">Web/CLAUDE.md</code></a> for the full project reference.</p>
+<h2 id="stack" class="sk-heading sk-heading-2">Stack</h2>
+<table class="sk-table"><thead><tr><th>Layer</th><th>Package</th><th>Version</th></tr></thead><tbody><tr><td>Frontend</td><td>SvelteKit + Svelte</td><td>2 / 5</td></tr><tr><td>Components</td><td>Skeleton</td><td>v4</td></tr><tr><td>CSS</td><td>Tailwind</td><td>v4</td></tr><tr><td>API</td><td>Fastify</td><td>v5</td></tr><tr><td>Database</td><td>MongoDB</td><td>7</td></tr><tr><td>Auth</td><td>@fastify/session + bcryptjs</td><td>—</td></tr><tr><td>Email</td><td>Nodemailer (Ethereal dev / SMTP prod)</td><td>—</td></tr><tr><td>Container</td><td>Docker Compose</td><td>—</td></tr></tbody></table>
+<h2 id="prerequisites" class="sk-heading sk-heading-2">Prerequisites</h2>
+<ul class="sk-list"><li>Node.js 22+</li><li>Docker Desktop (WSL 2 backend on Windows)</li></ul>
+<h2 id="first-time-setup" class="sk-heading sk-heading-2">First-Time Setup</h2>
+<pre class="code-block"><code class="language-bash">cd Web
+cp .env.Web .env
+# Edit .env — set SESSION_SECRET at minimum
+cd frontend &amp;&amp; npm install &amp;&amp; cd ..
+cd api &amp;&amp; npm install &amp;&amp; cd ..</code></pre>
+<h2 id="running" class="sk-heading sk-heading-2">Running</h2>
+<h3 id="development" class="sk-heading sk-heading-3">Development</h3>
+<pre class="code-block"><code class="language-bash">docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build</code></pre>
+<ul class="sk-list"><li>Frontend: http://localhost:3000</li><li>API: http://localhost:4000</li><li>MongoDB: localhost:27017</li></ul>
+<blockquote class="sk-blockquote"><p><strong>Windows:</strong> Bind mounts don't propagate FS events reliably. API changes always require a rebuild; Svelte changes often do too. Never rely on hot-reload for server-side files.</p></blockquote>
+<h3 id="rebuild-after-code-changes-windows" class="sk-heading sk-heading-3">Rebuild after code changes (Windows)</h3>
+<pre class="code-block"><code class="language-bash">docker compose -f docker-compose.yml -f docker-compose.dev.yml build api
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api</code></pre>
+<h3 id="production" class="sk-heading sk-heading-3">Production</h3>
+<pre class="code-block"><code class="language-bash">docker compose up --build -d</code></pre>
+<h3 id="stop-destroy-data" class="sk-heading sk-heading-3">Stop / destroy data</h3>
+<pre class="code-block"><code class="language-bash">docker compose down        # stop, keep volumes
+docker compose down -v     # stop, delete volumes</code></pre>
+<h2 id="features" class="sk-heading sk-heading-2">Features</h2>
+<ul class="sk-list"><li><strong>Auth</strong> — login, logout, session management, profile edit, password reset (forgot-password → email token → reset page)</li><li><strong>RBAC</strong> — roles + permissions in MongoDB, enforced on API and frontend; Manage Users and Roles admin pages</li><li><strong>Messaging</strong> — in-app email-style messaging with threads, replies, inbox/sent/archive, unread badge, Tiptap rich-text editor</li><li><strong>Settings</strong> — admin-only key/value config store; <code class="inline-code">GET /settings</code>, <code class="inline-code">PATCH /settings/:key</code>; typed inputs (string/boolean/number/select)</li><li><strong>App branding</strong> — <code class="inline-code">app.name</code> setting updates the header and browser title in real time; admins can upload a custom logo image to replace the default SVG icon</li><li><strong>Audit log</strong> — fire-and-forget <code class="inline-code">logAudit()</code> helper; events across auth/users/roles/messages/settings; <code class="inline-code">GET /audit</code> with pagination</li><li><strong>Dashboard</strong> — placeholder with pure-SVG charts</li><li><strong>Chat assistant</strong> — Ollama-backed fixed panel (<code class="inline-code">OLLAMA_URL=http://host.docker.internal:11434</code>); can be disabled via <code class="inline-code">chat.enabled</code> setting</li><li><strong>Theme toggle</strong> — dark/light, persisted to localStorage</li></ul>
+<h2 id="project-structure" class="sk-heading sk-heading-2">Project Structure</h2>
+<pre class="code-block"><code>example/                        # The scaffold — clone this for new projects
+├── docker-compose.yml
+├── docker-compose.dev.yml
+├── .env.example
+├── CLAUDE.md                   # Full project reference for AI-assisted dev
+├── frontend/                   # SvelteKit app — port 3000
+│   └── src/
+│       ├── routes/
+│       │   ├── (marketing)/    # Public marketing pages
+│       │   ├── api/            # SvelteKit → Fastify proxy routes
+│       │   ├── dashboard/
+│       │   ├── messages/
+│       │   ├── settings/       # Admin: app configuration
+│       │   ├── users/          # Admin: Manage Users
+│       │   ├── roles/          # Admin: Manage Roles
+│       │   ├── login/
+│       │   ├── forgot-password/
+│       │   └── reset-password/
+│       └── lib/
+│           ├── components/     # Shared UI components
+│           ├── config/
+│           │   ├── logo.ts     # Brand name / logo
+│           │   └── nav.ts      # Sidebar nav items (module-extensible)
+│           └── permissions.ts  # hasPermission(user, resource, action)
+└── api/                        # Fastify app — port 4000
+    └── src/
+        ├── server.ts           # Entry point; routes auto-loaded from routes/
+        ├── plugins/            # session, MongoDB, CORS, seed
+        ├── routes/             # One subdirectory per resource (autoloaded)
+        ├── data/
+        │   └── permissions.json  # Default role permissions (module-extensible)
+        └── lib/                # checkDuplicateUser, email, audit helpers
+
+modules/                        # Build-time feature modules
+├── commerce/                   # E-commerce: products, categories, orders, inventory
+│   ├── module.json
+│   ├── api/src/routes/commerce/
+│   └── frontend/src/routes/commerce/
+└── notifications/              # Example stub module
+    ├── module.json
+    ├── api/src/routes/notifications/
+    └── frontend/src/routes/notifications/
+
+arch.js                         # Project scaffold CLI (see below)</code></pre>
+<h2 id="module-system" class="sk-heading sk-heading-2">Module System</h2>
+<p class="sk-para">New projects are created from the scaffold with <code class="inline-code">arch.js</code>:</p>
+<pre class="code-block"><code class="language-bash">node arch.js create my-app                          # scaffold only
+node arch.js create my-app --modules notifications  # with modules
+node arch.js create my-app --modules a,b,c          # multiple modules
+node arch.js list                                   # available modules
+node arch.js info notifications                     # module manifest</code></pre>
+<p class="sk-para"><code class="inline-code">arch.js create</code> copies <code class="inline-code">example/</code> to <code class="inline-code">projects/&lt;name&gt;/</code>, updates the MongoDB database name, and for each module:</p>
+<ol class="sk-list-ordered"><li>Copies route and frontend files (collision-checked before any write)</li><li>Appends nav entries to <code class="inline-code">frontend/src/lib/config/nav.ts</code></li><li>Merges resource permissions into <code class="inline-code">api/src/data/permissions.json</code></li><li>Merges <code class="inline-code">dependencies</code> into both <code class="inline-code">package.json</code> files</li><li>Appends env vars to <code class="inline-code">.env</code> and <code class="inline-code">.env.example</code></li></ol>
+<h3 id="writing-a-module" class="sk-heading sk-heading-3">Writing a module</h3>
+<p class="sk-para">A module is a directory under <code class="inline-code">modules/</code> containing <code class="inline-code">module.json</code> and optional <code class="inline-code">api/</code> / <code class="inline-code">frontend/</code> subtrees that mirror the scaffold layout exactly.</p>
+<pre class="code-block"><code class="language-json">{
+  &quot;name&quot;: &quot;my-feature&quot;,
+  &quot;description&quot;: &quot;Short description&quot;,
+  &quot;nav&quot;: [{ &quot;label&quot;: &quot;My Feature&quot;, &quot;href&quot;: &quot;/my-feature&quot;, &quot;icon&quot;: &quot;Star&quot;, &quot;permission&quot;: &quot;my_feature.read&quot; }],
+  &quot;permissions&quot;: [{ &quot;resource&quot;: &quot;my_feature&quot;, &quot;actions&quot;: [&quot;create&quot;, &quot;read&quot;, &quot;update&quot;, &quot;delete&quot;] }],
+  &quot;dependencies&quot;: { &quot;frontend&quot;: {}, &quot;api&quot;: {} },
+  &quot;env&quot;: [{ &quot;key&quot;: &quot;MY_API_KEY&quot;, &quot;default&quot;: &quot;&quot;, &quot;description&quot;: &quot;Required for My Feature&quot; }]
+}</code></pre>
+<p class="sk-para">Icons must be valid <a href="https://lucide.dev" class="sk-anchor">lucide-svelte</a> component names. The <code class="inline-code">permission</code> field is <code class="inline-code">&quot;resource.action&quot;</code> (dot-separated).</p>
+<h2 id="environment-variables" class="sk-heading sk-heading-2">Environment Variables</h2>
+<table class="sk-table"><thead><tr><th>Variable</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code class="inline-code">SESSION_SECRET</code></td><td>—</td><td>Required. 64-char hex.</td></tr><tr><td><code class="inline-code">MONGO_DB</code></td><td><code class="inline-code">appdb</code></td><td></td></tr><tr><td><code class="inline-code">WEB_PORT</code></td><td><code class="inline-code">3000</code></td><td></td></tr><tr><td><code class="inline-code">API_PORT</code></td><td><code class="inline-code">4000</code></td><td></td></tr><tr><td><code class="inline-code">SMTP_HOST</code></td><td>_(blank)_</td><td>Blank → Ethereal auto-provisioned in dev</td></tr><tr><td><code class="inline-code">SMTP_PORT</code></td><td><code class="inline-code">587</code></td><td></td></tr><tr><td><code class="inline-code">SMTP_USER</code></td><td>—</td><td></td></tr><tr><td><code class="inline-code">SMTP_PASS</code></td><td>—</td><td></td></tr><tr><td><code class="inline-code">SMTP_FROM</code></td><td><code class="inline-code">Architectonic &lt;noreply@example.com&gt;</code></td><td></td></tr><tr><td><code class="inline-code">APP_URL</code></td><td><code class="inline-code">http://localhost:3000</code></td><td>Used in password reset links</td></tr><tr><td><code class="inline-code">OLLAMA_URL</code></td><td><code class="inline-code">http://host.docker.internal:11434</code></td><td>Dev overlay only</td></tr></tbody></table>
+<p class="sk-para">Generate <code class="inline-code">SESSION_SECRET</code>:</p>
+<pre class="code-block"><code class="language-bash">node -e &quot;console.log(require('crypto').randomBytes(32).toString('hex'))&quot;</code></pre>
+<h2 id="platform-notes" class="sk-heading sk-heading-2">Platform Notes</h2>
+<h3 id="windows-11" class="sk-heading sk-heading-3">Windows 11</h3>
+<ul class="sk-list"><li>Use Docker Desktop with the WSL 2 backend.</li><li>Line endings: <code class="inline-code">git config --global core.autocrlf input</code> before cloning.</li></ul>
+<h3 id="macos" class="sk-heading sk-heading-3">macOS</h3>
+<ul class="sk-list"><li>Docker Desktop works out of the box.</li><li>Apple Silicon (M1/M2/M3/M4): all images are multi-arch.</li></ul>
+<h2 id="docs" class="sk-heading sk-heading-2">Docs</h2>
+<table class="sk-table"><thead><tr><th>Package</th><th>URL</th></tr></thead><tbody><tr><td>SvelteKit</td><td>https://svelte.dev/docs/kit</td></tr><tr><td>Svelte 5</td><td>https://svelte.dev/docs/svelte</td></tr><tr><td>Skeleton v4</td><td>https://skeleton.dev</td></tr><tr><td>Tailwind v4</td><td>https://tailwindcss.com/docs</td></tr><tr><td>Fastify v5</td><td>https://fastify.dev/docs</td></tr><tr><td>Nodemailer</td><td>https://nodemailer.com</td></tr></tbody></table>
+<p class="sk-para">Build a custom theme: https://themes.skeleton.dev/themes/create — place the CSS file in <code class="inline-code">frontend/</code> and import it in <code class="inline-code">app.css</code>.</p>
+  </main>
+  <script>
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('arch-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+    (function () {
+      var saved = localStorage.getItem('arch-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>

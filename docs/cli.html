@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="terminus">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLI Reference — Architectonic</title>
+  <link rel="stylesheet" href="./terminus.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">Architectonic</div>
+      <div class="sidebar-brand-sub">Documentation</div>
+    </div>
+    <div class="nav-label">Framework</div>
+    <a href="./index.html" class="nav-item">Overview</a>
+    <a href="./scaffold.html" class="nav-item">Scaffold</a>
+    <a href="./cli.html" class="nav-item active">CLI Reference</a>
+    <div class="nav-label">Modules</div>
+    <a href="./modules.html" class="nav-item">Module System</a>
+    <div class="nav-sub"><a href="./modules/commerce.html" class="nav-item">commerce</a><a href="./modules/github.html" class="nav-item">github</a><a href="./modules/notifications.html" class="nav-item">notifications</a><a href="./modules/personal-budget.html" class="nav-item">personal-budget</a></div>
+    <button class="dark-toggle" onclick="toggleDark()">Toggle dark mode</button>
+  </nav>
+  <main class="main">
+    <h1 class="sk-heading sk-heading-1">CLI Reference</h1>
+<p class="sk-para"><code class="inline-code">arch.js</code> is a Node.js CLI for scaffolding new projects and working with available modules. It lives at the root of the framework directory alongside <code class="inline-code">docs.js</code>.</p>
+
+<h2 class="sk-heading sk-heading-2">Commands</h2>
+
+<h3 class="sk-heading sk-heading-3">create</h3>
+<p class="sk-para">Scaffold a new project under <code class="inline-code">projects/</code>.</p>
+<div class="cmd-box">node arch.js create &lt;project-name&gt; [--modules mod1,mod2,...] [--no-install]</div>
+<table class="sk-table">
+  <thead><tr><th>Argument / Flag</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code class="inline-code">&lt;project-name&gt;</code></td><td>Name for the new project directory (no path separators).</td></tr>
+    <tr><td><code class="inline-code">--modules mod1,mod2</code></td><td>Comma-separated modules to merge into the scaffold at creation time.</td></tr>
+    <tr><td><code class="inline-code">--no-install</code></td><td>Skip <code class="inline-code">npm install</code> in both <code class="inline-code">frontend/</code> and <code class="inline-code">api/</code>.</td></tr>
+  </tbody>
+</table>
+<p class="sk-para">What <code class="inline-code">create</code> does step by step:</p>
+<ol class="sk-list-ordered">
+  <li>Copies <code class="inline-code">example/</code> to <code class="inline-code">projects/&lt;project-name&gt;/</code></li>
+  <li>Updates the MongoDB database name in <code class="inline-code">docker-compose.yml</code>, <code class="inline-code">.env</code>, and <code class="inline-code">.env.example</code></li>
+  <li>Runs a collision check — module files cannot overwrite scaffold files or each other</li>
+  <li>Copies module API and frontend files into the project tree</li>
+  <li>Merges nav entries into <code class="inline-code">frontend/src/lib/config/nav.ts</code></li>
+  <li>Merges permissions into <code class="inline-code">api/src/data/permissions.json</code></li>
+  <li>Merges npm dependencies into both <code class="inline-code">package.json</code> files</li>
+  <li>Appends environment variables to <code class="inline-code">.env</code> and <code class="inline-code">.env.example</code></li>
+  <li>Runs <code class="inline-code">npm install</code> in both sub-packages (unless <code class="inline-code">--no-install</code>)</li>
+</ol>
+
+<h3 class="sk-heading sk-heading-3">list</h3>
+<p class="sk-para">List all available modules with their descriptions.</p>
+<div class="cmd-box">node arch.js list</div>
+
+<h3 class="sk-heading sk-heading-3">info</h3>
+<p class="sk-para">Print the full <code class="inline-code">module.json</code> manifest for a module.</p>
+<div class="cmd-box">node arch.js info &lt;module-name&gt;</div>
+
+<h2 class="sk-heading sk-heading-2">Examples</h2>
+<div class="cmd-box">node arch.js create my-app
+node arch.js create my-app --modules notifications
+node arch.js create my-app --modules commerce,github --no-install
+node arch.js list
+node arch.js info personal-budget</div>
+
+<h2 class="sk-heading sk-heading-2">After Creating a Project</h2>
+<div class="cmd-box">cd projects/my-app
+cp .env.example .env
+# Edit .env — set SESSION_SECRET at minimum
+docker compose build
+docker compose up</div>
+<p class="sk-para">Generate a <code class="inline-code">SESSION_SECRET</code>:</p>
+<div class="cmd-box">node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"</div>
+
+<h2 class="sk-heading sk-heading-2">Regenerating Docs</h2>
+<p class="sk-para">Run the documentation generator from the framework root to regenerate this site:</p>
+<div class="cmd-box">node docs.js
+# Custom output directory:
+node docs.js --out ./my-docs</div>
+  </main>
+  <script>
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('arch-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+    (function () {
+      var saved = localStorage.getItem('arch-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>

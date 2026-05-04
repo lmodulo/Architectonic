@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="terminus">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>commerce — Architectonic</title>
+  <link rel="stylesheet" href="../terminus.css">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">Architectonic</div>
+      <div class="sidebar-brand-sub">Documentation</div>
+    </div>
+    <div class="nav-label">Framework</div>
+    <a href="../index.html" class="nav-item">Overview</a>
+    <a href="../scaffold.html" class="nav-item">Scaffold</a>
+    <a href="../cli.html" class="nav-item">CLI Reference</a>
+    <div class="nav-label">Modules</div>
+    <a href="../modules.html" class="nav-item">Module System</a>
+    <div class="nav-sub"><a href="../modules/commerce.html" class="nav-item active">commerce</a><a href="../modules/github.html" class="nav-item">github</a><a href="../modules/notifications.html" class="nav-item">notifications</a><a href="../modules/personal-budget.html" class="nav-item">personal-budget</a></div>
+    <button class="dark-toggle" onclick="toggleDark()">Toggle dark mode</button>
+  </nav>
+  <main class="main">
+    <h1 class="sk-heading sk-heading-1">commerce</h1>
+<p class="sk-para">Product catalog, inventory management, and order tracking</p>
+<div class="mod-section">
+  <div class="mod-section-title">Integration</div>
+  <p class="sk-para">Add this module when creating a new project with <code class="inline-code">arch.js</code>:</p>
+  <div class="cmd-box">node arch.js create my-app --modules commerce</div>
+</div>
+<div class="mod-section">
+  <div class="mod-section-title">Navigation Items</div>
+  <table class="sk-table">
+    <thead><tr><th>Label</th><th>Route</th><th>Icon</th><th>Permission</th></tr></thead>
+    <tbody><tr>
+    <td><strong>Products</strong></td>
+    <td><code class="inline-code">/commerce/products</code></td>
+    <td><code class="inline-code">Package</code></td>
+    <td><code class="inline-code">commerce_products.read</code></td>
+  </tr><tr>
+    <td><strong>Orders</strong></td>
+    <td><code class="inline-code">/commerce/orders</code></td>
+    <td><code class="inline-code">ShoppingCart</code></td>
+    <td><code class="inline-code">commerce_orders.read</code></td>
+  </tr><tr>
+    <td><strong>Categories</strong></td>
+    <td><code class="inline-code">/commerce/categories</code></td>
+    <td><code class="inline-code">Layers</code></td>
+    <td><code class="inline-code">commerce_categories.read</code></td>
+  </tr><tr>
+    <td><strong>Inventory</strong></td>
+    <td><code class="inline-code">/commerce/inventory</code></td>
+    <td><code class="inline-code">BarChart2</code></td>
+    <td><code class="inline-code">commerce_products.read</code></td>
+  </tr></tbody>
+  </table>
+</div>
+<div class="mod-section">
+  <div class="mod-section-title">Permissions</div>
+  <table class="sk-table">
+    <thead><tr><th>Resource</th><th>Actions</th></tr></thead>
+    <tbody><tr><td><code class="inline-code">commerce_products</code></td><td><span class="badge badge-success">create</span> <span class="badge badge-success">read</span> <span class="badge badge-success">update</span> <span class="badge badge-success">delete</span></td></tr><tr><td><code class="inline-code">commerce_orders</code></td><td><span class="badge badge-success">create</span> <span class="badge badge-success">read</span> <span class="badge badge-success">update</span> <span class="badge badge-success">delete</span></td></tr><tr><td><code class="inline-code">commerce_categories</code></td><td><span class="badge badge-success">create</span> <span class="badge badge-success">read</span> <span class="badge badge-success">update</span> <span class="badge badge-success">delete</span></td></tr></tbody>
+  </table>
+</div>
+<div class="mod-section">
+  <div class="mod-section-title">Dependencies</div>
+  <p class="sub-label">API</p>
+<table class="sk-table"><thead><tr><th>Package</th><th>Version</th></tr></thead><tbody><tr><td><code class="inline-code">@fastify/multipart</code></td><td>^9.0.0</td></tr><tr><td><code class="inline-code">@aws-sdk/client-s3</code></td><td>^3.0.0</td></tr><tr><td><code class="inline-code">nanoid</code></td><td>^5.0.0</td></tr></tbody></table>
+</div>
+<div class="mod-section">
+  <div class="mod-section-title">Environment Variables</div>
+  <table class="sk-table">
+    <thead><tr><th>Variable</th><th>Default</th><th>Required</th><th>Description</th></tr></thead>
+    <tbody><tr>
+    <td><code class="inline-code">STORAGE_PROVIDER</code></td>
+    <td><code class="inline-code">local</code></td>
+    <td><span class="badge badge-surface">optional</span></td>
+    <td>Image storage backend: 'local' (default) or 's3'</td>
+  </tr><tr>
+    <td><code class="inline-code">AWS_BUCKET</code></td>
+    <td><code class="inline-code"></code></td>
+    <td><span class="badge badge-surface">optional</span></td>
+    <td>S3 bucket name (required when STORAGE_PROVIDER=s3)</td>
+  </tr><tr>
+    <td><code class="inline-code">AWS_REGION</code></td>
+    <td><code class="inline-code">us-east-1</code></td>
+    <td><span class="badge badge-surface">optional</span></td>
+    <td>S3 region (required when STORAGE_PROVIDER=s3)</td>
+  </tr><tr>
+    <td><code class="inline-code">AWS_ACCESS_KEY_ID</code></td>
+    <td><code class="inline-code"></code></td>
+    <td><span class="badge badge-surface">optional</span></td>
+    <td>S3 access key (required when STORAGE_PROVIDER=s3)</td>
+  </tr><tr>
+    <td><code class="inline-code">AWS_SECRET_ACCESS_KEY</code></td>
+    <td><code class="inline-code"></code></td>
+    <td><span class="badge badge-surface">optional</span></td>
+    <td>S3 secret key (required when STORAGE_PROVIDER=s3)</td>
+  </tr></tbody>
+  </table>
+</div>
+  </main>
+  <script>
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('arch-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+    (function () {
+      var saved = localStorage.getItem('arch-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>

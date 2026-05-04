@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="terminus">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scaffold Reference — Architectonic</title>
+  <link rel="stylesheet" href="./terminus.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">Architectonic</div>
+      <div class="sidebar-brand-sub">Documentation</div>
+    </div>
+    <div class="nav-label">Framework</div>
+    <a href="./index.html" class="nav-item">Overview</a>
+    <a href="./scaffold.html" class="nav-item active">Scaffold</a>
+    <a href="./cli.html" class="nav-item">CLI Reference</a>
+    <div class="nav-label">Modules</div>
+    <a href="./modules.html" class="nav-item">Module System</a>
+    <div class="nav-sub"><a href="./modules/commerce.html" class="nav-item">commerce</a><a href="./modules/github.html" class="nav-item">github</a><a href="./modules/notifications.html" class="nav-item">notifications</a><a href="./modules/personal-budget.html" class="nav-item">personal-budget</a></div>
+    <button class="dark-toggle" onclick="toggleDark()">Toggle dark mode</button>
+  </nav>
+  <main class="main">
+    <h1 id="architectonic-project-reference" class="sk-heading sk-heading-1">Architectonic — Project Reference</h1>
+<h2 id="purpose" class="sk-heading sk-heading-2">Purpose</h2>
+<p class="sk-para">Full-stack SvelteKit + Fastify application scaffold. The <code class="inline-code">example/</code> directory IS the scaffold — clone it to start a new project.</p>
+<h2 id="stack" class="sk-heading sk-heading-2">Stack</h2>
+<ul class="sk-list"><li><strong>Frontend:</strong> SvelteKit 2 + Svelte 5 runes, Tailwind v4, Skeleton v4 (<code class="inline-code">@skeletonlabs/skeleton-svelte</code>), TypeScript</li><li><strong>API:</strong> Fastify 5, MongoDB 7, TypeScript</li><li><strong>Auth:</strong> Session cookies (<code class="inline-code">@fastify/session</code>), bcryptjs password hashing</li><li><strong>Chat:</strong> Ollama (host machine via <code class="inline-code">host.docker.internal:11434</code>)</li><li><strong>Rich text:</strong> Tiptap (<code class="inline-code">@tiptap/core</code>, <code class="inline-code">svelte-tiptap@3.0.1</code>)</li></ul>
+<h2 id="structure" class="sk-heading sk-heading-2">Structure</h2>
+<pre class="code-block"><code>example/
+  frontend/          SvelteKit app — port 3000
+  api/               Fastify app — port 4000
+  docker-compose.yml
+  docker-compose.dev.yml</code></pre>
+<h2 id="commands" class="sk-heading sk-heading-2">Commands</h2>
+<pre class="code-block"><code class="language-bash"># Development (bind mounts — web only, API requires rebuild)
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+# Restart a service (picks up env changes, not code changes)
+docker compose -f docker-compose.yml -f docker-compose.dev.yml restart web
+docker compose -f docker-compose.yml -f docker-compose.dev.yml restart api
+
+# Rebuild after code changes (ALWAYS required on Windows — no FS event hot-reload)
+docker compose -f docker-compose.yml -f docker-compose.dev.yml build web
+docker compose -f docker-compose.yml -f docker-compose.dev.yml build api
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d web
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api</code></pre>
+<blockquote class="sk-blockquote"><p><strong>Windows note:</strong> Bind mounts don't propagate FS events reliably. Server-side files NEVER hot-reload; <code class="inline-code">.svelte</code> changes often require a rebuild too. Never say &quot;Vite will hot-reload this.&quot;</p></blockquote>
+<blockquote class="sk-blockquote"><p><strong>PowerShell note:</strong> <code class="inline-code">&amp;&amp;</code> is not valid in PowerShell. Use <code class="inline-code">;</code> or run commands separately.</p></blockquote>
+<h2 id="api-conventions" class="sk-heading sk-heading-2">API Conventions</h2>
+<h3 id="route-files" class="sk-heading sk-heading-3">Route files — <code class="inline-code">api/src/routes/</code></h3>
+<ul class="sk-list"><li>One file per resource: <code class="inline-code">auth.ts</code>, <code class="inline-code">users.ts</code>, <code class="inline-code">roles.ts</code>, <code class="inline-code">messages.ts</code></li><li>Registered in <code class="inline-code">api/src/server.ts</code> with a prefix (e.g. <code class="inline-code">prefix: '/users'</code>)</li><li>Auth enforced via <code class="inline-code">preHandler: app.requireAuth</code> or <code class="inline-code">app.requirePermission(resource, action)</code></li></ul>
+<h3 id="shared-utilities" class="sk-heading sk-heading-3">Shared utilities — <code class="inline-code">api/src/lib/</code></h3>
+<ul class="sk-list"><li>Cross-route helpers live here, not in route files</li><li>Example: <code class="inline-code">lib/users.ts</code> exports <code class="inline-code">checkDuplicateUser()</code> — used by both <code class="inline-code">auth.ts</code> and <code class="inline-code">users.ts</code></li></ul>
+<h3 id="permissions" class="sk-heading sk-heading-3">Permissions</h3>
+<ul class="sk-list"><li>Defined per-role in MongoDB <code class="inline-code">roles</code> collection, seeded in <code class="inline-code">api/src/plugins/seed.ts</code></li><li>Checked on the API with <code class="inline-code">requirePermission(resource, action)</code> preHandler</li><li>Checked on the frontend with <code class="inline-code">hasPermission(data.user, resource, action)</code> from <code class="inline-code">$lib/permissions</code></li></ul>
+<h2 id="frontend-conventions" class="sk-heading sk-heading-2">Frontend Conventions</h2>
+<h3 id="route-structure" class="sk-heading sk-heading-3">Route structure — <code class="inline-code">frontend/src/routes/</code></h3>
+<ul class="sk-list"><li>API proxy routes under <code class="inline-code">api/</code> — forward session cookie to Fastify, return JSON</li><li>Layout server loads handle SSR data; client-side fetches for dynamic updates</li><li>Auth redirect enforced in <code class="inline-code">hooks.server.ts</code></li></ul>
+<h3 id="component-locations" class="sk-heading sk-heading-3">Component locations</h3>
+<ul class="sk-list"><li><code class="inline-code">$lib/components/</code> — shared UI components</li><li><code class="inline-code">$lib/config/logo.ts</code> — <code class="inline-code">brand</code> object with <code class="inline-code">description</code> (static scaffold fallback for <code class="inline-code">&lt;title&gt;</code>)</li><li><code class="inline-code">$lib/permissions.ts</code> — <code class="inline-code">hasPermission(user, resource, action)</code></li><li><code class="inline-code">$lib/chat.svelte.ts</code> — chat store (module-level <code class="inline-code">$state</code>, persists across navigation)</li></ul>
+<h3 id="app-name-vs-brand" class="sk-heading sk-heading-3">App Name vs Brand</h3>
+<ul class="sk-list"><li><strong>App Name</strong> — static, from <code class="inline-code">APP_NAME</code> env var. Used in <code class="inline-code">&lt;title&gt;</code>. Read in <code class="inline-code">+layout.server.ts</code> via <code class="inline-code">$env/dynamic/private</code> and passed as <code class="inline-code">data.appName</code>. Falls back to <code class="inline-code">'Application'</code>.</li><li><strong>Brand</strong> — runtime-configurable MongoDB settings (<code class="inline-code">brand.name</code>, <code class="inline-code">brand.logo</code>). Used in the app header logo slot. Mutually exclusive: setting one clears the other.</li></ul>
+<h3 id="logo-component" class="sk-heading sk-heading-3">Logo component</h3>
+<ul class="sk-list"><li>Use <code class="inline-code">&lt;Logo brandName={...} brandLogo={...} /&gt;</code> — both props optional, default <code class="inline-code">''</code></li><li>If <code class="inline-code">brandLogo</code> is set → renders <code class="inline-code">&lt;img&gt;</code>; if <code class="inline-code">brandName</code> is set → renders text; if both empty → renders nothing</li><li>Upload endpoint: <code class="inline-code">POST /api/settings/logo</code> (multipart) — saves <code class="inline-code">brand.logo</code>, clears <code class="inline-code">brand.name</code></li><li>Remove logo by PATCHing <code class="inline-code">brand.logo</code> with <code class="inline-code">value: ''</code></li><li>Set brand name by PATCHing <code class="inline-code">brand.name</code>; also PATCH <code class="inline-code">brand.logo</code> to <code class="inline-code">''</code> to maintain exclusivity</li><li>Static uploads proxied through SvelteKit at <code class="inline-code">/uploads/[...path]</code> → API <code class="inline-code">/uploads/[...path]</code></li></ul>
+<h3 id="svelte-5-rules" class="sk-heading sk-heading-3">Svelte 5 rules</h3>
+<ul class="sk-list"><li>Never name variables/functions starting with <code class="inline-code">$</code> in component scripts (reserved prefix)</li><li>Use <code class="inline-code">$state</code>, <code class="inline-code">$derived</code>, <code class="inline-code">$effect</code>, <code class="inline-code">$props</code> runes</li><li><code class="inline-code">onMount</code> for DOM-dependent initialization</li></ul>
+<h3 id="ui-patterns" class="sk-heading sk-heading-3">UI patterns</h3>
+<ul class="sk-list"><li><strong>Alternating table rows:</strong> <code class="inline-code">odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors</code></li><li><strong>Compact badge:</strong> <code class="inline-code">min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-white</code></li><li><strong>Charts:</strong> Pure SVG + JS math — no charting libraries</li><li><strong>Dummy data:</strong> Seeded LCG RNG via <code class="inline-code">makeRng(seed)</code> for determinism</li><li><strong>Permission-gated UI:</strong> Always wrap admin actions in <code class="inline-code">{#if hasPermission(data.user, resource, action)}</code></li></ul>
+<h3 id="chatassistant-placement" class="sk-heading sk-heading-3">ChatAssistant placement</h3>
+<p class="sk-para">Rendered after the closing <code class="inline-code">&lt;/div&gt;</code> of the <code class="inline-code">h-screen overflow-hidden</code> shell in <code class="inline-code">+layout.svelte</code>. Fixed-position children are clipped by <code class="inline-code">overflow-hidden</code> ancestors — placing it outside the shell avoids that.</p>
+<h2 id="ollama-chat" class="sk-heading sk-heading-2">Ollama / Chat</h2>
+<ul class="sk-list"><li><code class="inline-code">OLLAMA_URL=http://host.docker.internal:11434</code> — <code class="inline-code">localhost</code> inside a container refers to the container, not the Windows host</li><li>Proxied via frontend <code class="inline-code">/api/chat</code> route</li></ul>
+<h2 id="features-included-in-scaffold" class="sk-heading sk-heading-2">Features Included in Scaffold</h2>
+<ul class="sk-list"><li><strong>Auth:</strong> Login, logout, session management, profile edit</li><li><strong>RBAC:</strong> Roles + permissions, Manage Users page (admin), Roles page</li><li><strong>Messaging:</strong> Full email-style in-app messaging — threads, replies, inbox/sent/archive, unread badge, Tiptap rich-text editor</li><li><strong>Dashboard:</strong> Placeholder with charts (pure SVG)</li><li><strong>Chat assistant:</strong> Ollama-backed, fixed bottom-right panel</li><li><strong>Theme toggle:</strong> Dark/light, persisted to localStorage</li></ul>
+  </main>
+  <script>
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('arch-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+    (function () {
+      var saved = localStorage.getItem('arch-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -12,6 +12,35 @@ Entries are tagged:
 
 ---
 
+## 2026-05-04
+
+### Added
+- `MODULE: calendar-events` **Typed calendar events with subscribe/notification model** — generalized timed-event system usable for upcoming events, project scopes, deadlines, announcements, or any custom type. Designed as the pattern module for all future timed-event features.
+  - **`calendar_events` collection** — documents carry `title`, `content` (HTML), `eventType` (free-text string; well-known values: `upcoming_event`, `deadline`, `announcement`, `project_scope`), `startDate`, `endDate`, `singleDay`, `allDay`, `location`, `tags[]`, `status` (`active`/`draft`/`cancelled`), `visibility` (`public`/`authenticated`/`private`), `createdBy`, `updatedBy`. 6 MongoDB indexes including compound `{status, visibility, startDate}` for the public endpoint and a weighted text index (`title:10, tags:5, content:1`).
+  - **`event_subscriptions` collection** — one document per user (unique index on `userId`). Fields: `eventTypes[]` (empty = all types), `notifyOn.{newEvent, reminder, reminderDays}`, `channels.{inApp, email}`. Index on `{notifyOn.reminder, notifyOn.reminderDays}` for scheduler queries.
+  - **API** (`api/src/routes/calendar-events/`):
+    - `GET /calendar-events/public` — unauthenticated; returns `visibility: public` + `status: active` events within a date window (default today → +1 year); filterable by `type`, `from`, `to`.
+    - `GET /calendar-events` — authenticated list; filterable by `type`, `status`, `visibility`, `search` (text index), `from`, `to`; paginated with `limit`/`skip`. Requires `calendar_events.read`.
+    - `POST /calendar-events` — create; fires subscriber notifications on success. Requires `calendar_events.create`.
+    - `GET /PATCH /DELETE /calendar-events/:id` — single-event CRUD. PATCH is partial. Requires appropriate permission.
+    - `GET /PUT /DELETE /calendar-events/subscriptions/me` — per-user subscription upsert; GET returns defaults when no subscription exists.
+  - **`calendarNotify.ts`** (`api/src/lib/`) — notification dispatch helpers. `notifyNewEvent()` calls `dispatch()` for in-app delivery (respects mute + quiet-hours via existing preferences), then sends email via nodemailer to subscribers with `channels.email: true`. `notifyEventReminder()` follows the same pattern with per-user `groupKey` deduplication.
+  - **Reminder scheduler** (`api/src/routes/calendar-events/scheduler.ts`) — `setInterval` loop started in the Fastify `onReady` hook. On each tick, derives distinct `reminderDays` values from active subscriptions, queries events whose `startDate` falls within a ±½-interval window of `now + N days`, and fans out `notifyEventReminder()` calls. Interval configurable via `CALENDAR_REMINDER_INTERVAL_MS` (default 30 min). Timer is `.unref()`'d for clean process exit.
+  - **Frontend components** (`frontend/src/lib/components/`):
+    - `EventTypeBadge.svelte` — maps known types to Skeleton preset tonal classes; unknown types fall back to `preset-tonal-surface`.
+    - `EventCalendarGrid.svelte` — pure-display monthly grid with month navigation; coloured event pills per day; `onEventClick` callback; `readonly` prop disables interaction.
+    - `EventCard.svelte` — date badge (coloured by type), title, `EventTypeBadge`, formatted date range, location, tags, HTML content. `compact` prop strips content and truncates for list views.
+    - `EventModal.svelte` — create/edit modal; fields: title, type, status, dates, singleDay/allDay toggles, visibility, location, tags, Tiptap `MessageEditor` for description; permission-gated delete with confirm dialog.
+    - `SubscriptionPanel.svelte` — client-side subscription UI; unauthenticated state shows sign-in prompt; authenticated state shows master toggle, per-type checkboxes, new-event and reminder toggles (with day selector), email opt-in; saves via `PUT /api/calendar-events/subscriptions`.
+  - **Frontend utility** (`frontend/src/lib/utils/calendarEvents.ts`) — `normalizeEvent()`, `fmtDateRange()`, `fmtShortRange()`, `eventsForDay()`, `groupByMonth()`, `typePreset()`, `typePillClass()`, `typeLabel()`.
+  - **Public page** (`/calendar-events`) — SSR-loaded upcoming public events; type-filter tab bar; `SubscriptionPanel` for authenticated users; month-grouped `EventCard` list.
+  - **Admin page** (`/calendar-events/admin`) — permission-gated; search + type + status filters; calendar/list view toggle; `EventCalendarGrid` with click-to-edit; `EventModal` for full CRUD. Redirects to `/403` if user lacks `calendar_events.read`.
+  - **4 SvelteKit proxy routes** — `GET+POST /api/calendar-events`, `GET+PATCH+DELETE /api/calendar-events/[id]`, `GET /api/calendar-events/public`, `GET+PUT+DELETE /api/calendar-events/subscriptions`.
+  - **`module.json`** — nav entries for "Calendar" (public, no permission gate) and "Manage Events" (`calendar_events.create` gated); permission resource `calendar_events` with full CRUD actions; `CALENDAR_REMINDER_INTERVAL_MS` env var.
+  - **Post-install steps** (cannot be automated): register `calendarEventsPlugin` in `api/src/server.ts` with prefix `/calendar-events`; add `/calendar-events` to `CUSTOMER_ALLOWED_PATHS` in `hooks.server.ts`; optionally add `calendar_event.new` and `calendar_event.reminder` to `KNOWN_TYPES` in the notification preferences page.
+
+---
+
 ## 2026-03-16 (notifications)
 
 ### Added

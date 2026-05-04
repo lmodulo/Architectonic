@@ -2,8 +2,8 @@
 
 SvelteKit + Skeleton v4 + Fastify + MongoDB, containerized with Docker.
 
-The `Web/` directory is the scaffold.
-See [`Web/CLAUDE.md`](Web/CLAUDE.md) for the full project reference.
+The `example/` directory is the scaffold.
+See [`example/CLAUDE.md`](example/CLAUDE.md) for the full project reference.
 
 ## Stack
 
@@ -26,8 +26,8 @@ See [`Web/CLAUDE.md`](Web/CLAUDE.md) for the full project reference.
 ## First-Time Setup
 
 ```bash
-cd Web
-cp .env.Web .env
+cd example
+cp .env.example .env
 # Edit .env — set SESSION_SECRET at minimum
 cd frontend && npm install && cd ..
 cd api && npm install && cd ..
@@ -120,6 +120,11 @@ modules/                        # Build-time feature modules
 │   ├── module.json
 │   ├── api/src/routes/commerce/
 │   └── frontend/src/routes/commerce/
+├── calendar-events/            # Typed timed events with subscribe/notification model
+│   ├── module.json
+│   ├── api/src/routes/calendar-events/
+│   ├── api/src/lib/calendarNotify.ts
+│   └── frontend/src/routes/calendar-events/
 └── notifications/              # Example stub module
     ├── module.json
     ├── api/src/routes/notifications/
@@ -133,11 +138,11 @@ arch.js                         # Project scaffold CLI (see below)
 New projects are created from the scaffold with `arch.js`:
 
 ```bash
-node arch.js create my-app                          # scaffold only
-node arch.js create my-app --modules notifications  # with modules
-node arch.js create my-app --modules a,b,c          # multiple modules
-node arch.js list                                   # available modules
-node arch.js info notifications                     # module manifest
+node arch.js create my-app                                   # scaffold only
+node arch.js create my-app --modules calendar-events         # with modules
+node arch.js create my-app --modules commerce,calendar-events # multiple modules
+node arch.js list                                            # available modules
+node arch.js info calendar-events                            # module manifest
 ```
 
 `arch.js create` copies `example/` to `projects/<name>/`, updates the MongoDB database name, and for each module:
@@ -179,6 +184,7 @@ Icons must be valid [lucide-svelte](https://lucide.dev) component names. The `pe
 | `SMTP_FROM`      | `Architectonic <noreply@example.com>` | |
 | `APP_URL`        | `http://localhost:3000`  | Used in password reset links |
 | `OLLAMA_URL`     | `http://host.docker.internal:11434` | Dev overlay only |
+| `CALENDAR_REMINDER_INTERVAL_MS` | `1800000` | `MODULE: calendar-events` — reminder scheduler poll interval |
 
 Generate `SESSION_SECRET`:
 ```bash
