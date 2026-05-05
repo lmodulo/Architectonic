@@ -24,6 +24,16 @@
     "frontend": {},
     "api": {}
   },
+  "exclude": [
+    "frontend/tsconfig.json",
+    "frontend/src/ambient.d.ts",
+    "frontend/src/routes/calendar-events/$types.d.ts",
+    "frontend/src/routes/calendar-events/admin/$types.d.ts",
+    "frontend/src/routes/api/calendar-events/$types.d.ts",
+    "frontend/src/routes/api/calendar-events/[id]/$types.d.ts",
+    "frontend/src/routes/api/calendar-events/public/$types.d.ts",
+    "frontend/src/routes/api/calendar-events/subscriptions/$types.d.ts"
+  ],
   "env": [
     {
       "key": "CALENDAR_REMINDER_INTERVAL_MS",

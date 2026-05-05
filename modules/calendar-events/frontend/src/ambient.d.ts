@@ -19,3 +19,21 @@ declare module '$env/static/public' {
   const values: Record<string, string>;
   export = values;
 }
+
+declare module '$lib/permissions' {
+  export type Action = 'create' | 'read' | 'update' | 'delete';
+  export interface UserWithPermissions {
+    id: string;
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    role: string;
+    permissions: Record<string, Record<Action, boolean>>;
+  }
+  export function hasPermission(
+    user: UserWithPermissions | null | undefined,
+    resource: string,
+    action: Action
+  ): boolean;
+}

@@ -1,19 +1,16 @@
 {
   "name": "notifications",
-  "description": "User notification feed with permission-gated sidebar link",
-  "nav": [
-    {
-      "label": "Notifications",
-      "href": "/notifications",
-      "icon": "Bell",
-      "permission": "notifications.read"
-    }
-  ],
+  "description": "User notification feed — adds permissions and root API proxy (scaffold provides the full UI and API implementation)",
   "permissions": [
     {
       "resource": "notifications",
       "actions": ["create", "read", "update", "delete"]
     }
+  ],
+  "exclude": [
+    "api/src/routes/notifications/index.ts",
+    "frontend/src/routes/notifications/+page.server.ts",
+    "frontend/src/routes/notifications/+page.svelte"
   ],
   "dependencies": {
     "frontend": {},

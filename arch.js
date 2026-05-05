@@ -89,12 +89,14 @@ walkDir(SCAFFOLD, f => scaffoldFiles.add(path.relative(SCAFFOLD, f)));
 
 // For each module, check against scaffold AND previously-seen module files
 const seenModuleFiles = new Set();
-for (const { name: modName, dir: modDir } of loadedModules) {
+for (const { name: modName, dir: modDir, mod } of loadedModules) {
+  const excludeSet = new Set((mod.exclude || []).map(p => path.normalize(p)));
   for (const sub of ['api', 'frontend']) {
     const srcSub = path.join(modDir, sub);
     if (!fs.existsSync(srcSub)) continue;
     walkDir(srcSub, (srcFile) => {
       const rel = path.join(sub, path.relative(srcSub, srcFile));
+      if (excludeSet.has(rel)) return;
       if (scaffoldFiles.has(rel)) {
         console.error(`Error: module '${modName}' would overwrite scaffold file: ${rel}`);
         process.exit(1);
@@ -132,10 +134,19 @@ for (const { name: modName, dir: modDir, mod } of loadedModules) {
 
   // ── Copy files ─────────────────────────────────────────────────────────────
 
+  const copyExcludeSet = new Set((mod.exclude || []).map(p => path.normalize(p)));
   for (const sub of ['api', 'frontend']) {
     const srcSub = path.join(modDir, sub);
     if (!fs.existsSync(srcSub)) continue;
-    fs.cpSync(srcSub, path.join(dest, sub), { recursive: true });
+    fs.cpSync(srcSub, path.join(dest, sub), {
+      recursive: true,
+      filter: (srcFile) => {
+        const stat = fs.statSync(srcFile);
+        if (stat.isDirectory()) return true;
+        const rel = path.join(sub, path.relative(srcSub, srcFile));
+        return !copyExcludeSet.has(rel);
+      },
+    });
   }
 
   // ── Merge nav ──────────────────────────────────────────────────────────────

@@ -1,0 +1,74 @@
+<script lang="ts">
+  import { Search } from 'lucide-svelte';
+  import { goto } from '$app/navigation';
+  import type { PageData } from './$types';
+  import { hasPermission } from '$lib/permissions';
+  import KanbanBoard from '$lib/components/agile/KanbanBoard.svelte';
+  import type { AgileTask } from '$lib/utils/agile';
+
+  let { data }: { data: PageData } = $props();
+
+  const allTasks   = $derived((data.tasks ?? []) as AgileTask[]);
+  const milestones = $derived((data.milestones ?? []) as any[]);
+  const users      = $derived((data.users ?? []) as any[]);
+
+  let filterAssignee  = $state('');
+  let filterMilestone = $state('');
+  let filterPriority  = $state('');
+  let search          = $state('');
+
+  const filtered = $derived(allTasks.filter(t => {
+    if (filterAssignee  && t.assignedTo !== filterAssignee) return false;
+    if (filterPriority  && t.priority   !== filterPriority)  return false;
+    if (search.trim() && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  }));
+
+  async function handleStatusChange(taskId: string, newStatus: string) {
+    const res = await fetch(`/api/agile/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (!res.ok) throw new Error('Update failed');
+  }
+</script>
+
+<svelte:head><title>Agile Board</title></svelte:head>
+
+<div class="space-y-5">
+
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <h2 class="text-lg font-semibold">Global Task Board</h2>
+    <div class="flex items-center gap-2 flex-wrap">
+      <!-- Search -->
+      <div class="input-group grid-cols-[auto_1fr] h-8">
+        <div class="ig-cell preset-tonal px-2"><Search class="size-3.5"/></div>
+        <input type="search" class="ig-input text-xs" placeholder="Search tasks…" bind:value={search} />
+      </div>
+      <!-- Filters -->
+      <select class="select text-xs h-8 px-2" bind:value={filterAssignee}>
+        <option value="">All assignees</option>
+        {#each users as u}
+          <option value={u.id}>{u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username}</option>
+        {/each}
+      </select>
+      <select class="select text-xs h-8 px-2" bind:value={filterPriority}>
+        <option value="">All priorities</option>
+        {#each ['Low', 'Medium', 'High', 'Critical'] as p}
+          <option value={p}>{p}</option>
+        {/each}
+      </select>
+    </div>
+  </div>
+
+  <p class="text-xs opacity-50">{filtered.length} task{filtered.length !== 1 ? 's' : ''} shown</p>
+
+  <KanbanBoard
+    tasks={filtered}
+    canUpdate={hasPermission(data.user, 'agile_tasks', 'update')}
+    onStatusChange={handleStatusChange}
+    onTaskClick={t => goto(`/agile/jobs/${t.jobId}`)}
+  />
+
+</div>
