@@ -115,20 +115,12 @@
   async function saveBrandName() {
     savingBrandName = true; brandError = '';
     try {
-      // Save brand name and clear logo
-      const [nameRes, logoRes] = await Promise.all([
-        fetch('/api/settings/brand.name', {
-          method: 'PATCH',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ value: brandNameInput })
-        }),
-        fetch('/api/settings/brand.logo', {
-          method: 'PATCH',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ value: '' })
-        })
-      ]);
-      if (!nameRes.ok || !logoRes.ok) { brandError = 'Save failed'; return; }
+      const nameRes = await fetch('/api/settings/brand.name', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ value: brandNameInput })
+      });
+      if (!nameRes.ok) { brandError = 'Save failed'; return; }
       editingBrandName = false;
       await invalidateAll();
     } catch { brandError = 'Network error'; }
@@ -163,7 +155,7 @@
   <div class="card preset-filled-surface-100-900 p-5 space-y-4">
     <div>
       <h2 class="font-semibold text-sm">Brand</h2>
-      <p class="text-xs opacity-50 mt-0.5">Choose one: Brand Name (text) or Logo (image). Setting one clears the other.</p>
+      <p class="text-xs opacity-50 mt-0.5">Any combination is allowed. Only fields with values display in the nav.</p>
     </div>
 
     {#if brandError}<aside class="alert preset-tonal-error p-3 rounded-base text-sm">{brandError}</aside>{/if}

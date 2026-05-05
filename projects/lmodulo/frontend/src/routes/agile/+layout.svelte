@@ -13,9 +13,11 @@
     { href: '/agile/calendar', label: 'Calendar',  icon: CalendarDays  },
   ];
 
+  const overviewPrefixes = ['/agile/milestones', '/agile/sprints', '/agile/jobs'];
+
   const isActive = (href: string) =>
     href === '/agile'
-      ? $page.url.pathname === '/agile'
+      ? $page.url.pathname === '/agile' || overviewPrefixes.some(p => $page.url.pathname.startsWith(p))
       : $page.url.pathname.startsWith(href);
 </script>
 

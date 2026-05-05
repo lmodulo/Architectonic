@@ -4,6 +4,7 @@
 
 {#if brandLogo}
   <img src={brandLogo} alt={brandName || 'Logo'} class="size-6 object-contain" />
-{:else if brandName}
+{/if}
+{#if brandName}
   <span class="text-xl font-semibold">{brandName}</span>
 {/if}

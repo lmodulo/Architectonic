@@ -47,10 +47,10 @@ export default async function settingsRoutes(app: FastifyInstance) {
 
     const url = `/uploads/logo/${filename}`;
 
-    await app.mongo.db!.collection('settings').bulkWrite([
-      { updateOne: { filter: { key: 'brand.logo' }, update: { $set: { value: url,  updatedAt: new Date(), updatedBy: req.session.userId ?? null } } } },
-      { updateOne: { filter: { key: 'brand.name' }, update: { $set: { value: '',   updatedAt: new Date(), updatedBy: req.session.userId ?? null } } } }
-    ]);
+    await app.mongo.db!.collection('settings').updateOne(
+      { key: 'brand.logo' },
+      { $set: { value: url, updatedAt: new Date(), updatedBy: req.session.userId ?? null } }
+    );
 
     logAudit(app.mongo.db!, {
       userId:     req.session.userId!,
@@ -62,6 +62,15 @@ export default async function settingsRoutes(app: FastifyInstance) {
     });
 
     return { url };
+  });
+
+  // GET /settings/brand — public: returns brand.name and brand.logo without auth
+  app.get('/brand', async () => {
+    const docs = await app.mongo.db!.collection('settings')
+      .find({ key: { $in: ['brand.name', 'brand.logo'] } })
+      .toArray();
+    const map = Object.fromEntries(docs.map(d => [d.key as string, d.value as string ?? '']));
+    return { brandName: map['brand.name'] || null, brandLogo: map['brand.logo'] || null };
   });
 
   // GET /settings/:key — requireAuth only: individual settings readable by all authenticated users

@@ -208,7 +208,7 @@
         <p class="text-sm">No milestones yet.{#if hasPermission(data.user, 'agile_milestones', 'create')} Create one to get started.{/if}</p>
       </div>
     {:else}
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div class="space-y-3">
         {#each visible as milestone (milestone.id)}
           <MilestoneCard
             {milestone}

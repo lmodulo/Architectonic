@@ -70,14 +70,14 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 
 ### App Name vs Brand
 - **App Name** — static, from `APP_NAME` env var. Used in `<title>`. Read in `+layout.server.ts` via `$env/dynamic/private` and passed as `data.appName`. Falls back to `'Application'`.
-- **Brand** — runtime-configurable MongoDB settings (`brand.name`, `brand.logo`). Used in the app header logo slot. Mutually exclusive: setting one clears the other.
+- **Brand** — runtime-configurable MongoDB settings (`brand.name`, `brand.logo`). Used in the app header logo slot. Any combination is allowed; only fields with values display in the nav.
 
 ### Logo component
 - Use `<Logo brandName={...} brandLogo={...} />` — both props optional, default `''`
 - If `brandLogo` is set → renders `<img>`; if `brandName` is set → renders text; if both empty → renders nothing
-- Upload endpoint: `POST /api/settings/logo` (multipart) — saves `brand.logo`, clears `brand.name`
+- Upload endpoint: `POST /api/settings/logo` (multipart) — saves `brand.logo` only
 - Remove logo by PATCHing `brand.logo` with `value: ''`
-- Set brand name by PATCHing `brand.name`; also PATCH `brand.logo` to `''` to maintain exclusivity
+- Set brand name by PATCHing `brand.name`
 - Static uploads proxied through SvelteKit at `/uploads/[...path]` → API `/uploads/[...path]`
 
 ### Svelte 5 rules
