@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import type { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -69,7 +69,7 @@ const SEED_USERS: [string, string, string][] = [
 
 // Upserts default roles on every boot — idempotent.
 // $setOnInsert preserves manual permission edits made after first seed.
-export default async function seedPlugin(app: FastifyInstance) {
+export default fp(async function seedPlugin(app: any) {
   app.addHook('onReady', async () => {
     const db   = app.mongo.db!;
     const now  = new Date();
@@ -123,4 +123,4 @@ export default async function seedPlugin(app: FastifyInstance) {
       );
     }
   });
-}
+});
