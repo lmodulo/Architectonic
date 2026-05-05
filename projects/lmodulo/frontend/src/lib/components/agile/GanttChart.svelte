@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { STATUS_COLOR } from '$lib/utils/agile';
   import type { AgileMilestone, AgileSprint } from '$lib/utils/agile';
   import { goto } from '$app/navigation';
 
@@ -27,7 +26,7 @@
     depth: number;
   }
 
-  const rows = $derived((): Row[] => {
+  const rows = $derived.by((): Row[] => {
     const result: Row[] = [];
     for (const m of milestones) {
       result.push({
@@ -52,41 +51,39 @@
     return result;
   });
 
-  const allDates = $derived(() => {
+  const allDates = $derived.by(() => {
     const dates: Date[] = [];
-    for (const r of rows()) {
+    for (const r of rows) {
       if (r.start) dates.push(r.start);
       if (r.end)   dates.push(r.end);
     }
     return dates;
   });
 
-  const minDate  = $derived(() => allDates().length ? new Date(Math.min(...allDates().map(d => d.getTime()))) : new Date());
-  const maxDate  = $derived(() => allDates().length ? new Date(Math.max(...allDates().map(d => d.getTime()))) : new Date());
-  const spanMs   = $derived(() => Math.max(maxDate().getTime() - minDate().getTime(), 1));
+  const minDate = $derived(allDates.length ? new Date(Math.min(...allDates.map(d => d.getTime()))) : new Date());
+  const maxDate = $derived(allDates.length ? new Date(Math.max(...allDates.map(d => d.getTime()))) : new Date());
+  const spanMs  = $derived(Math.max(maxDate.getTime() - minDate.getTime(), 1));
+  const chartW  = $derived(width - LABEL_W - PAD * 2);
+  const totalH  = $derived(HEADER_H + rows.length * ROW_H + PAD);
 
-  const chartW   = $derived(width - LABEL_W - PAD * 2);
-  const today    = new Date();
-  const todayX   = $derived(LABEL_W + PAD + ((today.getTime() - minDate().getTime()) / spanMs()) * chartW);
-
-  const totalH   = $derived(HEADER_H + rows().length * ROW_H + PAD);
+  const today   = new Date();
+  const todayX  = $derived(LABEL_W + PAD + ((today.getTime() - minDate.getTime()) / spanMs) * chartW);
 
   function barX(row: Row): number {
     if (!row.start) return LABEL_W + PAD;
-    return LABEL_W + PAD + ((row.start.getTime() - minDate().getTime()) / spanMs()) * chartW;
+    return LABEL_W + PAD + ((row.start.getTime() - minDate.getTime()) / spanMs) * chartW;
   }
   function barW(row: Row): number {
     if (!row.start || !row.end) return 4;
-    return Math.max(4, ((row.end.getTime() - row.start.getTime()) / spanMs()) * chartW);
+    return Math.max(4, ((row.end.getTime() - row.start.getTime()) / spanMs) * chartW);
   }
 
-  // Month tick marks across the header
-  const monthTicks = $derived(() => {
+  const monthTicks = $derived.by(() => {
     const ticks: { x: number; label: string }[] = [];
-    const cursor = new Date(minDate());
+    const cursor = new Date(minDate);
     cursor.setDate(1);
-    while (cursor <= maxDate()) {
-      const x = LABEL_W + PAD + ((cursor.getTime() - minDate().getTime()) / spanMs()) * chartW;
+    while (cursor <= maxDate) {
+      const x = LABEL_W + PAD + ((cursor.getTime() - minDate.getTime()) / spanMs) * chartW;
       ticks.push({ x, label: cursor.toLocaleString('en-US', { month: 'short', year: '2-digit' }) });
       cursor.setMonth(cursor.getMonth() + 1);
     }
@@ -96,9 +93,9 @@
 
 <div class="overflow-x-auto">
   <svg
-    viewBox="0 0 {width} {totalH()}"
+    viewBox="0 0 {width} {totalH}"
     width="100%"
-    height={totalH()}
+    height={totalH}
     class="block font-sans"
     aria-label="Gantt chart"
   >
@@ -106,14 +103,14 @@
     <rect x="0" y="0" width={width} height={HEADER_H} fill="currentColor" fill-opacity="0.04"/>
 
     <!-- Month tick lines + labels -->
-    {#each monthTicks() as tick}
-      <line x1={tick.x} x2={tick.x} y1={HEADER_H} y2={totalH()}
+    {#each monthTicks as tick}
+      <line x1={tick.x} x2={tick.x} y1={HEADER_H} y2={totalH}
         stroke="currentColor" stroke-opacity="0.06" stroke-width="1"/>
       <text x={tick.x + 4} y={HEADER_H - 8} font-size="9" fill="currentColor" fill-opacity="0.5">{tick.label}</text>
     {/each}
 
     <!-- Row bars -->
-    {#each rows() as row, i}
+    {#each rows as row, i}
       {@const y = HEADER_H + i * ROW_H}
       {@const bx = barX(row)}
       {@const bw = barW(row)}
@@ -130,7 +127,10 @@
         font-weight={row.depth === 0 ? '600' : '400'}
         fill="currentColor" fill-opacity="0.8"
         class="cursor-pointer hover:fill-primary-500"
+        role="button"
+        tabindex="0"
         onclick={() => goto(row.href)}
+        onkeydown={e => e.key === 'Enter' && goto(row.href)}
       >
         {row.label.length > 22 ? row.label.slice(0, 22) + '…' : row.label}
       </text>
@@ -142,7 +142,10 @@
           rx="3"
           fill={row.color} fill-opacity={row.depth === 0 ? 0.85 : 0.55}
           class="cursor-pointer"
+          role="button"
+          tabindex="0"
           onclick={() => goto(row.href)}
+          onkeydown={e => e.key === 'Enter' && goto(row.href)}
         >
           <title>{row.label}: {row.start?.toLocaleDateString()} – {row.end?.toLocaleDateString()}</title>
         </rect>
@@ -154,10 +157,10 @@
     {/each}
 
     <!-- Today line -->
-    {#if todayX() >= LABEL_W && todayX() <= width}
-      <line x1={todayX()} x2={todayX()} y1={0} y2={totalH()}
+    {#if todayX >= LABEL_W && todayX <= width}
+      <line x1={todayX} x2={todayX} y1={0} y2={totalH}
         stroke="var(--color-error-500)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
-      <text x={todayX() + 3} y={12} font-size="9" fill="var(--color-error-500)" opacity="0.8">Today</text>
+      <text x={todayX + 3} y={totalH - 4} font-size="9" fill="var(--color-error-500)" opacity="0.8">Today</text>
     {/if}
 
     <!-- Legend -->

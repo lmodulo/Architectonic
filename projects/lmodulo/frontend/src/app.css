@@ -4,6 +4,6 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Custom project theme */
-@import "./themes/crimson.css";
+@import "../lmodulo-theme.css";
 
 @import "@skeletonlabs/skeleton";

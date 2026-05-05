@@ -93,10 +93,13 @@ export default async function seedPlugin(app: FastifyInstance) {
     for (const [username, firstName, role] of SEED_USERS) {
       const existing = await users.findOne({ username });
       if (!existing) {
-        const passwordHash = await bcrypt.hash(username, 12);
+        const email        = `${username}@lmodulo.com`;
+        const password     = `${username}-password`;
+        const passwordHash = await bcrypt.hash(password, 12);
         await users.insertOne({
           username,
-          email:     `${username}@example.com`,
+          email,
+          password,
           passwordHash,
           firstName,
           lastName:  '',

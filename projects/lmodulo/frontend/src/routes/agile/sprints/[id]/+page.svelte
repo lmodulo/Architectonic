@@ -26,6 +26,8 @@
   const capacity   = $derived(sprint.capacity ?? 0);
   const committed  = $derived(sprint.committedEffort ?? 0);
   const maxBar     = $derived(Math.max(capacity, committed, velocity, 1));
+  const bw = 30;
+  const gap = 10;
 
   // ── New job modal ──────────────────────────────────────────────────
   let jobModal  = $state(false);
@@ -118,8 +120,6 @@
         <span class="text-xs font-semibold opacity-70">Velocity</span>
       </div>
       <svg viewBox="0 0 120 60" width="100%" height="60" class="block" aria-hidden="true">
-        {@const bw = 30}
-        {@const gap = 10}
         <!-- Capacity -->
         <rect x={5}        y={60 - (capacity  / maxBar)*50} width={bw} height={(capacity  / maxBar)*50} rx="3" fill="var(--color-surface-500)" fill-opacity="0.3"/>
         <!-- Committed -->
@@ -186,12 +186,11 @@
                 </td>
                 <td class="px-4 py-2.5 text-right text-xs opacity-60">{job.taskCount ?? 0}</td>
                 <td class="px-4 py-2.5">
-                  {@const p = Math.round(job.completionPct ?? 0)}
                   <div class="flex items-center gap-2 justify-end">
                     <div class="w-16 h-1.5 rounded-full bg-surface-200-800 overflow-hidden">
-                      <div class="h-full rounded-full" style="width:{p}%;background:{completionColor(p)}"></div>
+                      <div class="h-full rounded-full" style="width:{Math.round(job.completionPct ?? 0)}%;background:{completionColor(Math.round(job.completionPct ?? 0))}"></div>
                     </div>
-                    <span class="text-xs font-medium w-8 text-right">{p}%</span>
+                    <span class="text-xs font-medium w-8 text-right">{Math.round(job.completionPct ?? 0)}%</span>
                   </div>
                 </td>
               </tr>

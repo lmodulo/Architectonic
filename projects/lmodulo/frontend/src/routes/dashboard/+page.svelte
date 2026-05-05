@@ -1,8 +1,5 @@
 <script lang="ts">
-  import { Pagination } from '@skeletonlabs/skeleton-svelte';
-  import { Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight,
-           TrendingUp, ShoppingCart, DollarSign, MapPin, ChevronUp, ChevronDown,
-           Plus, X } from 'lucide-svelte';
+  import { Search, ChevronLeft, ChevronRight, Plus, X } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import type { PageData } from './$types';
@@ -10,169 +7,40 @@
   import { hasPermission } from '$lib/permissions';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import RoleQuickView from '$lib/components/agile/RoleQuickView.svelte';
-  import { fmtEffort } from '$lib/utils/agile';
+  import type { AgileMilestone, AgileSprint, AgileTask } from '$lib/utils/agile';
 
   let { data }: { data: PageData } = $props();
 
-  // ── Seeded RNG (deterministic data on every load) ──────────────────
-  function makeRng(seed: number) {
-    let s = (seed >>> 0) || 1;
-    return () => { s = (Math.imul(1664525, s) + 1013904223) >>> 0; return s / 0x100000000; };
-  }
-  const rng = makeRng(8675309);
-
-  // ── Generate 90 sales records ──────────────────────────────────────
-  const PRODUCTS = ['Software License', 'Consulting', 'Support Plan', 'Training', 'Hardware'];
-  const REGIONS  = ['North', 'South', 'East', 'West', 'International'];
-  const STATUSES = ['Completed', 'Completed', 'Completed', 'Pending', 'Refunded'] as const;
-
-  type Sale = { id: string; date: Date; product: string; region: string; revenue: number; units: number; status: string };
-
+  // ── Calendar ───────────────────────────────────────────────────────
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
-  const allSales: Sale[] = Array.from({ length: 90 }, (_, i) => {
-    const daysAgo = Math.floor(rng() * 90);
-    const d = new Date(today); d.setDate(d.getDate() - daysAgo);
-    return {
-      id: `ORD-${1000 + i}`,
-      date: d,
-      product: PRODUCTS[Math.floor(rng() * PRODUCTS.length)],
-      region:  REGIONS[Math.floor(rng()  * REGIONS.length)],
-      revenue: Math.round((rng() * 8500 + 500) * 100) / 100,
-      units:   Math.floor(rng() * 20) + 1,
-      status:  STATUSES[Math.floor(rng() * STATUSES.length)],
-    };
-  }).sort((a, b) => b.date.getTime() - a.date.getTime());
-
-  // ── KPIs ───────────────────────────────────────────────────────────
-  const totalRevenue = allSales.reduce((s, r) => s + r.revenue, 0);
-  const totalOrders  = allSales.length;
-  const avgOrder     = totalRevenue / totalOrders;
-  const topRegion    = [...REGIONS].sort((a, b) =>
-    allSales.filter(s => s.region === b).length - allSales.filter(s => s.region === a).length
-  )[0];
-
-  const fmt = (n: number) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
-
-  // ── Chart datasets ─────────────────────────────────────────────────
-  const dailyData = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(today); d.setDate(d.getDate() - (29 - i));
-    return { label: `${d.getMonth()+1}/${d.getDate()}`, value: allSales.filter(s => s.date.toDateString() === d.toDateString()).reduce((a, s) => a + s.revenue, 0) };
-  });
-
-  const productData = PRODUCTS.map(p => ({
-    label: p, value: allSales.filter(s => s.product === p).reduce((a, s) => a + s.revenue, 0)
-  })).sort((a, b) => b.value - a.value);
-
-  const regionData = REGIONS.map(r => ({
-    label: r, value: allSales.filter(s => s.region === r).length
-  }));
-
-  const monthlyData = Array.from({ length: 12 }, (_, i) => {
-    const d = new Date(today.getFullYear(), today.getMonth() - (11 - i), 1);
-    return { label: d.toLocaleString('en-US', { month: 'short' }), value: allSales.filter(s => s.date.getFullYear() === d.getFullYear() && s.date.getMonth() === d.getMonth()).reduce((a, s) => a + s.revenue, 0) };
-  });
-
-  // ── SVG chart helpers ──────────────────────────────────────────────
-  function linePoints(pts: {value:number}[], w=480, h=140, p=16): string {
-    const mx = Math.max(...pts.map(d => d.value), 1);
-    return pts.map((d, i) => `${(p + (i/(pts.length-1))*(w-p*2)).toFixed(1)},${(h-p-(d.value/mx)*(h-p*2)).toFixed(1)}`).join(' ');
-  }
-
-  function areaPath(pts: {value:number}[], w=480, h=140, p=16): string {
-    const mx = Math.max(...pts.map(d => d.value), 1);
-    const coords = pts.map((d, i) => ({ x: p + (i/(pts.length-1))*(w-p*2), y: h-p-(d.value/mx)*(h-p*2) }));
-    const line = coords.map(c => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(' L ');
-    return `M${coords[0].x.toFixed(1)},${(h-p).toFixed(1)} L ${line} L${coords[coords.length-1].x.toFixed(1)},${(h-p).toFixed(1)}Z`;
-  }
-
-  function hBars(pts: {label:string;value:number}[], w=460, h=165, lblW=118, p=10) {
-    const mx = Math.max(...pts.map(d => d.value), 1);
-    const rowH = (h - p*2) / pts.length;
-    return pts.map((d, i) => ({
-      ...d,
-      x: lblW, y: p + i*rowH + rowH*0.12,
-      w: (d.value/mx)*(w-lblW-p), bh: rowH*0.76,
-      midY: p + i*rowH + rowH/2,
-    }));
-  }
-
-  const DONUT_COLORS = ['primary','secondary','success','warning','error'] as const;
-  function donutSegs(pts: {label:string;value:number}[], cx=90, cy=90, r=78, ir=48) {
-    const total = pts.reduce((s, d) => s + d.value, 0) || 1;
-    let a = -Math.PI/2;
-    return pts.map((d, i) => {
-      const sw = (d.value/total)*Math.PI*2;
-      const [x1,y1] = [cx+r*Math.cos(a), cy+r*Math.sin(a)];
-      const [x2,y2] = [cx+r*Math.cos(a+sw), cy+r*Math.sin(a+sw)];
-      const [xi1,yi1] = [cx+ir*Math.cos(a+sw), cy+ir*Math.sin(a+sw)];
-      const [xi2,yi2] = [cx+ir*Math.cos(a), cy+ir*Math.sin(a)];
-      const lg = sw > Math.PI ? 1 : 0;
-      const path = `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${lg} 1 ${x2.toFixed(2)},${y2.toFixed(2)} L${xi1.toFixed(2)},${yi1.toFixed(2)} A${ir},${ir} 0 ${lg} 0 ${xi2.toFixed(2)},${yi2.toFixed(2)}Z`;
-      a += sw;
-      return { path, color: `var(--color-${DONUT_COLORS[i%5]}-500)`, label: d.label, pct: Math.round(d.value/total*100), value: d.value };
-    });
-  }
-
-  const bars = hBars(productData);
-  const segs = donutSegs(regionData);
-
-  // ── Table ──────────────────────────────────────────────────────────
-  let query       = $state('');
-  let currentPage = $state(1);
-  const PAGE_SIZE = 10;
-
-  const filtered = $derived(query.trim()
-    ? allSales.filter(s =>
-        s.id.toLowerCase().includes(query.toLowerCase()) ||
-        s.product.toLowerCase().includes(query.toLowerCase()) ||
-        s.region.toLowerCase().includes(query.toLowerCase()) ||
-        s.status.toLowerCase().includes(query.toLowerCase()))
-    : allSales);
-
-  const pageRows = $derived(filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE));
-  $effect(() => { query; currentPage = 1; });
-
-  const STATUS_CLS: Record<string,string> = {
-    Completed: 'preset-filled-success-500',
-    Pending:   'preset-filled-warning-500',
-    Refunded:  'preset-filled-error-500',
-  };
-
-  // ── Calendar ───────────────────────────────────────────────────────
   let calYear  = $state(today.getFullYear());
   let calMonth = $state(today.getMonth());
 
   function buildCal(year: number, month: number) {
-    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startDow    = new Date(year, month, 1).getDay();
     const cells       = Math.ceil((startDow + daysInMonth) / 7) * 7;
     return Array.from({ length: cells }, (_, i) => {
       const day = i - startDow + 1;
       if (day < 1 || day > daysInMonth) return null;
       const d = new Date(year, month, day);
-      const ds = allSales.filter(s => s.date.toDateString() === d.toDateString());
-      return { day, isToday: d.toDateString() === today.toDateString(), count: ds.length, revenue: ds.reduce((a,s) => a+s.revenue, 0) };
+      return { day, isToday: d.toDateString() === today.toDateString() };
     });
   }
 
   const calDays  = $derived(buildCal(calYear, calMonth));
   const calLabel = $derived(new Date(calYear, calMonth, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }));
-  function prevMonth() { calMonth === 0 ? (calMonth=11, calYear--) : calMonth--; }
-  function nextMonth() { calMonth === 11 ? (calMonth=0, calYear++) : calMonth++; }
-
-  // max revenue day for calendar heat intensity
-  const maxDayRevenue = $derived(
-    Math.max(...calDays.filter(Boolean).map(d => d!.revenue), 1)
-  );
+  function prevMonth() { calMonth === 0 ? (calMonth = 11, calYear--) : calMonth--; }
+  function nextMonth() { calMonth === 11 ? (calMonth = 0, calYear++) : calMonth++; }
 
   // ── Events ────────────────────────────────────────────────────────
   type CalEvent = {
     id: string;
     title: string;
     content: string;
-    startDate: string; // YYYY-MM-DD
-    endDate: string;   // YYYY-MM-DD
+    startDate: string;
+    endDate: string;
     singleDay: boolean;
   };
 
@@ -208,7 +76,6 @@
       : []
   );
 
-  // Keep endDate in sync when singleDay is on
   $effect(() => {
     if (eventForm.singleDay) eventForm.endDate = eventForm.startDate;
   });
@@ -320,28 +187,76 @@
     }
   }
 
-  function fmtEventDate(ev: CalEvent): string {
-    const start = new Date(ev.startDate + 'T00:00:00');
-    if (ev.singleDay) return start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const end = new Date(ev.endDate + 'T00:00:00');
-    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-  }
-
-  // ── Dashboard widgets (injected by modules) ────────────────────────
+  // ── Dashboard widgets ──────────────────────────────────────────────
   const sortedWidgets = $derived([...dashboardWidgets].sort((a, b) => a.order - b.order));
 
-  // ── Agile metrics ────────────────────────────────────────────────
-  const agileMilestones = $derived((data.milestones ?? []) as any[]);
-  const agileTasks      = $derived((data.agileTasks  ?? []) as any[]);
+  // ── Agile metrics ─────────────────────────────────────────────────
+  const agileMilestones = $derived((data.milestones ?? []) as AgileMilestone[]);
+  const agileSprints    = $derived((data.sprints    ?? []) as AgileSprint[]);
+  const agileTasks      = $derived((data.agileTasks ?? []) as AgileTask[]);
   const myAgileTasks    = $derived(agileTasks.filter((t: any) => t.assignedTo === data.user?.id));
   const agileBlocked    = $derived(agileTasks.filter((t: any) => t.status === 'Blocked').length);
   const agileOverdue    = $derived(agileTasks.filter((t: any) =>
     t.dueDate && new Date(t.dueDate) < today && t.status !== 'Done'
   ).length);
-  const agileRole     = $derived(data.user?.role ?? '');
-  const agileIsAdmin  = $derived(['owner', 'admin'].includes(agileRole));
-  const agileIsLead   = $derived(agileRole === 'lead');
-  const agileIsContrib= $derived(agileRole === 'contributor');
+  const agileRole      = $derived(data.user?.role ?? '');
+  const agileIsAdmin   = $derived(['owner', 'admin'].includes(agileRole));
+  const agileIsLead    = $derived(agileRole === 'lead');
+
+  // ── Agile calendar helpers ────────────────────────────────────────
+  function dateStr(year: number, month: number, day: number): string {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+  function spansDay(start: string | undefined, end: string | undefined, ds: string): boolean {
+    if (!start) return false;
+    return start.slice(0, 10) <= ds && ds <= (end ?? start).slice(0, 10);
+  }
+  function milestonesForDay(y: number, m: number, d: number) {
+    const ds = dateStr(y, m, d);
+    return agileMilestones.filter(ms => spansDay(ms.startDate, ms.endDate, ds));
+  }
+  function sprintsForDay(y: number, m: number, d: number) {
+    const ds = dateStr(y, m, d);
+    return agileSprints.filter(sp => spansDay(sp.startDate, sp.endDate, ds));
+  }
+  function tasksForDay(y: number, m: number, d: number) {
+    const ds = dateStr(y, m, d);
+    return agileTasks.filter(t => t.dueDate?.slice(0, 10) === ds);
+  }
+
+  // ── Task status donut chart ────────────────────────────────────────
+  const STATUS_COLORS: Record<string, string> = {
+    'Todo':        'var(--color-surface-400)',
+    'In Progress': 'var(--color-primary-500)',
+    'In Review':   'var(--color-secondary-500)',
+    'Done':        'var(--color-success-500)',
+    'Blocked':     'var(--color-error-500)',
+  };
+
+  const taskStatusCounts = $derived(() => {
+    const counts: Record<string, number> = {};
+    for (const t of agileTasks) counts[t.status] = (counts[t.status] ?? 0) + 1;
+    return Object.entries(counts).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+      .map(([label, value]) => ({ label, value }));
+  });
+
+  function donutSegs(pts: { label: string; value: number }[], cx = 90, cy = 90, r = 70, ir = 44) {
+    const total = pts.reduce((s, d) => s + d.value, 0) || 1;
+    let a = -Math.PI / 2;
+    return pts.map(d => {
+      const sw = (d.value / total) * Math.PI * 2;
+      const [x1, y1]   = [cx + r  * Math.cos(a),      cy + r  * Math.sin(a)];
+      const [x2, y2]   = [cx + r  * Math.cos(a + sw), cy + r  * Math.sin(a + sw)];
+      const [xi1, yi1] = [cx + ir * Math.cos(a + sw), cy + ir * Math.sin(a + sw)];
+      const [xi2, yi2] = [cx + ir * Math.cos(a),      cy + ir * Math.sin(a)];
+      const lg   = sw > Math.PI ? 1 : 0;
+      const path = `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${lg} 1 ${x2.toFixed(2)},${y2.toFixed(2)} L${xi1.toFixed(2)},${yi1.toFixed(2)} A${ir},${ir} 0 ${lg} 0 ${xi2.toFixed(2)},${yi2.toFixed(2)}Z`;
+      a += sw;
+      return { path, color: STATUS_COLORS[d.label] ?? 'var(--color-tertiary-500)', label: d.label, pct: Math.round(d.value / total * 100), value: d.value };
+    });
+  }
+
+  const taskSegs = $derived(donutSegs(taskStatusCounts()));
 </script>
 
 <svelte:head><title>Dashboard</title></svelte:head>
@@ -351,195 +266,123 @@
   <!-- Header -->
   <div>
     <h1 class="text-2xl font-bold">Dashboard</h1>
-    <p class="text-sm opacity-60 mt-0.5">Welcome back, <strong>{data.user?.firstName ?? data.user?.username}</strong> — last 90 days of sales activity</p>
+    <p class="text-sm opacity-60 mt-0.5">Welcome back, <strong>{data.user?.firstName ?? data.user?.username}</strong></p>
   </div>
 
-  <!-- KPI Cards -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg preset-tonal-primary"><DollarSign class="size-5 text-primary-500" /></div>
-      <div>
-        <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Revenue</p>
-        <p class="text-2xl font-bold mt-0.5">{fmt(totalRevenue)}</p>
-        <p class="text-xs opacity-50 mt-0.5">90-day period</p>
+  <!-- ── Agile Summary ───────────────────────────────────────────────── -->
+  {#if hasPermission(data.user, 'agile_milestones', 'read')}
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Agile Tracker</h2>
+        <a href="/agile" class="btn btn-sm preset-tonal text-xs">Open Tracker →</a>
       </div>
-    </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg preset-tonal-secondary"><ShoppingCart class="size-5 text-secondary-500" /></div>
-      <div>
-        <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Orders</p>
-        <p class="text-2xl font-bold mt-0.5">{totalOrders}</p>
-        <p class="text-xs opacity-50 mt-0.5">across all regions</p>
-      </div>
-    </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg preset-tonal-success"><TrendingUp class="size-5 text-success-500" /></div>
-      <div>
-        <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Avg Order Value</p>
-        <p class="text-2xl font-bold mt-0.5">{fmt(avgOrder)}</p>
-        <p class="text-xs opacity-50 mt-0.5">per transaction</p>
-      </div>
-    </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg preset-tonal-warning"><MapPin class="size-5 text-warning-500" /></div>
-      <div>
-        <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Top Region</p>
-        <p class="text-2xl font-bold mt-0.5">{topRegion}</p>
-        <p class="text-xs opacity-50 mt-0.5">by order volume</p>
-      </div>
-    </div>
-  </div>
 
-  <!-- Charts 2×2 -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-    <!-- Line: Daily Revenue -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Daily Revenue — Last 30 Days</h2>
-      <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-        <!-- grid lines -->
-        {#each [0.25, 0.5, 0.75, 1] as frac}
-          <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
-            stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
-        {/each}
-        <!-- area fill -->
-        <path d={areaPath(dailyData)} fill="var(--color-primary-500)" fill-opacity="0.15"/>
-        <!-- line -->
-        <polyline points={linePoints(dailyData)} fill="none" stroke="var(--color-primary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        <!-- x-axis labels every 5 days -->
-        {#each dailyData as d, i}
-          {#if i % 5 === 0}
-            <text x={(16 + (i/29)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
-          {/if}
-        {/each}
-      </svg>
-    </div>
-
-    <!-- Bar: Revenue by Product -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Revenue by Product</h2>
-      <svg viewBox="0 0 460 165" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-        {#each bars as b, i}
-          <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
-          <rect x={b.x} y={b.y} width={b.w} height={b.bh} rx="3"
-            fill="var(--color-{DONUT_COLORS[i%5]}-500)" fill-opacity="0.85"/>
-          <text x={b.x + b.w + 5} y={b.midY + 3.5} font-size="9" fill="currentColor" fill-opacity="0.5">{fmt(b.value)}</text>
-        {/each}
-      </svg>
-    </div>
-
-    <!-- Donut: Orders by Region -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Orders by Region</h2>
-      <div class="flex items-center gap-6">
-        <svg viewBox="0 0 180 180" width="180" height="180" class="shrink-0" aria-hidden="true">
-          {#each segs as seg}
-            <path d={seg.path} fill={seg.color} fill-opacity="0.9"/>
-          {/each}
-          <text x="90" y="85" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">{totalOrders}</text>
-          <text x="90" y="100" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.5">orders</text>
-        </svg>
-        <ul class="space-y-2 text-sm flex-1">
-          {#each segs as seg, i}
-            <li class="flex items-center justify-between gap-2">
-              <span class="flex items-center gap-2">
-                <span class="size-2.5 rounded-full shrink-0" style="background:{seg.color}"></span>
-                <span class="opacity-70">{seg.label}</span>
-              </span>
-              <span class="font-semibold">{seg.pct}%</span>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    </div>
-
-    <!-- Area: Monthly Revenue -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Monthly Revenue — Last 12 Months</h2>
-      <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-        {#each [0.25, 0.5, 0.75, 1] as frac}
-          <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
-            stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
-        {/each}
-        <path d={areaPath(monthlyData)} fill="var(--color-secondary-500)" fill-opacity="0.18"/>
-        <polyline points={linePoints(monthlyData)} fill="none" stroke="var(--color-secondary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        {#each monthlyData as d, i}
-          <text x={(16 + (i/11)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
-        {/each}
-      </svg>
-    </div>
-
-  </div>
-
-  <!-- Sales Table -->
-  <div class="space-y-3">
-    <h2 class="text-lg font-semibold">Sales Records</h2>
-
-    <div class="input-group grid-cols-[auto_1fr]">
-      <div class="ig-cell preset-tonal"><Search class="size-4" /></div>
-      <input type="search" class="ig-input" placeholder="Search by ID, product, region, or status…" bind:value={query} />
-    </div>
-
-    <div class="card preset-filled-surface-100-900 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-surface-200-800">
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Order</th>
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Date</th>
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Product</th>
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Region</th>
-            <th class="text-right px-4 py-3 font-semibold text-surface-500">Units</th>
-            <th class="text-right px-4 py-3 font-semibold text-surface-500">Revenue</th>
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each pageRows as row}
-            <tr class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-              <td class="px-4 py-3 font-mono text-xs opacity-60">{row.id}</td>
-              <td class="px-4 py-3 text-surface-500">{row.date.toLocaleDateString()}</td>
-              <td class="px-4 py-3">{row.product}</td>
-              <td class="px-4 py-3 text-surface-500">{row.region}</td>
-              <td class="px-4 py-3 text-right">{row.units}</td>
-              <td class="px-4 py-3 text-right font-semibold">{fmt(row.revenue)}</td>
-              <td class="px-4 py-3">
-                <span class="badge text-xs {STATUS_CLS[row.status] ?? ''}">{row.status}</span>
-              </td>
-            </tr>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- KPI cards (role-aware) -->
+        <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {#if agileIsAdmin || agileIsLead}
+            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Milestones</p>
+              <p class="text-2xl font-bold">{agileMilestones.length}</p>
+              <p class="text-xs opacity-40">{agileMilestones.filter((m: any) => m.status === 'Active').length} active</p>
+            </div>
+            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Blocked Tasks</p>
+              <p class="text-2xl font-bold text-error-500">{agileBlocked}</p>
+              <p class="text-xs opacity-40">{agileOverdue} overdue</p>
+            </div>
+            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Tasks</p>
+              <p class="text-2xl font-bold">{agileTasks.length}</p>
+              <p class="text-xs opacity-40">{agileTasks.filter((t: any) => t.status === 'Done').length} done</p>
+            </div>
           {:else}
-            <tr><td colspan="7" class="px-4 py-8 text-center text-surface-500">No records found.</td></tr>
-          {/each}
-        </tbody>
-      </table>
+            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">My Tasks</p>
+              <p class="text-2xl font-bold">{myAgileTasks.length}</p>
+              <p class="text-xs opacity-40">assigned to me</p>
+            </div>
+            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">In Progress</p>
+              <p class="text-2xl font-bold">{myAgileTasks.filter((t: any) => t.status === 'In Progress').length}</p>
+              <p class="text-xs opacity-40">of my tasks</p>
+            </div>
+            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Done</p>
+              <p class="text-2xl font-bold text-success-500">{myAgileTasks.filter((t: any) => t.status === 'Done').length}</p>
+              <p class="text-xs opacity-40">of my tasks</p>
+            </div>
+          {/if}
+        </div>
 
-      <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800">
-        <span class="text-xs text-surface-500">
-          {filtered.length === 0 ? 'No records' : `${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filtered.length)} of ${filtered.length}`}
-        </span>
-        <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={e => (currentPage = e.page)} siblingCount={1}>
-          <Pagination.FirstTrigger class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronFirst class="size-4"/></Pagination.FirstTrigger>
-          <Pagination.PrevTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLeft  class="size-4"/></Pagination.PrevTrigger>
-          <Pagination.Context>
-            {#snippet children(pagination)}
-              {#each pagination().pages as p (p)}
-                {#if p.type === 'page'}
-                  <Pagination.Item {...p} class="btn-icon btn-sm {p.value === currentPage ? 'preset-tonal-primary' : 'hover:preset-tonal'}">{p.value}</Pagination.Item>
-                {:else}
-                  <Pagination.Ellipsis index={p.index} class="btn-icon btn-sm opacity-40">…</Pagination.Ellipsis>
-                {/if}
-              {/each}
-            {/snippet}
-          </Pagination.Context>
-          <Pagination.NextTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronRight class="size-4"/></Pagination.NextTrigger>
-          <Pagination.LastTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLast  class="size-4"/></Pagination.LastTrigger>
-        </Pagination>
+        <!-- Role quick view -->
+        <RoleQuickView user={data.user} />
       </div>
-    </div>
-  </div>
 
-  <!-- Order Calendar -->
+      <!-- Charts row -->
+      {#if agileTasks.length > 0}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+          <!-- Task status donut -->
+          <div class="card preset-filled-surface-100-900 p-5 space-y-3">
+            <h3 class="text-sm font-semibold opacity-70">Task Status Breakdown</h3>
+            <div class="flex items-center gap-6">
+              <svg viewBox="0 0 180 180" width="160" height="160" class="shrink-0" aria-hidden="true">
+                {#each taskSegs as seg}
+                  <path d={seg.path} fill={seg.color} fill-opacity="0.9"/>
+                {/each}
+                <text x="90" y="85" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">{agileTasks.length}</text>
+                <text x="90" y="100" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.5">tasks</text>
+              </svg>
+              <ul class="space-y-2 text-sm flex-1">
+                {#each taskSegs as seg}
+                  <li class="flex items-center justify-between gap-2">
+                    <span class="flex items-center gap-2">
+                      <span class="size-2.5 rounded-full shrink-0" style="background:{seg.color}"></span>
+                      <span class="opacity-70">{seg.label}</span>
+                    </span>
+                    <span class="font-semibold">{seg.value} <span class="opacity-40 font-normal text-xs">{seg.pct}%</span></span>
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          </div>
+
+          <!-- Active milestones -->
+          {#if agileMilestones.filter((m: any) => m.status === 'Active').length > 0 && (agileIsAdmin || agileIsLead)}
+            <div class="card preset-filled-surface-100-900 overflow-hidden">
+              <div class="px-4 py-2.5 border-b border-surface-200-800">
+                <span class="text-xs font-semibold opacity-60 uppercase tracking-wide">Active Milestones</span>
+              </div>
+              <div class="divide-y divide-surface-200-800">
+                {#each agileMilestones.filter((m: any) => m.status === 'Active').slice(0, 5) as m}
+                  {@const pct = Math.round(m.completionPct ?? 0)}
+                  <a href="/agile/milestones/{m.id}"
+                    class="flex items-center gap-4 px-4 py-3 hover:preset-tonal transition-colors">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium truncate">{m.title}</p>
+                      <p class="text-xs opacity-50 truncate">{m.strategicGoal ?? ''}</p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <div class="w-20 h-1.5 rounded-full bg-surface-200-800 overflow-hidden">
+                        <div class="h-full rounded-full bg-primary-500" style="width:{pct}%"></div>
+                      </div>
+                      <span class="text-xs font-semibold w-8 text-right">{pct}%</span>
+                    </div>
+                  </a>
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+        </div>
+      {/if}
+    </div>
+  {/if}
+
+  <!-- Calendar -->
   <div class="space-y-3">
-    <h2 class="text-lg font-semibold">Order Calendar</h2>
+    <h2 class="text-lg font-semibold">Calendar</h2>
 
     <!-- Event search + New Event -->
     <div class="flex items-center gap-3">
@@ -603,23 +446,42 @@
       <!-- Day cells -->
       <div class="grid grid-cols-7">
         {#each calDays as cell, i}
-          {@const borderR = (i+1) % 7 !== 0 ? 'border-r' : ''}
+          {@const borderR = (i + 1) % 7 !== 0 ? 'border-r' : ''}
           {@const borderB = i < calDays.length - 7 ? 'border-b' : ''}
-          <div class="min-h-[5.5rem] p-2 border-surface-200-800 {borderR} {borderB} relative
+          <div class="min-h-[5.5rem] p-2 border-surface-200-800 {borderR} {borderB}
             {cell?.isToday ? 'bg-primary-500/5' : ''}">
             {#if cell}
               <span class="text-xs font-semibold
                 {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full preset-filled-primary-500 text-white' : 'opacity-70'}">
                 {cell.day}
               </span>
-              {#if cell.count > 0}
-                <div class="mt-1.5 space-y-0.5">
-                  <div class="w-full rounded-sm h-1.5 overflow-hidden bg-surface-200-800">
-                    <div class="h-full rounded-sm bg-primary-500"
-                      style="width:{Math.round((cell.revenue/maxDayRevenue)*100)}%"></div>
-                  </div>
-                  <p class="text-[10px] text-primary-500 font-semibold">{fmt(cell.revenue)}</p>
-                  <p class="text-[10px] opacity-40">{cell.count} order{cell.count !== 1 ? 's' : ''}</p>
+              <!-- Milestone pills -->
+              {#each milestonesForDay(calYear, calMonth, cell.day) as ms}
+                <a href="/agile/milestones/{ms.id}"
+                  class="mt-1 flex w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
+                    bg-primary-500/80 text-white hover:bg-primary-600 transition-colors"
+                  title={ms.title}
+                >{ms.title}</a>
+              {/each}
+              <!-- Sprint pills -->
+              {#each sprintsForDay(calYear, calMonth, cell.day) as sp}
+                <a href="/agile/sprints/{sp.id}"
+                  class="mt-1 flex w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
+                    bg-secondary-500/80 text-white hover:bg-secondary-600 transition-colors"
+                  title="Sprint {sp.sprintNumber}: {sp.title}"
+                >S{sp.sprintNumber}: {sp.title}</a>
+              {/each}
+              <!-- Task due-date pills (max 3 + overflow count) -->
+              {#each tasksForDay(calYear, calMonth, cell.day).slice(0, 3) as task}
+                <div
+                  class="mt-1 w-full text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
+                    bg-warning-500/70 text-white"
+                  title={task.title}
+                >{task.title}</div>
+              {/each}
+              {#if tasksForDay(calYear, calMonth, cell.day).length > 3}
+                <div class="mt-0.5 text-[9px] opacity-50 px-1">
+                  +{tasksForDay(calYear, calMonth, cell.day).length - 3} more
                 </div>
               {/if}
               <!-- Event pills -->
@@ -639,85 +501,6 @@
 
     </div>
   </div>
-
-  <!-- ── Agile Summary ───────────────────────────────────────────────── -->
-  {#if hasPermission(data.user, 'agile_milestones', 'read')}
-    <div class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold">Agile Tracker</h2>
-        <a href="/agile" class="btn btn-sm preset-tonal text-xs">Open Tracker →</a>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <!-- KPI cards (role-aware) -->
-        <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {#if agileIsAdmin || agileIsLead}
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
-              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Milestones</p>
-              <p class="text-2xl font-bold">{agileMilestones.length}</p>
-              <p class="text-xs opacity-40">{agileMilestones.filter((m: any) => m.status === 'Active').length} active</p>
-            </div>
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
-              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Blocked Tasks</p>
-              <p class="text-2xl font-bold text-error-500">{agileBlocked}</p>
-              <p class="text-xs opacity-40">{agileOverdue} overdue</p>
-            </div>
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
-              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Tasks</p>
-              <p class="text-2xl font-bold">{agileTasks.length}</p>
-              <p class="text-xs opacity-40">{agileTasks.filter((t: any) => t.status === 'Done').length} done</p>
-            </div>
-          {:else}
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
-              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">My Tasks</p>
-              <p class="text-2xl font-bold">{myAgileTasks.length}</p>
-              <p class="text-xs opacity-40">assigned to me</p>
-            </div>
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
-              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">In Progress</p>
-              <p class="text-2xl font-bold">{myAgileTasks.filter((t: any) => t.status === 'In Progress').length}</p>
-              <p class="text-xs opacity-40">of my tasks</p>
-            </div>
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
-              <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Done</p>
-              <p class="text-2xl font-bold text-success-500">{myAgileTasks.filter((t: any) => t.status === 'Done').length}</p>
-              <p class="text-xs opacity-40">of my tasks</p>
-            </div>
-          {/if}
-        </div>
-
-        <!-- Role quick view -->
-        <RoleQuickView user={data.user} />
-      </div>
-
-      <!-- Active milestones mini-list -->
-      {#if agileMilestones.length > 0 && (agileIsAdmin || agileIsLead)}
-        <div class="card preset-filled-surface-100-900 overflow-hidden">
-          <div class="px-4 py-2.5 border-b border-surface-200-800">
-            <span class="text-xs font-semibold opacity-60 uppercase tracking-wide">Active Milestones</span>
-          </div>
-          <div class="divide-y divide-surface-200-800">
-            {#each agileMilestones.filter((m: any) => m.status === 'Active').slice(0, 5) as m}
-              {@const pct = Math.round(m.completionPct ?? 0)}
-              <a href="/agile/milestones/{m.id}"
-                class="flex items-center gap-4 px-4 py-3 hover:preset-tonal transition-colors">
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium truncate">{m.title}</p>
-                  <p class="text-xs opacity-50 truncate">{m.strategicGoal ?? ''}</p>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="w-20 h-1.5 rounded-full bg-surface-200-800 overflow-hidden">
-                    <div class="h-full rounded-full bg-primary-500" style="width:{pct}%"></div>
-                  </div>
-                  <span class="text-xs font-semibold w-8 text-right">{pct}%</span>
-                </div>
-              </a>
-            {/each}
-          </div>
-        </div>
-      {/if}
-    </div>
-  {/if}
 
   <!-- Module Widgets -->
   {#each sortedWidgets as w}
@@ -751,13 +534,11 @@
           <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{eventError}</aside>
         {/if}
 
-        <!-- Title -->
         <div class="space-y-1">
           <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
           <input id="ev-title" type="text" class="input w-full" placeholder="Event title" bind:value={eventForm.title} maxlength="200" />
         </div>
 
-        <!-- Dates -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
             <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
@@ -770,13 +551,11 @@
           </div>
         </div>
 
-        <!-- Single day toggle -->
         <label class="flex items-center gap-2 cursor-pointer select-none">
           <input type="checkbox" class="checkbox" bind:checked={eventForm.singleDay} />
           <span class="text-sm">Single-day event</span>
         </label>
 
-        <!-- Content -->
         <div class="space-y-1">
           <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
           <MessageEditor bind:html={eventForm.content} placeholder="Event description…" />
