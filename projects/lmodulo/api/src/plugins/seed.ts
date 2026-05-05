@@ -64,7 +64,7 @@ const SEED_USERS: [string, string, string][] = [
   ['owner',       'Owner',       'owner'],
   ['admin',       'Admin',       'admin'],
   ['lead',        'Lead',        'lead'],
-  ['contributor', 'Contributor', 'contributor'],
+  ['contr', 'Contr', 'contributor'],
 ];
 
 // Upserts default roles on every boot — idempotent.

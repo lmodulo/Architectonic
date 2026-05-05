@@ -1,11 +1,10 @@
 <script lang="ts">
   import '../app.css';
   import { Navigation, Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
-  import { Menu as MenuIcon, CircleUser, LogOut, X, User, Users, Sun, Moon, Mail as MailIcon, Settings, ChevronRight, ChevronDown } from 'lucide-svelte';
+  import { Menu as MenuIcon, CircleUser, LogOut, X, User, Users, Mail as MailIcon, Settings, ChevronRight, ChevronDown } from 'lucide-svelte';
   import { navItems, isNavGroup } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
@@ -19,7 +18,6 @@
 
   let sidebarOpen = $state(false);
   let logoutForm: HTMLFormElement = $state()!;
-  let isDark = $state(false);
   let unreadCount = $state(data.unreadCount ?? 0);
   let openGroups = $state<Record<string, boolean>>({});
 
@@ -36,10 +34,6 @@
     openGroups[label] = !openGroups[label];
   }
 
-  onMount(() => {
-    isDark = document.documentElement.classList.contains('dark');
-  });
-
   // Re-fetch unread count on every navigation
   $effect(() => {
     void page.url.pathname; // track route changes
@@ -49,12 +43,6 @@
       .then(d => { if (d) unreadCount = d.count; })
       .catch(() => {});
   });
-
-  function toggleTheme() {
-    isDark = !isDark;
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('color-scheme', isDark ? 'dark' : 'light');
-  }
 
   // WebSocket notifications — connect when authenticated, disconnect on logout
   $effect(() => {
@@ -123,19 +111,6 @@
         </span>
 
         <span class="hidden sm:block w-px h-5 bg-surface-300-700 opacity-60"></span>
-
-        <button
-          type="button"
-          class="btn-icon hover:preset-tonal"
-          onclick={toggleTheme}
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {#if isDark}
-            <Sun class="size-5" />
-          {:else}
-            <Moon class="size-5" />
-          {/if}
-        </button>
 
         <a href="/messages" class="btn-icon hover:preset-tonal relative" aria-label="Messages">
           <MailIcon class="size-5" />

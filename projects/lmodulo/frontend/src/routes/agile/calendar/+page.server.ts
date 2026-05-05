@@ -9,9 +9,17 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
-  // Fetch all calendar events (from calendar_events collection)
-  const evRes = await fetch(`${API_URL}/calendar-events?limit=200`, { headers }).catch(() => null);
-  const calEvents = evRes?.ok ? (await evRes.json()).events ?? [] : [];
+  const [evRes, msRes, sprintsRes, tasksRes] = await Promise.all([
+    fetch(`${API_URL}/calendar-events?limit=200`, { headers }).catch(() => null),
+    fetch(`${API_URL}/agile/milestones?limit=50`, { headers }).catch(() => null),
+    fetch(`${API_URL}/agile/sprints?limit=200`, { headers }).catch(() => null),
+    fetch(`${API_URL}/agile/tasks?limit=500`, { headers }).catch(() => null),
+  ]);
 
-  return { user: locals.user, calEvents };
+  const calEvents  = evRes?.ok      ? (await evRes.json()).events          ?? [] : [];
+  const milestones = msRes?.ok      ? (await msRes.json()).milestones       ?? [] : [];
+  const sprints    = sprintsRes?.ok ? (await sprintsRes.json()).sprints     ?? [] : [];
+  const tasks      = tasksRes?.ok   ? (await tasksRes.json()).tasks         ?? [] : [];
+
+  return { user: locals.user, calEvents, milestones, sprints, tasks };
 };

@@ -1,10 +1,14 @@
 <script lang="ts">
   import { ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import type { AgileMilestone, AgileSprint, AgileTask } from '$lib/utils/agile';
 
   let { data }: { data: PageData } = $props();
 
-  const calEvents = $derived((data.calEvents ?? []) as any[]);
+  const calEvents  = $derived((data.calEvents  ?? []) as any[]);
+  const milestones = $derived((data.milestones ?? []) as AgileMilestone[]);
+  const sprints    = $derived((data.sprints    ?? []) as AgileSprint[]);
+  const tasks      = $derived((data.tasks      ?? []) as AgileTask[]);
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
   let calYear  = $state(today.getFullYear());
@@ -16,6 +20,14 @@
   function prevMonth() { calMonth === 0 ? (calMonth = 11, calYear--) : calMonth--; }
   function nextMonth() { calMonth === 11 ? (calMonth = 0, calYear++) : calMonth++; }
 
+  function ds(year: number, month: number, day: number): string {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+  function spansDay(start: string | undefined, end: string | undefined, d: string): boolean {
+    if (!start) return false;
+    return start.slice(0, 10) <= d && d <= (end ?? start).slice(0, 10);
+  }
+
   function buildCal(year: number, month: number) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startDow    = new Date(year, month, 1).getDay();
@@ -23,33 +35,29 @@
     return Array.from({ length: cells }, (_, i) => {
       const day = i - startDow + 1;
       if (day < 1 || day > daysInMonth) return null;
-      const d = new Date(year, month, day);
-      const dateStr = d.toISOString().slice(0, 10);
+      const d    = new Date(year, month, day);
+      const dStr = ds(year, month, day);
       const dayEvents = calEvents.filter(e => {
         const start = e.startDate ? new Date(e.startDate).toISOString().slice(0, 10) : '';
         const end   = e.endDate   ? new Date(e.endDate).toISOString().slice(0, 10)   : start;
-        return start <= dateStr && dateStr <= end;
+        return start <= dStr && dStr <= end;
       });
-      return {
-        day,
-        isToday: d.toDateString() === today.toDateString(),
-        events: dayEvents,
-      };
+      return { day, isToday: d.toDateString() === today.toDateString(), events: dayEvents };
     });
   }
 
   const calDays = $derived(buildCal(calYear, calMonth));
 
   const EVENT_TYPE_COLOR: Record<string, string> = {
-    Planning:      'bg-primary-500',
-    Deadline:      'bg-error-500',
-    Review:        'bg-secondary-500',
-    Retrospective: 'bg-warning-500',
-    Custom:        'bg-tertiary-500',
-    upcoming_event:'bg-primary-500',
-    announcement:  'bg-secondary-500',
-    deadline:      'bg-error-500',
-    project_scope: 'bg-success-500',
+    Planning:       'bg-primary-500',
+    Deadline:       'bg-error-500',
+    Review:         'bg-secondary-500',
+    Retrospective:  'bg-warning-500',
+    Custom:         'bg-tertiary-500',
+    upcoming_event: 'bg-primary-500',
+    announcement:   'bg-secondary-500',
+    deadline:       'bg-error-500',
+    project_scope:  'bg-success-500',
   };
 </script>
 
@@ -95,13 +103,36 @@
               {cell.day}
             </span>
             <div class="mt-1 space-y-0.5">
+              <!-- Calendar events -->
               {#each cell.events as ev}
                 {@const color = EVENT_TYPE_COLOR[ev.eventType] ?? 'bg-surface-500'}
-                <div class="text-[9px] font-medium leading-tight px-1 py-0.5 rounded-sm truncate text-white {color}"
+                <div class="text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate text-white {color}"
                   title="{ev.title} ({ev.eventType})">
                   {ev.title}
                 </div>
               {/each}
+              <!-- Milestones -->
+              {#each milestones.filter(m => spansDay(m.startDate, m.endDate, ds(calYear, calMonth, cell.day))) as m}
+                <a href="/agile/milestones/{m.id}"
+                  class="flex text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate bg-primary-500/80 text-white hover:bg-primary-600 transition-colors"
+                  title={m.title}>{m.title}</a>
+              {/each}
+              <!-- Sprints -->
+              {#each sprints.filter(sp => spansDay(sp.startDate, sp.endDate, ds(calYear, calMonth, cell.day))) as sp}
+                <a href="/agile/sprints/{sp.id}"
+                  class="flex text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate bg-secondary-500/80 text-white hover:bg-secondary-600 transition-colors"
+                  title="Sprint {sp.sprintNumber}: {sp.title}">S{sp.sprintNumber}: {sp.title}</a>
+              {/each}
+              <!-- Tasks due -->
+              {#each tasks.filter(t => t.dueDate?.slice(0, 10) === ds(calYear, calMonth, cell.day)).slice(0, 3) as t}
+                <div class="text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate bg-warning-500/70 text-white"
+                  title={t.title}>{t.title}</div>
+              {/each}
+              {#if tasks.filter(t => t.dueDate?.slice(0, 10) === ds(calYear, calMonth, cell.day)).length > 3}
+                <div class="text-[9px] opacity-50 px-1">
+                  +{tasks.filter(t => t.dueDate?.slice(0, 10) === ds(calYear, calMonth, cell.day)).length - 3} more
+                </div>
+              {/if}
             </div>
           {/if}
         </div>
@@ -112,10 +143,13 @@
 
   <!-- Legend -->
   <div class="flex flex-wrap gap-4 text-xs opacity-60">
+    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-primary-500/80 inline-block"></span>Milestone</span>
+    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-secondary-500/80 inline-block"></span>Sprint</span>
+    <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-warning-500/70 inline-block"></span>Task due</span>
     {#each Object.entries(EVENT_TYPE_COLOR).slice(0, 5) as [type, color]}
       <span class="flex items-center gap-1.5">
         <span class="size-2.5 rounded-sm {color} inline-block"></span>
-        {type.replace('_', ' ')}
+        {type.replace(/_/g, ' ')}
       </span>
     {/each}
   </div>

@@ -13,17 +13,30 @@ export const load: PageServerLoad = async ({ cookies, parent }) => {
   if (!hasPermission(user, 'calendar_events', 'read')) redirect(303, '/403');
 
   const sessionCookie = cookies.get('session');
+  const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
+
   let events: CalendarEvent[] = [];
+  let users: { id: string; username: string; firstName: string; lastName: string }[] = [];
 
-  try {
-    const res = await fetch(`${API_URL}/calendar-events?limit=200`, {
-      headers: sessionCookie ? { cookie: `session=${sessionCookie}` } : {},
-    });
-    if (res.ok) {
-      const data = (await res.json()) as { events: Record<string, unknown>[] };
-      events = (data.events ?? []).map(normalizeEvent);
-    }
-  } catch { /* degrade gracefully */ }
+  const [evRes, usersRes] = await Promise.all([
+    fetch(`${API_URL}/calendar-events?limit=200&all=1`, { headers }).catch(() => null),
+    fetch(`${API_URL}/users`, { headers }).catch(() => null),
+  ]);
 
-  return { events };
+  if (evRes?.ok) {
+    const data = (await evRes.json()) as { events: Record<string, unknown>[] };
+    events = (data.events ?? []).map(normalizeEvent);
+  }
+
+  if (usersRes?.ok) {
+    const raw = await usersRes.json().catch(() => []);
+    users = (Array.isArray(raw) ? raw : []).map((u: Record<string, unknown>) => ({
+      id:        String(u.id ?? u._id ?? ''),
+      username:  String(u.username ?? ''),
+      firstName: String(u.firstName ?? ''),
+      lastName:  String(u.lastName ?? ''),
+    }));
+  }
+
+  return { events, users };
 };

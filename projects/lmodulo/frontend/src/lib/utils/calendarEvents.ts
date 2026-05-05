@@ -3,7 +3,7 @@ export type CalendarEvent = {
   title: string;
   content: string;
   eventType: string;
-  startDate: string; // ISO string or YYYY-MM-DD
+  startDate: string; // YYYY-MM-DD
   endDate: string;
   singleDay: boolean;
   allDay: boolean;
@@ -11,6 +11,10 @@ export type CalendarEvent = {
   tags: string[];
   status?: string;
   visibility?: string;
+  assignedTo?: string | null;     // user ID, or null = public
+  createdBy?: string;
+  assignedToName?: string | null; // resolved display name
+  createdByName?:  string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -60,7 +64,6 @@ export function groupByMonth(events: CalendarEvent[]): MonthGroup[] {
   }, []);
 }
 
-// Known event types → Skeleton preset tonal class
 const TYPE_PRESETS: Record<string, string> = {
   upcoming_event: 'preset-tonal-primary',
   announcement:   'preset-tonal-warning',
@@ -68,7 +71,6 @@ const TYPE_PRESETS: Record<string, string> = {
   project_scope:  'preset-tonal-secondary',
 };
 
-// Pill background for calendar grid
 const TYPE_PILL_CLASSES: Record<string, string> = {
   upcoming_event: 'bg-primary-500 hover:bg-primary-600',
   announcement:   'bg-warning-500 hover:bg-warning-600',
@@ -90,19 +92,23 @@ export function typeLabel(eventType: string): string {
 
 export function normalizeEvent(e: Record<string, unknown>): CalendarEvent {
   return {
-    id:         String(e.id ?? ''),
-    title:      String(e.title ?? ''),
-    content:    String(e.content ?? ''),
-    eventType:  String(e.eventType ?? 'upcoming_event'),
-    startDate:  toDateStr(e.startDate),
-    endDate:    toDateStr(e.endDate),
-    singleDay:  Boolean(e.singleDay),
-    allDay:     Boolean(e.allDay),
-    location:   String(e.location ?? ''),
-    tags:       Array.isArray(e.tags) ? e.tags.map(String) : [],
-    status:     e.status ? String(e.status) : undefined,
-    visibility: e.visibility ? String(e.visibility) : undefined,
-    createdAt:  e.createdAt ? String(e.createdAt) : undefined,
-    updatedAt:  e.updatedAt ? String(e.updatedAt) : undefined,
+    id:             String(e.id ?? ''),
+    title:          String(e.title ?? ''),
+    content:        String(e.content ?? ''),
+    eventType:      String(e.eventType ?? 'upcoming_event'),
+    startDate:      toDateStr(e.startDate),
+    endDate:        toDateStr(e.endDate),
+    singleDay:      Boolean(e.singleDay),
+    allDay:         Boolean(e.allDay),
+    location:       String(e.location ?? ''),
+    tags:           Array.isArray(e.tags) ? e.tags.map(String) : [],
+    status:         e.status     ? String(e.status)     : undefined,
+    visibility:     e.visibility ? String(e.visibility) : undefined,
+    assignedTo:     e.assignedTo != null ? String(e.assignedTo) : null,
+    createdBy:      e.createdBy  ? String(e.createdBy)  : undefined,
+    assignedToName: e.assignedToName != null ? String(e.assignedToName) : null,
+    createdByName:  e.createdByName  != null ? String(e.createdByName)  : null,
+    createdAt:      e.createdAt ? String(e.createdAt) : undefined,
+    updatedAt:      e.updatedAt ? String(e.updatedAt) : undefined,
   };
 }

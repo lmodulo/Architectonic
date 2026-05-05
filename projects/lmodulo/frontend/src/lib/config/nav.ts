@@ -1,6 +1,5 @@
 import {
-  House, Bell, CalendarDays, CalendarCog,
-  Milestone, KanbanSquare, GanttChart, LayoutGrid,
+  House, Bell, CalendarDays, CalendarCog, Milestone,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
@@ -28,14 +27,5 @@ export const navItems: NavEntry[] = [
   { label: 'Notifications', href: '/notifications', icon: Bell  },
   { label: 'Calendar', href: '/calendar-events', icon: CalendarDays },
   { label: 'Manage Events', href: '/calendar-events/admin', icon: CalendarCog, permission: { resource: 'calendar_events', action: 'create' } },
-  {
-    label: 'Agile Tracker',
-    icon: Milestone,
-    children: [
-      { label: 'Overview',  href: '/agile',          icon: LayoutGrid,   permission: { resource: 'agile_milestones', action: 'read' } },
-      { label: 'Board',     href: '/agile/board',    icon: KanbanSquare, permission: { resource: 'agile_milestones', action: 'read' } },
-      { label: 'Timeline',  href: '/agile/timeline', icon: GanttChart,   permission: { resource: 'agile_milestones', action: 'read' } },
-      { label: 'Calendar',  href: '/agile/calendar', icon: CalendarDays, permission: { resource: 'agile_milestones', action: 'read' } },
-    ],
-  },
+  { label: 'Agile Tracker', href: '/agile', icon: Milestone, permission: { resource: 'agile_milestones', action: 'read' } },
 ];

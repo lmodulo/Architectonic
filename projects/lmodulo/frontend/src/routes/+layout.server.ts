@@ -9,7 +9,19 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
 
   const appName = env.APP_NAME || null;
 
-  if (!locals.user) return { user: null, unreadCount: 0, appName, brandName: null, brandLogo: null };
+  if (!locals.user) {
+    const [brandName, brandLogo] = await Promise.all([
+      fetch(`${API_URL}/settings/brand.name`)
+        .then(r => r.ok ? r.json() : null)
+        .then((d: { value?: unknown } | null) => (d?.value as string) || null)
+        .catch(() => null),
+      fetch(`${API_URL}/settings/brand.logo`)
+        .then(r => r.ok ? r.json() : null)
+        .then((d: { value?: unknown } | null) => (d?.value as string) || null)
+        .catch(() => null),
+    ]);
+    return { user: null, unreadCount: 0, appName, brandName, brandLogo };
+  }
 
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};

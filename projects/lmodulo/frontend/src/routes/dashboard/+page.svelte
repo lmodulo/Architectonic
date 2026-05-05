@@ -194,9 +194,9 @@
   const agileMilestones = $derived((data.milestones ?? []) as AgileMilestone[]);
   const agileSprints    = $derived((data.sprints    ?? []) as AgileSprint[]);
   const agileTasks      = $derived((data.agileTasks ?? []) as AgileTask[]);
-  const myAgileTasks    = $derived(agileTasks.filter((t: any) => t.assignedTo === data.user?.id));
-  const agileBlocked    = $derived(agileTasks.filter((t: any) => t.status === 'Blocked').length);
-  const agileOverdue    = $derived(agileTasks.filter((t: any) =>
+  const myAgileTasks    = $derived(agileTasks.filter(t => t.assignedTo === data.user?.id));
+  const agileBlocked    = $derived(agileTasks.filter(t => t.status === 'Blocked').length);
+  const agileOverdue    = $derived(agileTasks.filter(t =>
     t.dueDate && new Date(t.dueDate) < today && t.status !== 'Done'
   ).length);
   const agileRole      = $derived(data.user?.role ?? '');

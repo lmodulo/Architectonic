@@ -12,6 +12,7 @@
   let { data }: { data: PageData } = $props();
 
   let events = $state<CalendarEvent[]>(data.events ?? []);
+  const users = $derived((data.users ?? []) as { id: string; username: string; firstName: string; lastName: string }[]);
 
   let view         = $state<'calendar' | 'list'>('calendar');
   let query        = $state('');
@@ -178,6 +179,7 @@
   event={editing}
   open={modalOpen}
   user={data.user}
+  {users}
   onSave={handleSave}
   onDelete={handleDelete}
   onClose={() => (modalOpen = false)}

@@ -6,17 +6,15 @@
   import { hasPermission } from '$lib/permissions';
   import { typeLabel, type CalendarEvent } from '$lib/utils/calendarEvents';
 
-  const KNOWN_TYPES = [
-    'upcoming_event',
-    'announcement',
-    'deadline',
-    'project_scope',
-  ];
+  const KNOWN_TYPES = ['upcoming_event', 'announcement', 'deadline', 'project_scope'];
+
+  type UserOption = { id: string; username: string; firstName: string; lastName: string };
 
   let {
     event = null,
     open,
     user,
+    users = [],
     onSave,
     onDelete,
     onClose,
@@ -24,12 +22,21 @@
     event?: CalendarEvent | null;
     open: boolean;
     user: unknown;
+    users?: UserOption[];
     onSave: (body: Record<string, unknown>) => Promise<void>;
     onDelete: () => Promise<void>;
     onClose: () => void;
   } = $props();
 
   const today = new Date().toISOString().slice(0, 10);
+
+  function displayName(u: UserOption) {
+    return u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username;
+  }
+
+  function selfId(): string {
+    return (user as { id?: string } | null)?.id ?? '';
+  }
 
   let form = $state({
     title:      '',
@@ -43,13 +50,13 @@
     tags:       '',
     status:     'active',
     visibility: 'public',
+    assignedTo: selfId(), // default to self; empty string = public (null)
   });
 
   let loading      = $state(false);
   let err          = $state('');
   let deletePrompt = $state(false);
 
-  // Populate form when event prop changes
   $effect(() => {
     if (event) {
       form = {
@@ -62,14 +69,16 @@
         allDay:     event.allDay,
         location:   event.location,
         tags:       event.tags.join(', '),
-        status:     event.status ?? 'active',
+        status:     event.status     ?? 'active',
         visibility: event.visibility ?? 'public',
+        assignedTo: event.assignedTo ?? '',
       };
     } else {
       form = {
         title: '', content: '', eventType: 'upcoming_event',
         startDate: today, endDate: today, singleDay: true, allDay: false,
         location: '', tags: '', status: 'active', visibility: 'public',
+        assignedTo: selfId(),
       };
     }
     err          = '';
@@ -84,7 +93,7 @@
     if (!form.title.trim()) { err = 'Title is required'; return; }
     if (!form.startDate)    { err = 'Start date is required'; return; }
     loading = true; err = '';
-    const body = {
+    const body: Record<string, unknown> = {
       title:      form.title.trim(),
       content:    form.content,
       eventType:  form.eventType,
@@ -96,6 +105,7 @@
       tags:       form.tags.split(',').map(t => t.trim()).filter(Boolean),
       status:     form.status,
       visibility: form.visibility,
+      assignedTo: form.assignedTo || null,
     };
     try {
       await onSave(body);
@@ -145,6 +155,18 @@
           <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
           <input id="ev-title" type="text" class="input w-full" placeholder="Event title"
             bind:value={form.title} maxlength="200" />
+        </div>
+
+        <!-- Assigned To -->
+        <div class="space-y-1">
+          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-assigned">Assigned To</label>
+          <select id="ev-assigned" class="select w-full" bind:value={form.assignedTo}>
+            {#each users as u}
+              <option value={u.id}>
+                {displayName(u)}{u.id === selfId() ? ' (you)' : ''}
+              </option>
+            {/each}
+          </select>
         </div>
 
         <!-- Type + Status row -->
