@@ -16,41 +16,41 @@
 <div class="max-w-lg">
   <h1 class="text-2xl font-bold mb-6">Profile</h1>
 
-  <div class="card preset-filled-surface-100-900 p-6 space-y-5">
+  <div class="card bg-base-200 p-6 space-y-5">
     <h2 class="text-lg font-semibold">Account Information</h2>
 
     {#if form?.success}
-      <aside class="alert preset-tonal-success p-3 rounded-base text-sm">
+      <aside class="alert alert-success p-3 rounded text-sm">
         Profile updated successfully.
       </aside>
     {/if}
 
     {#if form?.error}
-      <aside class="alert preset-tonal-error p-3 rounded-base text-sm">
+      <aside class="alert alert-error p-3 rounded text-sm">
         {form.error}
       </aside>
     {/if}
 
     <form method="POST" class="space-y-4">
       <div class="grid grid-cols-2 gap-4">
-        <label class="label">
-          <span class="label-text text-sm font-medium">First Name</span>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">First Name</span>
           <input
             type="text"
             name="firstName"
-            class="input mt-1"
+            class="input"
             bind:value={firstName}
             maxlength="50"
             autocomplete="given-name"
             placeholder="Jane"
           />
         </label>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Last Name</span>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Last Name</span>
           <input
             type="text"
             name="lastName"
-            class="input mt-1"
+            class="input"
             bind:value={lastName}
             maxlength="50"
             autocomplete="family-name"
@@ -59,12 +59,12 @@
         </label>
       </div>
 
-      <label class="label">
-        <span class="label-text text-sm font-medium">Username</span>
+      <label class="flex flex-col gap-1">
+        <span class="text-sm font-medium">Username</span>
         <input
           type="text"
           name="username"
-          class="input mt-1"
+          class="input"
           bind:value={username}
           minlength="2"
           maxlength="50"
@@ -72,18 +72,18 @@
         />
       </label>
 
-      <label class="label">
-        <span class="label-text text-sm font-medium">Email</span>
+      <label class="flex flex-col gap-1">
+        <span class="text-sm font-medium">Email</span>
         <input
           type="email"
           name="email"
-          class="input mt-1"
+          class="input"
           bind:value={email}
           required
         />
       </label>
 
-      <button type="submit" class="btn preset-filled-primary-500 w-full">
+      <button type="submit" class="btn btn-primary w-full">
         Save Changes
       </button>
     </form>

@@ -64,17 +64,17 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <Bell class="size-5 text-primary-500" />
+      <Bell class="size-5 text-primary" />
       <h1 class="text-xl font-semibold">Notifications</h1>
     </div>
     <div class="flex items-center gap-3">
-      <a href="/notifications/settings" class="text-sm text-primary-500 hover:underline">
+      <a href="/notifications/settings" class="text-sm text-primary hover:underline">
         Preferences
       </a>
       {#if items.some(n => !n.read)}
         <button
           type="button"
-          class="text-sm text-primary-500 hover:underline"
+          class="text-sm text-primary hover:underline"
           onclick={handleMarkAll}
         >
           Mark all read
@@ -84,12 +84,12 @@
   </div>
 
   <!-- Filter tabs -->
-  <div class="flex gap-1 border-b border-surface-200-800">
+  <div class="flex gap-1 border-b border-base-300">
     {#each ['all', 'unread'] as f}
       <button
         type="button"
         class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px
-          {filter === f ? 'border-primary-500 text-primary-500' : 'border-transparent opacity-60 hover:opacity-100'}"
+          {filter === f ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}"
         onclick={() => setFilter(f)}
       >
         {f === 'all' ? 'All' : 'Unread'}
@@ -98,7 +98,7 @@
   </div>
 
   <!-- List -->
-  <div class="card preset-filled-surface-50-950 border border-surface-200-800 divide-y divide-surface-200-800 rounded-container">
+  <div class="card bg-base-100 border border-base-300 divide-y divide-base-300 rounded-box">
     {#if items.length === 0 && !loading}
       <div class="py-12 text-center opacity-50">
         <Bell class="size-8 mx-auto mb-2" />
@@ -120,7 +120,7 @@
     <div class="text-center">
       <button
         type="button"
-        class="btn preset-tonal text-sm"
+        class="btn btn-ghost text-sm"
         onclick={() => loadPage(curPage + 1)}
       >
         Load more

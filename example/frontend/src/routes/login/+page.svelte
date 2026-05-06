@@ -16,31 +16,31 @@
 <MarketingNav />
 
 <div class="flex min-h-screen items-center justify-center p-4 pt-14">
-  <div class="card preset-filled-surface-100-900 w-full max-w-md overflow-hidden">
+  <div class="card bg-base-100 w-full max-w-md overflow-hidden shadow-xl border border-base-200">
 
-    <header class="preset-filled-primary-500 p-8 text-center space-y-1">
-      <h1 class="h2 font-bold">Sign In</h1>
-      <p class="opacity-80 text-sm">Welcome back</p>
-    </header>
+    <div class="bg-primary px-8 py-8 text-center space-y-1">
+      <h1 class="text-2xl font-bold text-primary-content">Sign In</h1>
+      <p class="text-primary-content/80 text-sm">Welcome back</p>
+    </div>
 
-    <section class="p-8 space-y-4">
+    <div class="p-8 space-y-4">
       {#if resetSuccess}
-        <div class="preset-filled-success-500 rounded-base p-3 text-sm">
+        <div role="alert" class="alert alert-success text-sm">
           Password reset successfully. Sign in with your new password.
         </div>
       {/if}
 
       {#if form?.error}
-        <div class="preset-filled-error-500 rounded-base p-3 text-sm">
+        <div role="alert" class="alert alert-error text-sm">
           {form.error}
         </div>
       {/if}
 
       <form method="POST" use:enhance class="space-y-4">
-        <label class="label">
-          <span class="label-text">Email</span>
+        <div class="form-control gap-1">
+          <span class="label-text font-medium">Email</span>
           <input
-            class="input"
+            class="input input-bordered w-full"
             type="email"
             name="email"
             value={form?.email ?? ''}
@@ -48,34 +48,30 @@
             autocomplete="email"
             placeholder="you@example.com"
           />
-        </label>
+        </div>
 
-        <label class="label">
-          <span class="label-text">Password</span>
+        <div class="form-control gap-1">
+          <span class="label-text font-medium">Password</span>
           <input
-            class="input"
+            class="input input-bordered w-full"
             type="password"
             name="password"
             required
             autocomplete="current-password"
             placeholder="••••••••"
           />
-        </label>
+        </div>
 
-        <button type="submit" class="btn preset-filled-primary-500 w-full">
-          Sign In
-        </button>
+        <button type="submit" class="btn btn-primary w-full">Sign In</button>
 
         <p class="text-center text-sm opacity-60">
-          <a href="/forgot-password" class="anchor">Forgot password?</a>
+          <a href="/forgot-password" class="link link-primary">Forgot password?</a>
         </p>
 
         <p class="text-center text-sm opacity-60">
-          Don't have an account? <a href="/register" class="anchor">Sign up</a>
+          Don't have an account? <a href="/register" class="link link-primary">Sign up</a>
         </p>
       </form>
-    </section>
-
-
+    </div>
   </div>
 </div>

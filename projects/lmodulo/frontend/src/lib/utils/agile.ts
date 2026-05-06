@@ -8,31 +8,31 @@ export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
 export type JobCategory = 'Feature' | 'Bug' | 'Tech Debt' | 'Research';
 
 export const STATUS_COLOR: Record<string, string> = {
-  Planning:    'preset-tonal-primary',
-  Active:      'preset-tonal-success',
-  'On Hold':   'preset-tonal-warning',
-  Completed:   'preset-filled-success-500',
-  Cancelled:   'preset-tonal-surface',
-  Review:      'preset-tonal-secondary',
-  Backlog:     'preset-tonal-surface',
-  Ready:       'preset-tonal-primary',
-  'In Progress': 'preset-tonal-success',
-  Blocked:     'preset-tonal-error',
-  Done:        'preset-filled-success-500',
+  Planning:    'badge-primary badge-soft',
+  Active:      'badge-success badge-soft',
+  'On Hold':   'badge-warning badge-soft',
+  Completed:   'badge-success',
+  Cancelled:   'badge-ghost',
+  Review:      'badge-secondary badge-soft',
+  Backlog:     'badge-ghost',
+  Ready:       'badge-primary badge-soft',
+  'In Progress': 'badge-success badge-soft',
+  Blocked:     'badge-error badge-soft',
+  Done:        'badge-success',
 };
 
 export const PRIORITY_COLOR: Record<string, string> = {
-  Low:      'preset-tonal-surface',
-  Medium:   'preset-tonal-primary',
-  High:     'preset-tonal-warning',
-  Critical: 'preset-tonal-error',
+  Low:      'badge-ghost',
+  Medium:   'badge-primary badge-soft',
+  High:     'badge-warning badge-soft',
+  Critical: 'badge-error badge-soft',
 };
 
 export const CATEGORY_COLOR: Record<string, string> = {
-  Feature:    'preset-tonal-primary',
-  Bug:        'preset-tonal-error',
-  'Tech Debt':'preset-tonal-warning',
-  Research:   'preset-tonal-secondary',
+  Feature:    'badge-primary badge-soft',
+  Bug:        'badge-error badge-soft',
+  'Tech Debt':'badge-warning badge-soft',
+  Research:   'badge-secondary badge-soft',
 };
 
 export function fmtEffort(hours: number): string {
@@ -64,10 +64,10 @@ export function toDateInput(val: string | Date | null | undefined): string {
 }
 
 export function completionColor(pct: number): string {
-  if (pct >= 100) return 'var(--color-success-500)';
-  if (pct >= 60)  return 'var(--color-primary-500)';
-  if (pct >= 30)  return 'var(--color-warning-500)';
-  return 'var(--color-error-500)';
+  if (pct >= 100) return 'var(--color-success)';
+  if (pct >= 60)  return 'var(--color-primary)';
+  if (pct >= 30)  return 'var(--color-warning)';
+  return 'var(--color-error)';
 }
 
 export const MILESTONE_STATUSES = ['Planning', 'Active', 'On Hold', 'Completed', 'Cancelled'] as const;

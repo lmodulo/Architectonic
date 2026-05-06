@@ -42,7 +42,7 @@
   const features = [
     { icon: '🔐', title: 'Secure Authentication', body: 'Login and registration with bcrypt hashing, server-side session validation on every request, and redirect guards.' },
     { icon: '🗄️', title: 'Session Management',    body: 'MongoDB-backed sessions via connect-mongo with configurable TTL, signed HTTP-only cookies, and auto cleanup.' },
-    { icon: '🎨', title: 'UI Component System',    body: 'Skeleton v4 with Tailwind v4 — buttons, badges, cards, forms, navigation, and a custom branded theme.' },
+    { icon: '🎨', title: 'UI Component System',    body: 'DaisyUI v5 with Tailwind v4 — buttons, badges, cards, forms, navigation, and a custom branded theme.' },
     { icon: '🐳', title: 'Docker Dev Stack',        body: 'One command brings up SvelteKit, Fastify, and MongoDB with bind-mount hot reload and health-checked startup order.' },
     { icon: '⚡', title: 'Type-Safe API',           body: 'Fastify v5 with TypeScript, JSON Schema request validation, plugin encapsulation, and a structured route layout.' },
     { icon: '🚀', title: 'Production Ready',        body: 'Separate dev and prod Docker configs, environment-aware security settings, and health endpoints built in.' }
@@ -62,33 +62,33 @@
   ];
 
   const buttons = [
-    { label: 'Primary',   cls: 'btn preset-filled-primary-500'   },
-    { label: 'Secondary', cls: 'btn preset-tonal-secondary-500'  },
-    { label: 'Outlined',  cls: 'btn preset-outlined-primary-500' },
-    { label: 'Error',     cls: 'btn preset-tonal-error-500'      },
-    { label: 'Success',   cls: 'btn preset-tonal-success-500'    },
-    { label: 'Warning',   cls: 'btn preset-tonal-warning-500'    }
+    { label: 'Primary',   cls: 'btn btn-primary'             },
+    { label: 'Secondary', cls: 'btn btn-secondary'           },
+    { label: 'Outlined',  cls: 'btn btn-outline btn-primary' },
+    { label: 'Error',     cls: 'btn btn-outline btn-error'   },
+    { label: 'Success',   cls: 'btn btn-success'             },
+    { label: 'Warning',   cls: 'btn btn-warning'             }
   ];
 
   const badges = [
-    { label: 'primary',   cls: 'badge preset-tonal-primary'   },
-    { label: 'secondary', cls: 'badge preset-tonal-secondary' },
-    { label: 'success',   cls: 'badge preset-tonal-success'   },
-    { label: 'warning',   cls: 'badge preset-tonal-warning'   },
-    { label: 'error',     cls: 'badge preset-tonal-error'     },
-    { label: 'surface',   cls: 'badge preset-tonal-surface'   }
+    { label: 'primary',   cls: 'badge badge-primary'   },
+    { label: 'secondary', cls: 'badge badge-secondary' },
+    { label: 'success',   cls: 'badge badge-success'   },
+    { label: 'warning',   cls: 'badge badge-warning'   },
+    { label: 'error',     cls: 'badge badge-error'     },
+    { label: 'neutral',   cls: 'badge badge-neutral'   }
   ];
 
   const alerts = [
-    { preset: 'preset-tonal-success', label: 'Success', msg: 'Your changes have been saved successfully.' },
-    { preset: 'preset-tonal-warning', label: 'Warning', msg: 'This action will affect all team members.' },
-    { preset: 'preset-tonal-error',   label: 'Error',   msg: 'Connection failed. Please try again.' }
+    { type: 'alert-success', label: 'Success', msg: 'Your changes have been saved successfully.' },
+    { type: 'alert-warning', label: 'Warning', msg: 'This action will affect all team members.' },
+    { type: 'alert-error',   label: 'Error',   msg: 'Connection failed. Please try again.' }
   ];
 
   const testimonials = [
     { quote: 'Saved me two weeks of boilerplate. Auth, roles, and a polished UI all wired before I wrote a single line of business logic.', name: 'Alex Rivera',  role: 'Senior Engineer',    initials: 'AR', hue: 'var(--color-primary-500)'   },
     { quote: "The RBAC system is exactly what I needed. Per-route guards and component-level permission checks that actually work.", name: 'Sam Chen',    role: 'Fullstack Developer',  initials: 'SC', hue: 'var(--color-secondary-500)' },
-    { quote: "Best scaffold I've tried. SvelteKit + Fastify is a killer combo and the Skeleton UI themes are gorgeous out of the box.", name: 'Jamie Brooks', role: 'Indie Hacker',         initials: 'JB', hue: 'var(--color-tertiary-500)'  }
+    { quote: "Best scaffold I've tried. SvelteKit + Fastify is a killer combo and the DaisyUI themes are gorgeous out of the box.", name: 'Jamie Brooks', role: 'Indie Hacker',         initials: 'JB', hue: 'var(--color-tertiary-500)'  }
   ];
 
   const plans = [
@@ -129,7 +129,7 @@
 
   const stack = [
     'SvelteKit 2', 'Svelte 5', 'Fastify 5', 'MongoDB 7',
-    'TypeScript', 'Tailwind v4', 'Skeleton v4', 'Docker'
+    'TypeScript', 'Tailwind v4', 'DaisyUI v5', 'Docker'
   ];
 
   onMount(() => {
@@ -189,7 +189,7 @@
       <Logo />
     </div>
 
-    <span class="badge preset-tonal-primary mb-6">Production-ready scaffold</span>
+    <span class="badge badge-primary badge-outline mb-6">Production-ready scaffold</span>
 
     <h1 class="hero-headline">
       {brand.description}
@@ -197,12 +197,12 @@
 
     <p class="hero-sub">
       A full-stack SvelteKit + Fastify scaffold with authentication, RBAC, session management,
-      MongoDB, and a polished Skeleton UI — clone it and start shipping.
+      MongoDB, and a polished DaisyUI — clone it and start shipping.
     </p>
 
     <div class="flex flex-wrap gap-4 justify-center">
-      <a href="/login" class="btn preset-filled-primary-500 btn-lg">Get Started Free</a>
-      <a href="/login"    class="btn preset-outlined-primary-500 btn-lg">Sign In</a>
+      <a href="/login" class="btn btn-primary btn-lg">Get Started Free</a>
+      <a href="/login" class="btn btn-outline btn-primary btn-lg">Sign In</a>
     </div>
   </div>
 </section>
@@ -273,7 +273,7 @@
 
     <div class="fade-el text-center space-y-3" bind:this={fadeRefs[11]}>
       <h2 class="section-heading">UI components included</h2>
-      <p class="section-sub">Skeleton v4 ships dozens of pre-styled, themeable components ready to use.</p>
+      <p class="section-sub">DaisyUI v5 ships dozens of pre-styled, themeable components ready to use.</p>
     </div>
 
     <div class="showcase-grid fade-el" bind:this={fadeRefs[12]}>
@@ -303,7 +303,7 @@
         <p class="showcase-label">Alerts</p>
         <div class="space-y-2">
           {#each alerts as a}
-            <div class="alert {a.preset} p-3 rounded-base text-sm flex items-center gap-2">
+            <div class="alert {a.type} p-3 text-sm flex items-center gap-2">
               <span class="font-semibold">{a.label}:</span>
               <span>{a.msg}</span>
             </div>
@@ -314,13 +314,13 @@
       <!-- Card -->
       <div class="showcase-card">
         <p class="showcase-label">Card</p>
-        <div class="card preset-filled-surface-100-900 overflow-hidden text-sm">
-          <header class="preset-filled-primary-500 px-4 py-3 font-semibold">Card Header</header>
-          <div class="p-4 space-y-2 text-surface-300">
+        <div class="card bg-base-100 border border-base-200 overflow-hidden text-sm">
+          <header class="bg-primary text-primary-content px-4 py-3 font-semibold">Card Header</header>
+          <div class="p-4 space-y-2 opacity-80">
             <p>Card body with any content — text, forms, tables, or nested components.</p>
             <div class="flex gap-2 pt-1">
-              <button type="button" class="btn btn-sm preset-filled-primary-500">Action</button>
-              <button type="button" class="btn btn-sm preset-tonal">Cancel</button>
+              <button type="button" class="btn btn-sm btn-primary">Action</button>
+              <button type="button" class="btn btn-sm btn-ghost">Cancel</button>
             </div>
           </div>
         </div>
@@ -331,16 +331,16 @@
         <p class="showcase-label">Progress</p>
         <div class="space-y-3">
           {#each [
-            { label: 'Storage',    pct: 72, cls: 'bg-primary-500'   },
-            { label: 'Bandwidth',  pct: 45, cls: 'bg-secondary-500' },
-            { label: 'API Quota',  pct: 91, cls: 'bg-error-500'     }
+            { label: 'Storage',    pct: 72, cls: 'bg-primary'   },
+            { label: 'Bandwidth',  pct: 45, cls: 'bg-secondary' },
+            { label: 'API Quota',  pct: 91, cls: 'bg-error'     }
           ] as row}
             <div class="space-y-1">
-              <div class="flex justify-between text-xs text-surface-400">
+              <div class="flex justify-between text-xs opacity-50">
                 <span>{row.label}</span>
                 <span>{row.pct}%</span>
               </div>
-              <div class="w-full h-2 rounded-full bg-surface-700">
+              <div class="w-full h-2 rounded-full bg-base-300">
                 <div class="h-2 rounded-full {row.cls}" style="width: {row.pct}%"></div>
               </div>
             </div>
@@ -363,7 +363,7 @@
 
     <div class="fade-el stack-grid" bind:this={fadeRefs[14]}>
       {#each stack as tech}
-        <span class="badge preset-tonal-primary text-sm px-4 py-2">{tech}</span>
+        <span class="badge badge-primary badge-outline text-sm px-4 py-2">{tech}</span>
       {/each}
     </div>
 
@@ -413,7 +413,7 @@
             <div class="flex items-start justify-between gap-2">
               <h3 class="pricing-name">{plan.name}</h3>
               {#if plan.badge}
-                <span class="badge preset-filled-primary-500 text-xs">{plan.badge}</span>
+                <span class="badge badge-primary text-xs">{plan.badge}</span>
               {/if}
             </div>
             <div class="pricing-price">
@@ -429,7 +429,7 @@
               </li>
             {/each}
           </ul>
-          <a href={plan.href} class="btn w-full {plan.highlight ? 'preset-filled-primary-500' : 'preset-outlined-primary-500'}">
+          <a href={plan.href} class="btn w-full {plan.highlight ? 'btn-primary' : 'btn-outline btn-primary'}">
             {plan.cta}
           </a>
         </div>
@@ -444,7 +444,7 @@
   <div class="fade-el section-inner text-center space-y-6" bind:this={fadeRefs[19]}>
     <h2 class="cta-heading">Ready to build something?</h2>
     <p class="cta-sub">Create your account and have a running authenticated app in minutes.</p>
-    <a href="/login" class="btn preset-filled-primary-500 btn-lg">Start Building</a>
+    <a href="/login" class="btn btn-primary btn-lg">Start Building</a>
   </div>
 </section>
 
@@ -864,8 +864,8 @@
      DARK MODE overrides
      ══════════════════════════════════════════════════════════════ */
 
-  :global(.dark) .hero           { background: var(--color-surface-950); }
-  :global(.dark) .hero-vignette  {
+  :global([data-theme='business']) .hero           { background: var(--color-surface-950); }
+  :global([data-theme='business']) .hero-vignette  {
     background: radial-gradient(
       ellipse 70% 60% at 50% 50%,
       transparent 20%,
@@ -873,19 +873,19 @@
       var(--color-surface-950) 100%
     );
   }
-  :global(.dark) .hero-headline  { color: var(--color-surface-50); }
-  :global(.dark) .hero-sub       { color: var(--color-surface-300); }
+  :global([data-theme='business']) .hero-headline  { color: var(--color-surface-50); }
+  :global([data-theme='business']) .hero-sub       { color: var(--color-surface-300); }
 
-  :global(.dark) .section-stats  {
+  :global([data-theme='business']) .section-stats  {
     background: color-mix(in oklch, var(--color-primary-900) 40%, var(--color-surface-950));
     border-color: color-mix(in oklch, var(--color-primary-500) 20%, transparent);
   }
-  :global(.dark) .stat-value     { color: var(--color-primary-300); }
-  :global(.dark) .stat-label     { color: var(--color-surface-400); }
+  :global([data-theme='business']) .stat-value     { color: var(--color-primary-300); }
+  :global([data-theme='business']) .stat-label     { color: var(--color-surface-400); }
 
-  :global(.dark) .section-dark   { background: var(--color-surface-900); }
-  :global(.dark) .section-mid    { background: var(--color-surface-950); }
-  :global(.dark) .section-cta    {
+  :global([data-theme='business']) .section-dark   { background: var(--color-surface-900); }
+  :global([data-theme='business']) .section-mid    { background: var(--color-surface-950); }
+  :global([data-theme='business']) .section-cta    {
     background: linear-gradient(
       135deg,
       color-mix(in oklch, var(--color-primary-900) 80%, var(--color-surface-950)),
@@ -893,62 +893,62 @@
     );
   }
 
-  :global(.dark) .section-heading,
-  :global(.dark) .section-heading-alt { color: var(--color-surface-50); }
-  :global(.dark) .section-sub,
-  :global(.dark) .section-sub-alt     { color: var(--color-surface-400); }
+  :global([data-theme='business']) .section-heading,
+  :global([data-theme='business']) .section-heading-alt { color: var(--color-surface-50); }
+  :global([data-theme='business']) .section-sub,
+  :global([data-theme='business']) .section-sub-alt     { color: var(--color-surface-400); }
 
-  :global(.dark) .feature-card   {
+  :global([data-theme='business']) .feature-card   {
     background: color-mix(in oklch, var(--color-surface-800) 80%, transparent);
     border-color: color-mix(in oklch, var(--color-primary-500) 15%, transparent);
   }
-  :global(.dark) .feature-card:hover {
+  :global([data-theme='business']) .feature-card:hover {
     border-color: color-mix(in oklch, var(--color-primary-500) 40%, transparent);
     background: color-mix(in oklch, var(--color-surface-700) 70%, transparent);
     box-shadow: none;
   }
-  :global(.dark) .feature-title  { color: var(--color-surface-100); }
-  :global(.dark) .feature-body   { color: var(--color-surface-400); }
+  :global([data-theme='business']) .feature-title  { color: var(--color-surface-100); }
+  :global([data-theme='business']) .feature-body   { color: var(--color-surface-400); }
 
-  :global(.dark) .step-card      {
+  :global([data-theme='business']) .step-card      {
     background: color-mix(in oklch, var(--color-surface-900) 60%, transparent);
     border-color: color-mix(in oklch, var(--color-primary-500) 12%, transparent);
   }
-  :global(.dark) .step-title     { color: var(--color-surface-100); }
-  :global(.dark) .step-body      { color: var(--color-surface-400); }
+  :global([data-theme='business']) .step-title     { color: var(--color-surface-100); }
+  :global([data-theme='business']) .step-body      { color: var(--color-surface-400); }
 
-  :global(.dark) .showcase-card  {
+  :global([data-theme='business']) .showcase-card  {
     background: color-mix(in oklch, var(--color-surface-800) 70%, transparent);
     border-color: color-mix(in oklch, var(--color-surface-600) 30%, transparent);
   }
 
-  :global(.dark) .testimonial-card  {
+  :global([data-theme='business']) .testimonial-card  {
     background: color-mix(in oklch, var(--color-surface-800) 70%, transparent);
     border-color: color-mix(in oklch, var(--color-primary-500) 12%, transparent);
   }
-  :global(.dark) .testimonial-quote { color: var(--color-surface-300); }
-  :global(.dark) .testimonial-name  { color: var(--color-surface-100); }
-  :global(.dark) .testimonial-role  { color: var(--color-surface-500); }
+  :global([data-theme='business']) .testimonial-quote { color: var(--color-surface-300); }
+  :global([data-theme='business']) .testimonial-name  { color: var(--color-surface-100); }
+  :global([data-theme='business']) .testimonial-role  { color: var(--color-surface-500); }
 
-  :global(.dark) .pricing-card   {
+  :global([data-theme='business']) .pricing-card   {
     background: color-mix(in oklch, var(--color-surface-900) 80%, transparent);
     border-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
   }
-  :global(.dark) .pricing-card--highlight {
+  :global([data-theme='business']) .pricing-card--highlight {
     background: color-mix(in oklch, var(--color-primary-900) 50%, var(--color-surface-900));
     border-color: color-mix(in oklch, var(--color-primary-500) 50%, transparent);
     box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-primary-500) 30%, transparent);
   }
-  :global(.dark) .pricing-name   { color: var(--color-surface-100); }
-  :global(.dark) .pricing-price  { color: var(--color-surface-50); }
-  :global(.dark) .pricing-period { color: var(--color-surface-500); }
-  :global(.dark) .pricing-desc   { color: var(--color-surface-400); }
-  :global(.dark) .pricing-feat   { color: var(--color-surface-300); }
+  :global([data-theme='business']) .pricing-name   { color: var(--color-surface-100); }
+  :global([data-theme='business']) .pricing-price  { color: var(--color-surface-50); }
+  :global([data-theme='business']) .pricing-period { color: var(--color-surface-500); }
+  :global([data-theme='business']) .pricing-desc   { color: var(--color-surface-400); }
+  :global([data-theme='business']) .pricing-feat   { color: var(--color-surface-300); }
 
-  :global(.dark) .cta-heading    { color: var(--color-surface-50); }
-  :global(.dark) .cta-sub        { color: var(--color-surface-300); }
+  :global([data-theme='business']) .cta-heading    { color: var(--color-surface-50); }
+  :global([data-theme='business']) .cta-sub        { color: var(--color-surface-300); }
 
-  :global(.dark) .footer {
+  :global([data-theme='business']) .footer {
     background: var(--color-surface-950);
     border-top-color: color-mix(in oklch, var(--color-surface-800) 60%, transparent);
     color: var(--color-surface-600);

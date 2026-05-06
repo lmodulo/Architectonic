@@ -7,7 +7,7 @@
   <a href="/" class="nav-brand" aria-label="Home">
     <Logo brandName={brandName ?? ''} brandLogo={brandLogo ?? ''} />
   </a>
-  <a href="/login" class="btn preset-filled-primary-500 btn-sm">Sign In</a>
+  <a href="/login" class="btn btn-primary btn-sm">Sign In</a>
 </nav>
 
 <style>

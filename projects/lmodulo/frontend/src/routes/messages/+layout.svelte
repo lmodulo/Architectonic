@@ -57,26 +57,26 @@
   </div>
 
   <!-- Two-panel shell -->
-  <div class="flex flex-1 overflow-hidden border border-surface-200-800 rounded-container">
+  <div class="flex flex-1 overflow-hidden border border-base-300 rounded-box">
 
   <!-- Left panel — message list -->
-  <aside class="w-72 shrink-0 flex flex-col border-r border-surface-200-800 overflow-hidden">
+  <aside class="w-72 shrink-0 flex flex-col border-r border-base-300 overflow-hidden">
 
     <!-- Compose button -->
-    <div class="px-3 py-3 border-b border-surface-200-800">
-      <a href="/messages/compose" class="btn preset-filled-primary-500 w-full">
+    <div class="px-3 py-3 border-b border-base-300">
+      <a href="/messages/compose" class="btn btn-primary w-full">
         <SquarePen class="size-4" />
         <span>Compose</span>
       </a>
     </div>
 
     <!-- Tabs -->
-    <div class="flex border-b border-surface-200-800 shrink-0">
+    <div class="flex border-b border-base-300 shrink-0">
       {#each ([['inbox', 'Inbox', Inbox], ['sent', 'Sent', Send], ['archived', 'Archive', Archive]] as const) as [tab, label, Icon]}
         <button
           type="button"
           class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors
-            {activeTab === tab ? 'preset-tonal-primary border-b-2 border-primary-500' : 'opacity-60 hover:opacity-100'}"
+            {activeTab === tab ? 'bg-primary/15 text-primary border-b-2 border-primary' : 'opacity-60 hover:opacity-100'}"
           onclick={() => switchTab(tab)}
         >
           <Icon class="size-3.5" />

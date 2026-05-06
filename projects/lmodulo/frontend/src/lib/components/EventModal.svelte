@@ -50,7 +50,7 @@
     tags:       '',
     status:     'active',
     visibility: 'public',
-    assignedTo: selfId(), // default to self; empty string = public (null)
+    assignedTo: selfId(),
   });
 
   let loading      = $state(false);
@@ -136,30 +136,30 @@
   >
     <div
       transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
     >
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800 shrink-0">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{event ? 'Edit Event' : 'New Event'}</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={onClose} aria-label="Close">
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={onClose} aria-label="Close">
           <X class="size-5" />
         </button>
       </header>
 
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if err}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{err}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{err}</aside>
         {/if}
 
         <!-- Title -->
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
           <input id="ev-title" type="text" class="input w-full" placeholder="Event title"
             bind:value={form.title} maxlength="200" />
         </div>
 
         <!-- Assigned To -->
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-assigned">Assigned To</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-assigned">Assigned To</label>
           <select id="ev-assigned" class="select w-full" bind:value={form.assignedTo}>
             {#each users as u}
               <option value={u.id}>
@@ -172,7 +172,7 @@
         <!-- Type + Status row -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-type">Type</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-type">Type</label>
             <select id="ev-type" class="select w-full" bind:value={form.eventType}>
               {#each KNOWN_TYPES as t}
                 <option value={t}>{typeLabel(t)}</option>
@@ -180,7 +180,7 @@
             </select>
           </div>
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-status">Status</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-status">Status</label>
             <select id="ev-status" class="select w-full" bind:value={form.status}>
               <option value="active">Active</option>
               <option value="draft">Draft</option>
@@ -192,11 +192,11 @@
         <!-- Dates -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
             <input id="ev-start" type="date" class="input w-full" bind:value={form.startDate} />
           </div>
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
             <input id="ev-end" type="date" class="input w-full" bind:value={form.endDate}
               disabled={form.singleDay} min={form.startDate} />
           </div>
@@ -216,7 +216,7 @@
 
         <!-- Visibility -->
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-vis">Visibility</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-vis">Visibility</label>
           <select id="ev-vis" class="select w-full" bind:value={form.visibility}>
             <option value="public">Public</option>
             <option value="authenticated">Authenticated users</option>
@@ -226,14 +226,14 @@
 
         <!-- Location -->
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-loc">Location</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-loc">Location</label>
           <input id="ev-loc" type="text" class="input w-full" placeholder="Optional location"
             bind:value={form.location} />
         </div>
 
         <!-- Tags -->
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-tags">Tags</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-tags">Tags</label>
           <input id="ev-tags" type="text" class="input w-full" placeholder="Comma-separated tags"
             bind:value={form.tags} />
         </div>
@@ -245,18 +245,18 @@
         </div>
       </div>
 
-      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-surface-200-800 shrink-0">
+      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
         <div>
           {#if event && hasPermission(user, 'calendar_events', 'delete')}
-            <button type="button" class="btn preset-tonal-error" disabled={loading}
+            <button type="button" class="btn btn-error btn-soft" disabled={loading}
               onclick={() => (deletePrompt = true)}>
               Delete
             </button>
           {/if}
         </div>
         <div class="flex gap-3">
-          <button type="button" class="btn preset-tonal" onclick={onClose}>Cancel</button>
-          <button type="button" class="btn preset-filled-primary-500" disabled={loading} onclick={save}>
+          <button type="button" class="btn btn-ghost" onclick={onClose}>Cancel</button>
+          <button type="button" class="btn btn-primary" disabled={loading} onclick={save}>
             {loading ? 'Saving…' : 'Save'}
           </button>
         </div>
@@ -274,7 +274,7 @@
   >
     <div
       transition:scale={{ duration: 250, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl mx-4"
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4"
     >
       <div class="p-6 space-y-3">
         <h2 class="text-lg font-semibold">Delete event?</h2>
@@ -282,12 +282,12 @@
           "<strong>{form.title}</strong>" will be permanently removed. This cannot be undone.
         </p>
         {#if err}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{err}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{err}</aside>
         {/if}
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (deletePrompt = false)}>Cancel</button>
-        <button type="button" class="btn preset-filled-error-500" disabled={loading} onclick={confirmDelete}>
+        <button type="button" class="btn btn-ghost" onclick={() => (deletePrompt = false)}>Cancel</button>
+        <button type="button" class="btn btn-error" disabled={loading} onclick={confirmDelete}>
           {loading ? 'Deleting…' : 'Delete'}
         </button>
       </footer>

@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { Pagination } from '@skeletonlabs/skeleton-svelte';
-  import { Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight,
-           TrendingUp, ShoppingCart, DollarSign, MapPin, ChevronUp, ChevronDown,
-           Plus, X } from 'lucide-svelte';
+  import Pagination from '$lib/components/Pagination.svelte';
+  import { Search, TrendingUp, ShoppingCart, DollarSign, MapPin, ChevronUp, ChevronDown,
+           Plus, X, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import type { PageData } from './$types';
@@ -132,9 +131,9 @@
   $effect(() => { query; currentPage = 1; });
 
   const STATUS_CLS: Record<string,string> = {
-    Completed: 'preset-filled-success-500',
-    Pending:   'preset-filled-warning-500',
-    Refunded:  'preset-filled-error-500',
+    Completed: 'badge-success',
+    Pending:   'badge-warning',
+    Refunded:  'badge-error',
   };
 
   // ── Calendar ───────────────────────────────────────────────────────
@@ -341,32 +340,32 @@
 
   <!-- KPI Cards -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg preset-tonal-primary"><DollarSign class="size-5 text-primary-500" /></div>
+    <div class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4">
+      <div class="p-2 rounded-lg bg-primary/10"><DollarSign class="size-5 text-primary" /></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Revenue</p>
         <p class="text-2xl font-bold mt-0.5">{fmt(totalRevenue)}</p>
         <p class="text-xs opacity-50 mt-0.5">90-day period</p>
       </div>
     </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg preset-tonal-secondary"><ShoppingCart class="size-5 text-secondary-500" /></div>
+    <div class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4">
+      <div class="p-2 rounded-lg bg-secondary/10"><ShoppingCart class="size-5 text-secondary" /></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Orders</p>
         <p class="text-2xl font-bold mt-0.5">{totalOrders}</p>
         <p class="text-xs opacity-50 mt-0.5">across all regions</p>
       </div>
     </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg preset-tonal-success"><TrendingUp class="size-5 text-success-500" /></div>
+    <div class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4">
+      <div class="p-2 rounded-lg bg-success/10"><TrendingUp class="size-5 text-success" /></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Avg Order Value</p>
         <p class="text-2xl font-bold mt-0.5">{fmt(avgOrder)}</p>
         <p class="text-xs opacity-50 mt-0.5">per transaction</p>
       </div>
     </div>
-    <div class="card preset-filled-surface-100-900 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg preset-tonal-warning"><MapPin class="size-5 text-warning-500" /></div>
+    <div class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4">
+      <div class="p-2 rounded-lg bg-warning/10"><MapPin class="size-5 text-warning" /></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Top Region</p>
         <p class="text-2xl font-bold mt-0.5">{topRegion}</p>
@@ -379,19 +378,15 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
     <!-- Line: Daily Revenue -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
+    <div class="card bg-base-100 border border-base-200 p-5 space-y-3">
       <h2 class="text-sm font-semibold opacity-70">Daily Revenue — Last 30 Days</h2>
       <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-        <!-- grid lines -->
         {#each [0.25, 0.5, 0.75, 1] as frac}
           <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
             stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
         {/each}
-        <!-- area fill -->
         <path d={areaPath(dailyData)} fill="var(--color-primary-500)" fill-opacity="0.15"/>
-        <!-- line -->
         <polyline points={linePoints(dailyData)} fill="none" stroke="var(--color-primary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        <!-- x-axis labels every 5 days -->
         {#each dailyData as d, i}
           {#if i % 5 === 0}
             <text x={(16 + (i/29)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
@@ -401,7 +396,7 @@
     </div>
 
     <!-- Bar: Revenue by Product -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
+    <div class="card bg-base-100 border border-base-200 p-5 space-y-3">
       <h2 class="text-sm font-semibold opacity-70">Revenue by Product</h2>
       <svg viewBox="0 0 460 165" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
         {#each bars as b, i}
@@ -414,7 +409,7 @@
     </div>
 
     <!-- Donut: Orders by Region -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
+    <div class="card bg-base-100 border border-base-200 p-5 space-y-3">
       <h2 class="text-sm font-semibold opacity-70">Orders by Region</h2>
       <div class="flex items-center gap-6">
         <svg viewBox="0 0 180 180" width="180" height="180" class="shrink-0" aria-hidden="true">
@@ -439,7 +434,7 @@
     </div>
 
     <!-- Area: Monthly Revenue -->
-    <div class="card preset-filled-surface-100-900 p-5 space-y-3">
+    <div class="card bg-base-100 border border-base-200 p-5 space-y-3">
       <h2 class="text-sm font-semibold opacity-70">Monthly Revenue — Last 12 Months</h2>
       <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
         {#each [0.25, 0.5, 0.75, 1] as frac}
@@ -460,64 +455,48 @@
   <div class="space-y-3">
     <h2 class="text-lg font-semibold">Sales Records</h2>
 
-    <div class="input-group grid-cols-[auto_1fr]">
-      <div class="ig-cell preset-tonal"><Search class="size-4" /></div>
-      <input type="search" class="ig-input" placeholder="Search by ID, product, region, or status…" bind:value={query} />
-    </div>
+    <label class="input input-bordered flex items-center gap-2">
+      <Search class="size-4 opacity-50 shrink-0" />
+      <input type="search" class="grow" placeholder="Search by ID, product, region, or status…" bind:value={query} />
+    </label>
 
-    <div class="card preset-filled-surface-100-900 overflow-hidden">
-      <table class="w-full text-sm">
+    <div class="card bg-base-100 border border-base-200 overflow-hidden">
+      <table class="table table-sm">
         <thead>
-          <tr class="border-b border-surface-200-800">
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Order</th>
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Date</th>
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Product</th>
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Region</th>
-            <th class="text-right px-4 py-3 font-semibold text-surface-500">Units</th>
-            <th class="text-right px-4 py-3 font-semibold text-surface-500">Revenue</th>
-            <th class="text-left px-4 py-3 font-semibold text-surface-500">Status</th>
+          <tr>
+            <th>Order</th>
+            <th>Date</th>
+            <th>Product</th>
+            <th>Region</th>
+            <th class="text-right">Units</th>
+            <th class="text-right">Revenue</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
           {#each pageRows as row}
-            <tr class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-              <td class="px-4 py-3 font-mono text-xs opacity-60">{row.id}</td>
-              <td class="px-4 py-3 text-surface-500">{row.date.toLocaleDateString()}</td>
-              <td class="px-4 py-3">{row.product}</td>
-              <td class="px-4 py-3 text-surface-500">{row.region}</td>
-              <td class="px-4 py-3 text-right">{row.units}</td>
-              <td class="px-4 py-3 text-right font-semibold">{fmt(row.revenue)}</td>
-              <td class="px-4 py-3">
+            <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+              <td class="font-mono text-xs opacity-60">{row.id}</td>
+              <td class="opacity-60">{row.date.toLocaleDateString()}</td>
+              <td>{row.product}</td>
+              <td class="opacity-60">{row.region}</td>
+              <td class="text-right">{row.units}</td>
+              <td class="text-right font-semibold">{fmt(row.revenue)}</td>
+              <td>
                 <span class="badge text-xs {STATUS_CLS[row.status] ?? ''}">{row.status}</span>
               </td>
             </tr>
           {:else}
-            <tr><td colspan="7" class="px-4 py-8 text-center text-surface-500">No records found.</td></tr>
+            <tr><td colspan="7" class="px-4 py-8 text-center opacity-50">No records found.</td></tr>
           {/each}
         </tbody>
       </table>
 
-      <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800">
-        <span class="text-xs text-surface-500">
+      <div class="flex items-center justify-between px-4 py-2 border-t border-base-200">
+        <span class="text-xs opacity-50">
           {filtered.length === 0 ? 'No records' : `${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filtered.length)} of ${filtered.length}`}
         </span>
-        <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={e => (currentPage = e.page)} siblingCount={1}>
-          <Pagination.FirstTrigger class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronFirst class="size-4"/></Pagination.FirstTrigger>
-          <Pagination.PrevTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLeft  class="size-4"/></Pagination.PrevTrigger>
-          <Pagination.Context>
-            {#snippet children(pagination)}
-              {#each pagination().pages as p (p)}
-                {#if p.type === 'page'}
-                  <Pagination.Item {...p} class="btn-icon btn-sm {p.value === currentPage ? 'preset-tonal-primary' : 'hover:preset-tonal'}">{p.value}</Pagination.Item>
-                {:else}
-                  <Pagination.Ellipsis index={p.index} class="btn-icon btn-sm opacity-40">…</Pagination.Ellipsis>
-                {/if}
-              {/each}
-            {/snippet}
-          </Pagination.Context>
-          <Pagination.NextTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronRight class="size-4"/></Pagination.NextTrigger>
-          <Pagination.LastTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLast  class="size-4"/></Pagination.LastTrigger>
-        </Pagination>
+        <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={e => (currentPage = e.page)} siblingCount={1} />
       </div>
     </div>
   </div>
@@ -529,24 +508,24 @@
     <!-- Event search + New Event -->
     <div class="flex items-center gap-3">
       <div class="relative flex-1">
-        <div class="input-group grid-cols-[auto_1fr]">
-          <div class="ig-cell preset-tonal"><Search class="size-4" /></div>
+        <label class="input input-bordered flex items-center gap-2">
+          <Search class="size-4 opacity-50 shrink-0" />
           <input
             type="search"
-            class="ig-input"
+            class="grow"
             placeholder="Search events by title…"
             autocomplete="off"
             bind:value={eventQuery}
             onfocus={() => (eventSearchOpen = true)}
             onblur={() => setTimeout(() => (eventSearchOpen = false), 150)}
           />
-        </div>
+        </label>
         {#if eventSearchOpen && eventMatches.length > 0}
-          <div class="absolute top-full left-0 right-0 z-30 mt-1 card preset-filled-surface-100-900 shadow-xl overflow-hidden border border-surface-200-800">
+          <div class="absolute top-full left-0 right-0 z-30 mt-1 card bg-base-100 border border-base-200 shadow-xl overflow-hidden">
             {#each eventMatches as ev}
               <button
                 type="button"
-                class="w-full text-left px-4 py-2.5 text-sm hover:preset-tonal transition-colors border-b border-surface-200-800 last:border-0"
+                class="w-full text-left px-4 py-2.5 text-sm hover:bg-base-200 transition-colors border-b border-base-200 last:border-0"
                 onmousedown={() => selectEventFromSearch(ev)}
               >
                 <span class="font-medium">{ev.title}</span>
@@ -559,29 +538,29 @@
         {/if}
       </div>
       {#if hasPermission(data.user, 'events', 'create')}
-        <button type="button" class="btn preset-filled-primary-500 whitespace-nowrap" onclick={openNewEvent}>
+        <button type="button" class="btn btn-primary whitespace-nowrap" onclick={openNewEvent}>
           <Plus class="size-4" /> New Event
         </button>
       {/if}
     </div>
 
-    <div class="card preset-filled-surface-100-900 overflow-hidden">
+    <div class="card bg-base-100 border border-base-200 overflow-hidden">
 
       <!-- Nav -->
-      <div class="flex items-center justify-between px-5 py-3 border-b border-surface-200-800">
-        <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={prevMonth} aria-label="Previous month">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-base-200">
+        <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={prevMonth} aria-label="Previous month">
           <ChevronLeft class="size-4"/>
         </button>
         <span class="font-semibold text-sm">{calLabel}</span>
-        <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={nextMonth} aria-label="Next month">
+        <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={nextMonth} aria-label="Next month">
           <ChevronRight class="size-4"/>
         </button>
       </div>
 
       <!-- DOW header -->
-      <div class="grid grid-cols-7 border-b border-surface-200-800">
+      <div class="grid grid-cols-7 border-b border-base-200">
         {#each ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as dow}
-          <div class="px-2 py-2 text-center text-xs font-semibold text-surface-500 uppercase tracking-wide">{dow}</div>
+          <div class="px-2 py-2 text-center text-xs font-semibold opacity-50 uppercase tracking-wide">{dow}</div>
         {/each}
       </div>
 
@@ -590,20 +569,20 @@
         {#each calDays as cell, i}
           {@const borderR = (i+1) % 7 !== 0 ? 'border-r' : ''}
           {@const borderB = i < calDays.length - 7 ? 'border-b' : ''}
-          <div class="min-h-[5.5rem] p-2 border-surface-200-800 {borderR} {borderB} relative
-            {cell?.isToday ? 'bg-primary-500/5' : ''}">
+          <div class="min-h-[5.5rem] p-2 border-base-200 {borderR} {borderB} relative
+            {cell?.isToday ? 'bg-primary/5' : ''}">
             {#if cell}
               <span class="text-xs font-semibold
-                {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full preset-filled-primary-500 text-white' : 'opacity-70'}">
+                {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-content' : 'opacity-70'}">
                 {cell.day}
               </span>
               {#if cell.count > 0}
                 <div class="mt-1.5 space-y-0.5">
-                  <div class="w-full rounded-sm h-1.5 overflow-hidden bg-surface-200-800">
-                    <div class="h-full rounded-sm bg-primary-500"
+                  <div class="w-full rounded-sm h-1.5 overflow-hidden bg-base-200">
+                    <div class="h-full rounded-sm bg-primary"
                       style="width:{Math.round((cell.revenue/maxDayRevenue)*100)}%"></div>
                   </div>
-                  <p class="text-[10px] text-primary-500 font-semibold">{fmt(cell.revenue)}</p>
+                  <p class="text-[10px] text-primary font-semibold">{fmt(cell.revenue)}</p>
                   <p class="text-[10px] opacity-40">{cell.count} order{cell.count !== 1 ? 's' : ''}</p>
                 </div>
               {/if}
@@ -612,7 +591,7 @@
                 <button
                   type="button"
                   class="mt-1 w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
-                    bg-tertiary-500 text-white hover:bg-tertiary-600 transition-colors"
+                    bg-accent text-accent-content hover:opacity-90 transition-opacity"
                   onclick={() => openEditEvent(ev)}
                   title={ev.title}
                 >{ev.title}</button>
@@ -643,35 +622,35 @@
   >
     <div
       transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
+      class="card bg-base-100 border border-base-200 w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
     >
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800 shrink-0">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-200 shrink-0">
         <h2 class="text-lg font-semibold">{editingEventId ? 'Edit Event' : 'New Event'}</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (eventModalOpen = false)} aria-label="Close">
+        <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={() => (eventModalOpen = false)} aria-label="Close">
           <X class="size-5" />
         </button>
       </header>
 
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if eventError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{eventError}</aside>
+          <div role="alert" class="alert alert-error text-sm">{eventError}</div>
         {/if}
 
         <!-- Title -->
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
-          <input id="ev-title" type="text" class="input w-full" placeholder="Event title" bind:value={eventForm.title} maxlength="200" />
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
+          <input id="ev-title" type="text" class="input input-bordered w-full" placeholder="Event title" bind:value={eventForm.title} maxlength="200" />
         </div>
 
         <!-- Dates -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
-            <input id="ev-start" type="date" class="input w-full" bind:value={eventForm.startDate} />
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
+            <input id="ev-start" type="date" class="input input-bordered w-full" bind:value={eventForm.startDate} />
           </div>
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
-            <input id="ev-end" type="date" class="input w-full" bind:value={eventForm.endDate}
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
+            <input id="ev-end" type="date" class="input input-bordered w-full" bind:value={eventForm.endDate}
               disabled={eventForm.singleDay} min={eventForm.startDate} />
           </div>
         </div>
@@ -689,20 +668,20 @@
         </div>
       </div>
 
-      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-surface-200-800 shrink-0">
+      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-base-200 shrink-0">
         <div>
           {#if editingEventId && hasPermission(data.user, 'events', 'delete')}
             <button
               type="button"
-              class="btn preset-tonal-error"
+              class="btn btn-outline btn-error"
               disabled={eventLoading}
               onclick={() => (eventDeleteConfirm = true)}
             >Delete this event</button>
           {/if}
         </div>
         <div class="flex gap-3">
-          <button type="button" class="btn preset-tonal" onclick={() => (eventModalOpen = false)}>Cancel</button>
-          <button type="button" class="btn preset-filled-primary-500" disabled={eventLoading} onclick={saveEvent}>
+          <button type="button" class="btn btn-ghost" onclick={() => (eventModalOpen = false)}>Cancel</button>
+          <button type="button" class="btn btn-primary" disabled={eventLoading} onclick={saveEvent}>
             {eventLoading ? 'Saving…' : 'Save'}
           </button>
         </div>
@@ -720,7 +699,7 @@
   >
     <div
       transition:scale={{ duration: 250, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl mx-4"
+      class="card bg-base-100 border border-base-200 w-full max-w-sm shadow-xl mx-4"
     >
       <div class="p-6 space-y-3">
         <h2 class="text-lg font-semibold">Delete event?</h2>
@@ -728,12 +707,12 @@
           "<strong>{eventForm.title}</strong>" will be permanently removed. This cannot be undone.
         </p>
         {#if eventError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{eventError}</aside>
+          <div role="alert" class="alert alert-error text-sm">{eventError}</div>
         {/if}
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (eventDeleteConfirm = false)}>Cancel</button>
-        <button type="button" class="btn preset-filled-error-500" disabled={eventLoading} onclick={confirmDeleteEvent}>
+        <button type="button" class="btn btn-ghost" onclick={() => (eventDeleteConfirm = false)}>Cancel</button>
+        <button type="button" class="btn btn-error" disabled={eventLoading} onclick={confirmDeleteEvent}>
           {eventLoading ? 'Deleting…' : 'Delete'}
         </button>
       </footer>

@@ -22,8 +22,8 @@
     {/if}
 
     <form method="POST" use:enhance class="space-y-4">
-      <label class="label">
-        <span class="label-text">Email</span>
+      <label class="flex flex-col gap-1">
+        <span>Email</span>
         <input
           class="input"
           type="email"
@@ -34,14 +34,14 @@
         />
       </label>
 
-      <button type="submit" class="btn preset-filled-primary-500 w-full">
+      <button type="submit" class="btn btn-primary w-full">
         Send Reset Link
       </button>
     </form>
   {/if}
 
   <div class="auth-links">
-    <a href="/login" class="anchor">← Back to Sign In</a>
+    <a href="/login" class="link link-primary">← Back to Sign In</a>
   </div>
 
 </AuthShell>
@@ -57,13 +57,13 @@
   .auth-alert--success {
     background: rgba(100, 200, 150, 0.08);
     border-color: rgba(100, 200, 150, 0.2);
-    color: var(--color-success-400);
+    color: var(--color-success);
   }
 
   .auth-alert--error {
     background: rgba(220, 80, 60, 0.08);
     border-color: rgba(220, 80, 60, 0.2);
-    color: var(--color-error-400);
+    color: var(--color-error);
   }
 
   .auth-links {

@@ -16,76 +16,44 @@
 <div class="max-w-lg">
   <h1 class="text-2xl font-bold mb-6">Profile</h1>
 
-  <div class="card preset-filled-surface-100-900 p-6 space-y-5">
+  <div class="card bg-base-100 border border-base-200 shadow-sm p-6 space-y-5">
     <h2 class="text-lg font-semibold">Account Information</h2>
 
     {#if form?.success}
-      <aside class="alert preset-tonal-success p-3 rounded-base text-sm">
-        Profile updated successfully.
-      </aside>
+      <div role="alert" class="alert alert-success text-sm">Profile updated successfully.</div>
     {/if}
 
     {#if form?.error}
-      <aside class="alert preset-tonal-error p-3 rounded-base text-sm">
-        {form.error}
-      </aside>
+      <div role="alert" class="alert alert-error text-sm">{form.error}</div>
     {/if}
 
     <form method="POST" class="space-y-4">
       <div class="grid grid-cols-2 gap-4">
-        <label class="label">
-          <span class="label-text text-sm font-medium">First Name</span>
-          <input
-            type="text"
-            name="firstName"
-            class="input mt-1"
-            bind:value={firstName}
-            maxlength="50"
-            autocomplete="given-name"
-            placeholder="Jane"
-          />
-        </label>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Last Name</span>
-          <input
-            type="text"
-            name="lastName"
-            class="input mt-1"
-            bind:value={lastName}
-            maxlength="50"
-            autocomplete="family-name"
-            placeholder="Doe"
-          />
-        </label>
+        <div class="form-control gap-1">
+          <span class="label-text font-medium">First Name</span>
+          <input type="text" name="firstName" class="input input-bordered"
+            bind:value={firstName} maxlength="50" autocomplete="given-name" placeholder="Jane" />
+        </div>
+        <div class="form-control gap-1">
+          <span class="label-text font-medium">Last Name</span>
+          <input type="text" name="lastName" class="input input-bordered"
+            bind:value={lastName} maxlength="50" autocomplete="family-name" placeholder="Doe" />
+        </div>
       </div>
 
-      <label class="label">
-        <span class="label-text text-sm font-medium">Username</span>
-        <input
-          type="text"
-          name="username"
-          class="input mt-1"
-          bind:value={username}
-          minlength="2"
-          maxlength="50"
-          required
-        />
-      </label>
+      <div class="form-control gap-1">
+        <span class="label-text font-medium">Username</span>
+        <input type="text" name="username" class="input input-bordered"
+          bind:value={username} minlength="2" maxlength="50" required />
+      </div>
 
-      <label class="label">
-        <span class="label-text text-sm font-medium">Email</span>
-        <input
-          type="email"
-          name="email"
-          class="input mt-1"
-          bind:value={email}
-          required
-        />
-      </label>
+      <div class="form-control gap-1">
+        <span class="label-text font-medium">Email</span>
+        <input type="email" name="email" class="input input-bordered"
+          bind:value={email} required />
+      </div>
 
-      <button type="submit" class="btn preset-filled-primary-500 w-full">
-        Save Changes
-      </button>
+      <button type="submit" class="btn btn-primary w-full">Save Changes</button>
     </form>
   </div>
 </div>

@@ -1,9 +1,18 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: false;
+}
 
-/* Force class-based dark mode — overrides Tailwind v4's default @media query */
-@custom-variant dark (&:where(.dark, .dark *));
+/* dark: utilities activate when data-theme="business" is set */
+@custom-variant dark (&:where([data-theme=business], [data-theme=business] *));
 
-/* Skeleton built-in theme — provides color palette for [data-theme="cerberus"] */
-@import "@skeletonlabs/skeleton/themes/cerberus";
+/* Custom project theme */
+@import "../lmodulo-theme.css";
 
-@import "@skeletonlabs/skeleton";
+body {
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}

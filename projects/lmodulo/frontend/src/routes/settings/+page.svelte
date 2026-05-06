@@ -147,18 +147,18 @@
 
 <div class="space-y-6">
   <div>
-    <h1 class="h3 font-bold">Settings</h1>
+    <h1 class="text-xl font-bold">Settings</h1>
     <p class="text-sm opacity-60 mt-1">Application-wide configuration. Changes take effect immediately.</p>
   </div>
 
   <!-- Brand card -->
-  <div class="card preset-filled-surface-100-900 p-5 space-y-4">
+  <div class="card bg-base-200 p-5 space-y-4">
     <div>
       <h2 class="font-semibold text-sm">Brand</h2>
       <p class="text-xs opacity-50 mt-0.5">Any combination is allowed. Only fields with values display in the nav.</p>
     </div>
 
-    {#if brandError}<aside class="alert preset-tonal-error p-3 rounded-base text-sm">{brandError}</aside>{/if}
+    {#if brandError}<aside class="alert alert-error p-3 rounded text-sm">{brandError}</aside>{/if}
 
     <!-- Brand Name -->
     <div class="space-y-1">
@@ -171,18 +171,18 @@
             placeholder="e.g. Acme Corp"
             bind:value={brandNameInput}
           />
-          <button type="button" class="btn btn-sm preset-filled-primary-500 shrink-0" disabled={savingBrandName} onclick={saveBrandName}>
+          <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={savingBrandName} onclick={saveBrandName}>
             {savingBrandName ? 'Saving…' : 'Save'}
           </button>
-          <button type="button" class="btn btn-sm preset-tonal shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>Cancel</button>
+          <button type="button" class="btn btn-ghost btn-sm shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>Cancel</button>
         </div>
       {:else}
         <div class="flex items-center gap-2">
           <span class="text-sm font-mono opacity-80 flex-1">{currentBrandName || '—'}</span>
           {#if canEdit}
-            <button type="button" class="btn btn-sm preset-tonal shrink-0" onclick={startBrandNameEdit}>Edit</button>
+            <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick={startBrandNameEdit}>Edit</button>
             {#if currentBrandName}
-              <button type="button" class="btn btn-sm preset-tonal-error shrink-0" disabled={savingBrandName} onclick={clearBrandName}>Clear</button>
+              <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={savingBrandName} onclick={clearBrandName}>Clear</button>
             {/if}
           {/if}
         </div>
@@ -193,22 +193,22 @@
     <div class="space-y-1">
       <p class="text-xs font-medium opacity-70">Logo</p>
       <div class="flex items-center gap-4">
-        <div class="size-12 shrink-0 flex items-center justify-center rounded border border-surface-200-800 overflow-hidden bg-surface-50-950">
+        <div class="size-12 shrink-0 flex items-center justify-center rounded border border-base-300 overflow-hidden bg-base-100">
           {#if currentLogo}
             <img src={currentLogo} alt="Brand logo" class="size-full object-contain p-1" />
           {:else}
-            <LogoIcon class="size-6 text-surface-400" />
+            <LogoIcon class="size-6 text-base-content/40" />
           {/if}
         </div>
         <div class="flex-1 space-y-2">
           {#if canEdit}
             <div class="flex items-center gap-2 flex-wrap">
               <input type="file" class="input text-sm flex-1 min-w-0" accept="image/*" bind:files={logoFiles} />
-              <button type="button" class="btn btn-sm preset-filled-primary-500 shrink-0" disabled={uploading || !logoFiles?.length} onclick={uploadLogo}>
+              <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={uploading || !logoFiles?.length} onclick={uploadLogo}>
                 {uploading ? 'Uploading…' : 'Upload'}
               </button>
               {#if currentLogo}
-                <button type="button" class="btn btn-sm preset-tonal-error shrink-0" disabled={uploading} onclick={removeLogo}>Remove</button>
+                <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={uploading} onclick={removeLogo}>Remove</button>
               {/if}
             </div>
           {/if}
@@ -218,7 +218,7 @@
     </div>
   </div>
 
-  <div class="card preset-filled-surface-100-900 divide-y divide-surface-200-800">
+  <div class="card bg-base-200 divide-y divide-base-300">
     {#each genericSettings as setting (setting.key)}
       <div class="flex items-start gap-4 px-5 py-4">
 
@@ -264,12 +264,12 @@
               {/if}
 
               {#if saveError}
-                <span class="text-xs text-error-500">{saveError}</span>
+                <span class="text-xs text-error">{saveError}</span>
               {/if}
 
               <button
                 type="button"
-                class="btn btn-sm preset-filled-primary-500"
+                class="btn btn-primary btn-sm"
                 disabled={saving}
                 onclick={() => save(setting.key)}
               >
@@ -277,7 +277,7 @@
               </button>
               <button
                 type="button"
-                class="btn btn-sm preset-tonal"
+                class="btn btn-ghost btn-sm"
                 disabled={saving}
                 onclick={cancelEdit}
               >
@@ -288,7 +288,7 @@
             <!-- Display -->
             <span class="text-sm font-mono opacity-80">
               {#if setting.type === 'boolean'}
-                <span class="badge {setting.value ? 'preset-filled-success-500' : 'preset-filled-surface-300-700'} text-xs">
+                <span class="badge {setting.value ? 'badge-success' : 'badge-neutral'} text-xs">
                   {setting.value ? 'Enabled' : 'Disabled'}
                 </span>
               {:else}
@@ -298,7 +298,7 @@
             {#if canEdit}
               <button
                 type="button"
-                class="btn btn-sm preset-tonal"
+                class="btn btn-ghost btn-sm"
                 onclick={() => startEdit(setting)}
               >
                 Edit

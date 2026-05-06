@@ -45,59 +45,59 @@
   }
 </script>
 
-<div class="flex flex-col border border-surface-200-800 rounded-base overflow-hidden">
+<div class="flex flex-col border border-base-300 rounded overflow-hidden">
   <!-- Toolbar -->
-  <div class="flex items-center gap-0.5 px-2 py-1.5 border-b border-surface-200-800 flex-wrap">
+  <div class="flex items-center gap-0.5 px-2 py-1.5 border-b border-base-300 flex-wrap">
     <button type="button"
-      class="btn-icon btn-sm {active('bold') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-sm btn-square {active('bold') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBold().run())}
       aria-label="Bold" title="Bold"
     ><Bold class="size-3.5" /></button>
 
     <button type="button"
-      class="btn-icon btn-sm {active('italic') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-sm btn-square {active('italic') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleItalic().run())}
       aria-label="Italic" title="Italic"
     ><Italic class="size-3.5" /></button>
 
     <button type="button"
-      class="btn-icon btn-sm {active('underline') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-sm btn-square {active('underline') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleUnderline().run())}
       aria-label="Underline" title="Underline"
     ><UnderlineIcon class="size-3.5" /></button>
 
-    <span class="w-px h-4 bg-surface-300-700 mx-1 opacity-60"></span>
+    <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
 
     <button type="button"
-      class="btn-icon btn-sm {active('bulletList') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-sm btn-square {active('bulletList') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBulletList().run())}
       aria-label="Bullet list" title="Bullet list"
     ><List class="size-3.5" /></button>
 
     <button type="button"
-      class="btn-icon btn-sm {active('orderedList') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-sm btn-square {active('orderedList') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleOrderedList().run())}
       aria-label="Ordered list" title="Ordered list"
     ><ListOrdered class="size-3.5" /></button>
 
-    <span class="w-px h-4 bg-surface-300-700 mx-1 opacity-60"></span>
+    <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
 
     <button type="button"
-      class="btn-icon btn-sm {active('blockquote') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-sm btn-square {active('blockquote') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBlockquote().run())}
       aria-label="Blockquote" title="Blockquote"
     ><TextQuote class="size-3.5" /></button>
 
-    <span class="w-px h-4 bg-surface-300-700 mx-1 opacity-60"></span>
+    <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
 
     <button type="button"
-      class="btn-icon btn-sm hover:preset-tonal"
+      class="btn btn-ghost btn-sm btn-square"
       onmousedown={cmd(() => editor?.chain().undo().run())}
       aria-label="Undo" title="Undo"
     ><Undo class="size-3.5" /></button>
 
     <button type="button"
-      class="btn-icon btn-sm hover:preset-tonal"
+      class="btn btn-ghost btn-sm btn-square"
       onmousedown={cmd(() => editor?.chain().redo().run())}
       aria-label="Redo" title="Redo"
     ><Redo class="size-3.5" /></button>
@@ -114,7 +114,8 @@
   :global(.tiptap p.is-editor-empty:first-child::before) {
     content: attr(data-placeholder);
     float: left;
-    color: var(--color-surface-400);
+    color: var(--color-base-content);
+    opacity: 0.4;
     pointer-events: none;
     height: 0;
   }
@@ -122,7 +123,7 @@
   :global(.tiptap ul)  { list-style: disc;    padding-left: 1.5rem; }
   :global(.tiptap ol)  { list-style: decimal; padding-left: 1.5rem; }
   :global(.tiptap blockquote) {
-    border-left: 3px solid var(--color-primary-500);
+    border-left: 3px solid var(--color-primary);
     padding-left: 0.75rem;
     opacity: 0.8;
   }

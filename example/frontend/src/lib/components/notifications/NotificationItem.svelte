@@ -33,18 +33,18 @@
 
 <button
   type="button"
-  class="w-full flex items-start gap-3 px-3 py-2.5 rounded-base text-left transition-colors
-    {notification.read ? 'hover:preset-tonal opacity-70' : 'hover:preset-tonal-primary'}"
+  class="w-full flex items-start gap-3 px-3 py-2.5 text-left transition-colors
+    {notification.read ? 'hover:bg-base-200 opacity-70' : 'hover:bg-primary/5'}"
   onclick={() => onclick?.(notification)}
 >
-  <div class="mt-0.5 shrink-0 {notification.read ? 'opacity-50' : 'text-primary-500'}">
+  <div class="mt-0.5 shrink-0 {notification.read ? 'opacity-50' : 'text-primary'}">
     <Icon class="size-4" />
   </div>
 
   <div class="flex-1 min-w-0">
     <div class="flex items-center gap-1.5">
       {#if !notification.read}
-        <span class="size-1.5 rounded-full bg-primary-500 shrink-0"></span>
+        <span class="size-1.5 rounded-full bg-primary shrink-0"></span>
       {/if}
       <p class="text-sm font-medium truncate">{notification.title}</p>
     </div>

@@ -2,7 +2,6 @@
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { Search, Pencil, Trash2, X, UserPlus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
-  import { Pagination } from '@skeletonlabs/skeleton-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
 
@@ -202,6 +201,21 @@
   const pageRoleUsers = $derived(filteredRoleUsers.slice((rolesPage - 1) * PAGE_SIZE, rolesPage * PAGE_SIZE));
 
   $effect(() => { userQuery; rolesPage = 1; });
+
+  // ─── Pagination helper ────────────────────────────────────────────────────────
+
+  function paginationPages(total: number, pageSize: number, cur: number) {
+    const last = Math.ceil(total / pageSize);
+    const pages: Array<{ type: 'page'; value: number } | { type: 'ellipsis'; index: number }> = [];
+    for (let i = 1; i <= last; i++) {
+      if (i === 1 || i === last || Math.abs(i - cur) <= 1) {
+        pages.push({ type: 'page', value: i });
+      } else if (pages[pages.length - 1]?.type === 'page') {
+        pages.push({ type: 'ellipsis', index: pages.length });
+      }
+    }
+    return pages;
+  }
 </script>
 
 <svelte:head>
@@ -212,15 +226,15 @@
   <h1 class="text-2xl font-bold">User Management</h1>
 
   {#if data.error}
-    <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{data.error}</aside>
+    <aside class="alert alert-error p-3 rounded text-sm">{data.error}</aside>
   {/if}
 
   <!-- Tabs -->
-  <div class="flex gap-1 border-b border-surface-200-800">
+  <div class="flex gap-1 border-b border-base-300">
     {#if data.canReadUsers}
       <button
         type="button"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'users' ? 'border-primary-500 text-primary-500' : 'border-transparent hover:text-surface-900-50'}"
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'users' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
         onclick={() => (activeTab = 'users')}
       >
         Users
@@ -229,7 +243,7 @@
     {#if data.canReadRoles}
       <button
         type="button"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'roles' ? 'border-primary-500 text-primary-500' : 'border-transparent hover:text-surface-900-50'}"
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'roles' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
         onclick={() => (activeTab = 'roles')}
       >
         Roles
@@ -242,19 +256,17 @@
     <div class="space-y-4">
       <!-- Search + New User -->
       <div class="flex items-center gap-3">
-        <div class="input-group grid-cols-[auto_1fr] flex-1">
-          <div class="ig-cell preset-tonal">
-            <Search class="size-4" />
-          </div>
+        <label class="input flex items-center gap-2 flex-1">
+          <Search class="size-4 shrink-0 opacity-50" />
           <input
             type="search"
             placeholder="Search by name or email…"
-            class="ig-input"
+            class="grow"
             bind:value={query}
           />
-        </div>
+        </label>
         {#if hasPermission(data.user, 'users', 'create')}
-          <button type="button" class="btn preset-filled-primary-500 shrink-0" onclick={openNewUser}>
+          <button type="button" class="btn btn-primary shrink-0" onclick={openNewUser}>
             <UserPlus class="size-4" />
             <span>New User</span>
           </button>
@@ -262,33 +274,33 @@
       </div>
 
       <!-- Table -->
-      <div class="card preset-filled-surface-100-900 overflow-hidden">
+      <div class="card bg-base-200 overflow-hidden">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-surface-200-800">
-              <th class="text-left px-4 py-3 font-semibold text-surface-500">Name</th>
-              <th class="text-left px-4 py-3 font-semibold text-surface-500">Email</th>
-              <th class="text-left px-4 py-3 font-semibold text-surface-500">Role</th>
-              <th class="text-left px-4 py-3 font-semibold text-surface-500">Joined</th>
+            <tr class="border-b border-base-300">
+              <th class="text-left px-4 py-3 font-semibold text-base-content/50">Name</th>
+              <th class="text-left px-4 py-3 font-semibold text-base-content/50">Email</th>
+              <th class="text-left px-4 py-3 font-semibold text-base-content/50">Role</th>
+              <th class="text-left px-4 py-3 font-semibold text-base-content/50">Joined</th>
               <th class="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {#each pageUsers as user}
-              <tr class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+              <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
                 <td class="px-4 py-3">
                   {#if user.firstName || user.lastName}
                     <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
-                    <div class="text-xs text-surface-500">{user.username}</div>
+                    <div class="text-xs text-base-content/50">{user.username}</div>
                   {:else}
                     <div class="font-medium">{user.username}</div>
                   {/if}
                 </td>
-                <td class="px-4 py-3 text-surface-400">{user.email}</td>
+                <td class="px-4 py-3 text-base-content/40">{user.email}</td>
                 <td class="px-4 py-3">
-                  <span class="badge preset-tonal-primary text-xs">{user.role ?? 'viewer'}</span>
+                  <span class="badge badge-primary badge-soft text-xs">{user.role ?? 'viewer'}</span>
                 </td>
-                <td class="px-4 py-3 text-surface-500">
+                <td class="px-4 py-3 text-base-content/50">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td class="px-4 py-3">
@@ -296,7 +308,7 @@
                     {#if hasPermission(data.user, 'users', 'update')}
                       <button
                         type="button"
-                        class="btn-icon btn-sm hover:preset-tonal-primary"
+                        class="btn btn-ghost btn-xs btn-square"
                         aria-label="Edit {user.username}"
                         onclick={() => openEdit(user)}
                       >
@@ -306,7 +318,7 @@
                     {#if hasPermission(data.user, 'users', 'delete')}
                       <button
                         type="button"
-                        class="btn-icon btn-sm hover:preset-tonal-error"
+                        class="btn btn-ghost btn-xs btn-square text-error"
                         aria-label="Delete {user.username}"
                         onclick={() => openDelete(user)}
                       >
@@ -318,35 +330,31 @@
               </tr>
             {:else}
               <tr>
-                <td colspan="5" class="px-4 py-8 text-center text-surface-500">No users found.</td>
+                <td colspan="5" class="px-4 py-8 text-center text-base-content/50">No users found.</td>
               </tr>
             {/each}
           </tbody>
         </table>
 
-        <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800">
-          <span class="text-surface-500 text-xs">
+        <div class="flex items-center justify-between px-4 py-2 border-t border-base-300">
+          <span class="text-base-content/50 text-xs">
             {filtered.length === 0
               ? 'No users'
               : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} of ${filtered.length}`}
           </span>
-          <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={(e) => (currentPage = e.page)} siblingCount={1}>
-            <Pagination.FirstTrigger class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronFirst class="size-4" /></Pagination.FirstTrigger>
-            <Pagination.PrevTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLeft  class="size-4" /></Pagination.PrevTrigger>
-            <Pagination.Context>
-              {#snippet children(pagination)}
-                {#each pagination().pages as p (p)}
-                  {#if p.type === 'page'}
-                    <Pagination.Item {...p} class="btn-icon btn-sm {p.value === currentPage ? 'preset-tonal-primary' : 'hover:preset-tonal'}">{p.value}</Pagination.Item>
-                  {:else}
-                    <Pagination.Ellipsis index={p.index} class="btn-icon btn-sm opacity-50">…</Pagination.Ellipsis>
-                  {/if}
-                {/each}
-              {/snippet}
-            </Pagination.Context>
-            <Pagination.NextTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronRight class="size-4" /></Pagination.NextTrigger>
-            <Pagination.LastTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLast  class="size-4" /></Pagination.LastTrigger>
-          </Pagination>
+          <div class="join">
+            <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => (currentPage = 1)}><ChevronFirst class="size-3" /></button>
+            <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => (currentPage -= 1)}><ChevronLeft class="size-3" /></button>
+            {#each paginationPages(filtered.length, PAGE_SIZE, currentPage) as p}
+              {#if p.type === 'page'}
+                <button class="join-item btn btn-xs {p.value === currentPage ? 'btn-active' : ''}" onclick={() => (currentPage = p.value)}>{p.value}</button>
+              {:else}
+                <span class="join-item btn btn-xs btn-disabled">…</span>
+              {/if}
+            {/each}
+            <button class="join-item btn btn-xs" disabled={currentPage * PAGE_SIZE >= filtered.length} onclick={() => (currentPage += 1)}><ChevronRight class="size-3" /></button>
+            <button class="join-item btn btn-xs" disabled={currentPage * PAGE_SIZE >= filtered.length} onclick={() => (currentPage = Math.ceil(filtered.length / PAGE_SIZE))}><ChevronLast class="size-3" /></button>
+          </div>
         </div>
       </div>
     </div>
@@ -356,21 +364,21 @@
   {#if activeTab === 'roles'}
     <div class="space-y-6">
       <!-- Roles accordion -->
-      <div class="card preset-filled-surface-100-900 divide-y divide-surface-200-800 overflow-hidden">
+      <div class="card bg-base-200 divide-y divide-base-300 overflow-hidden">
         {#each data.roles as role}
           {@const open = openRoles.has(role.name)}
           <button
             type="button"
-            class="w-full flex items-center justify-between px-4 py-3 text-left hover:preset-tonal-surface transition-colors"
+            class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-base-300/50 transition-colors"
             onclick={() => toggleRole(role.name)}
             aria-expanded={open}
           >
             <div>
               <span class="font-semibold">{role.label}</span>
-              <span class="ml-2 text-xs text-surface-500">{role.name}</span>
+              <span class="ml-2 text-xs text-base-content/50">{role.name}</span>
             </div>
             <svg
-              class="size-4 text-surface-400 transition-transform duration-200 {open ? 'rotate-180' : ''}"
+              class="size-4 text-base-content/40 transition-transform duration-200 {open ? 'rotate-180' : ''}"
               xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
             >
               <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z" clip-rule="evenodd"/>
@@ -378,18 +386,18 @@
           </button>
 
           {#if open}
-            <div class="px-4 py-4 border-t border-surface-200-800 bg-surface-50-950/30">
+            <div class="px-4 py-4 border-t border-base-300 bg-base-200/30">
               <div class="grid gap-x-4 gap-y-3" style="grid-template-columns: minmax(7rem,1fr) repeat(4, 2.5rem);">
-                <div class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Resource</div>
+                <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wide">Resource</div>
                 {#each ACTIONS as action}
-                  <div class="text-xs font-semibold text-surface-500 uppercase tracking-wide text-center">{action[0].toUpperCase()}</div>
+                  <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wide text-center">{action[0].toUpperCase()}</div>
                 {/each}
                 {#each RESOURCES as resource}
                   <div class="flex items-center text-sm capitalize font-medium">{resource}</div>
                   {#each ACTIONS as action}
                     <div class="flex items-center justify-center">
                       <span
-                        class="inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold {role.permissions?.[resource]?.[action] ? 'preset-filled-success-500' : 'preset-filled-surface-300-700 opacity-40'}"
+                        class="inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold {role.permissions?.[resource]?.[action] ? 'bg-success text-success-content' : 'bg-neutral opacity-40'}"
                         title="{action}"
                       >
                         {action[0].toUpperCase()}
@@ -398,11 +406,11 @@
                   {/each}
                 {/each}
               </div>
-              <p class="mt-3 text-xs text-surface-400">C = create &nbsp; R = read &nbsp; U = update &nbsp; D = delete</p>
+              <p class="mt-3 text-xs text-base-content/40">C = create &nbsp; R = read &nbsp; U = update &nbsp; D = delete</p>
             </div>
           {/if}
         {:else}
-          <div class="px-4 py-8 text-center text-surface-500 text-sm">No roles found.</div>
+          <div class="px-4 py-8 text-center text-base-content/50 text-sm">No roles found.</div>
         {/each}
       </div>
 
@@ -411,37 +419,35 @@
         <div class="space-y-3">
           <h2 class="text-lg font-semibold">User Assignments</h2>
 
-          <div class="input-group grid-cols-[auto_1fr]">
-            <div class="ig-cell preset-tonal">
-              <Search class="size-4" />
-            </div>
-            <input type="search" placeholder="Search by name or email…" class="ig-input" bind:value={userQuery} />
-          </div>
+          <label class="input flex items-center gap-2">
+            <Search class="size-4 shrink-0 opacity-50" />
+            <input type="search" placeholder="Search by name or email…" class="grow" bind:value={userQuery} />
+          </label>
 
-          <div class="card preset-filled-surface-100-900 overflow-hidden">
+          <div class="card bg-base-200 overflow-hidden">
             <table class="w-full text-sm">
               <thead>
-                <tr class="border-b border-surface-200-800">
-                  <th class="text-left px-4 py-3 font-semibold text-surface-500">User</th>
-                  <th class="text-left px-4 py-3 font-semibold text-surface-500">Email</th>
-                  <th class="text-left px-4 py-3 font-semibold text-surface-500">Role</th>
+                <tr class="border-b border-base-300">
+                  <th class="text-left px-4 py-3 font-semibold text-base-content/50">User</th>
+                  <th class="text-left px-4 py-3 font-semibold text-base-content/50">Email</th>
+                  <th class="text-left px-4 py-3 font-semibold text-base-content/50">Role</th>
                 </tr>
               </thead>
               <tbody>
                 {#each pageRoleUsers as user}
-                  <tr class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035]">
+                  <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035]">
                     <td class="px-4 py-3">
                       {#if user.firstName || user.lastName}
                         <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
-                        <div class="text-xs text-surface-500">{user.username}</div>
+                        <div class="text-xs text-base-content/50">{user.username}</div>
                       {:else}
                         <div class="font-medium">{user.username}</div>
                       {/if}
                     </td>
-                    <td class="px-4 py-3 text-surface-400">{user.email}</td>
+                    <td class="px-4 py-3 text-base-content/40">{user.email}</td>
                     <td class="px-4 py-3">
                       <select
-                        class="select text-xs py-1"
+                        class="select select-sm text-xs"
                         value={user.role ?? 'viewer'}
                         onchange={(e) => assignRole(user.id, (e.currentTarget as HTMLSelectElement).value)}
                       >
@@ -455,29 +461,25 @@
               </tbody>
             </table>
 
-            <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800">
-              <span class="text-surface-500 text-xs">
+            <div class="flex items-center justify-between px-4 py-2 border-t border-base-300">
+              <span class="text-base-content/50 text-xs">
                 {filteredRoleUsers.length === 0
                   ? 'No users'
                   : `${(rolesPage - 1) * PAGE_SIZE + 1}–${Math.min(rolesPage * PAGE_SIZE, filteredRoleUsers.length)} of ${filteredRoleUsers.length}`}
               </span>
-              <Pagination count={filteredRoleUsers.length} pageSize={PAGE_SIZE} page={rolesPage} onPageChange={(e) => (rolesPage = e.page)} siblingCount={1}>
-                <Pagination.FirstTrigger class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronFirst class="size-4" /></Pagination.FirstTrigger>
-                <Pagination.PrevTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLeft  class="size-4" /></Pagination.PrevTrigger>
-                <Pagination.Context>
-                  {#snippet children(pagination)}
-                    {#each pagination().pages as p (p)}
-                      {#if p.type === 'page'}
-                        <Pagination.Item {...p} class="btn-icon btn-sm {p.value === rolesPage ? 'preset-tonal-primary' : 'hover:preset-tonal'}">{p.value}</Pagination.Item>
-                      {:else}
-                        <Pagination.Ellipsis index={p.index} class="btn-icon btn-sm opacity-50">…</Pagination.Ellipsis>
-                      {/if}
-                    {/each}
-                  {/snippet}
-                </Pagination.Context>
-                <Pagination.NextTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronRight class="size-4" /></Pagination.NextTrigger>
-                <Pagination.LastTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLast  class="size-4" /></Pagination.LastTrigger>
-              </Pagination>
+              <div class="join">
+                <button class="join-item btn btn-xs" disabled={rolesPage === 1} onclick={() => (rolesPage = 1)}><ChevronFirst class="size-3" /></button>
+                <button class="join-item btn btn-xs" disabled={rolesPage === 1} onclick={() => (rolesPage -= 1)}><ChevronLeft class="size-3" /></button>
+                {#each paginationPages(filteredRoleUsers.length, PAGE_SIZE, rolesPage) as p}
+                  {#if p.type === 'page'}
+                    <button class="join-item btn btn-xs {p.value === rolesPage ? 'btn-active' : ''}" onclick={() => (rolesPage = p.value)}>{p.value}</button>
+                  {:else}
+                    <span class="join-item btn btn-xs btn-disabled">…</span>
+                  {/if}
+                {/each}
+                <button class="join-item btn btn-xs" disabled={rolesPage * PAGE_SIZE >= filteredRoleUsers.length} onclick={() => (rolesPage += 1)}><ChevronRight class="size-3" /></button>
+                <button class="join-item btn btn-xs" disabled={rolesPage * PAGE_SIZE >= filteredRoleUsers.length} onclick={() => (rolesPage = Math.ceil(filteredRoleUsers.length / PAGE_SIZE))}><ChevronLast class="size-3" /></button>
+              </div>
             </div>
           </div>
         </div>
@@ -489,45 +491,45 @@
 <!-- New User modal -->
 {#if newUserOpen}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="New user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card preset-filled-surface-100-900 w-full max-w-md shadow-xl">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 w-full max-w-md shadow-xl">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">New User</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4">
         {#if newError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{newError}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{newError}</aside>
         {/if}
         <div class="grid grid-cols-2 gap-4">
-          <label class="label">
-            <span class="label-text text-sm font-medium">First Name</span>
-            <input type="text" class="input mt-1" bind:value={newForm.firstName} maxlength="50" placeholder="Jane" />
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">First Name</span>
+            <input type="text" class="input" bind:value={newForm.firstName} maxlength="50" placeholder="Jane" />
           </label>
-          <label class="label">
-            <span class="label-text text-sm font-medium">Last Name</span>
-            <input type="text" class="input mt-1" bind:value={newForm.lastName} maxlength="50" placeholder="Doe" />
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">Last Name</span>
+            <input type="text" class="input" bind:value={newForm.lastName} maxlength="50" placeholder="Doe" />
           </label>
         </div>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Username <span class="text-error-500">*</span></span>
-          <input type="text" class="input mt-1" bind:value={newForm.username} minlength="2" maxlength="50" placeholder="johndoe" />
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Username <span class="text-error">*</span></span>
+          <input type="text" class="input" bind:value={newForm.username} minlength="2" maxlength="50" placeholder="johndoe" />
         </label>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Email <span class="text-error-500">*</span></span>
-          <input type="email" class="input mt-1" bind:value={newForm.email} placeholder="you@example.com" />
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Email <span class="text-error">*</span></span>
+          <input type="email" class="input" bind:value={newForm.email} placeholder="you@example.com" />
         </label>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Password <span class="text-error-500">*</span></span>
-          <input type="password" class="input mt-1" bind:value={newForm.password} minlength="8" placeholder="Min. 8 characters" />
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Password <span class="text-error">*</span></span>
+          <input type="password" class="input" bind:value={newForm.password} minlength="8" placeholder="Min. 8 characters" />
         </label>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Confirm Password <span class="text-error-500">*</span></span>
-          <input type="password" class="input mt-1" bind:value={newForm.confirmPassword} minlength="8" placeholder="••••••••" />
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Confirm Password <span class="text-error">*</span></span>
+          <input type="password" class="input" bind:value={newForm.confirmPassword} minlength="8" placeholder="••••••••" />
         </label>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (newUserOpen = false)}>Cancel</button>
-        <button type="button" class="btn preset-filled-primary-500" disabled={creating} onclick={submitNewUser}>
+        <button type="button" class="btn btn-ghost" onclick={() => (newUserOpen = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={creating} onclick={submitNewUser}>
           {creating ? 'Creating…' : 'Create User'}
         </button>
       </footer>
@@ -538,37 +540,37 @@
 <!-- Edit modal -->
 {#if editTarget}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Edit user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card preset-filled-surface-100-900 w-full max-w-md shadow-xl">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 w-full max-w-md shadow-xl">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Edit User</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (editTarget = null)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTarget = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4">
         {#if editError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{editError}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>
         {/if}
         <div class="grid grid-cols-2 gap-4">
-          <label class="label">
-            <span class="label-text text-sm font-medium">First Name</span>
-            <input type="text" class="input mt-1" bind:value={editForm.firstName} maxlength="50" />
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">First Name</span>
+            <input type="text" class="input" bind:value={editForm.firstName} maxlength="50" />
           </label>
-          <label class="label">
-            <span class="label-text text-sm font-medium">Last Name</span>
-            <input type="text" class="input mt-1" bind:value={editForm.lastName} maxlength="50" />
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">Last Name</span>
+            <input type="text" class="input" bind:value={editForm.lastName} maxlength="50" />
           </label>
         </div>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Username</span>
-          <input type="text" class="input mt-1" bind:value={editForm.username} minlength="2" maxlength="50" required />
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Username</span>
+          <input type="text" class="input" bind:value={editForm.username} minlength="2" maxlength="50" required />
         </label>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Email</span>
-          <input type="email" class="input mt-1" bind:value={editForm.email} required />
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Email</span>
+          <input type="email" class="input" bind:value={editForm.email} required />
         </label>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (editTarget = null)}>Cancel</button>
-        <button type="button" class="btn preset-filled-primary-500" disabled={saving} onclick={submitEdit}>
+        <button type="button" class="btn btn-ghost" onclick={() => (editTarget = null)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={saving} onclick={submitEdit}>
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
@@ -579,22 +581,22 @@
 <!-- Delete confirm modal -->
 {#if deleteTarget}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Delete user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 w-full max-w-sm shadow-xl">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Delete User</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (deleteTarget = null)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-3">
         {#if deleteError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{deleteError}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>
         {/if}
         <p class="text-sm">
           Are you sure you want to delete <span class="font-semibold">{deleteTarget.username}</span>? This action cannot be undone.
         </p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (deleteTarget = null)}>Cancel</button>
-        <button type="button" class="btn preset-filled-error-500" disabled={deleting} onclick={confirmDelete}>
+        <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>Cancel</button>
+        <button type="button" class="btn btn-error" disabled={deleting} onclick={confirmDelete}>
           {deleting ? 'Deleting…' : 'Delete'}
         </button>
       </footer>

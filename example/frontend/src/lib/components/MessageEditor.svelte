@@ -45,65 +45,64 @@
   }
 </script>
 
-<div class="flex flex-col border border-surface-200-800 rounded-base overflow-hidden">
+<div class="flex flex-col border border-base-300 rounded-lg overflow-hidden">
   <!-- Toolbar -->
-  <div class="flex items-center gap-0.5 px-2 py-1.5 border-b border-surface-200-800 flex-wrap">
+  <div class="flex items-center gap-0.5 px-2 py-1.5 border-b border-base-200 bg-base-200/50 flex-wrap">
     <button type="button"
-      class="btn-icon btn-sm {active('bold') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-square btn-xs {active('bold') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBold().run())}
       aria-label="Bold" title="Bold"
     ><Bold class="size-3.5" /></button>
 
     <button type="button"
-      class="btn-icon btn-sm {active('italic') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-square btn-xs {active('italic') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleItalic().run())}
       aria-label="Italic" title="Italic"
     ><Italic class="size-3.5" /></button>
 
     <button type="button"
-      class="btn-icon btn-sm {active('underline') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-square btn-xs {active('underline') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleUnderline().run())}
       aria-label="Underline" title="Underline"
     ><UnderlineIcon class="size-3.5" /></button>
 
-    <span class="w-px h-4 bg-surface-300-700 mx-1 opacity-60"></span>
+    <span class="w-px h-4 bg-base-content/20 mx-1"></span>
 
     <button type="button"
-      class="btn-icon btn-sm {active('bulletList') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-square btn-xs {active('bulletList') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBulletList().run())}
       aria-label="Bullet list" title="Bullet list"
     ><List class="size-3.5" /></button>
 
     <button type="button"
-      class="btn-icon btn-sm {active('orderedList') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-square btn-xs {active('orderedList') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleOrderedList().run())}
       aria-label="Ordered list" title="Ordered list"
     ><ListOrdered class="size-3.5" /></button>
 
-    <span class="w-px h-4 bg-surface-300-700 mx-1 opacity-60"></span>
+    <span class="w-px h-4 bg-base-content/20 mx-1"></span>
 
     <button type="button"
-      class="btn-icon btn-sm {active('blockquote') ? 'preset-tonal-primary' : 'hover:preset-tonal'}"
+      class="btn btn-ghost btn-square btn-xs {active('blockquote') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBlockquote().run())}
       aria-label="Blockquote" title="Blockquote"
     ><TextQuote class="size-3.5" /></button>
 
-    <span class="w-px h-4 bg-surface-300-700 mx-1 opacity-60"></span>
+    <span class="w-px h-4 bg-base-content/20 mx-1"></span>
 
     <button type="button"
-      class="btn-icon btn-sm hover:preset-tonal"
+      class="btn btn-ghost btn-square btn-xs"
       onmousedown={cmd(() => editor?.chain().undo().run())}
       aria-label="Undo" title="Undo"
     ><Undo class="size-3.5" /></button>
 
     <button type="button"
-      class="btn-icon btn-sm hover:preset-tonal"
+      class="btn btn-ghost btn-square btn-xs"
       onmousedown={cmd(() => editor?.chain().redo().run())}
       aria-label="Redo" title="Redo"
     ><Redo class="size-3.5" /></button>
   </div>
 
-  <!-- Editor area -->
   <div
     bind:this={element}
     class="min-h-[8rem] max-h-[24rem] overflow-y-auto p-3 text-sm prose prose-sm dark:prose-invert max-w-none focus-within:outline-none"

@@ -10,7 +10,7 @@
 </script>
 
 <div
-  class="card preset-filled-surface-100-900 p-5 space-y-4 cursor-pointer hover:preset-tonal transition-colors"
+  class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4 cursor-pointer hover:bg-base-300/50 transition-colors"
   role="button"
   tabindex="0"
   onclick={onclick}
@@ -19,12 +19,12 @@
   <!-- Header -->
   <div class="flex items-start justify-between gap-3">
     <div class="flex items-center gap-2 min-w-0">
-      <Milestone class="size-4 shrink-0 text-primary-500" />
+      <Milestone class="size-4 shrink-0 text-primary" />
       <h3 class="font-semibold truncate text-sm">{milestone.title}</h3>
     </div>
     <div class="flex items-center gap-1.5 shrink-0">
-      <span class="badge text-xs {PRIORITY_COLOR[milestone.priority] ?? 'preset-tonal-surface'}">{milestone.priority}</span>
-      <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'preset-tonal-surface'}">{milestone.status}</span>
+      <span class="badge text-xs {PRIORITY_COLOR[milestone.priority] ?? 'badge-ghost'}">{milestone.priority}</span>
+      <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'badge-ghost'}">{milestone.status}</span>
     </div>
   </div>
 
@@ -39,7 +39,7 @@
       <span class="opacity-60">Progress</span>
       <span class="font-semibold" style="color:{barClr}">{pct}%</span>
     </div>
-    <div class="w-full h-2 rounded-full bg-surface-200-800 overflow-hidden">
+    <div class="w-full h-2 rounded-full bg-base-300 overflow-hidden">
       <div class="h-full rounded-full transition-all" style="width:{pct}%;background:{barClr}"></div>
     </div>
   </div>

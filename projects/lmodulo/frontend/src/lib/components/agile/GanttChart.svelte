@@ -33,7 +33,7 @@
         label: m.title,
         start: m.startDate ? new Date(m.startDate) : null,
         end:   m.endDate   ? new Date(m.endDate)   : null,
-        color: 'var(--color-primary-500)',
+        color: 'var(--color-primary)',
         href:  `/agile/milestones/${m.id}`,
         depth: 0,
       });
@@ -42,7 +42,7 @@
           label: `Sprint ${s.sprintNumber}: ${s.title}`,
           start: s.startDate ? new Date(s.startDate) : null,
           end:   s.endDate   ? new Date(s.endDate)   : null,
-          color: 'var(--color-secondary-500)',
+          color: 'var(--color-secondary)',
           href:  `/agile/sprints/${s.id}`,
           depth: 1,
         });
@@ -126,7 +126,7 @@
         font-size={row.depth === 0 ? 11 : 10}
         font-weight={row.depth === 0 ? '600' : '400'}
         fill="currentColor" fill-opacity="0.8"
-        class="cursor-pointer hover:fill-primary-500"
+        class="cursor-pointer"
         role="button"
         tabindex="0"
         onclick={() => goto(row.href)}
@@ -159,14 +159,14 @@
     <!-- Today line -->
     {#if todayX >= LABEL_W && todayX <= width}
       <line x1={todayX} x2={todayX} y1={0} y2={totalH}
-        stroke="var(--color-error-500)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
-      <text x={todayX + 3} y={totalH - 4} font-size="9" fill="var(--color-error-500)" opacity="0.8">Today</text>
+        stroke="var(--color-error)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
+      <text x={todayX + 3} y={totalH - 4} font-size="9" fill="var(--color-error)" opacity="0.8">Today</text>
     {/if}
 
     <!-- Legend -->
-    <rect x={LABEL_W + PAD} y={8} width={12} height={8} rx="2" fill="var(--color-primary-500)" fill-opacity="0.85"/>
+    <rect x={LABEL_W + PAD} y={8} width={12} height={8} rx="2" fill="var(--color-primary)" fill-opacity="0.85"/>
     <text x={LABEL_W + PAD + 16} y={16} font-size="9" fill="currentColor" fill-opacity="0.6">Milestone</text>
-    <rect x={LABEL_W + PAD + 80} y={8} width={12} height={8} rx="2" fill="var(--color-secondary-500)" fill-opacity="0.55"/>
+    <rect x={LABEL_W + PAD + 80} y={8} width={12} height={8} rx="2" fill="var(--color-secondary)" fill-opacity="0.55"/>
     <text x={LABEL_W + PAD + 96} y={16} font-size="9" fill="currentColor" fill-opacity="0.6">Sprint</text>
   </svg>
 </div>

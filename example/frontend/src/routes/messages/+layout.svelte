@@ -50,68 +50,61 @@
 
 <div class="flex flex-col h-full overflow-hidden gap-4">
 
-  <!-- Header -->
   <div class="shrink-0">
     <h1 class="text-2xl font-bold">Messages</h1>
     <p class="text-sm opacity-60 mt-0.5">Inbox, sent mail, and archived conversations</p>
   </div>
 
-  <!-- Two-panel shell -->
-  <div class="flex flex-1 overflow-hidden border border-surface-200-800 rounded-container">
+  <div class="flex flex-1 overflow-hidden border border-base-200 rounded-box">
 
-  <!-- Left panel — message list -->
-  <aside class="w-72 shrink-0 flex flex-col border-r border-surface-200-800 overflow-hidden">
+    <aside class="w-72 shrink-0 flex flex-col border-r border-base-200 overflow-hidden">
 
-    <!-- Compose button -->
-    <div class="px-3 py-3 border-b border-surface-200-800">
-      <a href="/messages/compose" class="btn preset-filled-primary-500 w-full">
-        <SquarePen class="size-4" />
-        <span>Compose</span>
-      </a>
-    </div>
+      <div class="px-3 py-3 border-b border-base-200">
+        <a href="/messages/compose" class="btn btn-primary w-full">
+          <SquarePen class="size-4" />
+          <span>Compose</span>
+        </a>
+      </div>
 
-    <!-- Tabs -->
-    <div class="flex border-b border-surface-200-800 shrink-0">
-      {#each ([['inbox', 'Inbox', Inbox], ['sent', 'Sent', Send], ['archived', 'Archive', Archive]] as const) as [tab, label, Icon]}
-        <button
-          type="button"
-          class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors
-            {activeTab === tab ? 'preset-tonal-primary border-b-2 border-primary-500' : 'opacity-60 hover:opacity-100'}"
-          onclick={() => switchTab(tab)}
-        >
-          <Icon class="size-3.5" />
-          {label}
-        </button>
-      {/each}
-    </div>
-
-    <!-- Thread list -->
-    <div class="flex-1 overflow-y-auto">
-      {#if loading}
-        <p class="text-xs text-center opacity-40 mt-8">Loading…</p>
-      {:else if listData.length === 0}
-        <p class="text-xs text-center opacity-40 mt-8">No messages</p>
-      {:else}
-        {#each listData as thread (thread.threadId)}
-          <MessageListItem
-            threadId={thread.threadId}
-            subject={thread.subject}
-            latestFrom={activeTab === 'sent' ? thread.subject : resolveFrom(thread.latestFrom)}
-            latestAt={thread.latestAt}
-            unreadCount={thread.unreadCount}
-            active={currentThreadId === thread.threadId}
-          />
+      <div class="flex border-b border-base-200 shrink-0">
+        {#each ([['inbox', 'Inbox', Inbox], ['sent', 'Sent', Send], ['archived', 'Archive', Archive]] as const) as [tab, label, Icon]}
+          <button
+            type="button"
+            class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors
+              {activeTab === tab ? 'text-primary border-b-2 border-primary' : 'opacity-60 hover:opacity-100'}"
+            onclick={() => switchTab(tab)}
+          >
+            <Icon class="size-3.5" />
+            {label}
+          </button>
         {/each}
-      {/if}
-    </div>
+      </div>
 
-  </aside>
+      <div class="flex-1 overflow-y-auto">
+        {#if loading}
+          <p class="text-xs text-center opacity-40 mt-8">Loading…</p>
+        {:else if listData.length === 0}
+          <p class="text-xs text-center opacity-40 mt-8">No messages</p>
+        {:else}
+          {#each listData as thread (thread.threadId)}
+            <MessageListItem
+              threadId={thread.threadId}
+              subject={thread.subject}
+              latestFrom={activeTab === 'sent' ? thread.subject : resolveFrom(thread.latestFrom)}
+              latestAt={thread.latestAt}
+              unreadCount={thread.unreadCount}
+              active={currentThreadId === thread.threadId}
+            />
+          {/each}
+        {/if}
+      </div>
 
-  <!-- Right panel -->
-  <main class="flex-1 overflow-y-auto">
-    {@render children()}
-  </main>
+    </aside>
 
-  </div><!-- end two-panel shell -->
+    <main class="flex-1 overflow-y-auto">
+      {@render children()}
+    </main>
+
+  </div>
 
 </div>

@@ -104,7 +104,7 @@
 
       <!-- Nodes -->
       {#each layout().nodes as n}
-        {@const statusCls = n.job.status === 'Done' ? 'var(--color-success-500)' : n.job.blocked ? 'var(--color-error-500)' : 'var(--color-primary-500)'}
+        {@const statusCls = n.job.status === 'Done' ? 'var(--color-success)' : n.job.blocked ? 'var(--color-error)' : 'var(--color-primary)'}
         <rect x={n.x} y={n.y} width={NODE_W} height={NODE_H}
           rx="6" fill={statusCls} fill-opacity="0.15"
           stroke={statusCls} stroke-width="1.5" stroke-opacity="0.6"/>

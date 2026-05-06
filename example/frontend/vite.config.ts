@@ -3,9 +3,6 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import type { Plugin } from 'vite';
 
-// Tailwind v4 consumes @import directives internally before Vite can register
-// lmodulo-theme.css in its module graph. This plugin explicitly watches the
-// file and forces a full reload whenever it changes.
 function themeHotReload(): Plugin {
 	return {
 		name: 'theme-hot-reload',
@@ -35,8 +32,6 @@ export default defineConfig({
 			},
 		},
 		watch: {
-			// Windows bind mounts don't emit inotify events into the container.
-			// Polling ensures file changes are detected reliably.
 			usePolling: true,
 			interval: 300
 		}

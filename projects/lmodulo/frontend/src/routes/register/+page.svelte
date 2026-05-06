@@ -17,8 +17,8 @@
   {/if}
 
   <form method="POST" use:enhance class="space-y-4">
-    <label class="label">
-      <span class="label-text">Username</span>
+    <label class="flex flex-col gap-1">
+      <span>Username</span>
       <input
         class="input"
         type="text"
@@ -32,8 +32,8 @@
       />
     </label>
 
-    <label class="label">
-      <span class="label-text">Email</span>
+    <label class="flex flex-col gap-1">
+      <span>Email</span>
       <input
         class="input"
         type="email"
@@ -45,8 +45,8 @@
       />
     </label>
 
-    <label class="label">
-      <span class="label-text">Password</span>
+    <label class="flex flex-col gap-1">
+      <span>Password</span>
       <input
         class="input"
         type="password"
@@ -58,14 +58,14 @@
       />
     </label>
 
-    <button type="submit" class="btn preset-filled-primary-500 w-full">
+    <button type="submit" class="btn btn-primary w-full">
       Create Account
     </button>
   </form>
 
   <div class="auth-links">
     Already have an account?
-    <a href="/login" class="anchor">Sign in</a>
+    <a href="/login" class="link link-primary">Sign in</a>
   </div>
 
 </AuthShell>
@@ -81,7 +81,7 @@
   .auth-alert--error {
     background: rgba(220, 80, 60, 0.08);
     border-color: rgba(220, 80, 60, 0.2);
-    color: var(--color-error-400);
+    color: var(--color-error);
   }
 
   .auth-links {

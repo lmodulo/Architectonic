@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Bell } from 'lucide-svelte';
-  import { Menu as SkMenu } from '@skeletonlabs/skeleton-svelte';
   import { goto } from '$app/navigation';
   import {
     getUnreadCount,
@@ -12,11 +11,11 @@
   import NotificationItem from './NotificationItem.svelte';
   import type { AppNotification } from '$lib/stores/notifications.svelte';
 
-  let dropdownOpen = $state(false);
-  let loading      = $state(false);
+  let loading = $state(false);
+  let detailsEl: HTMLDetailsElement = $state()!;
 
-  const count   = $derived(getUnreadCount());
-  const items   = $derived(getNotifications().slice(0, 10));
+  const count = $derived(getUnreadCount());
+  const items = $derived(getNotifications().slice(0, 10));
 
   async function onOpen() {
     loading = true;
@@ -33,6 +32,7 @@
 
   async function handleItem(n: AppNotification) {
     if (!n.read) await markRead(n._id);
+    detailsEl?.removeAttribute('open');
     if (n.link) goto(n.link);
   }
 
@@ -41,66 +41,62 @@
   }
 </script>
 
-<SkMenu positioning={{ placement: 'bottom-end' }}>
-  <SkMenu.Trigger
-    class="btn-icon hover:preset-tonal relative"
+<details
+  class="dropdown dropdown-end"
+  bind:this={detailsEl}
+  ontoggle={(e) => { if ((e.currentTarget as HTMLDetailsElement).open) onOpen(); }}
+>
+  <summary
+    class="btn btn-ghost btn-sm btn-square relative"
     aria-label="Notifications"
-    onclick={onOpen}
   >
     <Bell class="size-5" />
     {#if count > 0}
-      <span class="preset-filled-error-500 absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-white">
+      <span class="bg-error absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
         {count > 99 ? '99+' : count}
       </span>
     {/if}
-  </SkMenu.Trigger>
+  </summary>
 
-  <SkMenu.Positioner>
-    <SkMenu.Content class="card preset-filled-surface-100-900 border border-surface-200-800 shadow-xl p-0 w-80 z-30">
+  <div class="dropdown-content card bg-base-200 border border-base-300 shadow-xl p-0 w-80 z-30 mt-1">
 
-      <!-- Header -->
-      <div class="flex items-center justify-between px-3 py-2 border-b border-surface-200-800">
-        <span class="text-sm font-semibold">Notifications</span>
-        {#if count > 0}
-          <button
-            type="button"
-            class="text-xs text-primary-500 hover:underline"
-            onclick={handleMarkAll}
-          >
-            Mark all read
-          </button>
-        {/if}
-      </div>
-
-      <!-- List -->
-      <div class="max-h-80 overflow-y-auto">
-        {#if loading}
-          <div class="px-4 py-6 text-center text-sm opacity-50">Loading…</div>
-        {:else if items.length === 0}
-          <div class="px-4 py-6 text-center text-sm opacity-50">No notifications</div>
-        {:else}
-          {#each items as n (n._id)}
-            <SkMenu.Item
-              value={n._id}
-              onclick={() => handleItem(n)}
-              class="p-0 block"
-            >
-              <NotificationItem notification={n} />
-            </SkMenu.Item>
-          {/each}
-        {/if}
-      </div>
-
-      <!-- Footer -->
-      <div class="border-t border-surface-200-800 px-3 py-2">
-        <a
-          href="/notifications"
-          class="text-xs text-primary-500 hover:underline"
+    <!-- Header -->
+    <div class="flex items-center justify-between px-3 py-2 border-b border-base-300">
+      <span class="text-sm font-semibold">Notifications</span>
+      {#if count > 0}
+        <button
+          type="button"
+          class="text-xs text-primary hover:underline"
+          onclick={handleMarkAll}
         >
-          View all notifications →
-        </a>
-      </div>
+          Mark all read
+        </button>
+      {/if}
+    </div>
 
-    </SkMenu.Content>
-  </SkMenu.Positioner>
-</SkMenu>
+    <!-- List -->
+    <div class="max-h-80 overflow-y-auto">
+      {#if loading}
+        <div class="px-4 py-6 text-center text-sm opacity-50">Loading…</div>
+      {:else if items.length === 0}
+        <div class="px-4 py-6 text-center text-sm opacity-50">No notifications</div>
+      {:else}
+        {#each items as n (n._id)}
+          <NotificationItem notification={n} onclick={handleItem} />
+        {/each}
+      {/if}
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t border-base-300 px-3 py-2">
+      <a
+        href="/notifications"
+        class="text-xs text-primary hover:underline"
+        onclick={() => detailsEl?.removeAttribute('open')}
+      >
+        View all notifications →
+      </a>
+    </div>
+
+  </div>
+</details>

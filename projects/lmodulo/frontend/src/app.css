@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: business;
+}
 
 /* Force class-based dark mode — overrides Tailwind v4's default @media query */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -6,13 +9,11 @@
 /* Custom project theme */
 @import "../lmodulo-theme.css";
 
-@import "@skeletonlabs/skeleton";
-
 body {
-  font-family: var(--base-font-family);
+  font-family: var(--font-sans);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--heading-font-family);
+  font-family: var(--font-heading);
 }
 

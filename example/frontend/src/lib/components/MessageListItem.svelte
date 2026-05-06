@@ -27,11 +27,10 @@
 
 <a
   href="/messages/{threadId}"
-  class="flex items-start gap-3 px-4 py-3 border-b border-surface-200-800 transition-colors cursor-pointer
-    {active ? 'preset-tonal-primary' : 'hover:preset-tonal-surface'}"
+  class="flex items-start gap-3 px-4 py-3 border-b border-base-200 transition-colors cursor-pointer
+    {active ? 'bg-primary/10 text-primary' : 'hover:bg-base-200'}"
 >
-  <!-- Unread dot -->
-  <div class="mt-1.5 shrink-0 size-2 rounded-full {unreadCount > 0 ? 'bg-primary-500' : 'bg-transparent'}"></div>
+  <div class="mt-1.5 shrink-0 size-2 rounded-full {unreadCount > 0 ? 'bg-primary' : 'bg-transparent'}"></div>
 
   <div class="flex-1 min-w-0">
     <div class="flex items-baseline justify-between gap-2">
@@ -44,7 +43,7 @@
   </div>
 
   {#if unreadCount > 0}
-    <span class="shrink-0 mt-1 badge preset-filled-primary-500 text-[10px] px-1.5 py-0.5">
+    <span class="shrink-0 mt-1 badge badge-primary text-[10px] px-1.5 py-0.5">
       {unreadCount}
     </span>
   {/if}

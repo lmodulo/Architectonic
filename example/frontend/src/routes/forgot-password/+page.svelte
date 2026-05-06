@@ -13,48 +13,37 @@
 <MarketingNav />
 
 <div class="flex min-h-screen items-center justify-center p-4 pt-14">
-  <div class="card preset-filled-surface-100-900 w-full max-w-md overflow-hidden">
+  <div class="card bg-base-100 w-full max-w-md overflow-hidden shadow-xl border border-base-200">
 
-    <header class="preset-filled-primary-500 p-8 text-center space-y-1">
-      <h1 class="h2 font-bold">Forgot Password</h1>
-      <p class="opacity-80 text-sm">We'll send a reset link to your email</p>
-    </header>
+    <div class="bg-primary px-8 py-8 text-center space-y-1">
+      <h1 class="text-2xl font-bold text-primary-content">Forgot Password</h1>
+      <p class="text-primary-content/80 text-sm">We'll send a reset link to your email</p>
+    </div>
 
-    <section class="p-8 space-y-4">
+    <div class="p-8 space-y-4">
       {#if form?.sent}
-        <div class="preset-filled-success-500 rounded-base p-3 text-sm">
+        <div role="alert" class="alert alert-success text-sm">
           If that email is registered, a reset link has been sent. Check your inbox.
         </div>
       {:else}
         {#if form?.error}
-          <div class="preset-filled-error-500 rounded-base p-3 text-sm">
-            {form.error}
-          </div>
+          <div role="alert" class="alert alert-error text-sm">{form.error}</div>
         {/if}
 
         <form method="POST" use:enhance class="space-y-4">
-          <label class="label">
-            <span class="label-text">Email</span>
-            <input
-              class="input"
-              type="email"
-              name="email"
-              required
-              autocomplete="email"
-              placeholder="you@example.com"
-            />
-          </label>
+          <div class="form-control gap-1">
+            <span class="label-text font-medium">Email</span>
+            <input class="input input-bordered w-full" type="email" name="email"
+              required autocomplete="email" placeholder="you@example.com" />
+          </div>
 
-          <button type="submit" class="btn preset-filled-primary-500 w-full">
-            Send Reset Link
-          </button>
+          <button type="submit" class="btn btn-primary w-full">Send Reset Link</button>
         </form>
       {/if}
 
       <p class="text-center text-sm opacity-60">
-        <a href="/login" class="anchor">Back to Sign In</a>
+        <a href="/login" class="link link-primary">Back to Sign In</a>
       </p>
-    </section>
-
+    </div>
   </div>
 </div>

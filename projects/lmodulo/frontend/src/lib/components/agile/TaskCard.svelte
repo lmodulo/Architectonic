@@ -21,8 +21,8 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="card preset-filled-surface-100-900 p-3 space-y-2.5 border border-surface-200-800
-    {isBlocked ? 'border-l-4 border-l-error-500' : ''}
+  class="card bg-base-200 border border-base-300 rounded-box p-3 space-y-2.5
+    {isBlocked ? 'border-l-4 border-l-error' : ''}
     {draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}
     hover:shadow-md transition-all select-none"
   draggable={draggable}
@@ -42,10 +42,10 @@
 
   <!-- Badges -->
   <div class="flex flex-wrap gap-1.5 items-center">
-    <span class="badge text-[10px] {PRIORITY_COLOR[task.priority] ?? 'preset-tonal-surface'}">{task.priority}</span>
-    <span class="badge text-[10px] {STATUS_COLOR[task.status] ?? 'preset-tonal-surface'}">{task.status}</span>
+    <span class="badge text-[10px] {PRIORITY_COLOR[task.priority] ?? 'badge-ghost'}">{task.priority}</span>
+    <span class="badge text-[10px] {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
     {#if isBlocked}
-      <span class="flex items-center gap-0.5 text-[10px] text-error-500">
+      <span class="flex items-center gap-0.5 text-[10px] text-error">
         <AlertCircle class="size-2.5" /> Blocked
       </span>
     {/if}
@@ -61,7 +61,7 @@
       {/if}
     </span>
     {#if task.dueDate}
-      <span class="{isOverdue ? 'text-error-500 opacity-100' : ''}">Due {fmtDate(task.dueDate)}</span>
+      <span class="{isOverdue ? 'text-error opacity-100' : ''}">Due {fmtDate(task.dueDate)}</span>
     {/if}
   </div>
 </div>

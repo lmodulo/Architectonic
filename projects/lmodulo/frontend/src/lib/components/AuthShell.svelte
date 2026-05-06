@@ -100,7 +100,7 @@
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: var(--color-primary-400);
+    background: var(--color-primary);
     animation: dot-pulse 2.4s ease-in-out infinite;
   }
 
@@ -130,8 +130,7 @@
     gap: 1rem;
   }
 
-  /* Patch Skeleton form controls for the dark auth card */
-  :global(.auth-body .label-text) {
+  :global(.auth-body label span) {
     font-size: 0.8125rem;
     font-weight: 500;
     color: rgba(230, 226, 216, 0.65);
@@ -146,7 +145,7 @@
   }
 
   :global(.auth-body .input:focus) {
-    border-color: var(--color-primary-400) !important;
+    border-color: var(--color-primary) !important;
     outline: none;
   }
 

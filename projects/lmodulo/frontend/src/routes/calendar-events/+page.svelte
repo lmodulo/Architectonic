@@ -24,12 +24,12 @@
     <nav class="flex flex-wrap gap-2" aria-label="Event type filter">
       <a
         href="/calendar-events"
-        class="btn btn-sm {!data.activeType ? 'preset-filled-primary-500' : 'preset-tonal'}"
+        class="btn btn-sm {!data.activeType ? 'btn-primary' : 'btn-ghost'}"
       >All</a>
       {#each eventTypes as type}
         <a
           href="/calendar-events?type={encodeURIComponent(type)}"
-          class="btn btn-sm {data.activeType === type ? 'preset-filled-primary-500' : 'preset-tonal'}"
+          class="btn btn-sm {data.activeType === type ? 'btn-primary' : 'btn-ghost'}"
         >{typeLabel(type)}</a>
       {/each}
     </nav>
@@ -40,14 +40,14 @@
 
   <!-- Events -->
   {#if groups.length === 0}
-    <div class="card preset-filled-surface-100-900 p-10 text-center space-y-2">
+    <div class="card bg-base-200 border border-base-300 p-10 text-center space-y-2 rounded-box">
       <p class="text-lg font-semibold opacity-50">No upcoming events scheduled.</p>
       <p class="text-sm opacity-40">Check back soon.</p>
     </div>
   {:else}
     {#each groups as group}
       <section class="space-y-4">
-        <h2 class="text-xs font-semibold uppercase tracking-widest opacity-50 border-b border-surface-200-800 pb-2">
+        <h2 class="text-xs font-semibold uppercase tracking-widest opacity-50 border-b border-base-300 pb-2">
           {group.month}
         </h2>
         {#each group.items as ev}

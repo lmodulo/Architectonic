@@ -3,7 +3,7 @@
 </script>
 
 {#if brandLogo}
-  <img src={brandLogo} alt={brandName || 'Logo'} class="size-6 object-contain" />
+  <img src={brandLogo} alt={brandName || 'Logo'} style="height:45px;width:auto;flex-shrink:0;" />
 {/if}
 {#if brandName}
   <span class="text-xl font-semibold">{brandName}</span>

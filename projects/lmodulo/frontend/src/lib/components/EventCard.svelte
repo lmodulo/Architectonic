@@ -16,8 +16,8 @@
   const startDate = $derived(new Date(event.startDate + 'T00:00:00'));
 </script>
 
-<article class="card preset-filled-surface-100-900 overflow-hidden">
-  <div class="px-6 py-5 {compact ? '' : 'border-b border-surface-200-800'} flex items-start gap-4">
+<article class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+  <div class="px-6 py-5 {compact ? '' : 'border-b border-base-300'} flex items-start gap-4">
     <!-- Date badge -->
     <div class="shrink-0 flex flex-col items-center justify-center rounded-lg {typePreset(event.eventType)} w-14 h-14">
       <span class="text-xs font-semibold uppercase opacity-70 leading-none">
@@ -56,7 +56,7 @@
       {#if event.tags.length > 0 && !compact}
         <div class="flex flex-wrap gap-1 mt-1">
           {#each event.tags as tag}
-            <span class="badge preset-tonal text-xs">{tag}</span>
+            <span class="badge badge-ghost text-xs">{tag}</span>
           {/each}
         </div>
       {/if}

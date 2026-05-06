@@ -51,17 +51,17 @@
 
 <div class="space-y-8 max-w-xl">
   <div class="flex items-center gap-2">
-    <Settings class="size-5 text-primary-500" />
+    <Settings class="size-5 text-primary" />
     <h1 class="text-xl font-semibold">Notification Preferences</h1>
   </div>
 
   {#if form?.success}
-    <div class="alert preset-filled-success-500 text-sm px-4 py-2 rounded-container">
+    <div class="alert alert-success text-sm px-4 py-2 rounded-box">
       Preferences saved.
     </div>
   {/if}
   {#if form?.error}
-    <div class="alert preset-filled-error-500 text-sm px-4 py-2 rounded-container">
+    <div class="alert alert-error text-sm px-4 py-2 rounded-box">
       {form.error}
     </div>
   {/if}
@@ -69,7 +69,7 @@
   <form method="POST" use:enhance class="space-y-8">
 
     <!-- Channels -->
-    <section class="card preset-filled-surface-50-950 border border-surface-200-800 p-4 space-y-3">
+    <section class="card bg-base-100 border border-base-300 p-4 space-y-3">
       <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Delivery Channels</h2>
       <label class="flex items-center gap-3 text-sm">
         <input type="checkbox" class="checkbox" checked disabled />
@@ -87,11 +87,10 @@
     </section>
 
     <!-- Muted types -->
-    <section class="card preset-filled-surface-50-950 border border-surface-200-800 p-4 space-y-4">
+    <section class="card bg-base-100 border border-base-300 p-4 space-y-4">
       <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Notification Types</h2>
       <p class="text-xs opacity-50">Uncheck to silence a notification type.</p>
 
-      <!-- Hidden inputs for muted array -->
       {#each muted as m}
         <input type="hidden" name="muted" value={m} />
       {/each}
@@ -115,7 +114,7 @@
     </section>
 
     <!-- Quiet hours -->
-    <section class="card preset-filled-surface-50-950 border border-surface-200-800 p-4 space-y-4">
+    <section class="card bg-base-100 border border-base-300 p-4 space-y-4">
       <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Quiet Hours</h2>
       <label class="flex items-center gap-3 text-sm">
         <input
@@ -164,8 +163,8 @@
     </section>
 
     <div class="flex items-center gap-3">
-      <button type="submit" class="btn preset-filled-primary-500">Save Preferences</button>
-      <a href="/notifications" class="btn preset-tonal">Back</a>
+      <button type="submit" class="btn btn-primary">Save Preferences</button>
+      <a href="/notifications" class="btn btn-ghost">Back</a>
     </div>
 
   </form>

@@ -96,23 +96,23 @@
 </script>
 
 {#if !isLoggedIn}
-  <div class="card preset-filled-surface-100-900 p-4 flex items-center gap-3 text-sm">
+  <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-center gap-3 text-sm">
     <Bell class="size-4 opacity-50" />
     <span class="opacity-70">
-      <a href="/login" class="anchor">Sign in</a> to subscribe to event notifications.
+      <a href="/login" class="link link-primary">Sign in</a> to subscribe to event notifications.
     </span>
   </div>
 
 {:else if sub === null}
   <!-- Loading -->
-  <div class="card preset-filled-surface-100-900 p-4 animate-pulse h-14 rounded-base"></div>
+  <div class="card bg-base-200 border border-base-300 rounded-box p-4 animate-pulse h-14"></div>
 
 {:else}
-  <div class="card preset-filled-surface-100-900 p-5 space-y-4">
+  <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
     <div class="flex items-center justify-between gap-4">
       <div class="flex items-center gap-2">
         {#if sub.subscribed}
-          <BellRing class="size-4 text-primary-500" />
+          <BellRing class="size-4 text-primary" />
           <span class="font-medium text-sm">Subscribed to notifications</span>
         {:else}
           <BellOff class="size-4 opacity-50" />
@@ -121,7 +121,7 @@
       </div>
       <button
         type="button"
-        class="btn btn-sm {sub.subscribed ? 'preset-tonal-error' : 'preset-filled-primary-500'}"
+        class="btn btn-sm {sub.subscribed ? 'btn-error btn-soft' : 'btn-primary'}"
         disabled={loading}
         onclick={toggleSubscription}
       >
@@ -131,7 +131,7 @@
 
     {#if sub.subscribed}
       {#if err}
-        <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{err}</aside>
+        <aside class="alert alert-error p-3 rounded text-sm">{err}</aside>
       {/if}
 
       <!-- Event types -->
@@ -198,9 +198,9 @@
 
       <div class="flex items-center justify-end gap-3">
         {#if saved}
-          <span class="text-sm text-success-500">Saved</span>
+          <span class="text-sm text-success">Saved</span>
         {/if}
-        <button type="button" class="btn btn-sm preset-filled-primary-500" disabled={loading} onclick={save}>
+        <button type="button" class="btn btn-sm btn-primary" disabled={loading} onclick={save}>
           {loading ? 'Saving…' : 'Save preferences'}
         </button>
       </div>

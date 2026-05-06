@@ -66,13 +66,11 @@
     }
 
     if (editing) {
-      // Reload to get fresh data after patch
       const updated = await fetch(`/api/calendar-events/${editing.id}`);
       if (updated.ok) {
         const d = await updated.json();
         events = events.map(e => e.id === editing!.id ? normalizeEvent(d) : e);
       } else {
-        // Optimistic update
         events = events.map(e => e.id === editing!.id ? normalizeEvent({ ...e, ...body }) : e);
       }
     } else {
@@ -105,7 +103,7 @@
       <p class="text-sm opacity-60 mt-0.5">{events.length} event{events.length !== 1 ? 's' : ''} total</p>
     </div>
     {#if hasPermission(data.user, 'calendar_events', 'create')}
-      <button type="button" class="btn preset-filled-primary-500" onclick={openNew}>
+      <button type="button" class="btn btn-primary" onclick={openNew}>
         <Plus class="size-4" /> New Event
       </button>
     {/if}
@@ -113,10 +111,10 @@
 
   <!-- Filters -->
   <div class="flex flex-wrap items-center gap-3">
-    <div class="input-group grid-cols-[auto_1fr] flex-1 min-w-48">
-      <div class="ig-cell preset-tonal"><Search class="size-4" /></div>
-      <input type="search" class="ig-input" placeholder="Search events…" bind:value={query} />
-    </div>
+    <label class="input flex items-center gap-2 flex-1 min-w-48">
+      <Search class="size-4 opacity-50" />
+      <input type="search" class="grow" placeholder="Search events…" bind:value={query} />
+    </label>
 
     {#if distinctTypes.length > 1}
       <select class="select" bind:value={filterType}>
@@ -137,15 +135,15 @@
     {/if}
 
     <!-- View toggle -->
-    <div class="btn-group">
+    <div class="join">
       <button
         type="button"
-        class="btn btn-sm {view === 'calendar' ? 'preset-filled-primary-500' : 'preset-tonal'}"
+        class="join-item btn btn-sm {view === 'calendar' ? 'btn-primary' : 'btn-ghost'}"
         onclick={() => (view = 'calendar')} aria-label="Calendar view"
       ><Calendar class="size-4" /></button>
       <button
         type="button"
-        class="btn btn-sm {view === 'list' ? 'preset-filled-primary-500' : 'preset-tonal'}"
+        class="join-item btn btn-sm {view === 'list' ? 'btn-primary' : 'btn-ghost'}"
         onclick={() => (view = 'list')} aria-label="List view"
       ><LayoutList class="size-4" /></button>
     </div>
@@ -159,7 +157,7 @@
   <!-- List view -->
   {#if view === 'list'}
     {#if filtered.length === 0}
-      <div class="card preset-filled-surface-100-900 p-10 text-center">
+      <div class="card bg-base-200 border border-base-300 p-10 text-center rounded-box">
         <p class="opacity-50">No events match your filters.</p>
       </div>
     {:else}

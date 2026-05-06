@@ -42,10 +42,10 @@
     <h2 class="text-lg font-semibold">Global Task Board</h2>
     <div class="flex items-center gap-2 flex-wrap">
       <!-- Search -->
-      <div class="input-group grid-cols-[auto_1fr] h-8">
-        <div class="ig-cell preset-tonal px-2"><Search class="size-3.5"/></div>
-        <input type="search" class="ig-input text-xs" placeholder="Search tasks…" bind:value={search} />
-      </div>
+      <label class="input flex items-center gap-2 h-8 text-xs">
+        <Search class="size-3.5 opacity-50" />
+        <input type="search" class="grow text-xs" placeholder="Search tasks…" bind:value={search} />
+      </label>
       <!-- Filters -->
       <select class="select text-xs h-8 px-2" bind:value={filterAssignee}>
         <option value="">All assignees</option>

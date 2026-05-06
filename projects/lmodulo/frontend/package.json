@@ -10,8 +10,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@skeletonlabs/skeleton": "^4.0.0",
-    "@skeletonlabs/skeleton-svelte": "^4.0.0",
+    "daisyui": "^5.0.0",
     "@tiptap/core": "^3.20.1",
     "@tiptap/extension-placeholder": "^3.20.1",
     "@tiptap/extension-underline": "^3.20.1",

@@ -4,9 +4,9 @@
 
 <div class="min-h-[60vh] flex items-center justify-center">
   <div class="text-center space-y-4 max-w-sm">
-    <p class="text-6xl font-bold text-error-500">403</p>
+    <p class="text-6xl font-bold text-error">403</p>
     <h1 class="text-2xl font-semibold">Access Denied</h1>
-    <p class="text-surface-400">You don't have permission to view this page.</p>
-    <a href="/dashboard" class="btn preset-filled-primary-500 mt-4">Back to Dashboard</a>
+    <p class="opacity-60">You don't have permission to view this page.</p>
+    <a href="/dashboard" class="btn btn-primary mt-4">Back to Dashboard</a>
   </div>
 </div>

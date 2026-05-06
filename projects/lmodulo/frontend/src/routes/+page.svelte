@@ -280,7 +280,7 @@
     </div>
 
     <div class="hero-actions">
-      <a href="https://github.com/lmodulo/Architectonic" target="_blank" rel="noopener" class="btn preset-filled-primary-500">
+      <a href="https://github.com/lmodulo/Architectonic" target="_blank" rel="noopener" class="btn btn-primary">
         View on GitHub →
       </a>
       <a href="/login" class="hero-ghost-btn">Sign In</a>
@@ -317,7 +317,7 @@
           and env vars in a manifest — <code class="inline-code">arch.js create</code>
           merges them in, collision-checked, before any file is written.
         </p>
-        <a href="/login" class="btn preset-outlined-primary-500 mt-6">Start Building →</a>
+        <a href="/login" class="btn btn-outline btn-primary mt-6">Start Building →</a>
       </div>
 
       <div class="stats-cluster">
@@ -436,10 +436,10 @@
       </div>
       <div class="flex gap-4 flex-wrap">
         <a href="https://github.com/lmodulo/Architectonic" target="_blank" rel="noopener"
-           class="btn preset-filled-primary-500 btn-lg">
+           class="btn btn-primary btn-lg">
           View on GitHub
         </a>
-        <a href="/login" class="btn preset-outlined-primary-500 btn-lg">Sign In</a>
+        <a href="/login" class="btn btn-outline btn-primary btn-lg">Sign In</a>
       </div>
     </div>
 
@@ -515,7 +515,7 @@
     border-radius: 50%;
     background: radial-gradient(
       circle at center,
-      color-mix(in oklch, var(--color-primary-500) 8%, transparent) 0%,
+      color-mix(in oklch, var(--color-primary) 8%, transparent) 0%,
       transparent 65%
     );
   }
@@ -526,7 +526,7 @@
     top: 0;
     left: 0;
     height: 2px;
-    background: var(--color-primary-500);
+    background: var(--color-primary);
     z-index: 200;
     transition: width 100ms linear;
   }
@@ -591,7 +591,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--color-primary-500);
+    background: var(--color-primary);
     animation: dot-pulse 2.4s ease-in-out infinite;
   }
 
@@ -611,7 +611,7 @@
 
   .display-heading em {
     font-style: normal;
-    color: var(--color-primary-400);
+    color: var(--color-primary);
   }
 
   .hero-tagline {
@@ -686,7 +686,7 @@
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.14em;
-    color: var(--color-primary-500);
+    color: var(--color-primary);
     opacity: 0.75;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
@@ -729,7 +729,7 @@
     background: var(--lp-card-bg);
     border: 1px solid var(--lp-border);
     padding: 0.1em 0.4em;
-    color: var(--color-primary-400);
+    color: var(--color-primary);
   }
 
   /* ── Overview ────────────────────────────────────────────────────── */
@@ -762,13 +762,13 @@
     background: var(--lp-card-bg);
     transition: border-color 220ms;
   }
-  .stat-block:hover { border-color: var(--color-primary-500); }
+  .stat-block:hover { border-color: var(--color-primary); }
 
   .stat-val {
     font-size: clamp(1.375rem, 3vw, 2rem);
     font-weight: 800;
     letter-spacing: -0.03em;
-    color: var(--color-primary-400);
+    color: var(--color-primary);
     line-height: 1;
   }
 
@@ -799,15 +799,15 @@
     transition: border-color 200ms, background 200ms;
   }
   .feat-card:hover {
-    border-left-color: var(--color-primary-500);
-    background: color-mix(in oklch, var(--color-primary-500) 5%, oklch(10% 0.006 265deg));
+    border-left-color: var(--color-primary);
+    background: color-mix(in oklch, var(--color-primary) 5%, oklch(10% 0.006 265deg));
   }
 
   .feat-num {
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.14em;
-    color: var(--color-primary-500);
+    color: var(--color-primary);
     opacity: 0.7;
   }
 
@@ -841,7 +841,7 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-primary-500);
+    color: var(--color-primary);
     opacity: 0.75;
     margin-bottom: 1rem;
   }
@@ -901,7 +901,7 @@
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: var(--color-primary-400);
+    color: var(--color-primary);
     flex-shrink: 0;
   }
 

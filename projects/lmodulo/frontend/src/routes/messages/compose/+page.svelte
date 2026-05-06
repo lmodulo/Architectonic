@@ -80,19 +80,19 @@
 <div class="max-w-2xl mx-auto p-6 space-y-4">
   <div class="flex items-center justify-between">
     <h1 class="text-lg font-semibold">New Message</h1>
-    <a href="/messages" class="btn-icon hover:preset-tonal" aria-label="Cancel"><X class="size-5" /></a>
+    <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label="Cancel"><X class="size-5" /></a>
   </div>
 
   {#if error}
-    <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{error}</aside>
+    <aside class="alert alert-error p-3 rounded text-sm">{error}</aside>
   {/if}
 
   <!-- To field -->
   <div class="space-y-1">
-    <label class="label-text text-xs font-medium opacity-60 uppercase tracking-wide">To</label>
-    <div class="flex flex-wrap gap-1.5 items-center border border-surface-200-800 rounded-base px-2 py-1.5 min-h-[2.5rem]">
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">To</label>
+    <div class="flex flex-wrap gap-1.5 items-center border border-base-300 rounded px-2 py-1.5 min-h-[2.5rem]">
       {#each toIds as id}
-        <span class="badge preset-tonal-primary text-xs flex items-center gap-1">
+        <span class="badge badge-primary badge-soft text-xs flex items-center gap-1">
           {recipientName(id)}
           <button type="button" onclick={() => removeRecipient(id)} class="opacity-60 hover:opacity-100">
             <X class="size-3" />
@@ -121,7 +121,7 @@
 
   <!-- Subject -->
   <div class="space-y-1">
-    <label class="label-text text-xs font-medium opacity-60 uppercase tracking-wide" for="subject">Subject</label>
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="subject">Subject</label>
     <input
       id="subject"
       type="text"
@@ -134,12 +134,12 @@
 
   <!-- Body -->
   <div class="space-y-1">
-    <label class="label-text text-xs font-medium opacity-60 uppercase tracking-wide">Message</label>
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Message</label>
     <MessageEditor bind:html={body} />
   </div>
 
   <div class="flex justify-end">
-    <button type="button" class="btn preset-filled-primary-500" disabled={sending} onclick={send}>
+    <button type="button" class="btn btn-primary" disabled={sending} onclick={send}>
       <Send class="size-4" />
       {sending ? 'Sending…' : 'Send'}
     </button>

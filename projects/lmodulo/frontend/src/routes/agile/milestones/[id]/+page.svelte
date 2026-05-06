@@ -78,15 +78,15 @@
 
   <!-- Back + header -->
   <div class="space-y-4">
-    <button class="btn btn-sm preset-tonal gap-1" onclick={() => goto('/agile')}>
+    <button class="btn btn-ghost btn-sm gap-1" onclick={() => goto('/agile')}>
       <ChevronLeft class="size-4" /> Milestones
     </button>
 
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
-          <span class="badge text-xs {PRIORITY_COLOR[milestone.priority] ?? 'preset-tonal-surface'}">{milestone.priority}</span>
-          <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'preset-tonal-surface'}">{milestone.status}</span>
+          <span class="badge text-xs {PRIORITY_COLOR[milestone.priority] ?? 'badge-ghost'}">{milestone.priority}</span>
+          <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'badge-ghost'}">{milestone.status}</span>
         </div>
         <h1 class="text-2xl font-bold leading-tight">{milestone.title}</h1>
         {#if milestone.strategicGoal}
@@ -94,7 +94,7 @@
         {/if}
       </div>
       {#if hasPermission(data.user, 'agile_milestones', 'update')}
-        <button class="btn btn-sm preset-tonal shrink-0" onclick={() => { editForm = { ...milestone, startDate: toDateInput(milestone.startDate), endDate: toDateInput(milestone.endDate) }; editing = true; }}>
+        <button class="btn btn-ghost btn-sm shrink-0" onclick={() => { editForm = { ...milestone, startDate: toDateInput(milestone.startDate), endDate: toDateInput(milestone.endDate) }; editing = true; }}>
           Edit
         </button>
       {/if}
@@ -103,28 +103,28 @@
 
   <!-- Progress + stats grid -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card preset-filled-surface-100-900 p-4 col-span-2 space-y-2">
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4 col-span-2 space-y-2">
       <div class="flex items-center justify-between text-sm">
         <span class="font-medium">Overall Progress</span>
         <span class="font-bold" style="color:{barClr}">{pct}%</span>
       </div>
-      <div class="w-full h-3 rounded-full bg-surface-200-800 overflow-hidden">
+      <div class="w-full h-3 rounded-full bg-base-300 overflow-hidden">
         <div class="h-full rounded-full transition-all" style="width:{pct}%;background:{barClr}"></div>
       </div>
       <div class="flex gap-4 text-xs opacity-50">
         <span>{fmtDateRange(milestone.startDate ?? null, milestone.endDate ?? null)}</span>
       </div>
     </div>
-    <div class="card preset-filled-surface-100-900 p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg preset-tonal-success"><Clock class="size-4 text-success-500"/></div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
+      <div class="p-2 rounded-lg bg-success/15"><Clock class="size-4 text-success"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Effort</p>
         <p class="text-lg font-bold">{fmtEffort(milestone.totalActualHours ?? 0)}</p>
         <p class="text-xs opacity-40">of {fmtEffort(milestone.totalEstimatedHours ?? 0)} est</p>
       </div>
     </div>
-    <div class="card preset-filled-surface-100-900 p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg preset-tonal-primary"><Layers class="size-4 text-primary-500"/></div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
+      <div class="p-2 rounded-lg bg-primary/15"><Layers class="size-4 text-primary"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Sprints</p>
         <p class="text-lg font-bold">{sprints.length}</p>
@@ -138,14 +138,14 @@
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-semibold">Sprints</h2>
       {#if hasPermission(data.user, 'agile_sprints', 'create')}
-        <button class="btn btn-sm preset-filled-primary-500" onclick={openSprintModal}>
+        <button class="btn btn-primary btn-sm" onclick={openSprintModal}>
           <Plus class="size-4" /> New Sprint
         </button>
       {/if}
     </div>
 
     {#if sprints.length === 0}
-      <div class="card preset-filled-surface-100-900 p-8 text-center opacity-50">
+      <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center opacity-50">
         <p class="text-sm">No sprints yet.</p>
       </div>
     {:else}
@@ -154,7 +154,7 @@
           {@const sprintPct = Math.round(sprint.completionPct ?? 0)}
           {@const sprintClr = completionColor(sprintPct)}
           <div
-            class="card preset-filled-surface-100-900 p-4 space-y-3 cursor-pointer hover:preset-tonal transition-colors"
+            class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-3 cursor-pointer hover:bg-base-300/50 transition-colors"
             role="button" tabindex="0"
             onclick={() => goto(`/agile/sprints/${sprint.id}`)}
             onkeydown={e => e.key === 'Enter' && goto(`/agile/sprints/${sprint.id}`)}
@@ -168,7 +168,7 @@
                 <p class="text-xs opacity-50">{fmtDateRange(sprint.startDate ?? null, sprint.endDate ?? null)}</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="badge text-xs {STATUS_COLOR[sprint.status] ?? 'preset-tonal-surface'}">{sprint.status}</span>
+                <span class="badge text-xs {STATUS_COLOR[sprint.status] ?? 'badge-ghost'}">{sprint.status}</span>
               </div>
             </div>
 
@@ -177,7 +177,7 @@
                 <span class="opacity-60">{sprint.taskCount ?? 0} tasks · {fmtEffort(sprint.committedEffort ?? 0)} committed</span>
                 <span class="font-semibold" style="color:{sprintClr}">{sprintPct}%</span>
               </div>
-              <div class="w-full h-1.5 rounded-full bg-surface-200-800 overflow-hidden">
+              <div class="w-full h-1.5 rounded-full bg-base-300 overflow-hidden">
                 <div class="h-full rounded-full" style="width:{sprintPct}%;background:{sprintClr}"></div>
               </div>
             </div>
@@ -195,45 +195,45 @@
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     role="dialog" aria-modal="true">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-lg shadow-xl mx-4">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-lg shadow-xl mx-4">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">New Sprint</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (sprintModal = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintModal = false)}><X class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4">
         {#if sprintError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{sprintError}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{sprintError}</aside>
         {/if}
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-title">Title *</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-title">Title *</label>
           <input id="sp-title" type="text" class="input w-full" placeholder="Sprint title" bind:value={sprintForm.title} />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
             <select class="select w-full" bind:value={sprintForm.status}>
               {#each SPRINT_STATUSES as s}<option value={s}>{s}</option>{/each}
             </select>
           </div>
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-cap">Capacity (hrs)</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-cap">Capacity (hrs)</label>
             <input id="sp-cap" type="number" min="0" class="input w-full" bind:value={sprintForm.capacity} />
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-start">Start Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-start">Start Date</label>
             <input id="sp-start" type="date" class="input w-full" bind:value={sprintForm.startDate} />
           </div>
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-end">End Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-end">End Date</label>
             <input id="sp-end" type="date" class="input w-full" bind:value={sprintForm.endDate} min={sprintForm.startDate} />
           </div>
         </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-surface-200-800 pt-3">
-        <button type="button" class="btn preset-tonal" onclick={() => (sprintModal = false)}>Cancel</button>
-        <button type="button" class="btn preset-filled-primary-500" disabled={savingSprint} onclick={saveSprint}>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+        <button type="button" class="btn btn-ghost" onclick={() => (sprintModal = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={savingSprint} onclick={saveSprint}>
           {savingSprint ? 'Creating…' : 'Create Sprint'}
         </button>
       </footer>
@@ -247,32 +247,32 @@
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     role="dialog" aria-modal="true">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-lg shadow-xl mx-4">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-lg shadow-xl mx-4">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Edit Milestone</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (editing = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editing = false)}><X class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4">
         {#if editError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{editError}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>
         {/if}
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="em-title">Title *</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="em-title">Title *</label>
           <input id="em-title" type="text" class="input w-full" bind:value={editForm.title} />
         </div>
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="em-goal">Strategic Goal</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="em-goal">Strategic Goal</label>
           <input id="em-goal" type="text" class="input w-full" bind:value={editForm.strategicGoal} />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide">Priority</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Priority</label>
             <select class="select w-full" bind:value={editForm.priority}>
               {#each PRIORITIES as p}<option value={p}>{p}</option>{/each}
             </select>
           </div>
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
             <select class="select w-full" bind:value={editForm.status}>
               {#each MILESTONE_STATUSES as s}<option value={s}>{s}</option>{/each}
             </select>
@@ -280,18 +280,18 @@
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="em-start">Start Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="em-start">Start Date</label>
             <input id="em-start" type="date" class="input w-full" bind:value={editForm.startDate} />
           </div>
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="em-end">End Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="em-end">End Date</label>
             <input id="em-end" type="date" class="input w-full" bind:value={editForm.endDate} />
           </div>
         </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-surface-200-800 pt-3">
-        <button type="button" class="btn preset-tonal" onclick={() => (editing = false)}>Cancel</button>
-        <button type="button" class="btn preset-filled-primary-500" disabled={editSaving} onclick={saveEdit}>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+        <button type="button" class="btn btn-ghost" onclick={() => (editing = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={editSaving} onclick={saveEdit}>
           {editSaving ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>

@@ -21,7 +21,7 @@
       Invalid reset link. Please request a new one.
     </div>
     <div class="auth-links">
-      <a href="/forgot-password" class="anchor">Request new link</a>
+      <a href="/forgot-password" class="link link-primary">Request new link</a>
     </div>
   {:else}
     {#if form?.error}
@@ -31,8 +31,8 @@
     <form method="POST" use:enhance class="space-y-4">
       <input type="hidden" name="token" value={data.token} />
 
-      <label class="label">
-        <span class="label-text">New Password</span>
+      <label class="flex flex-col gap-1">
+        <span>New Password</span>
         <input
           class="input"
           type="password"
@@ -45,8 +45,8 @@
         />
       </label>
 
-      <label class="label">
-        <span class="label-text">Confirm Password</span>
+      <label class="flex flex-col gap-1">
+        <span>Confirm Password</span>
         <input
           class="input {mismatch ? 'input-error' : ''}"
           type="password"
@@ -57,17 +57,17 @@
           placeholder="••••••••"
         />
         {#if mismatch}
-          <span class="text-xs text-error-400">Passwords do not match</span>
+          <span class="text-xs text-error">Passwords do not match</span>
         {/if}
       </label>
 
-      <button type="submit" class="btn preset-filled-primary-500 w-full" disabled={mismatch}>
+      <button type="submit" class="btn btn-primary w-full" disabled={mismatch}>
         Set New Password
       </button>
     </form>
 
     <div class="auth-links">
-      <a href="/login" class="anchor">← Back to Sign In</a>
+      <a href="/login" class="link link-primary">← Back to Sign In</a>
     </div>
   {/if}
 
@@ -84,7 +84,7 @@
   .auth-alert--error {
     background: rgba(220, 80, 60, 0.08);
     border-color: rgba(220, 80, 60, 0.2);
-    color: var(--color-error-400);
+    color: var(--color-error);
   }
 
   .auth-links {

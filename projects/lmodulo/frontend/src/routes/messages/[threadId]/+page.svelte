@@ -76,7 +76,7 @@
 
   <!-- Thread subject header -->
   {#if messages.length > 0}
-    <div class="px-6 py-3 border-b border-surface-200-800 shrink-0">
+    <div class="px-6 py-3 border-b border-base-300 shrink-0">
       <h1 class="text-base font-semibold truncate">{messages[0].subject}</h1>
       <p class="text-xs opacity-50 mt-0.5">{messages.length} message{messages.length !== 1 ? 's' : ''}</p>
     </div>
@@ -87,7 +87,7 @@
     {#each messages as msg (msg.id)}
       <div class="flex gap-3">
         <!-- Avatar -->
-        <div class="shrink-0 size-8 rounded-full preset-filled-primary-500 flex items-center justify-center text-xs font-semibold text-white">
+        <div class="shrink-0 size-8 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-primary-content">
           {initials(msg.from.name)}
         </div>
 
@@ -107,9 +107,9 @@
   </div>
 
   <!-- Reply area -->
-  <div class="shrink-0 border-t border-surface-200-800 px-6 py-4">
+  <div class="shrink-0 border-t border-base-300 px-6 py-4">
     {#if error}
-      <aside class="alert preset-tonal-error p-3 rounded-base text-sm mb-3">{error}</aside>
+      <aside class="alert alert-error p-3 rounded text-sm mb-3">{error}</aside>
     {/if}
 
     {#if replyOpen}
@@ -118,12 +118,12 @@
         <div class="flex gap-2 justify-end">
           <button
             type="button"
-            class="btn preset-tonal"
+            class="btn btn-ghost"
             onclick={() => { replyOpen = false; replyBody = ''; error = ''; }}
           >Cancel</button>
           <button
             type="button"
-            class="btn preset-filled-primary-500"
+            class="btn btn-primary"
             disabled={sending}
             onclick={sendReply}
           >
@@ -135,7 +135,7 @@
     {:else}
       <button
         type="button"
-        class="btn preset-tonal w-full text-sm opacity-70 hover:opacity-100"
+        class="btn btn-ghost w-full text-sm opacity-70 hover:opacity-100"
         onclick={() => (replyOpen = true)}
       >
         <Reply class="size-4" />

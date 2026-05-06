@@ -226,11 +226,11 @@
 
   // ── Task status donut chart ────────────────────────────────────────
   const STATUS_COLORS: Record<string, string> = {
-    'Todo':        'var(--color-surface-400)',
-    'In Progress': 'var(--color-primary-500)',
-    'In Review':   'var(--color-secondary-500)',
-    'Done':        'var(--color-success-500)',
-    'Blocked':     'var(--color-error-500)',
+    'Todo':        'var(--color-base-content)',
+    'In Progress': 'var(--color-primary)',
+    'In Review':   'var(--color-secondary)',
+    'Done':        'var(--color-success)',
+    'Blocked':     'var(--color-error)',
   };
 
   const taskStatusCounts = $derived(() => {
@@ -252,7 +252,7 @@
       const lg   = sw > Math.PI ? 1 : 0;
       const path = `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${lg} 1 ${x2.toFixed(2)},${y2.toFixed(2)} L${xi1.toFixed(2)},${yi1.toFixed(2)} A${ir},${ir} 0 ${lg} 0 ${xi2.toFixed(2)},${yi2.toFixed(2)}Z`;
       a += sw;
-      return { path, color: STATUS_COLORS[d.label] ?? 'var(--color-tertiary-500)', label: d.label, pct: Math.round(d.value / total * 100), value: d.value };
+      return { path, color: STATUS_COLORS[d.label] ?? 'var(--color-neutral)', label: d.label, pct: Math.round(d.value / total * 100), value: d.value };
     });
   }
 
@@ -274,42 +274,42 @@
     <div class="space-y-3">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">Agile Tracker</h2>
-        <a href="/agile" class="btn btn-sm preset-tonal text-xs">Open Tracker →</a>
+        <a href="/agile" class="btn btn-ghost btn-sm text-xs">Open Tracker →</a>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- KPI cards (role-aware) -->
         <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
           {#if agileIsAdmin || agileIsLead}
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+            <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
               <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Milestones</p>
               <p class="text-2xl font-bold">{agileMilestones.length}</p>
               <p class="text-xs opacity-40">{agileMilestones.filter((m: any) => m.status === 'Active').length} active</p>
             </div>
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+            <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
               <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Blocked Tasks</p>
-              <p class="text-2xl font-bold text-error-500">{agileBlocked}</p>
+              <p class="text-2xl font-bold text-error">{agileBlocked}</p>
               <p class="text-xs opacity-40">{agileOverdue} overdue</p>
             </div>
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+            <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
               <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Tasks</p>
               <p class="text-2xl font-bold">{agileTasks.length}</p>
               <p class="text-xs opacity-40">{agileTasks.filter((t: any) => t.status === 'Done').length} done</p>
             </div>
           {:else}
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+            <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
               <p class="text-xs opacity-60 uppercase tracking-wide font-medium">My Tasks</p>
               <p class="text-2xl font-bold">{myAgileTasks.length}</p>
               <p class="text-xs opacity-40">assigned to me</p>
             </div>
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+            <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
               <p class="text-xs opacity-60 uppercase tracking-wide font-medium">In Progress</p>
               <p class="text-2xl font-bold">{myAgileTasks.filter((t: any) => t.status === 'In Progress').length}</p>
               <p class="text-xs opacity-40">of my tasks</p>
             </div>
-            <div class="card preset-filled-surface-100-900 p-4 space-y-1">
+            <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
               <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Done</p>
-              <p class="text-2xl font-bold text-success-500">{myAgileTasks.filter((t: any) => t.status === 'Done').length}</p>
+              <p class="text-2xl font-bold text-success">{myAgileTasks.filter((t: any) => t.status === 'Done').length}</p>
               <p class="text-xs opacity-40">of my tasks</p>
             </div>
           {/if}
@@ -324,7 +324,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
           <!-- Task status donut -->
-          <div class="card preset-filled-surface-100-900 p-5 space-y-3">
+          <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-3">
             <h3 class="text-sm font-semibold opacity-70">Task Status Breakdown</h3>
             <div class="flex items-center gap-6">
               <svg viewBox="0 0 180 180" width="160" height="160" class="shrink-0" aria-hidden="true">
@@ -350,22 +350,22 @@
 
           <!-- Active milestones -->
           {#if agileMilestones.filter((m: any) => m.status === 'Active').length > 0 && (agileIsAdmin || agileIsLead)}
-            <div class="card preset-filled-surface-100-900 overflow-hidden">
-              <div class="px-4 py-2.5 border-b border-surface-200-800">
+            <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+              <div class="px-4 py-2.5 border-b border-base-300">
                 <span class="text-xs font-semibold opacity-60 uppercase tracking-wide">Active Milestones</span>
               </div>
-              <div class="divide-y divide-surface-200-800">
+              <div class="divide-y divide-base-300">
                 {#each agileMilestones.filter((m: any) => m.status === 'Active').slice(0, 5) as m}
                   {@const pct = Math.round(m.completionPct ?? 0)}
                   <a href="/agile/milestones/{m.id}"
-                    class="flex items-center gap-4 px-4 py-3 hover:preset-tonal transition-colors">
+                    class="flex items-center gap-4 px-4 py-3 hover:bg-base-300/50 transition-colors">
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-medium truncate">{m.title}</p>
                       <p class="text-xs opacity-50 truncate">{m.strategicGoal ?? ''}</p>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                      <div class="w-20 h-1.5 rounded-full bg-surface-200-800 overflow-hidden">
-                        <div class="h-full rounded-full bg-primary-500" style="width:{pct}%"></div>
+                      <div class="w-20 h-1.5 rounded-full bg-base-300 overflow-hidden">
+                        <div class="h-full rounded-full bg-primary" style="width:{pct}%"></div>
                       </div>
                       <span class="text-xs font-semibold w-8 text-right">{pct}%</span>
                     </div>
@@ -387,24 +387,24 @@
     <!-- Event search + New Event -->
     <div class="flex items-center gap-3">
       <div class="relative flex-1">
-        <div class="input-group grid-cols-[auto_1fr]">
-          <div class="ig-cell preset-tonal"><Search class="size-4" /></div>
+        <label class="input flex items-center gap-2 w-full">
+          <Search class="size-4 opacity-50" />
           <input
             type="search"
-            class="ig-input"
+            class="grow"
             placeholder="Search events by title…"
             autocomplete="off"
             bind:value={eventQuery}
             onfocus={() => (eventSearchOpen = true)}
             onblur={() => setTimeout(() => (eventSearchOpen = false), 150)}
           />
-        </div>
+        </label>
         {#if eventSearchOpen && eventMatches.length > 0}
-          <div class="absolute top-full left-0 right-0 z-30 mt-1 card preset-filled-surface-100-900 shadow-xl overflow-hidden border border-surface-200-800">
+          <div class="absolute top-full left-0 right-0 z-30 mt-1 card bg-base-200 border border-base-300 rounded-box shadow-xl overflow-hidden">
             {#each eventMatches as ev}
               <button
                 type="button"
-                class="w-full text-left px-4 py-2.5 text-sm hover:preset-tonal transition-colors border-b border-surface-200-800 last:border-0"
+                class="w-full text-left px-4 py-2.5 text-sm hover:bg-base-300/50 transition-colors border-b border-base-300 last:border-0"
                 onmousedown={() => selectEventFromSearch(ev)}
               >
                 <span class="font-medium">{ev.title}</span>
@@ -417,29 +417,29 @@
         {/if}
       </div>
       {#if hasPermission(data.user, 'events', 'create')}
-        <button type="button" class="btn preset-filled-primary-500 whitespace-nowrap" onclick={openNewEvent}>
+        <button type="button" class="btn btn-primary whitespace-nowrap" onclick={openNewEvent}>
           <Plus class="size-4" /> New Event
         </button>
       {/if}
     </div>
 
-    <div class="card preset-filled-surface-100-900 overflow-hidden">
+    <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
 
       <!-- Nav -->
-      <div class="flex items-center justify-between px-5 py-3 border-b border-surface-200-800">
-        <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={prevMonth} aria-label="Previous month">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-base-300">
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={prevMonth} aria-label="Previous month">
           <ChevronLeft class="size-4"/>
         </button>
         <span class="font-semibold text-sm">{calLabel}</span>
-        <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={nextMonth} aria-label="Next month">
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={nextMonth} aria-label="Next month">
           <ChevronRight class="size-4"/>
         </button>
       </div>
 
       <!-- DOW header -->
-      <div class="grid grid-cols-7 border-b border-surface-200-800">
+      <div class="grid grid-cols-7 border-b border-base-300">
         {#each ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as dow}
-          <div class="px-2 py-2 text-center text-xs font-semibold text-surface-500 uppercase tracking-wide">{dow}</div>
+          <div class="px-2 py-2 text-center text-xs font-semibold opacity-50 uppercase tracking-wide">{dow}</div>
         {/each}
       </div>
 
@@ -448,18 +448,18 @@
         {#each calDays as cell, i}
           {@const borderR = (i + 1) % 7 !== 0 ? 'border-r' : ''}
           {@const borderB = i < calDays.length - 7 ? 'border-b' : ''}
-          <div class="min-h-[5.5rem] p-2 border-surface-200-800 {borderR} {borderB}
-            {cell?.isToday ? 'bg-primary-500/5' : ''}">
+          <div class="min-h-[5.5rem] p-2 border-base-300 {borderR} {borderB}
+            {cell?.isToday ? 'bg-primary/5' : ''}">
             {#if cell}
               <span class="text-xs font-semibold
-                {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full preset-filled-primary-500 text-white' : 'opacity-70'}">
+                {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-content' : 'opacity-70'}">
                 {cell.day}
               </span>
               <!-- Milestone pills -->
               {#each milestonesForDay(calYear, calMonth, cell.day) as ms}
                 <a href="/agile/milestones/{ms.id}"
                   class="mt-1 flex w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
-                    bg-primary-500/80 text-white hover:bg-primary-600 transition-colors"
+                    bg-primary/80 text-white hover:bg-primary transition-colors"
                   title={ms.title}
                 >{ms.title}</a>
               {/each}
@@ -467,7 +467,7 @@
               {#each sprintsForDay(calYear, calMonth, cell.day) as sp}
                 <a href="/agile/sprints/{sp.id}"
                   class="mt-1 flex w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
-                    bg-secondary-500/80 text-white hover:bg-secondary-600 transition-colors"
+                    bg-secondary/80 text-white hover:bg-secondary transition-colors"
                   title="Sprint {sp.sprintNumber}: {sp.title}"
                 >S{sp.sprintNumber}: {sp.title}</a>
               {/each}
@@ -475,7 +475,7 @@
               {#each tasksForDay(calYear, calMonth, cell.day).slice(0, 3) as task}
                 <div
                   class="mt-1 w-full text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
-                    bg-warning-500/70 text-white"
+                    bg-warning/70 text-warning-content"
                   title={task.title}
                 >{task.title}</div>
               {/each}
@@ -489,7 +489,7 @@
                 <button
                   type="button"
                   class="mt-1 w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
-                    bg-tertiary-500 text-white hover:bg-tertiary-600 transition-colors"
+                    bg-accent/80 text-accent-content hover:bg-accent transition-colors"
                   onclick={() => openEditEvent(ev)}
                   title={ev.title}
                 >{ev.title}</button>
@@ -520,32 +520,32 @@
   >
     <div
       transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
     >
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800 shrink-0">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{editingEventId ? 'Edit Event' : 'New Event'}</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (eventModalOpen = false)} aria-label="Close">
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (eventModalOpen = false)} aria-label="Close">
           <X class="size-5" />
         </button>
       </header>
 
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if eventError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{eventError}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{eventError}</aside>
         {/if}
 
         <div class="space-y-1">
-          <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
           <input id="ev-title" type="text" class="input w-full" placeholder="Event title" bind:value={eventForm.title} maxlength="200" />
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
             <input id="ev-start" type="date" class="input w-full" bind:value={eventForm.startDate} />
           </div>
           <div class="space-y-1">
-            <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
             <input id="ev-end" type="date" class="input w-full" bind:value={eventForm.endDate}
               disabled={eventForm.singleDay} min={eventForm.startDate} />
           </div>
@@ -562,20 +562,20 @@
         </div>
       </div>
 
-      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-surface-200-800 shrink-0">
+      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
         <div>
           {#if editingEventId && hasPermission(data.user, 'events', 'delete')}
             <button
               type="button"
-              class="btn preset-tonal-error"
+              class="btn btn-error btn-soft"
               disabled={eventLoading}
               onclick={() => (eventDeleteConfirm = true)}
             >Delete this event</button>
           {/if}
         </div>
         <div class="flex gap-3">
-          <button type="button" class="btn preset-tonal" onclick={() => (eventModalOpen = false)}>Cancel</button>
-          <button type="button" class="btn preset-filled-primary-500" disabled={eventLoading} onclick={saveEvent}>
+          <button type="button" class="btn btn-ghost" onclick={() => (eventModalOpen = false)}>Cancel</button>
+          <button type="button" class="btn btn-primary" disabled={eventLoading} onclick={saveEvent}>
             {eventLoading ? 'Saving…' : 'Save'}
           </button>
         </div>
@@ -593,7 +593,7 @@
   >
     <div
       transition:scale={{ duration: 250, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl mx-4"
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4"
     >
       <div class="p-6 space-y-3">
         <h2 class="text-lg font-semibold">Delete event?</h2>
@@ -601,12 +601,12 @@
           "<strong>{eventForm.title}</strong>" will be permanently removed. This cannot be undone.
         </p>
         {#if eventError}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{eventError}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{eventError}</aside>
         {/if}
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (eventDeleteConfirm = false)}>Cancel</button>
-        <button type="button" class="btn preset-filled-error-500" disabled={eventLoading} onclick={confirmDeleteEvent}>
+        <button type="button" class="btn btn-ghost" onclick={() => (eventDeleteConfirm = false)}>Cancel</button>
+        <button type="button" class="btn btn-error" disabled={eventLoading} onclick={confirmDeleteEvent}>
           {eventLoading ? 'Deleting…' : 'Delete'}
         </button>
       </footer>

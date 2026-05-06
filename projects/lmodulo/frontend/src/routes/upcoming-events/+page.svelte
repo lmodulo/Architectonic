@@ -53,19 +53,19 @@
   </div>
 
   {#if groups.length === 0}
-    <div class="card preset-filled-surface-100-900 p-10 text-center space-y-2">
+    <div class="card bg-base-200 border border-base-300 p-10 text-center space-y-2 rounded-box">
       <p class="text-lg font-semibold opacity-50">No upcoming events scheduled.</p>
       <p class="text-sm opacity-40">Check back soon.</p>
     </div>
   {:else}
     {#each groups as group}
       <section class="space-y-4">
-        <h2 class="text-xs font-semibold uppercase tracking-widest opacity-50 border-b border-surface-200-800 pb-2">{group.month}</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest opacity-50 border-b border-base-300 pb-2">{group.month}</h2>
         {#each group.items as ev}
-          <article class="card preset-filled-surface-100-900 overflow-hidden">
-            <div class="px-6 py-5 border-b border-surface-200-800 flex items-start gap-4">
+          <article class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+            <div class="px-6 py-5 border-b border-base-300 flex items-start gap-4">
               <!-- Date badge -->
-              <div class="shrink-0 flex flex-col items-center justify-center rounded-lg preset-tonal-warning w-14 h-14">
+              <div class="shrink-0 flex flex-col items-center justify-center rounded-lg bg-warning/15 text-warning w-14 h-14">
                 <span class="text-xs font-semibold uppercase opacity-70 leading-none">
                   {new Date(ev.startDate).toLocaleString('en-US', { month: 'short' })}
                 </span>

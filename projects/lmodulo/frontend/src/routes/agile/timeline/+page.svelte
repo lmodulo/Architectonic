@@ -17,7 +17,7 @@
     <p class="text-xs opacity-50 mt-0.5">Gantt view of milestones and sprints. Click a row to navigate.</p>
   </div>
 
-  <div class="card preset-filled-surface-100-900 p-4">
+  <div class="card bg-base-200 border border-base-300 rounded-box p-4">
     {#if milestones.length === 0}
       <p class="text-sm opacity-40 text-center py-12">No milestones with dates to display.</p>
     {:else}
@@ -28,15 +28,15 @@
   <!-- Legend -->
   <div class="flex items-center gap-6 text-xs opacity-60">
     <span class="flex items-center gap-2">
-      <span class="inline-block w-8 h-3 rounded bg-primary-500/80"></span>
+      <span class="inline-block w-8 h-3 rounded bg-primary/80"></span>
       Milestone
     </span>
     <span class="flex items-center gap-2">
-      <span class="inline-block w-8 h-3 rounded bg-secondary-500/55"></span>
+      <span class="inline-block w-8 h-3 rounded bg-secondary/55"></span>
       Sprint
     </span>
     <span class="flex items-center gap-2">
-      <span class="inline-block w-px h-4 bg-error-500 opacity-70"></span>
+      <span class="inline-block w-px h-4 bg-error opacity-70"></span>
       Today
     </span>
   </div>

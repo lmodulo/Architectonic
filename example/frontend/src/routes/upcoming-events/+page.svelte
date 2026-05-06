@@ -32,7 +32,6 @@
     return new Date(iso).toLocaleString('en-US', { month: 'long', year: 'numeric' });
   }
 
-  // Group events by month of startDate
   type Group = { month: string; items: PublicEvent[] };
   const groups = events.reduce<Group[]>((acc, ev) => {
     const month = monthLabel(ev.startDate);
@@ -53,19 +52,18 @@
   </div>
 
   {#if groups.length === 0}
-    <div class="card preset-filled-surface-100-900 p-10 text-center space-y-2">
+    <div class="card bg-base-100 border border-base-200 p-10 text-center space-y-2">
       <p class="text-lg font-semibold opacity-50">No upcoming events scheduled.</p>
       <p class="text-sm opacity-40">Check back soon.</p>
     </div>
   {:else}
     {#each groups as group}
       <section class="space-y-4">
-        <h2 class="text-xs font-semibold uppercase tracking-widest opacity-50 border-b border-surface-200-800 pb-2">{group.month}</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest opacity-50 border-b border-base-200 pb-2">{group.month}</h2>
         {#each group.items as ev}
-          <article class="card preset-filled-surface-100-900 overflow-hidden">
-            <div class="px-6 py-5 border-b border-surface-200-800 flex items-start gap-4">
-              <!-- Date badge -->
-              <div class="shrink-0 flex flex-col items-center justify-center rounded-lg preset-tonal-warning w-14 h-14">
+          <article class="card bg-base-100 border border-base-200 overflow-hidden">
+            <div class="px-6 py-5 border-b border-base-200 flex items-start gap-4">
+              <div class="shrink-0 flex flex-col items-center justify-center rounded-lg bg-warning/10 text-warning w-14 h-14">
                 <span class="text-xs font-semibold uppercase opacity-70 leading-none">
                   {new Date(ev.startDate).toLocaleString('en-US', { month: 'short' })}
                 </span>

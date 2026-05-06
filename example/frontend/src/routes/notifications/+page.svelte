@@ -1,6 +1,5 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { page } from '$app/state';
   import { Bell } from 'lucide-svelte';
   import NotificationItem from '$lib/components/notifications/NotificationItem.svelte';
   import { markRead, setRecentNotifications } from '$lib/stores/notifications.svelte';
@@ -27,11 +26,7 @@
       const res  = await fetch(`/api/notifications?filter=${filter}&page=${p}`);
       if (res.ok) {
         const d = await res.json() as { items: AppNotification[]; total: number; page: number; pages: number };
-        if (p === 1) {
-          items = d.items;
-        } else {
-          items = [...items, ...d.items];
-        }
+        items = p === 1 ? d.items : [...items, ...d.items];
         curPage    = d.page;
         totalPages = d.pages;
       }
@@ -64,19 +59,13 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <Bell class="size-5 text-primary-500" />
+      <Bell class="size-5 text-primary" />
       <h1 class="text-xl font-semibold">Notifications</h1>
     </div>
     <div class="flex items-center gap-3">
-      <a href="/notifications/settings" class="text-sm text-primary-500 hover:underline">
-        Preferences
-      </a>
+      <a href="/notifications/settings" class="text-sm text-primary hover:underline">Preferences</a>
       {#if items.some(n => !n.read)}
-        <button
-          type="button"
-          class="text-sm text-primary-500 hover:underline"
-          onclick={handleMarkAll}
-        >
+        <button type="button" class="text-sm text-primary hover:underline" onclick={handleMarkAll}>
           Mark all read
         </button>
       {/if}
@@ -84,12 +73,12 @@
   </div>
 
   <!-- Filter tabs -->
-  <div class="flex gap-1 border-b border-surface-200-800">
+  <div class="flex gap-1 border-b border-base-200">
     {#each ['all', 'unread'] as f}
       <button
         type="button"
         class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px
-          {filter === f ? 'border-primary-500 text-primary-500' : 'border-transparent opacity-60 hover:opacity-100'}"
+          {filter === f ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}"
         onclick={() => setFilter(f)}
       >
         {f === 'all' ? 'All' : 'Unread'}
@@ -98,7 +87,7 @@
   </div>
 
   <!-- List -->
-  <div class="card preset-filled-surface-50-950 border border-surface-200-800 divide-y divide-surface-200-800 rounded-container">
+  <div class="bg-base-100 border border-base-200 rounded-box divide-y divide-base-200">
     {#if items.length === 0 && !loading}
       <div class="py-12 text-center opacity-50">
         <Bell class="size-8 mx-auto mb-2" />
@@ -115,14 +104,9 @@
     {/if}
   </div>
 
-  <!-- Load more -->
   {#if curPage < totalPages && !loading}
     <div class="text-center">
-      <button
-        type="button"
-        class="btn preset-tonal text-sm"
-        onclick={() => loadPage(curPage + 1)}
-      >
+      <button type="button" class="btn btn-ghost btn-sm" onclick={() => loadPage(curPage + 1)}>
         Load more
       </button>
     </div>
