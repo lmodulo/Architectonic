@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: business;
+  themes: luxury;
 }
 
 /* Force class-based dark mode — overrides Tailwind v4's default @media query */
