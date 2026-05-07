@@ -3,6 +3,33 @@
   themes: luxury;
 }
 
+/* ── svelte-select theme ─────────────────────────────────────────────────── */
+.svelte-select {
+  --background: var(--color-base-100);
+  --border: 1px solid color-mix(in srgb, var(--color-base-content) 18%, transparent);
+  --border-hover: 1px solid color-mix(in srgb, var(--color-base-content) 35%, transparent);
+  --border-radius: var(--radius-field, 0.5rem);
+  --input-color: var(--color-base-content);
+  --placeholder-color: var(--color-base-content);
+  --placeholder-opacity: 0.38;
+  --chevron-color: var(--color-base-content);
+  --clear-select-color: var(--color-base-content);
+  --item-color: var(--color-base-content);
+  --item-hover-bg: var(--color-base-300);
+  --item-hover-color: var(--color-base-content);
+  --item-is-active-bg: var(--color-primary);
+  --item-is-active-color: var(--color-primary-content);
+  --multi-item-bg: var(--color-base-300);
+  --multi-item-color: var(--color-base-content);
+  --list-background: var(--color-base-200);
+  --list-border: 1px solid color-mix(in srgb, var(--color-base-content) 12%, transparent);
+  --list-border-radius: var(--radius-box, 0.75rem);
+  --list-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --list-z-index: 9999;
+  --height: 2.5rem;
+  --font-size: 0.875rem;
+}
+
 /* Force class-based dark mode — overrides Tailwind v4's default @media query */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -18,7 +45,7 @@ h1, h2, h3, h4, h5, h6 {
    Override DaisyUI luxury-theme CSS variables here.
    Full variable list: https://daisyui.com/docs/themes/
    ─────────────────────────────────────────────────────────────────────── */
-[data-theme='luxury'] {
+[data-theme] {
   /* Base surfaces */
   --color-base-100: oklch(8% 0.008 268deg);
   --color-base-200: oklch(13% 0.005 274deg);

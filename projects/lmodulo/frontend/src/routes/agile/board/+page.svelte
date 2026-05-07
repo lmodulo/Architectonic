@@ -4,6 +4,7 @@
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import KanbanBoard from '$lib/components/agile/KanbanBoard.svelte';
+  import UserSelect from '$lib/components/UserSelect.svelte';
   import type { AgileTask } from '$lib/utils/agile';
 
   let { data }: { data: PageData } = $props();
@@ -12,7 +13,7 @@
   const milestones = $derived((data.milestones ?? []) as any[]);
   const users      = $derived((data.users ?? []) as any[]);
 
-  let filterAssignee  = $state('');
+  let filterAssignee  = $state<string | null>(null);
   let filterMilestone = $state('');
   let filterPriority  = $state('');
   let search          = $state('');
@@ -47,12 +48,9 @@
         <input type="search" class="grow text-xs" placeholder="Search tasks…" bind:value={search} />
       </label>
       <!-- Filters -->
-      <select class="select text-xs h-8 px-2" bind:value={filterAssignee}>
-        <option value="">All assignees</option>
-        {#each users as u}
-          <option value={u.id}>{u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username}</option>
-        {/each}
-      </select>
+      <div class="w-48">
+        <UserSelect {users} placeholder="All assignees" clearable bind:value={filterAssignee} />
+      </div>
       <select class="select text-xs h-8 px-2" bind:value={filterPriority}>
         <option value="">All priorities</option>
         {#each ['Low', 'Medium', 'High', 'Critical'] as p}

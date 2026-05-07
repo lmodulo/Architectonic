@@ -8,6 +8,7 @@
   import DependencyGraph from '$lib/components/agile/DependencyGraph.svelte';
   import EffortBar from '$lib/components/agile/EffortBar.svelte';
   import CommentFeed from '$lib/components/agile/CommentFeed.svelte';
+  import UserSelect from '$lib/components/UserSelect.svelte';
   import {
     STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, TASK_STATUSES, PRIORITIES,
     fmtEffort, fmtDate, toDateInput, completionColor,
@@ -34,14 +35,18 @@
   let taskModal  = $state(false);
   let savingTask = $state(false);
   let taskError  = $state('');
-  let taskForm   = $state({
-    title: '', description: '', assignedTo: '',
+  let taskForm   = $state<{
+    title: string; description: string; assignedTo: string | null;
+    estimateHours: number; priority: string; status: string;
+    blockedReason: string; dueDate: string;
+  }>({
+    title: '', description: '', assignedTo: null,
     estimateHours: 1, priority: 'Medium', status: 'Backlog',
     blockedReason: '', dueDate: '',
   });
 
   function openTaskModal() {
-    taskForm = { title: '', description: '', assignedTo: '', estimateHours: 1, priority: 'Medium', status: 'Backlog', blockedReason: '', dueDate: '' };
+    taskForm = { title: '', description: '', assignedTo: null, estimateHours: 1, priority: 'Medium', status: 'Backlog', blockedReason: '', dueDate: '' };
     taskError = '';
     taskModal = true;
   }
@@ -90,8 +95,14 @@
   let savingEdit  = $state(false);
   let editError   = $state('');
   let editingId   = $state('');
-  let editForm    = $state({
-    title: '', description: '', assignedTo: '',
+  let editForm    = $state<{
+    title: string; description: string; assignedTo: string | null;
+    priority: string; status: string;
+    actualHours: number; remainingHours: number;
+    blockedReason: string; dueDate: string;
+    estimateHours: number;
+  }>({
+    title: '', description: '', assignedTo: null,
     priority: 'Medium', status: 'Backlog',
     actualHours: 0, remainingHours: 0,
     blockedReason: '', dueDate: '',
@@ -104,7 +115,7 @@
     editForm = {
       title:         task.title,
       description:   task.description ?? '',
-      assignedTo:    task.assignedTo ?? '',
+      assignedTo:    task.assignedTo ?? null,
       priority:      task.priority,
       status:        task.status,
       actualHours:   task.actualHours ?? 0,
@@ -242,7 +253,7 @@
                 <td class="px-4 py-2.5">
                   {#if hasPermission(data.user, 'agile_tasks', 'update')}
                     <select
-                      class="select text-xs h-7 px-2"
+                      class="select text-xs h-7 pl-2 pr-6"
                       value={task.status}
                       onchange={e => updateTaskStatus(task, (e.target as HTMLSelectElement).value)}
                     >
@@ -333,12 +344,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
             <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Assigned To</label>
-            <select class="select w-full" bind:value={editForm.assignedTo}>
-              <option value="">Unassigned</option>
-              {#each users as u}
-                <option value={u.id}>{u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username}</option>
-              {/each}
-            </select>
+            <UserSelect {users} placeholder="Unassigned" clearable bind:value={editForm.assignedTo} />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="et-due">Due Date</label>
@@ -408,12 +414,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
             <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Assigned To</label>
-            <select class="select w-full" bind:value={taskForm.assignedTo}>
-              <option value="">Unassigned</option>
-              {#each users as u}
-                <option value={u.id}>{u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username}</option>
-              {/each}
-            </select>
+            <UserSelect {users} placeholder="Unassigned" clearable bind:value={taskForm.assignedTo} />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="tk-est">Estimate (hrs) *</label>

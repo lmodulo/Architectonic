@@ -3,6 +3,7 @@
   import { cubicOut } from 'svelte/easing';
   import { X } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import UserSelect from '$lib/components/UserSelect.svelte';
   import { hasPermission } from '$lib/permissions';
   import { typeLabel, type CalendarEvent } from '$lib/utils/calendarEvents';
 
@@ -42,7 +43,6 @@
     title: string; content: string; eventType: string;
     startDate: string; endDate: string; singleDay: boolean; allDay: boolean;
     location: string; tags: string; status: string; visibility: string;
-    sharedWith: string[];
   }>({
     title:      '',
     content:    '',
@@ -55,8 +55,9 @@
     tags:       '',
     status:     'active',
     visibility: 'private',
-    sharedWith: [],
   });
+
+  let sharedWith = $state<string[] | null>(null);
 
   let loading      = $state(false);
   let err          = $state('');
@@ -76,15 +77,15 @@
         tags:       event.tags.join(', '),
         status:     event.status     ?? 'active',
         visibility: event.visibility ?? 'private',
-        sharedWith: event.sharedWith ? [...event.sharedWith] : [],
       };
+      sharedWith = event.sharedWith?.length ? [...event.sharedWith] : null;
     } else {
       form = {
         title: '', content: '', eventType: 'upcoming_event',
         startDate: today, endDate: today, singleDay: true, allDay: false,
         location: '', tags: '', status: 'active', visibility: 'private',
-        sharedWith: [],
       };
+      sharedWith = null;
     }
     err          = '';
     deletePrompt = false;
@@ -110,7 +111,7 @@
       tags:       form.tags.split(',').map(t => t.trim()).filter(Boolean),
       status:     form.status,
       visibility: form.visibility,
-      sharedWith: form.sharedWith,
+      sharedWith: sharedWith ?? [],
     };
     try {
       await onSave(body);
@@ -164,27 +165,15 @@
 
         <!-- Share with -->
         {#if users.filter(u => u.id !== selfId()).length > 0}
-          <div class="space-y-2">
+          <div class="space-y-1">
             <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Share with</p>
-            <div class="flex flex-wrap gap-x-4 gap-y-1.5">
-              {#each users.filter(u => u.id !== selfId()) as u}
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    class="checkbox checkbox-sm"
-                    checked={form.sharedWith.includes(u.id)}
-                    onchange={(e) => {
-                      if ((e.target as HTMLInputElement).checked) {
-                        form.sharedWith = [...form.sharedWith, u.id];
-                      } else {
-                        form.sharedWith = form.sharedWith.filter(id => id !== u.id);
-                      }
-                    }}
-                  />
-                  <span class="text-sm">{displayName(u)}</span>
-                </label>
-              {/each}
-            </div>
+            <UserSelect
+              {users}
+              excludeId={selfId()}
+              multiple
+              placeholder="Search people…"
+              bind:value={sharedWith}
+            />
           </div>
         {/if}
 

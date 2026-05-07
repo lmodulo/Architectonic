@@ -13,6 +13,7 @@
   import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
   import { connect, disconnect } from '$lib/stores/notifications.svelte';
   import { brand } from '$lib/config/logo';
+  import { APP_THEME } from '$lib/config/theme';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
 
@@ -65,7 +66,7 @@
 {#if data.user}
 
   {#if navigating.to !== null}
-    <div data-theme="luxury" class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
+    <div data-theme={APP_THEME} class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
       <div class="card bg-base-200 shadow-xl px-6 py-4 flex items-center gap-3">
         <svg class="size-5 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
@@ -78,7 +79,7 @@
 
   <form bind:this={logoutForm} method="POST" action="/logout" class="hidden"></form>
 
-  <div data-theme="luxury" class="h-screen flex overflow-hidden">
+  <div data-theme={APP_THEME} class="h-screen flex overflow-hidden">
 
     <!-- Mobile overlay -->
     {#if sidebarOpen}
@@ -294,7 +295,7 @@
   </div>
 
   {#if data.chatEnabled}
-    <div data-theme="luxury" style="display:contents"><ChatAssistant /></div>
+    <div data-theme={APP_THEME} style="display:contents"><ChatAssistant /></div>
   {/if}
 
 {:else}
