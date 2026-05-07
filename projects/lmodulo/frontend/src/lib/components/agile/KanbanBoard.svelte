@@ -116,7 +116,7 @@
           />
         {/each}
         {#if columnTasks.length === 0}
-          <div class="flex-1 flex items-center justify-center text-xs opacity-30 py-4">
+          <div class="text-xs opacity-30 py-2">
             {dropTarget === status ? 'Drop here' : 'No tasks'}
           </div>
         {/if}

@@ -12,7 +12,7 @@ Full-stack SvelteKit + Fastify application scaffold. The `candidate/` directory 
 
 ## Structure
 ```
-example/
+candidate/
   frontend/          SvelteKit app — port 3000
   api/               Fastify app — port 4000
   docker-compose.yml
@@ -100,9 +100,11 @@ Rendered after the closing `</div>` of the `h-screen overflow-hidden` shell in `
 - Proxied via frontend `/api/chat` route
 
 ## Features Included in Scaffold
-- **Auth:** Login, logout, session management, profile edit
-- **RBAC:** Roles + permissions, Manage Users page (admin), Roles page
+- **Auth:** Login, logout, session management, profile edit; dark-themed `AuthShell` for all auth pages; `(public)/` route group
+- **Avatar:** Photo upload with `AvatarCropper` (canvas crop + zoom); colour picker fallback; `Avatar` component (initials or photo); `POST/DELETE /auth/avatar`
+- **RBAC:** Roles: owner, admin, lead, contributor, viewer, customer; `requirePermission` preHandler; `hasPermission()` frontend helper; Manage Users + Roles pages
 - **Messaging:** Full email-style in-app messaging — threads, replies, inbox/sent/archive, unread badge, Tiptap rich-text editor
 - **Dashboard:** Placeholder with charts (pure SVG)
 - **Chat assistant:** Ollama-backed, fixed bottom-right panel
 - **Theme toggle:** Dark/light, persisted to localStorage
+- **Layout:** Sidebar-based shell with collapsible nav groups, profile footer, `Avatar` in sidebar; `APP_THEME` data-theme
