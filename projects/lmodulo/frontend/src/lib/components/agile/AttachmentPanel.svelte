@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Paperclip, Trash2, FileText } from 'lucide-svelte';
+  import { Paperclip, Trash2, FileText, UploadCloud } from 'lucide-svelte';
   import { fmtDate } from '$lib/utils/agile';
   import type { AgileAttachment } from '$lib/utils/agile';
 
@@ -16,9 +16,11 @@
   } = $props();
 
   let fileInput: HTMLInputElement;
-  let uploading  = $state(false);
+  let uploading   = $state(false);
   let pendingFile = $state<File | null>(null);
   let uploadError = $state('');
+  let dragOver    = $state(false);
+  let dragCounter = 0;
 
   function openPicker() {
     uploadError = '';
@@ -30,6 +32,10 @@
     const file   = target.files?.[0];
     target.value = '';
     if (!file) return;
+    handleFile(file);
+  }
+
+  function handleFile(file: File) {
     const safe      = file.name.replace(/[^a-zA-Z0-9._-]/g, '_') || 'file';
     const duplicate = attachments.some(a => a.name === safe);
     if (duplicate) {
@@ -37,6 +43,31 @@
     } else {
       doUpload(file);
     }
+  }
+
+  function onDragEnter(e: DragEvent) {
+    e.preventDefault();
+    dragCounter++;
+    dragOver = true;
+  }
+
+  function onDragLeave() {
+    dragCounter--;
+    if (dragCounter === 0) dragOver = false;
+  }
+
+  function onDragOver(e: DragEvent) {
+    e.preventDefault();
+  }
+
+  function onDrop(e: DragEvent) {
+    e.preventDefault();
+    dragCounter = 0;
+    dragOver    = false;
+    const file  = e.dataTransfer?.files?.[0];
+    if (!file) return;
+    uploadError = '';
+    handleFile(file);
   }
 
   function cancelPending() {
@@ -102,6 +133,30 @@
     </ul>
   {/if}
 
+  <!-- Drop zone -->
+  <button
+    type="button"
+    class="w-full rounded-lg border-2 border-dashed px-4 py-5 text-center transition-colors cursor-pointer focus:outline-none
+      {dragOver
+        ? 'border-primary bg-primary/10 text-primary'
+        : 'border-base-300/60 hover:border-base-300 hover:bg-base-300/20 text-base-content/40 hover:text-base-content/60'}"
+    ondragenter={onDragEnter}
+    ondragleave={onDragLeave}
+    ondragover={onDragOver}
+    ondrop={onDrop}
+    onclick={openPicker}
+    disabled={uploading}
+  >
+    <UploadCloud class="size-6 mx-auto mb-1.5 {dragOver ? 'text-primary' : 'opacity-40'}" />
+    {#if uploading}
+      <p class="text-xs font-medium">Uploading…</p>
+    {:else if dragOver}
+      <p class="text-xs font-semibold">Drop to upload</p>
+    {:else}
+      <p class="text-xs font-medium">Drop a file here or <span class="underline">click to browse</span></p>
+    {/if}
+  </button>
+
   {#if pendingFile}
     {@const safe = pendingFile.name.replace(/[^a-zA-Z0-9._-]/g, '_') || 'file'}
     <aside class="rounded border border-warning/40 bg-warning/10 p-3 text-sm space-y-2">
@@ -118,14 +173,4 @@
   {#if uploadError}
     <p class="text-xs text-error">{uploadError}</p>
   {/if}
-
-  <button
-    type="button"
-    class="btn btn-ghost btn-sm gap-2"
-    onclick={openPicker}
-    disabled={uploading}
-  >
-    <Paperclip class="size-4" />
-    {uploading ? 'Uploading…' : 'Attach file'}
-  </button>
 </div>

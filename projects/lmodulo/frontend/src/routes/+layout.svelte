@@ -2,7 +2,7 @@
   import '../app.css';
   import {
     Menu as MenuIcon, LogOut, X, User, Users,
-    Mail as MailIcon, Settings, ChevronRight, ChevronDown
+    Settings, ChevronRight, ChevronDown
   } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import { navItems, isNavGroup } from '$lib/config/nav';
@@ -10,7 +10,6 @@
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
-  import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
   import { connect, disconnect } from '$lib/stores/notifications.svelte';
   import { brand } from '$lib/config/logo';
   import { APP_THEME } from '$lib/config/theme';
@@ -159,14 +158,25 @@
             {:else}
               {#if !entry.permission || hasPermission(data.user, entry.permission.resource, entry.permission.action)}
                 {@const Icon = entry.icon}
+                {@const isMessages = entry.href === '/messages'}
                 <li>
                   <a
                     href={entry.href}
                     class="flex items-center gap-3 p-3 rounded {(entry.matchPrefix ? page.url.pathname.startsWith(entry.href) : page.url.pathname === entry.href) ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
                     onclick={closeSidebar}
                   >
-                    <Icon class="size-4 shrink-0" />
-                    <span class="text-sm">{entry.label}</span>
+                    <span class="relative shrink-0">
+                      <Icon class="size-4" />
+                      {#if isMessages && unreadCount > 0}
+                        <span class="bg-error absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      {/if}
+                    </span>
+                    <span class="text-sm flex-1">{entry.label}</span>
+                    {#if isMessages && unreadCount > 0}
+                      <span class="badge badge-error badge-xs">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                    {/if}
                   </a>
                 </li>
               {/if}
@@ -177,29 +187,6 @@
 
       <!-- Footer -->
       <div class="border-t border-base-300 p-2 flex flex-col gap-0.5">
-
-        <!-- Messages + Notifications -->
-        <div class="flex items-center gap-1">
-          <a
-            href="/messages"
-            class="flex items-center gap-3 flex-1 px-3 py-2 rounded text-sm {page.url.pathname === '/messages' ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
-            onclick={closeSidebar}
-          >
-            <span class="relative shrink-0">
-              <MailIcon class="size-4" />
-              {#if unreadCount > 0}
-                <span class="bg-error absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              {/if}
-            </span>
-            <span class="flex-1">Messages</span>
-            {#if unreadCount > 0}
-              <span class="badge badge-error badge-xs">{unreadCount > 99 ? '99+' : unreadCount}</span>
-            {/if}
-          </a>
-          <NotificationBell />
-        </div>
 
         <!-- Profile -->
         <div>

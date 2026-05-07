@@ -1,5 +1,5 @@
 import {
-  House, Bell, CalendarDays, CalendarCog, CalendarRange, Milestone,
+  House, Bell, Mail, CalendarDays, CalendarCog, CalendarRange, Milestone,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
@@ -25,6 +25,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 
 export const navItems: NavEntry[] = [
   { label: 'Dashboard',     href: '/dashboard',              icon: House },
+  { label: 'Messages',      href: '/messages',               icon: Mail, matchPrefix: true },
   { label: 'Notifications', href: '/notifications',          icon: Bell  },
   { label: 'My Calendar',   href: '/my-calendar',            icon: CalendarDays,  permission: { resource: 'calendar_events', action: 'read' } },
   { label: 'Public Events', href: '/calendar-events',        icon: CalendarRange },
