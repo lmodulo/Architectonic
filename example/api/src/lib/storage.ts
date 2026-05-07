@@ -42,16 +42,24 @@ class LocalStorage implements StorageProvider {
 class S3Storage implements StorageProvider {
   private bucket: string;
   private region: string;
+  private endpoint: string | undefined;
+  private baseUrl: string;
 
   constructor() {
-    this.bucket = process.env.AWS_BUCKET  ?? '';
-    this.region = process.env.AWS_REGION  ?? 'us-east-1';
+    this.bucket   = process.env.AWS_BUCKET   ?? '';
+    this.region   = process.env.AWS_REGION   ?? 'us-east-1';
+    this.endpoint = process.env.S3_ENDPOINT  || undefined;
+    const publicOrigin = process.env.S3_PUBLIC_URL;
+    this.baseUrl = publicOrigin
+      ? `${publicOrigin}/${this.bucket}`
+      : `https://${this.bucket}.s3.${this.region}.amazonaws.com`;
   }
 
   async save(filename: string, buffer: Buffer, mimetype: string): Promise<string> {
     const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
     const client = new S3Client({
       region: this.region,
+      ...(this.endpoint ? { endpoint: this.endpoint, forcePathStyle: true } : {}),
       credentials: {
         accessKeyId:     process.env.AWS_ACCESS_KEY_ID     ?? '',
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? ''
@@ -66,15 +74,14 @@ class S3Storage implements StorageProvider {
       Bucket:      this.bucket,
       Key:         key,
       Body:        buffer,
-      ContentType: mimetype,
-      ACL:         'public-read' as const
+      ContentType: mimetype
     }));
 
-    return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+    return `${this.baseUrl}/${key}`;
   }
 
   async remove(_url: string): Promise<void> {
-    // S3 object deletion is a separate concern; skip in phase 1
+    // deletion not implemented in phase 1
   }
 }
 
