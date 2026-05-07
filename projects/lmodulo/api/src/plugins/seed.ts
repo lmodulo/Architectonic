@@ -14,7 +14,7 @@ const perms = JSON.parse(
 const DEFAULT_SETTINGS = [
   {
     key: 'brand.name',
-    value: '',
+    value: 'ARCHITECTONIC',
     type: 'string',
     label: 'Brand Name',
     description: 'Text shown in the app header (mutually exclusive with Brand Logo)'
@@ -59,14 +59,26 @@ const ROLES: [string, string][] = [
   ['customer',    'Customer'],
 ];
 
-// [username, firstName, lastName, role]
-const SEED_USERS: [string, string, string, string][] = [
-  ['owner',  'Owner',  '',       'owner'],
-  ['admin',  'Admin',  '',       'admin'],
-  ['alex',   'Alex',   'Chen',   'lead'],
-  ['jordan', 'Jordan', 'Rivera', 'contributor'],
-  ['sam',    'Sam',    'Park',   'contributor'],
-  ['riley',  'Riley',  'Morgan', 'contributor'],
+interface SeedUser {
+  username:  string;
+  email:     string;
+  password:  string;
+  firstName: string;
+  lastName:  string;
+  role:      string;
+}
+
+const SEED_USERS: SeedUser[] = [
+  // Dev users
+  { username: 'jnicora', email: 'joenicora@me.com',   password: 'j-password',     firstName: 'Joe',    lastName: 'Nicora', role: 'owner'       },
+  { username: 'knicora', email: 'kylenicora@me.com',  password: 'k-password',     firstName: 'Kyle',   lastName: 'Nicora', role: 'admin'       },
+  // Demo team
+  { username: 'owner',   email: 'owner@lmodulo.com',  password: 'owner-password', firstName: 'Owner',  lastName: '',       role: 'owner'       },
+  { username: 'admin',   email: 'admin@lmodulo.com',  password: 'admin-password', firstName: 'Admin',  lastName: '',       role: 'admin'       },
+  { username: 'alex',    email: 'alex@lmodulo.com',   password: 'alex-password',  firstName: 'Alex',   lastName: 'Chen',   role: 'lead'        },
+  { username: 'jordan',  email: 'jordan@lmodulo.com', password: 'jordan-password',firstName: 'Jordan', lastName: 'Rivera', role: 'contributor' },
+  { username: 'sam',     email: 'sam@lmodulo.com',    password: 'sam-password',   firstName: 'Sam',    lastName: 'Park',   role: 'contributor' },
+  { username: 'riley',   email: 'riley@lmodulo.com',  password: 'riley-password', firstName: 'Riley',  lastName: 'Morgan', role: 'contributor' },
 ];
 
 export default fp(async function seedPlugin(app: any) {
@@ -90,17 +102,21 @@ export default fp(async function seedPlugin(app: any) {
 
     // ── Users ─────────────────────────────────────────────────────────
     const users = db.collection('users');
-    for (const [username, firstName, lastName, role] of SEED_USERS) {
-      const existing = await users.findOne({ username });
+    for (const u of SEED_USERS) {
+      const existing = await users.findOne({ username: u.username });
       if (!existing) {
-        const email        = `${username}@lmodulo.com`;
-        const password     = `${username}-password`;
-        const passwordHash = await bcrypt.hash(password, 12);
+        const passwordHash = await bcrypt.hash(u.password, 12);
         await users.insertOne({
-          username, email, password, passwordHash,
-          firstName, lastName, role,
-          avatarUrl: '', avatarColor: '',
-          createdAt: now, updatedAt: now,
+          username:    u.username,
+          email:       u.email,
+          passwordHash,
+          firstName:   u.firstName,
+          lastName:    u.lastName,
+          role:        u.role,
+          avatarUrl:   '',
+          avatarColor: '',
+          createdAt:   now,
+          updatedAt:   now,
         });
       }
     }
@@ -124,19 +140,29 @@ export default fp(async function seedPlugin(app: any) {
     if (await milestones.countDocuments()) return;
 
     const team = await users
-      .find({ username: { $in: ['alex', 'jordan', 'sam', 'riley'] } })
+      .find({ username: { $in: ['jnicora', 'knicora', 'alex', 'jordan', 'sam', 'riley'] } })
       .toArray();
     const uid = (name: string): ObjectId => team.find((u: any) => u.username === name)!._id;
+    const joeId    = uid('jnicora');
+    const kyleId   = uid('knicora');
     const alexId   = uid('alex');
     const jordanId = uid('jordan');
     const samId    = uid('sam');
     const rileyId  = uid('riley');
 
-    // offset in calendar days from seed time, normalised to 09:00
+    // Day offset from seed time, normalised to 09:00
     const d = (offsetDays: number): Date => {
       const dt = new Date(now);
       dt.setDate(dt.getDate() + offsetDays);
       dt.setHours(9, 0, 0, 0);
+      return dt;
+    };
+
+    // Day offset with explicit hour
+    const dh = (offsetDays: number, hour: number): Date => {
+      const dt = new Date(now);
+      dt.setDate(dt.getDate() + offsetDays);
+      dt.setHours(hour, 0, 0, 0);
       return dt;
     };
 
@@ -254,31 +280,25 @@ export default fp(async function seedPlugin(app: any) {
     ]);
 
     // ── Job IDs ───────────────────────────────────────────────────────
-    // S1 — Foundation (all Done)
     const j1_1 = new ObjectId(); // Auth system
     const j1_2 = new ObjectId(); // MongoDB setup
     const j1_3 = new ObjectId(); // Fastify scaffold
-    // S2 — Core Features (all Done)
     const j2_1 = new ObjectId(); // User management
     const j2_2 = new ObjectId(); // Role-based permissions
     const j2_3 = new ObjectId(); // Settings module
     const j2_4 = new ObjectId(); // Bug: session expiry
-    // S3 — Data Layer (all Done)
     const j3_1 = new ObjectId(); // Milestone CRUD API
     const j3_2 = new ObjectId(); // Sprint CRUD API
     const j3_3 = new ObjectId(); // Jobs & Tasks API
     const j3_4 = new ObjectId(); // Permissions wiring
-    // S4 — UI Layer (mixed)
     const j4_1 = new ObjectId(); // Overview UI        — Done
     const j4_2 = new ObjectId(); // Sprint detail page  — Review
-    const j4_3 = new ObjectId(); // Board / Kanban      — In Progress (blocked task)
+    const j4_3 = new ObjectId(); // Board / Kanban      — In Progress (blocked)
     const j4_4 = new ObjectId(); // Timeline / Gantt    — Backlog
     const j4_5 = new ObjectId(); // Bug: nav active     — Done
-    // S5 — Polish (all Backlog)
     const j5_1 = new ObjectId(); // E2E tests
     const j5_2 = new ObjectId(); // Performance audit
     const j5_3 = new ObjectId(); // Release docs
-    // S6 — Analytics (all Backlog)
     const j6_1 = new ObjectId(); // Velocity dashboard
     const j6_2 = new ObjectId(); // Burndown charts
 
@@ -590,9 +610,221 @@ export default fp(async function seedPlugin(app: any) {
       t(j6_2, 'Lightweight polling hook for live updates',     null, 4, 0, 4, 'Medium', 'Backlog', '', null, -2, -2, alexId, null),
     ]);
 
-    // ── Seed calendar events (meetings) ──────────────────────────────
+    // ── Calendar events ───────────────────────────────────────────────
     const calendarEvents = db.collection('calendar_events');
     await calendarEvents.insertMany([
+
+      // ── Historical sprint ceremonies ──────────────────────────────
+      {
+        title: 'Sprint 1 Planning',
+        content: '<p>Kick off Sprint 1 — Foundation. Align on auth setup, MongoDB config, and API scaffold scope. Capacity: 120 pts.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(-98, 9), endDate: dh(-98, 11), singleDay: true, allDay: false,
+        location: 'Main Conference Room',
+        tags: ['sprint', 'planning'],
+        status: 'active', visibility: 'public',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-100), updatedAt: d(-100),
+      },
+      {
+        title: 'Sprint 1 Retrospective',
+        content: '<p>Went well: rapid API scaffold delivery. Improve: Docker hot-reload setup consumed too much ramp time. Action: document Docker workflow in CLAUDE.md.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(-85, 14), endDate: dh(-85, 16), singleDay: true, allDay: false,
+        location: 'Team Meeting Room',
+        tags: ['sprint', 'retrospective'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-86), updatedAt: d(-86),
+      },
+      {
+        title: 'Sprint 2 Planning',
+        content: '<p>Sprint 2 — Core Features. Goal: user management, RBAC, and settings module. Capacity: 120 pts.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(-84, 9), endDate: dh(-84, 11), singleDay: true, allDay: false,
+        location: 'Main Conference Room',
+        tags: ['sprint', 'planning'],
+        status: 'active', visibility: 'public',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-85), updatedAt: d(-85),
+      },
+      {
+        title: 'All-Hands: Q1 Engineering Review',
+        content: '<p>Team walkthrough of v1.0 progress, current blockers, and Q2 roadmap preview. All team members required.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(-70, 10), endDate: dh(-70, 13), singleDay: true, allDay: false,
+        location: 'Boardroom',
+        tags: ['all-hands', 'quarterly'],
+        status: 'active', visibility: 'public',
+        ownerId: joeId, sharedWith: [kyleId, alexId, jordanId, samId, rileyId],
+        createdBy: joeId, updatedBy: null,
+        createdAt: d(-77), updatedAt: d(-77),
+      },
+      {
+        title: 'Sprint 2 Retrospective',
+        content: '<p>Highlights: permissions system exceeded scope expectations. Improvement: two merge conflicts from parallel feature branches. Action: enforce PR review minimum before merge.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(-57, 14), endDate: dh(-57, 16), singleDay: true, allDay: false,
+        location: 'Team Meeting Room',
+        tags: ['sprint', 'retrospective'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-58), updatedAt: d(-58),
+      },
+      {
+        title: 'Sprint 3 Planning',
+        content: '<p>Sprint 3 — Data Layer. Build all agile collection APIs: milestones, sprints, jobs, tasks. Capacity: 120 pts.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(-49, 9), endDate: dh(-49, 11), singleDay: true, allDay: false,
+        location: 'Main Conference Room',
+        tags: ['sprint', 'planning'],
+        status: 'active', visibility: 'public',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-50), updatedAt: d(-50),
+      },
+      {
+        title: '1:1 — Joe & Alex',
+        content: '<p>Monthly check-in. Agenda: sprint progress update, team resourcing for v1.1, v2.0 timeline discussion.</p>',
+        eventType: 'personal',
+        startDate: dh(-42, 10), endDate: dh(-42, 11), singleDay: true, allDay: false,
+        location: '',
+        tags: ['1:1', 'management'],
+        status: 'active', visibility: 'shared',
+        ownerId: joeId, sharedWith: [alexId],
+        createdBy: joeId, updatedBy: null,
+        createdAt: d(-45), updatedAt: d(-45),
+      },
+      {
+        title: 'Sprint 3 Retrospective',
+        content: '<p>Went well: full API coverage ahead of schedule. Improve: dependency documentation hard to visualise in code review. Action: add dependency graph view to sprint board.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(-29, 14), endDate: dh(-29, 16), singleDay: true, allDay: false,
+        location: 'Team Meeting Room',
+        tags: ['sprint', 'retrospective'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-30), updatedAt: d(-30),
+      },
+      {
+        title: 'Sprint 4 Planning',
+        content: '<p>Sprint 4 — UI Layer. Build Overview, Board (Kanban), and Timeline (Gantt) views. Capacity: 100 pts.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(-28, 9), endDate: dh(-28, 11), singleDay: true, allDay: false,
+        location: 'Main Conference Room',
+        tags: ['sprint', 'planning'],
+        status: 'active', visibility: 'public',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-29), updatedAt: d(-29),
+      },
+
+      // ── Time off ──────────────────────────────────────────────────
+      {
+        title: 'Jordan — Time Off',
+        content: '<p>Out of office. Async only — slow response expected.</p>',
+        eventType: 'personal',
+        startDate: d(-14), endDate: d(-12), singleDay: false, allDay: true,
+        location: '',
+        tags: ['time-off'],
+        status: 'active', visibility: 'shared',
+        ownerId: jordanId, sharedWith: [alexId],
+        createdBy: jordanId, updatedBy: null,
+        createdAt: d(-21), updatedAt: d(-21),
+      },
+
+      // ── Daily standups — current sprint week ──────────────────────
+      {
+        title: 'Daily Standup',
+        content: '<p>Jordan: still researching Safari pointer-events workaround. Sam: slide-out panel 80% done. Riley: no blockers, reviewing PRs.</p>',
+        eventType: 'standup',
+        startDate: dh(-4, 9), endDate: dh(-4, 9), singleDay: true, allDay: false,
+        location: 'Standup Channel',
+        tags: ['standup', 'daily'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-4), updatedAt: d(-4),
+      },
+      {
+        title: 'Daily Standup',
+        content: '<p>Jordan: pointer-events spike complete, writing up findings. Sam: slide-out panel PR opened for review. Riley: reviewing Jordan\'s spike doc.</p>',
+        eventType: 'standup',
+        startDate: dh(-3, 9), endDate: dh(-3, 9), singleDay: true, allDay: false,
+        location: 'Standup Channel',
+        tags: ['standup', 'daily'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-3), updatedAt: d(-3),
+      },
+      {
+        title: 'Daily Standup',
+        content: '<p>Jordan: Kanban spike PR ready. Sam: backdrop click handler merged, panel complete. Riley: all PR reviews done, picking up timeline research.</p>',
+        eventType: 'standup',
+        startDate: dh(-2, 9), endDate: dh(-2, 9), singleDay: true, allDay: false,
+        location: 'Standup Channel',
+        tags: ['standup', 'daily'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-2), updatedAt: d(-2),
+      },
+      {
+        title: 'Daily Standup',
+        content: '<p>Team: finalising sprint 4 loose ends before end-of-sprint review. Kanban spike approved — drag-and-drop unblocked for Sprint 5.</p>',
+        eventType: 'standup',
+        startDate: dh(-1, 9), endDate: dh(-1, 9), singleDay: true, allDay: false,
+        location: 'Standup Channel',
+        tags: ['standup', 'daily'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-1), updatedAt: d(-1),
+      },
+
+      // ── Upcoming ──────────────────────────────────────────────────
+      {
+        title: 'Kanban Drag-and-Drop Spike Review',
+        content: '<p>Jordan and Sam to present pointer-events prototype findings from the Kanban research spike.</p>',
+        eventType: 'upcoming_event',
+        startDate: d(3), endDate: d(3), singleDay: true, allDay: false,
+        location: 'Team Standup Channel',
+        tags: ['kanban', 'research'],
+        status: 'active', visibility: 'shared',
+        ownerId: jordanId, sharedWith: [alexId, samId],
+        createdBy: jordanId, updatedBy: null,
+        createdAt: d(-1), updatedAt: d(-1),
+      },
+      {
+        title: '1:1 — Joe & Alex',
+        content: '<p>Monthly check-in. Agenda: sprint 4 wrap-up, sprint 5 scope confirmation, v1.1 release sign-off discussion.</p>',
+        eventType: 'personal',
+        startDate: dh(5, 10), endDate: dh(5, 11), singleDay: true, allDay: false,
+        location: '',
+        tags: ['1:1', 'management'],
+        status: 'active', visibility: 'shared',
+        ownerId: joeId, sharedWith: [alexId],
+        createdBy: joeId, updatedBy: null,
+        createdAt: d(-7), updatedAt: d(-7),
+      },
+      {
+        title: 'Sprint 4 Retrospective',
+        content: '<p>Review what went well and areas to improve before Sprint 5 begins. Output: 2–3 team improvement actions for the next sprint.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(6, 14), endDate: dh(6, 16), singleDay: true, allDay: false,
+        location: 'Team Meeting Room',
+        tags: ['sprint', 'retrospective'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-7), updatedAt: d(-7),
+      },
       {
         title: 'Sprint 4 Review & Demo',
         content: '<p>Demonstrate completed Sprint 4 deliverables to stakeholders. All team members present.</p>',
@@ -606,10 +838,10 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-3), updatedAt: d(-3),
       },
       {
-        title: 'Sprint 5 Kickoff',
-        content: '<p>Planning and goal-setting session for the Polish & Release sprint.</p>',
+        title: 'Sprint 5 Planning',
+        content: '<p>Sprint 5 — Polish & Release. Scope: E2E tests, performance audit, release docs. Capacity: 80 pts. Sam on vacation from d+14.</p>',
         eventType: 'upcoming_event',
-        startDate: d(8), endDate: d(8), singleDay: true, allDay: false,
+        startDate: dh(8, 9), endDate: dh(8, 11), singleDay: true, allDay: false,
         location: 'Main Conference Room',
         tags: ['sprint', 'planning'],
         status: 'active', visibility: 'public',
@@ -618,8 +850,20 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-1), updatedAt: d(-1),
       },
       {
+        title: 'Kyle — Product Walkthrough',
+        content: '<p>Kyle walks through the v1.1 feature set and gathers admin-role feedback before customer demo preparation.</p>',
+        eventType: 'project_scope',
+        startDate: dh(9, 14), endDate: dh(9, 16), singleDay: true, allDay: false,
+        location: 'Engineering Office',
+        tags: ['product', 'review'],
+        status: 'active', visibility: 'shared',
+        ownerId: kyleId, sharedWith: [alexId, samId],
+        createdBy: kyleId, updatedBy: null,
+        createdAt: d(-3), updatedAt: d(-3),
+      },
+      {
         title: 'Architecture Decision: Analytics Pipeline',
-        content: '<p>Review and agree on the data aggregation approach for v2.0 analytics features.</p>',
+        content: '<p>Review and agree on the data aggregation approach for v2.0 analytics features before Sprint 6 scope is locked.</p>',
         eventType: 'project_scope',
         startDate: d(14), endDate: d(14), singleDay: true, allDay: false,
         location: 'Engineering Office',
@@ -628,6 +872,30 @@ export default fp(async function seedPlugin(app: any) {
         ownerId: alexId, sharedWith: [jordanId],
         createdBy: alexId, updatedBy: null,
         createdAt: d(-2), updatedAt: d(-2),
+      },
+      {
+        title: 'Sam — Vacation',
+        content: '<p>Out of office. No async expected during this period.</p>',
+        eventType: 'personal',
+        startDate: d(14), endDate: d(21), singleDay: false, allDay: true,
+        location: '',
+        tags: ['time-off', 'vacation'],
+        status: 'active', visibility: 'shared',
+        ownerId: samId, sharedWith: [alexId],
+        createdBy: samId, updatedBy: null,
+        createdAt: d(-14), updatedAt: d(-14),
+      },
+      {
+        title: 'Customer Demo — v1.1 Preview',
+        content: '<p>Live walkthrough of the Agile Tracker module for prospective customers. Joe and Alex presenting; Sam on standby for technical questions.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(18, 14), endDate: dh(18, 16), singleDay: true, allDay: false,
+        location: 'Video Call',
+        tags: ['customer', 'demo'],
+        status: 'active', visibility: 'public',
+        ownerId: joeId, sharedWith: [kyleId, alexId, samId],
+        createdBy: joeId, updatedBy: null,
+        createdAt: d(-7), updatedAt: d(-7),
       },
       {
         title: 'v1.1 Release Deadline',
@@ -642,8 +910,20 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-7), updatedAt: d(-7),
       },
       {
+        title: 'Sprint 5 Retrospective',
+        content: '<p>End-of-sprint retrospective for Sprint 5 — Polish & Release. Output feeds directly into v2.0 planning kickoff.</p>',
+        eventType: 'upcoming_event',
+        startDate: dh(20, 14), endDate: dh(20, 16), singleDay: true, allDay: false,
+        location: 'Team Meeting Room',
+        tags: ['sprint', 'retrospective'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-3), updatedAt: d(-3),
+      },
+      {
         title: 'v2.0 Planning Workshop',
-        content: '<p>Full-day planning session to scope and prioritize the Reporting & Analytics milestone.</p>',
+        content: '<p>Full-day planning session to scope and prioritize the Reporting & Analytics milestone. All team members required.</p>',
         eventType: 'upcoming_event',
         startDate: d(28), endDate: d(29), singleDay: false, allDay: true,
         location: 'Offsite Venue',
@@ -654,29 +934,66 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-7), updatedAt: d(-7),
       },
       {
-        title: 'Kanban Drag-and-Drop Spike Review',
-        content: '<p>Jordan and Sam to present pointer-events prototype findings from the Kanban research spike.</p>',
+        title: 'All-Hands: Q2 Engineering Review',
+        content: '<p>Full-team retrospective on v1.x delivery and preview of the v2.0 analytics roadmap. All team members required.</p>',
         eventType: 'upcoming_event',
-        startDate: d(3), endDate: d(3), singleDay: true, allDay: false,
-        location: 'Team Standup Channel',
-        tags: ['kanban', 'research'],
-        status: 'active', visibility: 'shared',
-        ownerId: jordanId, sharedWith: [alexId, samId],
-        createdBy: jordanId, updatedBy: null,
-        createdAt: d(-1), updatedAt: d(-1),
+        startDate: dh(35, 10), endDate: dh(35, 13), singleDay: true, allDay: false,
+        location: 'Boardroom',
+        tags: ['all-hands', 'quarterly'],
+        status: 'active', visibility: 'public',
+        ownerId: joeId, sharedWith: [kyleId, alexId, jordanId, samId, rileyId],
+        createdBy: joeId, updatedBy: null,
+        createdAt: d(-3), updatedAt: d(-3),
       },
     ]);
 
-    // ── Seed comments ─────────────────────────────────────────────────
+    // ── Comments ──────────────────────────────────────────────────────
     const comments = db.collection('agile_comments');
     await comments.insertMany([
+      // j1_1 — Auth system: bcrypt decision
+      { jobId: j1_1, text: 'We benchmarked bcrypt vs Argon2. Went with bcryptjs — better Node compatibility on ARM/x86 without native bindings, and the 12-round target (~100ms on prod hardware) gives a meaningful brute-force floor.', createdBy: alexId,   updatedBy: null, createdAt: d(-98), updatedAt: d(-98) },
+      { jobId: j1_1, text: 'Confirmed — tested on the Raspberry Pi dev board too. No native compilation issues.', createdBy: jordanId, updatedBy: null, createdAt: d(-97), updatedAt: d(-97) },
+
+      // j2_2 — RBAC: design decision thread
+      { jobId: j2_2, text: 'Considered storing permissions inline on each user document vs on the role document. Went with inline on the role — avoids a join on every /auth/me call and keeps the read path simple.', createdBy: alexId,  updatedBy: null, createdAt: d(-80), updatedAt: d(-80) },
+      { jobId: j2_2, text: 'The permissions.json approach makes adding new resources trivial — just add the key, update the role docs via upsert. No DB migration needed.', createdBy: rileyId, updatedBy: null, createdAt: d(-79), updatedAt: d(-79) },
+      { jobId: j2_2, text: 'Worth noting: the per-action boolean map (read/create/update/delete) is flexible enough to support partial admin roles without schema changes.', createdBy: samId,   updatedBy: null, createdAt: d(-78), updatedAt: d(-78) },
+
+      // j2_4 — Bug fix: session race
+      { jobId: j2_4, text: 'Root cause: Fastify was serialising the session object before the Set-Cookie header was flushed under high concurrency. Fixed by awaiting session.save() explicitly before reply.send().', createdBy: jordanId, updatedBy: null, createdAt: d(-64), updatedAt: d(-64) },
+      { jobId: j2_4, text: 'Good catch. Adding this to the known-issues doc so future contributors understand why we have the explicit await — it looks redundant at first glance.', createdBy: alexId, updatedBy: null, createdAt: d(-63), updatedAt: d(-63) },
+
+      // j3_3 — Jobs & Tasks: cascading complexity
+      { jobId: j3_3, text: 'Cascading completion enforcement was more involved than estimated — jobs with mixed-status tasks need a separate aggregation pass to compute the correct rollup.', createdBy: rileyId, updatedBy: null, createdAt: d(-32), updatedAt: d(-32) },
+      { jobId: j3_3, text: 'Makes sense — let\'s document the aggregation pipeline in the route file so it\'s clear to contributors why the extra pass exists.', createdBy: alexId, updatedBy: null, createdAt: d(-31), updatedAt: d(-31) },
+
+      // j4_1 — Overview UI: completion
+      { jobId: j4_1, text: 'KPI dashboard is looking great — the role-aware card visibility works cleanly. Nice to see the permission check at the component level rather than the route level.', createdBy: alexId, updatedBy: null, createdAt: d(-15), updatedAt: d(-15) },
+      { jobId: j4_1, text: 'Thanks — I used hasPermission() directly in the template rather than guarding the whole page. Keeps the UX smooth for viewers who still need to see the read-only state.', createdBy: samId, updatedBy: null, createdAt: d(-14), updatedAt: d(-14) },
+
+      // j4_2 — Sprint detail: slide-out feedback
+      { jobId: j4_2, text: 'Slide-out panel looks great. One thing: it doesn\'t close when you click outside — should we add that before we send it to review?', createdBy: rileyId, updatedBy: null, createdAt: d(-7), updatedAt: d(-7) },
+      { jobId: j4_2, text: 'Good catch — adding a backdrop click handler now. Should be in the PR within the hour.', createdBy: samId, updatedBy: null, createdAt: d(-6), updatedAt: d(-6) },
+
+      // j4_3 — Kanban: blocked drag-and-drop thread
       { jobId: j4_3, text: 'The HTML5 drag API is really flaky on Safari — pointer events approach looks cleaner but we need to prototype it first.', createdBy: jordanId, updatedBy: null, createdAt: d(-20), updatedAt: d(-20) },
       { jobId: j4_3, text: 'Agreed. I found a minimal pointer-events demo that works across all browsers. Will share the spike in the next standup.', createdBy: samId,    updatedBy: null, createdAt: d(-18), updatedAt: d(-18) },
-      { jobId: j4_3, text: 'Unblocking this is a priority for the sprint — let\'s cap the spike at half a day.', createdBy: alexId,   updatedBy: null, createdAt: d(-3),  updatedAt: d(-3)  },
-      { jobId: j4_2, text: 'Slide-out panel looks great. One thing: the panel doesn\'t close when you click outside — should we add that before review?', createdBy: rileyId, updatedBy: null, createdAt: d(-7), updatedAt: d(-7) },
-      { jobId: j4_2, text: 'Good catch — adding a backdrop click handler now.', createdBy: samId, updatedBy: null, createdAt: d(-6), updatedAt: d(-6) },
-      { jobId: j3_3, text: 'Cascading completion enforcement was trickier than expected — jobs with mixed-status tasks need a separate aggregation pass.', createdBy: rileyId, updatedBy: null, createdAt: d(-32), updatedAt: d(-32) },
-      { jobId: j3_3, text: 'Makes sense — let\'s document the aggregation pipeline in the route file so future contributors understand why it\'s structured that way.', createdBy: alexId, updatedBy: null, createdAt: d(-31), updatedAt: d(-31) },
+      { jobId: j4_3, text: 'What\'s the realistic ETA for unblocking this? Want to make sure we\'re not slipping the Sprint 5 demo scope.', createdBy: joeId,    updatedBy: null, createdAt: d(-5),  updatedAt: d(-5)  },
+      { jobId: j4_3, text: 'Spike results in — pointer-events polyfill works cleanly. Estimate 3 days to implement once Sprint 5 starts. Kanban will be fully unblocked.', createdBy: jordanId, updatedBy: null, createdAt: d(-3), updatedAt: d(-3) },
+      { jobId: j4_3, text: 'Unblocking this is a priority for Sprint 5 — cap the remaining work at 5 points and slot it into the first week.', createdBy: alexId, updatedBy: null, createdAt: d(-2), updatedAt: d(-2) },
+
+      // j4_4 — Timeline: scope discussion
+      { jobId: j4_4, text: 'Before we start, should we scope this as a full Gantt (with per-job dependency arrows) or just horizontal swim-lane bars per milestone/sprint? Arrows would add significant SVG complexity.', createdBy: alexId,   updatedBy: null, createdAt: d(-14), updatedAt: d(-14) },
+      { jobId: j4_4, text: 'Lane-only for v1.1, dependency arrows in v2.0. The SVG math for curved bezier arrows across swim lanes isn\'t trivial and we\'re already tight on capacity.', createdBy: jordanId, updatedBy: null, createdAt: d(-13), updatedAt: d(-13) },
+      { jobId: j4_4, text: 'Agreed. Locking scope to milestone/sprint lanes with a today-marker and basic zoom. Job-level detail can be a drill-down in v2.0.', createdBy: alexId,   updatedBy: null, createdAt: d(-13), updatedAt: d(-13) },
+
+      // j5_1 — E2E: framework choice
+      { jobId: j5_1, text: 'Recommending Playwright over Cypress: native SvelteKit dev server integration, multi-browser support out of the box, and better network interception for our API proxy routes.', createdBy: jordanId, updatedBy: null, createdAt: d(-10), updatedAt: d(-10) },
+      { jobId: j5_1, text: '+1 on Playwright. We can parallelise the auth and agile test suites from the start without additional config.', createdBy: rileyId, updatedBy: null, createdAt: d(-9), updatedAt: d(-9) },
+
+      // j6_1 — Velocity: requirements from Joe
+      { jobId: j6_1, text: 'For the velocity chart, I need to see per-sprint actual vs estimated hours side by side — not just task count. That\'s what the stakeholders will ask about in the Q2 review.', createdBy: joeId,  updatedBy: null, createdAt: d(-2), updatedAt: d(-2) },
+      { jobId: j6_1, text: 'Noted — the sprint aggregation endpoint already tracks estimateHours and actualHours at the task level. We\'ll roll those up per sprint for the chart data.', createdBy: alexId, updatedBy: null, createdAt: d(-1), updatedAt: d(-1) },
     ]);
   });
 });

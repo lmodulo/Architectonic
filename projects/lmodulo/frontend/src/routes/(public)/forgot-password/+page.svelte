@@ -34,14 +34,14 @@
         />
       </label>
 
-      <button type="submit" class="btn btn-primary w-full">
+      <button type="submit" class="btn btn-primary">
         Send Reset Link
       </button>
     </form>
   {/if}
 
-  <div class="flex items-center justify-center text-[0.8125rem] opacity-40 pt-1">
-    <a href="/login" class="link link-primary">← Back to Sign In</a>
+  <div class="flex items-center justify-center text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
+    <a href="/login" class="link">← Back to Sign In</a>
   </div>
 
 </AuthShell>

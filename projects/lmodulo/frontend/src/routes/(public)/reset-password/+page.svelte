@@ -20,8 +20,8 @@
     <div role="alert" class="alert alert-error text-sm">
       Invalid reset link. Please request a new one.
     </div>
-    <div class="flex items-center justify-center text-[0.8125rem] opacity-40 pt-1">
-      <a href="/forgot-password" class="link link-primary">Request new link</a>
+    <div class="flex items-center justify-center text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
+      <a href="/forgot-password" class="link">Request new link</a>
     </div>
   {:else}
     {#if form?.error}
@@ -61,13 +61,13 @@
         {/if}
       </label>
 
-      <button type="submit" class="btn btn-primary w-full" disabled={mismatch}>
+      <button type="submit" class="btn btn-primary" disabled={mismatch}>
         Set New Password
       </button>
     </form>
 
-    <div class="flex items-center justify-center text-[0.8125rem] opacity-40 pt-1">
-      <a href="/login" class="link link-primary">← Back to Sign In</a>
+    <div class="flex items-center justify-center text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
+      <a href="/login" class="link">← Back to Sign In</a>
     </div>
   {/if}
 

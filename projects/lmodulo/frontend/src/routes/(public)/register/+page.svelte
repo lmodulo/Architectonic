@@ -16,8 +16,8 @@
     <div role="alert" class="alert alert-warning text-sm">
       Registration is currently closed.
     </div>
-    <div class="flex items-center justify-center text-[0.8125rem] opacity-40 pt-1">
-      <a href="/login" class="link link-primary">← Back to Sign In</a>
+    <div class="flex items-center justify-center text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
+      <a href="/login" class="link">← Back to Sign In</a>
     </div>
   {:else}
     {#if form?.error}
@@ -66,14 +66,14 @@
         />
       </label>
 
-      <button type="submit" class="btn btn-primary w-full">
+      <button type="submit" class="btn btn-primary">
         Create Account
       </button>
     </form>
 
-    <div class="flex items-center justify-center gap-1.5 text-[0.8125rem] opacity-40 pt-1">
+    <div class="flex items-center justify-center gap-1.5 text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
       Already have an account?
-      <a href="/login" class="link link-primary">Sign in</a>
+      <a href="/login" class="link">Sign in</a>
     </div>
   {/if}
 

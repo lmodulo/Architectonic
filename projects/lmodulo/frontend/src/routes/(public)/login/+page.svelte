@@ -50,15 +50,15 @@
       />
     </label>
 
-    <button type="submit" class="btn btn-primary w-full">
+    <button type="submit" class="btn btn-primary">
       Sign In
     </button>
   </form>
 
-  <div class="flex items-center justify-center gap-2.5 text-[0.8125rem] opacity-40 pt-1">
-    <a href="/forgot-password" class="link link-primary">Forgot password?</a>
+  <div class="flex items-center justify-center gap-2.5 text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
+    <a href="/forgot-password" class="link">Forgot password?</a>
     <span>·</span>
-    <a href="/register" class="link link-primary">Create account</a>
+    <a href="/register" class="link">Create account</a>
   </div>
 
 </AuthShell>
