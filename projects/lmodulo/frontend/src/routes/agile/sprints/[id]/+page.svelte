@@ -6,6 +6,7 @@
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import KanbanBoard from '$lib/components/agile/KanbanBoard.svelte';
+  import BurndownChart from '$lib/components/agile/BurndownChart.svelte';
   import {
     STATUS_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES,
     fmtDateRange, fmtEffort, toDateInput, completionColor,
@@ -68,9 +69,32 @@
     sprint = { ...sprint, ...updated };
   }
 
-  let selectedJob = $state('');
+  const users = $derived((data.users ?? []) as any[]);
+
+  function userName(id: string): string {
+    const u = users.find((u: any) => u.id === id);
+    if (!u) return id;
+    return (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}` : u.username;
+  }
+
+  function userInitials(id: string): string {
+    const u = users.find((u: any) => u.id === id);
+    if (!u) return '?';
+    if (u.firstName) return (u.firstName[0] + (u.lastName?.[0] ?? '')).toUpperCase();
+    return u.username[0].toUpperCase();
+  }
+
+  let selectedJob      = $state('');
+  let selectedAssignee = $state('');
+
+  const assignedUids = $derived(
+    [...new Set(tasks.map(t => t.assignedTo).filter(Boolean) as string[])]
+  );
+
   const boardTasks = $derived(
-    selectedJob ? tasks.filter(t => t.jobId === selectedJob) : tasks
+    tasks
+      .filter(t => !selectedJob      || t.jobId      === selectedJob)
+      .filter(t => !selectedAssignee || t.assignedTo === selectedAssignee)
   );
 </script>
 
@@ -139,6 +163,12 @@
       </div>
     </div>
   </div>
+
+  <!-- Burndown chart -->
+  <section class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
+    <h2 class="text-sm font-semibold opacity-70">Burndown</h2>
+    <BurndownChart {sprint} {tasks} />
+  </section>
 
   <!-- Jobs summary table -->
   {#if jobs.length > 0}
@@ -213,14 +243,38 @@
 
   <!-- Task Kanban Board -->
   <section class="space-y-3">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
       <h2 class="text-base font-semibold">Task Board</h2>
-      <select class="select text-xs h-8 px-2" bind:value={selectedJob}>
-        <option value="">All jobs</option>
-        {#each jobs as j}
-          <option value={j.id}>{j.title}</option>
-        {/each}
-      </select>
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Assignee avatars -->
+        {#if assignedUids.length > 0}
+          <div class="flex items-center gap-1" role="group" aria-label="Filter by assignee">
+            {#each assignedUids as uid}
+              <button
+                type="button"
+                class="size-7 rounded-full text-[10px] font-bold transition-all select-none
+                  {selectedAssignee === uid
+                    ? 'ring-2 ring-primary ring-offset-1 ring-offset-base-100 bg-primary text-primary-content'
+                    : 'bg-base-300 hover:bg-base-content/20 text-base-content'}"
+                onclick={() => selectedAssignee = selectedAssignee === uid ? '' : uid}
+                title={userName(uid)}
+                aria-pressed={selectedAssignee === uid}
+                aria-label="Filter by {userName(uid)}"
+              >{userInitials(uid)}</button>
+            {/each}
+          </div>
+          {#if selectedAssignee}
+            <span class="text-xs opacity-50">{userName(selectedAssignee)}</span>
+          {/if}
+        {/if}
+        <!-- Job filter -->
+        <select class="select text-xs h-8 px-2" bind:value={selectedJob}>
+          <option value="">All jobs</option>
+          {#each jobs as j}
+            <option value={j.id}>{j.title}</option>
+          {/each}
+        </select>
+      </div>
     </div>
     <KanbanBoard
       tasks={boardTasks}

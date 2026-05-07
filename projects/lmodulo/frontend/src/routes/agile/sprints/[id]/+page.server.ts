@@ -9,9 +9,10 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
-  const [sprintRes, jobsRes] = await Promise.all([
+  const [sprintRes, jobsRes, usersRes] = await Promise.all([
     fetch(`${API_URL}/agile/sprints/${params.id}`, { headers }),
     fetch(`${API_URL}/agile/jobs?sprintId=${params.id}&limit=100`, { headers }),
+    fetch(`${API_URL}/users`, { headers }),
   ]);
 
   if (!sprintRes.ok) {
@@ -21,6 +22,7 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
 
   const sprint = await sprintRes.json();
   const jobs   = jobsRes.ok ? (await jobsRes.json()).jobs ?? [] : [];
+  const users  = usersRes.ok ? (await usersRes.json()).users ?? [] : [];
 
   // Fetch tasks for all jobs
   const taskIds = jobs.map((j: any) => j.id).join(',');
@@ -31,5 +33,5 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
     tasks = (tData.tasks ?? []).filter((t: any) => jobs.some((j: any) => j.id === t.jobId));
   }
 
-  return { user: locals.user, sprint, jobs, tasks };
+  return { user: locals.user, sprint, jobs, tasks, users };
 };

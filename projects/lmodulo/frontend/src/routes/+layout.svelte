@@ -65,7 +65,7 @@
 
   <!-- Navigation loading overlay -->
   {#if navigating.to !== null}
-    <div data-theme="business" class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
+    <div data-theme="luxury" class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
       <div class="card bg-base-200 shadow-xl px-6 py-4 flex items-center gap-3">
         <svg
           class="size-5 animate-spin text-primary"
@@ -86,7 +86,7 @@
   <form bind:this={logoutForm} method="POST" action="/logout" class="hidden"></form>
 
   <!-- Authenticated app shell -->
-  <div data-theme="business" class="h-screen flex flex-col overflow-hidden">
+  <div data-theme="luxury" class="h-screen flex flex-col overflow-hidden">
 
     <!-- Sticky header -->
     <header class="sticky top-0 z-20 flex items-center gap-3 px-4 h-14 shrink-0 bg-base-200 shadow-sm">
@@ -276,7 +276,7 @@
   </div>
 
   {#if data.chatEnabled}
-    <div data-theme="business" style="display:contents"><ChatAssistant /></div>
+    <div data-theme="luxury" style="display:contents"><ChatAssistant /></div>
   {/if}
 
 {:else}

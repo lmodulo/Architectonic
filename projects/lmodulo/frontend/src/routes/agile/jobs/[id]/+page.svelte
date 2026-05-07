@@ -7,6 +7,7 @@
   import { hasPermission } from '$lib/permissions';
   import DependencyGraph from '$lib/components/agile/DependencyGraph.svelte';
   import EffortBar from '$lib/components/agile/EffortBar.svelte';
+  import CommentFeed from '$lib/components/agile/CommentFeed.svelte';
   import {
     STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, TASK_STATUSES, PRIORITIES,
     fmtEffort, fmtDate, toDateInput, completionColor,
@@ -275,6 +276,16 @@
       </div>
     {/if}
   </section>
+
+  <!-- Comment feed -->
+  {#if hasPermission(data.user, 'agile_comments', 'read')}
+    <section class="space-y-3">
+      <h2 class="text-base font-semibold">Discussion</h2>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+        <CommentFeed jobId={job.id ?? ''} user={data.user} {users} />
+      </div>
+    </section>
+  {/if}
 
   <!-- Dependency graph -->
   {#if sprintJobs.length > 1}

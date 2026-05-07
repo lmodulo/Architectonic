@@ -588,5 +588,17 @@ export default fp(async function seedPlugin(app: any) {
       t(j6_2, 'Burndown SVG with ideal vs actual lines',       null, 8, 0, 8, 'High',   'Backlog', '', null, -2, -2, alexId, null),
       t(j6_2, 'Lightweight polling hook for live updates',     null, 4, 0, 4, 'Medium', 'Backlog', '', null, -2, -2, alexId, null),
     ]);
+
+    // ── Seed comments ─────────────────────────────────────────────────
+    const comments = db.collection('agile_comments');
+    await comments.insertMany([
+      { jobId: j4_3, text: 'The HTML5 drag API is really flaky on Safari — pointer events approach looks cleaner but we need to prototype it first.', createdBy: jordanId, updatedBy: null, createdAt: d(-20), updatedAt: d(-20) },
+      { jobId: j4_3, text: 'Agreed. I found a minimal pointer-events demo that works across all browsers. Will share the spike in the next standup.', createdBy: samId,    updatedBy: null, createdAt: d(-18), updatedAt: d(-18) },
+      { jobId: j4_3, text: 'Unblocking this is a priority for the sprint — let\'s cap the spike at half a day.', createdBy: alexId,   updatedBy: null, createdAt: d(-3),  updatedAt: d(-3)  },
+      { jobId: j4_2, text: 'Slide-out panel looks great. One thing: the panel doesn\'t close when you click outside — should we add that before review?', createdBy: rileyId, updatedBy: null, createdAt: d(-7), updatedAt: d(-7) },
+      { jobId: j4_2, text: 'Good catch — adding a backdrop click handler now.', createdBy: samId, updatedBy: null, createdAt: d(-6), updatedAt: d(-6) },
+      { jobId: j3_3, text: 'Cascading completion enforcement was trickier than expected — jobs with mixed-status tasks need a separate aggregation pass.', createdBy: rileyId, updatedBy: null, createdAt: d(-32), updatedAt: d(-32) },
+      { jobId: j3_3, text: 'Makes sense — let\'s document the aggregation pipeline in the route file so future contributors understand why it\'s structured that way.', createdBy: alexId, updatedBy: null, createdAt: d(-31), updatedAt: d(-31) },
+    ]);
   });
 });

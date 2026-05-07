@@ -15,7 +15,8 @@
     "agile_milestones":   { "create": true,  "read": true,  "update": true,  "delete": true  },
     "agile_sprints":      { "create": true,  "read": true,  "update": true,  "delete": true  },
     "agile_jobs":         { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "agile_tasks":        { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "agile_tasks":        { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "agile_comments":     { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "admin": {
     "users":              { "create": true,  "read": true,  "update": true,  "delete": true  },
@@ -33,7 +34,8 @@
     "agile_milestones":   { "create": true,  "read": true,  "update": true,  "delete": true  },
     "agile_sprints":      { "create": true,  "read": true,  "update": true,  "delete": true  },
     "agile_jobs":         { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "agile_tasks":        { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "agile_tasks":        { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "agile_comments":     { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "lead": {
     "users":              { "create": false, "read": true,  "update": false, "delete": false },
@@ -51,7 +53,8 @@
     "agile_milestones":   { "create": true,  "read": true,  "update": true,  "delete": false },
     "agile_sprints":      { "create": true,  "read": true,  "update": true,  "delete": false },
     "agile_jobs":         { "create": true,  "read": true,  "update": true,  "delete": false },
-    "agile_tasks":        { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "agile_tasks":        { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "agile_comments":     { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "contributor": {
     "users":              { "create": false, "read": true,  "update": false, "delete": false },
@@ -69,7 +72,8 @@
     "agile_milestones":   { "create": false, "read": true,  "update": false, "delete": false },
     "agile_sprints":      { "create": false, "read": true,  "update": false, "delete": false },
     "agile_jobs":         { "create": false, "read": true,  "update": false, "delete": false },
-    "agile_tasks":        { "create": false, "read": true,  "update": true,  "delete": false }
+    "agile_tasks":        { "create": false, "read": true,  "update": true,  "delete": false },
+    "agile_comments":     { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "customer": {
     "users":              { "create": false, "read": false, "update": false, "delete": false },
@@ -103,6 +107,7 @@
     "agile_milestones":   { "create": false, "read": true,  "update": false, "delete": false },
     "agile_sprints":      { "create": false, "read": true,  "update": false, "delete": false },
     "agile_jobs":         { "create": false, "read": true,  "update": false, "delete": false },
-    "agile_tasks":        { "create": false, "read": true,  "update": false, "delete": false }
+    "agile_tasks":        { "create": false, "read": true,  "update": false, "delete": false },
+    "agile_comments":     { "create": false, "read": true,  "update": false, "delete": false }
   }
 }
