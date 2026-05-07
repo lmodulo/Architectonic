@@ -8,14 +8,15 @@ const SUBS = 'event_subscriptions';
 
 function mapEvent(d: Record<string, unknown>) {
   const out: Record<string, unknown> = { ...d, id: (d._id as ObjectId).toString(), _id: undefined };
-  if (out.assignedTo instanceof ObjectId)  out.assignedTo = (out.assignedTo as ObjectId).toString();
-  else if (out.assignedTo == null)         out.assignedTo = null;
-  if (out.createdBy instanceof ObjectId)   out.createdBy  = (out.createdBy  as ObjectId).toString();
-  if (out.updatedBy instanceof ObjectId)   out.updatedBy  = (out.updatedBy  as ObjectId).toString();
+  if (out.ownerId   instanceof ObjectId) out.ownerId   = (out.ownerId   as ObjectId).toString();
+  if (out.createdBy instanceof ObjectId) out.createdBy = (out.createdBy as ObjectId).toString();
+  if (out.updatedBy instanceof ObjectId) out.updatedBy = (out.updatedBy as ObjectId).toString();
+  out.sharedWith = Array.isArray(out.sharedWith)
+    ? (out.sharedWith as unknown[]).map(id => id instanceof ObjectId ? id.toString() : String(id))
+    : [];
   return out;
 }
 
-/** Resolve a map of userId → display name for a set of IDs. */
 async function resolveNames(
   db: ReturnType<FastifyInstance['mongo']['db']>,
   ids: Set<string>,
@@ -36,9 +37,17 @@ function parseOid(id: string): ObjectId | null {
   try { return new ObjectId(id); } catch { return null; }
 }
 
+function parseSharedWith(raw: unknown): ObjectId[] {
+  if (!Array.isArray(raw)) return [];
+  return (raw as unknown[]).flatMap(id => {
+    const oid = parseOid(String(id));
+    return oid ? [oid] : [];
+  });
+}
+
 export default async function calendarEventsRoutes(app: FastifyInstance) {
 
-  // GET /calendar-events/public — no auth, upcoming events where assignedTo is null
+  // GET /calendar-events/public — no auth, upcoming public-visibility events
   app.get('/public', async (req) => {
     const db  = app.mongo.db!;
     const now = new Date();
@@ -48,7 +57,6 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
     const filter: Record<string, unknown> = {
       status:     'active',
       visibility: 'public',
-      assignedTo: null,
       startDate:  { $gt: from ? new Date(from) : now, $lt: to ? new Date(to) : max },
     };
     if (type) filter.eventType = type;
@@ -68,7 +76,7 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
     }));
   });
 
-  // GET /calendar-events — authenticated; returns user's events + public (assignedTo=null)
+  // GET /calendar-events — authenticated; returns events owned by or shared with this user
   // Pass ?all=1 to bypass ownership filter (requires calendar_events.create permission)
   app.get('/', { preHandler: app.requirePermission('calendar_events', 'read') }, async (req) => {
     const db = app.mongo.db!;
@@ -77,24 +85,21 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
 
     const currentUserOid = new ObjectId(req.session.userId!);
 
-    // Check if caller is allowed to see all events
     let showAll = false;
     if (all === '1') {
       const u    = await db.collection('users').findOne({ _id: currentUserOid }, { projection: { role: 1 } });
       const role = u ? await db.collection('roles').findOne({ name: u.role }, { projection: { permissions: 1 } }) : null;
-      // permissions stored as { resource: { action: boolean } }
       const permsObj = role?.permissions as Record<string, Record<string, boolean>> | undefined;
       showAll = permsObj?.['calendar_events']?.['create'] === true;
     }
 
     const filter: Record<string, unknown> = {};
 
-    // Ownership filter — events assigned to this user OR public (null / missing)
     if (!showAll) {
+      // Personal view: events I own or events explicitly shared with me
       filter.$or = [
-        { assignedTo: null },
-        { assignedTo: { $exists: false } },
-        { assignedTo: currentUserOid },
+        { ownerId: currentUserOid },
+        { sharedWith: currentUserOid },
       ];
     }
 
@@ -123,52 +128,41 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
       db.collection(COL).countDocuments(filter),
     ]);
 
-    // Resolve user names for attribution
     const ids = new Set<string>();
     docs.forEach(d => {
-      if (d.assignedTo instanceof ObjectId) ids.add(d.assignedTo.toString());
-      if (d.createdBy  instanceof ObjectId) ids.add(d.createdBy.toString());
+      if (d.ownerId   instanceof ObjectId) ids.add(d.ownerId.toString());
+      if (d.createdBy instanceof ObjectId) ids.add(d.createdBy.toString());
     });
     const nameMap = await resolveNames(db, ids);
 
     const events = docs.map(d => {
       const ev = mapEvent(d as Record<string, unknown>);
-      ev.assignedToName = ev.assignedTo ? (nameMap.get(ev.assignedTo as string) ?? null) : null;
-      ev.createdByName  = ev.createdBy  ? (nameMap.get(ev.createdBy  as string) ?? null) : null;
+      ev.ownerName     = ev.ownerId   ? (nameMap.get(ev.ownerId   as string) ?? null) : null;
+      ev.createdByName = ev.createdBy ? (nameMap.get(ev.createdBy as string) ?? null) : null;
       return ev;
     });
 
     return { events, total, skip: Number(skip), limit: Number(limit) };
   });
 
-  // POST /calendar-events — create; assignedTo defaults to self, null = public
+  // POST /calendar-events — create; ownerId = self; sharedWith = specified users
   app.post('/', { preHandler: app.requirePermission('calendar_events', 'create') }, async (req, reply) => {
     const db = app.mongo.db!;
     const {
       title, content = '', eventType = 'upcoming_event',
       startDate, endDate, singleDay = false, allDay = false,
-      location = '', tags = [], status = 'active', visibility = 'public',
-      assignedTo,
+      location = '', tags = [], status = 'active', visibility = 'private',
+      sharedWith,
     } = req.body as Record<string, unknown>;
 
     if (!title || !(title as string).trim()) throw app.httpErrors.badRequest('Title is required');
     if (!startDate) throw app.httpErrors.badRequest('Start date is required');
 
-    // assignedTo: null → public; undefined → default to self; string → specific user
-    let assignedToOid: ObjectId | null;
-    if (assignedTo === null || assignedTo === 'null' || assignedTo === '') {
-      assignedToOid = null;
-    } else if (assignedTo === undefined) {
-      assignedToOid = new ObjectId(req.session.userId!);
-    } else {
-      const oid = parseOid(assignedTo as string);
-      if (!oid) throw app.httpErrors.badRequest('Invalid assignedTo ID');
-      assignedToOid = oid;
-    }
-
-    const start = new Date(startDate as string);
-    const end   = singleDay ? new Date(startDate as string) : new Date((endDate ?? startDate) as string);
-    const now   = new Date();
+    const ownerOid   = new ObjectId(req.session.userId!);
+    const sharedOids = parseSharedWith(sharedWith);
+    const start      = new Date(startDate as string);
+    const end        = singleDay ? new Date(startDate as string) : new Date((endDate ?? startDate) as string);
+    const now        = new Date();
 
     const doc = {
       title:      (title as string).trim().slice(0, 200),
@@ -182,8 +176,9 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
       tags:       Array.isArray(tags) ? (tags as unknown[]).map(t => String(t).trim()).filter(Boolean) : [],
       status:     String(status),
       visibility: String(visibility),
-      assignedTo: assignedToOid,
-      createdBy:  new ObjectId(req.session.userId!),
+      ownerId:    ownerOid,
+      sharedWith: sharedOids,
+      createdBy:  ownerOid,
       updatedBy:  null as ObjectId | null,
       createdAt:  now,
       updatedAt:  now,
@@ -194,7 +189,7 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
     logAudit(db, {
       userId: req.session.userId!, username: req.session.username!,
       action: 'calendar_event.create', resourceId: result.insertedId.toString(),
-      meta: { title: doc.title, eventType: doc.eventType, assignedTo: assignedToOid?.toString() ?? null },
+      meta: { title: doc.title, eventType: doc.eventType, visibility: doc.visibility },
       ip: req.ip,
     });
 
@@ -205,15 +200,9 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
 
     reply.status(201);
     const ev = mapEvent({ ...doc, _id: result.insertedId } as Record<string, unknown>);
-    if (ev.assignedTo) {
-      const ids = new Set([ev.assignedTo as string, ev.createdBy as string].filter(Boolean));
-      const nameMap = await resolveNames(db, ids);
-      ev.assignedToName = nameMap.get(ev.assignedTo as string) ?? null;
-      ev.createdByName  = nameMap.get(ev.createdBy  as string) ?? null;
-    } else {
-      ev.assignedToName = null;
-      ev.createdByName  = ev.createdBy ? ((await resolveNames(db, new Set([ev.createdBy as string]))).get(ev.createdBy as string) ?? null) : null;
-    }
+    const nameMap = await resolveNames(db, new Set([ev.ownerId as string].filter(Boolean)));
+    ev.ownerName     = ev.ownerId ? (nameMap.get(ev.ownerId as string) ?? null) : null;
+    ev.createdByName = ev.ownerName;
     return ev;
   });
 
@@ -227,10 +216,10 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
     if (!doc) return reply.notFound('Event not found');
 
     const ev = mapEvent(doc as Record<string, unknown>);
-    const ids = new Set([ev.assignedTo, ev.createdBy].filter(Boolean) as string[]);
+    const ids = new Set([ev.ownerId, ev.createdBy].filter(Boolean) as string[]);
     const nameMap = await resolveNames(db, ids);
-    ev.assignedToName = ev.assignedTo ? (nameMap.get(ev.assignedTo as string) ?? null) : null;
-    ev.createdByName  = ev.createdBy  ? (nameMap.get(ev.createdBy  as string) ?? null) : null;
+    ev.ownerName     = ev.ownerId   ? (nameMap.get(ev.ownerId   as string) ?? null) : null;
+    ev.createdByName = ev.createdBy ? (nameMap.get(ev.createdBy as string) ?? null) : null;
     return ev;
   });
 
@@ -243,7 +232,7 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
 
     const {
       title, content, eventType, startDate, endDate, singleDay,
-      allDay, location, tags, status, visibility, assignedTo,
+      allDay, location, tags, status, visibility, sharedWith,
     } = req.body as Record<string, unknown>;
 
     const $set: Record<string, unknown> = {
@@ -262,6 +251,7 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
     if (tags       !== undefined) $set.tags        = (tags as unknown[]).map(t => String(t).trim()).filter(Boolean);
     if (status     !== undefined) $set.status      = String(status);
     if (visibility !== undefined) $set.visibility  = String(visibility);
+    if (sharedWith !== undefined) $set.sharedWith  = parseSharedWith(sharedWith);
 
     if (startDate !== undefined) $set.startDate = new Date(startDate as string);
     if (endDate   !== undefined) $set.endDate   = new Date(endDate as string);
@@ -270,16 +260,6 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
       if (Boolean(singleDay)) {
         const start = $set.startDate as Date | undefined;
         if (start) $set.endDate = start;
-      }
-    }
-
-    if (assignedTo !== undefined) {
-      if (assignedTo === null || assignedTo === 'null' || assignedTo === '') {
-        $set.assignedTo = null;
-      } else {
-        const oidAt = parseOid(assignedTo as string);
-        if (!oidAt) throw app.httpErrors.badRequest('Invalid assignedTo ID');
-        $set.assignedTo = oidAt;
       }
     }
 

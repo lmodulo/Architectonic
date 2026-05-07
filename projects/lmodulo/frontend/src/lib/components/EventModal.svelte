@@ -38,7 +38,12 @@
     return (user as { id?: string } | null)?.id ?? '';
   }
 
-  let form = $state({
+  let form = $state<{
+    title: string; content: string; eventType: string;
+    startDate: string; endDate: string; singleDay: boolean; allDay: boolean;
+    location: string; tags: string; status: string; visibility: string;
+    sharedWith: string[];
+  }>({
     title:      '',
     content:    '',
     eventType:  'upcoming_event',
@@ -49,8 +54,8 @@
     location:   '',
     tags:       '',
     status:     'active',
-    visibility: 'public',
-    assignedTo: selfId(),
+    visibility: 'private',
+    sharedWith: [],
   });
 
   let loading      = $state(false);
@@ -70,15 +75,15 @@
         location:   event.location,
         tags:       event.tags.join(', '),
         status:     event.status     ?? 'active',
-        visibility: event.visibility ?? 'public',
-        assignedTo: event.assignedTo ?? '',
+        visibility: event.visibility ?? 'private',
+        sharedWith: event.sharedWith ? [...event.sharedWith] : [],
       };
     } else {
       form = {
         title: '', content: '', eventType: 'upcoming_event',
         startDate: today, endDate: today, singleDay: true, allDay: false,
-        location: '', tags: '', status: 'active', visibility: 'public',
-        assignedTo: selfId(),
+        location: '', tags: '', status: 'active', visibility: 'private',
+        sharedWith: [],
       };
     }
     err          = '';
@@ -105,7 +110,7 @@
       tags:       form.tags.split(',').map(t => t.trim()).filter(Boolean),
       status:     form.status,
       visibility: form.visibility,
-      assignedTo: form.assignedTo || null,
+      sharedWith: form.sharedWith,
     };
     try {
       await onSave(body);
@@ -157,17 +162,31 @@
             bind:value={form.title} maxlength="200" />
         </div>
 
-        <!-- Assigned To -->
-        <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-assigned">Assigned To</label>
-          <select id="ev-assigned" class="select w-full" bind:value={form.assignedTo}>
-            {#each users as u}
-              <option value={u.id}>
-                {displayName(u)}{u.id === selfId() ? ' (you)' : ''}
-              </option>
-            {/each}
-          </select>
-        </div>
+        <!-- Share with -->
+        {#if users.filter(u => u.id !== selfId()).length > 0}
+          <div class="space-y-2">
+            <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Share with</p>
+            <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+              {#each users.filter(u => u.id !== selfId()) as u}
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-sm"
+                    checked={form.sharedWith.includes(u.id)}
+                    onchange={(e) => {
+                      if ((e.target as HTMLInputElement).checked) {
+                        form.sharedWith = [...form.sharedWith, u.id];
+                      } else {
+                        form.sharedWith = form.sharedWith.filter(id => id !== u.id);
+                      }
+                    }}
+                  />
+                  <span class="text-sm">{displayName(u)}</span>
+                </label>
+              {/each}
+            </div>
+          </div>
+        {/if}
 
         <!-- Type + Status row -->
         <div class="grid grid-cols-2 gap-4">
@@ -218,9 +237,9 @@
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-vis">Visibility</label>
           <select id="ev-vis" class="select w-full" bind:value={form.visibility}>
-            <option value="public">Public</option>
-            <option value="authenticated">Authenticated users</option>
-            <option value="private">Private (admins only)</option>
+            <option value="private">Private — only you</option>
+            <option value="shared">Shared — you + selected people above</option>
+            <option value="public">Public — everyone (including public calendar)</option>
           </select>
         </div>
 

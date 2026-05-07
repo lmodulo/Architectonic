@@ -1,5 +1,5 @@
 import {
-  House, Bell, CalendarDays, CalendarCog, Milestone,
+  House, Bell, CalendarDays, CalendarCog, CalendarRange, Milestone,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
@@ -23,9 +23,10 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 }
 
 export const navItems: NavEntry[] = [
-  { label: 'Dashboard',     href: '/dashboard',     icon: House },
-  { label: 'Notifications', href: '/notifications', icon: Bell  },
-  { label: 'Calendar', href: '/calendar-events', icon: CalendarDays },
-  { label: 'Manage Events', href: '/calendar-events/admin', icon: CalendarCog, permission: { resource: 'calendar_events', action: 'create' } },
-  { label: 'Agile Tracker', href: '/agile', icon: Milestone, permission: { resource: 'agile_milestones', action: 'read' } },
+  { label: 'Dashboard',     href: '/dashboard',              icon: House },
+  { label: 'Notifications', href: '/notifications',          icon: Bell  },
+  { label: 'My Calendar',   href: '/my-calendar',            icon: CalendarDays,  permission: { resource: 'calendar_events', action: 'read' } },
+  { label: 'Public Events', href: '/calendar-events',        icon: CalendarRange },
+  { label: 'Manage Events', href: '/calendar-events/admin',  icon: CalendarCog,   permission: { resource: 'calendar_events', action: 'create' } },
+  { label: 'Agile Tracker', href: '/agile',                  icon: Milestone,     permission: { resource: 'agile_milestones', action: 'read' } },
 ];

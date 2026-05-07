@@ -12,6 +12,8 @@ export interface CalendarEventDoc {
   endDate: Date;
   singleDay: boolean;
   visibility: string;
+  ownerId: ObjectId;
+  sharedWith: ObjectId[];
 }
 
 let _transporter: Transporter | null = null;

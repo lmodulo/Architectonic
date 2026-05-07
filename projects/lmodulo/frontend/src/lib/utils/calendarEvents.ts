@@ -11,10 +11,11 @@ export type CalendarEvent = {
   tags: string[];
   status?: string;
   visibility?: string;
-  assignedTo?: string | null;     // user ID, or null = public
+  ownerId?: string;            // user who owns/organised this meeting
+  ownerName?: string | null;   // resolved display name of owner
+  sharedWith?: string[];       // user IDs this event is explicitly shared with
   createdBy?: string;
-  assignedToName?: string | null; // resolved display name
-  createdByName?:  string | null;
+  createdByName?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -92,23 +93,24 @@ export function typeLabel(eventType: string): string {
 
 export function normalizeEvent(e: Record<string, unknown>): CalendarEvent {
   return {
-    id:             String(e.id ?? ''),
-    title:          String(e.title ?? ''),
-    content:        String(e.content ?? ''),
-    eventType:      String(e.eventType ?? 'upcoming_event'),
-    startDate:      toDateStr(e.startDate),
-    endDate:        toDateStr(e.endDate),
-    singleDay:      Boolean(e.singleDay),
-    allDay:         Boolean(e.allDay),
-    location:       String(e.location ?? ''),
-    tags:           Array.isArray(e.tags) ? e.tags.map(String) : [],
-    status:         e.status     ? String(e.status)     : undefined,
-    visibility:     e.visibility ? String(e.visibility) : undefined,
-    assignedTo:     e.assignedTo != null ? String(e.assignedTo) : null,
-    createdBy:      e.createdBy  ? String(e.createdBy)  : undefined,
-    assignedToName: e.assignedToName != null ? String(e.assignedToName) : null,
-    createdByName:  e.createdByName  != null ? String(e.createdByName)  : null,
-    createdAt:      e.createdAt ? String(e.createdAt) : undefined,
-    updatedAt:      e.updatedAt ? String(e.updatedAt) : undefined,
+    id:           String(e.id ?? ''),
+    title:        String(e.title ?? ''),
+    content:      String(e.content ?? ''),
+    eventType:    String(e.eventType ?? 'upcoming_event'),
+    startDate:    toDateStr(e.startDate),
+    endDate:      toDateStr(e.endDate),
+    singleDay:    Boolean(e.singleDay),
+    allDay:       Boolean(e.allDay),
+    location:     String(e.location ?? ''),
+    tags:         Array.isArray(e.tags) ? e.tags.map(String) : [],
+    status:       e.status     ? String(e.status)     : undefined,
+    visibility:   e.visibility ? String(e.visibility) : undefined,
+    ownerId:      e.ownerId    ? String(e.ownerId)    : undefined,
+    ownerName:    e.ownerName  != null ? String(e.ownerName)  : null,
+    sharedWith:   Array.isArray(e.sharedWith) ? e.sharedWith.map(String) : [],
+    createdBy:    e.createdBy  ? String(e.createdBy)  : undefined,
+    createdByName: e.createdByName != null ? String(e.createdByName) : null,
+    createdAt:    e.createdAt ? String(e.createdAt) : undefined,
+    updatedAt:    e.updatedAt ? String(e.updatedAt) : undefined,
   };
 }

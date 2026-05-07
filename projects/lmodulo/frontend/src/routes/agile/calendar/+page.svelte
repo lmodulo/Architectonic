@@ -5,7 +5,6 @@
 
   let { data }: { data: PageData } = $props();
 
-  const calEvents  = $derived((data.calEvents  ?? []) as any[]);
   const milestones = $derived((data.milestones ?? []) as AgileMilestone[]);
   const sprints    = $derived((data.sprints    ?? []) as AgileSprint[]);
   const tasks      = $derived((data.tasks      ?? []) as AgileTask[]);
@@ -35,30 +34,12 @@
     return Array.from({ length: cells }, (_, i) => {
       const day = i - startDow + 1;
       if (day < 1 || day > daysInMonth) return null;
-      const d    = new Date(year, month, day);
-      const dStr = ds(year, month, day);
-      const dayEvents = calEvents.filter(e => {
-        const start = e.startDate ? new Date(e.startDate).toISOString().slice(0, 10) : '';
-        const end   = e.endDate   ? new Date(e.endDate).toISOString().slice(0, 10)   : start;
-        return start <= dStr && dStr <= end;
-      });
-      return { day, isToday: d.toDateString() === today.toDateString(), events: dayEvents };
+      const d = new Date(year, month, day);
+      return { day, isToday: d.toDateString() === today.toDateString() };
     });
   }
 
   const calDays = $derived(buildCal(calYear, calMonth));
-
-  const EVENT_TYPE_COLOR: Record<string, string> = {
-    Planning:       'bg-primary',
-    Deadline:       'bg-error',
-    Review:         'bg-secondary',
-    Retrospective:  'bg-warning',
-    Custom:         'bg-neutral',
-    upcoming_event: 'bg-primary',
-    announcement:   'bg-secondary',
-    deadline:       'bg-error',
-    project_scope:  'bg-success',
-  };
 </script>
 
 <svelte:head><title>Agile Calendar</title></svelte:head>
@@ -67,7 +48,7 @@
 
   <div>
     <h2 class="text-lg font-semibold">Calendar</h2>
-    <p class="text-xs opacity-50 mt-0.5">Aggregated CalendarEvents attached to Milestones, Sprints, Jobs, and Tasks.</p>
+    <p class="text-xs opacity-50 mt-0.5">Milestones, Sprints, and Tasks due dates.</p>
   </div>
 
   <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
@@ -103,14 +84,6 @@
               {cell.day}
             </span>
             <div class="mt-1 space-y-0.5">
-              <!-- Calendar events -->
-              {#each cell.events as ev}
-                {@const color = EVENT_TYPE_COLOR[ev.eventType] ?? 'bg-neutral'}
-                <div class="text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate text-white {color}/80"
-                  title="{ev.title} ({ev.eventType})">
-                  {ev.title}
-                </div>
-              {/each}
               <!-- Milestones -->
               {#each milestones.filter(m => spansDay(m.startDate, m.endDate, ds(calYear, calMonth, cell.day))) as m}
                 <a href="/agile/milestones/{m.id}"
@@ -146,12 +119,6 @@
     <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-primary/80 inline-block"></span>Milestone</span>
     <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-secondary/80 inline-block"></span>Sprint</span>
     <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-warning/70 inline-block"></span>Task due</span>
-    {#each Object.entries(EVENT_TYPE_COLOR).slice(0, 5) as [type, color]}
-      <span class="flex items-center gap-1.5">
-        <span class="size-2.5 rounded-sm {color}/80 inline-block"></span>
-        {type.replace(/_/g, ' ')}
-      </span>
-    {/each}
   </div>
 
 </div>

@@ -589,6 +589,83 @@ export default fp(async function seedPlugin(app: any) {
       t(j6_2, 'Lightweight polling hook for live updates',     null, 4, 0, 4, 'Medium', 'Backlog', '', null, -2, -2, alexId, null),
     ]);
 
+    // ── Seed calendar events (meetings) ──────────────────────────────
+    const calendarEvents = db.collection('calendar_events');
+    await calendarEvents.insertMany([
+      {
+        title: 'Sprint 4 Review & Demo',
+        content: '<p>Demonstrate completed Sprint 4 deliverables to stakeholders. All team members present.</p>',
+        eventType: 'upcoming_event',
+        startDate: d(7), endDate: d(7), singleDay: true, allDay: true,
+        location: 'Main Conference Room',
+        tags: ['sprint', 'review', 'demo'],
+        status: 'active', visibility: 'public',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-3), updatedAt: d(-3),
+      },
+      {
+        title: 'Sprint 5 Kickoff',
+        content: '<p>Planning and goal-setting session for the Polish & Release sprint.</p>',
+        eventType: 'upcoming_event',
+        startDate: d(8), endDate: d(8), singleDay: true, allDay: false,
+        location: 'Main Conference Room',
+        tags: ['sprint', 'planning'],
+        status: 'active', visibility: 'public',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-1), updatedAt: d(-1),
+      },
+      {
+        title: 'Architecture Decision: Analytics Pipeline',
+        content: '<p>Review and agree on the data aggregation approach for v2.0 analytics features.</p>',
+        eventType: 'project_scope',
+        startDate: d(14), endDate: d(14), singleDay: true, allDay: false,
+        location: 'Engineering Office',
+        tags: ['architecture', 'analytics'],
+        status: 'active', visibility: 'shared',
+        ownerId: alexId, sharedWith: [jordanId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-2), updatedAt: d(-2),
+      },
+      {
+        title: 'v1.1 Release Deadline',
+        content: '<p>Target cutoff date for the Agile Tracker milestone release. Code freeze at EOD.</p>',
+        eventType: 'deadline',
+        startDate: d(21), endDate: d(21), singleDay: true, allDay: true,
+        location: '',
+        tags: ['release', 'deadline'],
+        status: 'active', visibility: 'public',
+        ownerId: alexId, sharedWith: [],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-7), updatedAt: d(-7),
+      },
+      {
+        title: 'v2.0 Planning Workshop',
+        content: '<p>Full-day planning session to scope and prioritize the Reporting & Analytics milestone.</p>',
+        eventType: 'upcoming_event',
+        startDate: d(28), endDate: d(29), singleDay: false, allDay: true,
+        location: 'Offsite Venue',
+        tags: ['planning', 'milestone'],
+        status: 'active', visibility: 'public',
+        ownerId: alexId, sharedWith: [jordanId, samId, rileyId],
+        createdBy: alexId, updatedBy: null,
+        createdAt: d(-7), updatedAt: d(-7),
+      },
+      {
+        title: 'Kanban Drag-and-Drop Spike Review',
+        content: '<p>Jordan and Sam to present pointer-events prototype findings from the Kanban research spike.</p>',
+        eventType: 'upcoming_event',
+        startDate: d(3), endDate: d(3), singleDay: true, allDay: false,
+        location: 'Team Standup Channel',
+        tags: ['kanban', 'research'],
+        status: 'active', visibility: 'shared',
+        ownerId: jordanId, sharedWith: [alexId, samId],
+        createdBy: jordanId, updatedBy: null,
+        createdAt: d(-1), updatedAt: d(-1),
+      },
+    ]);
+
     // ── Seed comments ─────────────────────────────────────────────────
     const comments = db.collection('agile_comments');
     await comments.insertMany([

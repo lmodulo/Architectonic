@@ -40,16 +40,16 @@
           {event.location}
         </p>
       {/if}
-      {#if !compact && (event.assignedToName || event.createdByName)}
+      {#if !compact && event.ownerName}
         <p class="text-xs opacity-40 flex items-center gap-1 mt-0.5">
           <User class="size-3 shrink-0" />
-          {#if event.assignedTo}
-            For {event.assignedToName ?? 'unknown'}
-          {:else}
-            Public
-          {/if}
-          {#if event.createdByName}
-            · by {event.createdByName}
+          by {event.ownerName}
+          {#if event.visibility === 'public'}
+            · public
+          {:else if event.visibility === 'shared' && event.sharedWith && event.sharedWith.length > 0}
+            · shared with {event.sharedWith.length} {event.sharedWith.length === 1 ? 'person' : 'people'}
+          {:else if event.visibility === 'private'}
+            · private
           {/if}
         </p>
       {/if}
