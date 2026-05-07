@@ -30,7 +30,7 @@
           name="email"
           required
           autocomplete="email"
-          placeholder="you@lmodulo.com"
+          placeholder="you@example.com"
         />
       </label>
 

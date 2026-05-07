@@ -1,10 +1,12 @@
 <script lang="ts">
   import '../app.css';
-  import { Menu as MenuIcon, LogOut, X, User, Users, Mail as MailIcon, Settings, ChevronRight, ChevronDown } from 'lucide-svelte';
+  import {
+    Menu as MenuIcon, LogOut, X, User, Users,
+    Mail as MailIcon, Settings, ChevronRight, ChevronDown
+  } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import { navItems, isNavGroup } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
-  import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
@@ -20,7 +22,7 @@
   let logoutForm: HTMLFormElement = $state()!;
   let unreadCount = $state(data.unreadCount ?? 0);
   let openGroups = $state<Record<string, boolean>>({});
-  let userMenuDetails: HTMLDetailsElement = $state()!;
+  let profileOpen = $state(false);
 
   $effect(() => {
     const pathname = page.url.pathname;
@@ -35,9 +37,8 @@
     openGroups[label] = !openGroups[label];
   }
 
-  // Re-fetch unread count on every navigation
   $effect(() => {
-    void page.url.pathname; // track route changes
+    void page.url.pathname;
     if (!data.user) return;
     fetch('/api/messages/unread-count')
       .then(r => r.ok ? r.json() : null)
@@ -45,7 +46,6 @@
       .catch(() => {});
   });
 
-  // WebSocket notifications — connect when authenticated, disconnect on logout
   $effect(() => {
     if (data.user) {
       connect();
@@ -53,8 +53,8 @@
     }
   });
 
-  function closeUserMenu() {
-    userMenuDetails?.removeAttribute('open');
+  function closeSidebar() {
+    sidebarOpen = false;
   }
 </script>
 
@@ -64,17 +64,10 @@
 
 {#if data.user}
 
-  <!-- Navigation loading overlay -->
   {#if navigating.to !== null}
     <div data-theme="luxury" class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
       <div class="card bg-base-200 shadow-xl px-6 py-4 flex items-center gap-3">
-        <svg
-          class="size-5 animate-spin text-primary"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
+        <svg class="size-5 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
@@ -83,197 +76,221 @@
     </div>
   {/if}
 
-  <!-- Hidden logout form -->
   <form bind:this={logoutForm} method="POST" action="/logout" class="hidden"></form>
 
-  <!-- Authenticated app shell -->
-  <div data-theme="luxury" class="h-screen flex flex-col overflow-hidden">
+  <div data-theme="luxury" class="h-screen flex overflow-hidden">
 
-    <!-- Sticky header -->
-    <header class="sticky top-0 z-20 flex items-center gap-3 px-4 h-14 shrink-0 bg-base-200 shadow-sm">
-
-      <!-- Mobile hamburger (hidden on lg+) -->
+    <!-- Mobile overlay -->
+    {#if sidebarOpen}
       <button
         type="button"
-        class="btn btn-ghost btn-sm btn-square lg:hidden"
-        onclick={() => (sidebarOpen = !sidebarOpen)}
-        aria-label="Toggle navigation"
-      >
-        {#if sidebarOpen}<X class="size-5" />{:else}<MenuIcon class="size-5" />{/if}
-      </button>
+        class="fixed inset-0 z-20 bg-black/50 lg:hidden"
+        onclick={closeSidebar}
+        aria-label="Close navigation"
+        tabindex="-1"
+      ></button>
+    {/if}
 
-      <!-- Logo / Title -->
-      <a href="/dashboard" class="flex items-center gap-2 flex-1 no-underline text-inherit">
-        <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
-      </a>
+    <!-- Sidebar -->
+    <aside class="
+      fixed inset-y-0 left-0 z-30 w-64 flex flex-col
+      bg-base-200 border-r border-base-300
+      transition-transform duration-200
+      lg:static lg:translate-x-0
+      {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+    ">
 
-      <!-- Trail -->
-      <div class="flex items-center gap-2">
-        <span class="text-sm opacity-60 hidden sm:inline">
-          {data.user.firstName && data.user.lastName
-            ? `${data.user.firstName} ${data.user.lastName}`
-            : data.user.username}
-        </span>
-
-        <span class="hidden sm:block w-px h-5 bg-base-content/20"></span>
-
-        <a href="/messages" class="btn btn-ghost btn-sm btn-square relative" aria-label="Messages">
-          <MailIcon class="size-5" />
-          {#if unreadCount > 0}
-            <span class="bg-error absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          {/if}
+      <!-- Brand -->
+      <div class="flex items-center gap-2 px-4 h-16 shrink-0 border-b border-base-300">
+        <a href="/dashboard" class="flex items-center gap-2 flex-1 min-w-0 no-underline text-inherit" onclick={closeSidebar}>
+          <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
         </a>
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm btn-square lg:hidden shrink-0"
+          onclick={closeSidebar}
+          aria-label="Close navigation"
+        >
+          <X class="size-4" />
+        </button>
+      </div>
 
-        <NotificationBell />
+      <!-- Nav items -->
+      <nav class="flex-1 overflow-y-auto p-3">
+        <ul class="flex flex-col gap-0.5">
+          {#each navItems as entry}
+            {#if isNavGroup(entry)}
+              {@const anyChildActive = entry.children.some(c => page.url.pathname.startsWith(c.href))}
+              {@const isOpen = openGroups[entry.label] ?? false}
+              {@const GroupIcon = entry.icon}
+              <li>
+                <button
+                  type="button"
+                  class="flex items-center gap-3 p-3 rounded w-full text-sm {anyChildActive ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                  onclick={() => toggleGroup(entry.label)}
+                >
+                  <GroupIcon class="size-4 shrink-0" />
+                  <span class="flex-1 text-left">{entry.label}</span>
+                  {#if isOpen}
+                    <ChevronDown class="size-3 opacity-40" />
+                  {:else}
+                    <ChevronRight class="size-3 opacity-40" />
+                  {/if}
+                </button>
+                <div class="nav-subnav" class:nav-subnav-open={isOpen}>
+                  <div class="nav-subnav-inner">
+                    {#each entry.children as child}
+                      {#if !child.permission || hasPermission(data.user, child.permission.resource, child.permission.action)}
+                        {@const ChildIcon = child.icon}
+                        <a
+                          href={child.href}
+                          class="flex items-center gap-3 pl-9 pr-3 py-2 rounded text-sm {page.url.pathname.startsWith(child.href) ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                          onclick={closeSidebar}
+                        >
+                          <ChildIcon class="size-3.5 shrink-0 opacity-70" />
+                          {child.label}
+                        </a>
+                      {/if}
+                    {/each}
+                  </div>
+                </div>
+              </li>
+            {:else}
+              {#if !entry.permission || hasPermission(data.user, entry.permission.resource, entry.permission.action)}
+                {@const Icon = entry.icon}
+                <li>
+                  <a
+                    href={entry.href}
+                    class="flex items-center gap-3 p-3 rounded {(entry.matchPrefix ? page.url.pathname.startsWith(entry.href) : page.url.pathname === entry.href) ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                    onclick={closeSidebar}
+                  >
+                    <Icon class="size-4 shrink-0" />
+                    <span class="text-sm">{entry.label}</span>
+                  </a>
+                </li>
+              {/if}
+            {/if}
+          {/each}
+        </ul>
+      </nav>
 
-        <details class="dropdown dropdown-end" bind:this={userMenuDetails}>
-          <summary
-            class="btn btn-ghost btn-sm btn-square"
-            aria-label="User menu"
+      <!-- Footer -->
+      <div class="border-t border-base-300 p-2 flex flex-col gap-0.5">
+
+        <!-- Messages + Notifications -->
+        <div class="flex items-center gap-1">
+          <a
+            href="/messages"
+            class="flex items-center gap-3 flex-1 px-3 py-2 rounded text-sm {page.url.pathname === '/messages' ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+            onclick={closeSidebar}
+          >
+            <span class="relative shrink-0">
+              <MailIcon class="size-4" />
+              {#if unreadCount > 0}
+                <span class="bg-error absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              {/if}
+            </span>
+            <span class="flex-1">Messages</span>
+            {#if unreadCount > 0}
+              <span class="badge badge-error badge-xs">{unreadCount > 99 ? '99+' : unreadCount}</span>
+            {/if}
+          </a>
+          <NotificationBell />
+        </div>
+
+        <!-- Profile -->
+        <div>
+          <button
+            type="button"
+            class="flex items-center gap-3 w-full px-3 py-2 rounded hover:bg-base-300/50 transition-colors"
+            onclick={() => (profileOpen = !profileOpen)}
           >
             <Avatar user={data.user} size="sm" />
-          </summary>
-          <ul class="dropdown-content menu bg-base-200 border border-base-300 rounded-box shadow-xl p-1 min-w-44 z-30 mt-1">
-            <li>
-              <button
-                class="{page.url.pathname === '/profile' ? 'active' : ''}"
-                onclick={() => { closeUserMenu(); goto('/profile'); }}
+            <div class="flex-1 min-w-0 text-left">
+              <p class="text-sm font-medium truncate leading-tight">
+                {data.user.firstName && data.user.lastName
+                  ? `${data.user.firstName} ${data.user.lastName}`
+                  : data.user.username}
+              </p>
+              <p class="text-xs opacity-50 truncate leading-tight">{data.user.username}</p>
+            </div>
+            <ChevronDown class="size-3 opacity-40 transition-transform duration-200 {profileOpen ? 'rotate-180' : ''}" />
+          </button>
+
+          <div class="nav-subnav" class:nav-subnav-open={profileOpen}>
+            <div class="nav-subnav-inner pt-1">
+              <a
+                href="/profile"
+                class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/profile' ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                onclick={() => { closeSidebar(); profileOpen = false; }}
               >
                 <User class="size-4 shrink-0" />
                 <span>Profile</span>
-              </button>
-            </li>
-            {#if hasPermission(data.user, 'users', 'read') || hasPermission(data.user, 'roles', 'read')}
-              <li>
-                <button
-                  class="{page.url.pathname === '/user-management' ? 'active' : ''}"
-                  onclick={() => { closeUserMenu(); goto('/user-management'); }}
+              </a>
+              {#if hasPermission(data.user, 'users', 'read') || hasPermission(data.user, 'roles', 'read')}
+                <a
+                  href="/user-management"
+                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/user-management' ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                  onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
                   <Users class="size-4 shrink-0" />
                   <span>User Management</span>
-                </button>
-              </li>
-            {/if}
-            {#if hasPermission(data.user, 'settings', 'read')}
-              <li>
-                <button
-                  class="{page.url.pathname === '/settings' ? 'active' : ''}"
-                  onclick={() => { closeUserMenu(); goto('/settings'); }}
+                </a>
+              {/if}
+              {#if hasPermission(data.user, 'settings', 'read')}
+                <a
+                  href="/settings"
+                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/settings' ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                  onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
                   <Settings class="size-4 shrink-0" />
                   <span>Settings</span>
-                </button>
-              </li>
-            {/if}
-            <li class="my-0.5 border-t border-base-300"></li>
-            <li>
+                </a>
+              {/if}
+              <div class="border-t border-base-300/50 my-1"></div>
               <button
-                class="text-error"
-                onclick={() => { closeUserMenu(); logoutForm.requestSubmit(); }}
+                type="button"
+                class="flex items-center gap-3 w-full px-3 py-2 rounded text-sm text-error hover:bg-error/10 transition-colors"
+                onclick={() => { closeSidebar(); profileOpen = false; logoutForm.requestSubmit(); }}
               >
                 <LogOut class="size-4 shrink-0" />
                 <span>Sign Out</span>
               </button>
-            </li>
-          </ul>
-        </details>
+            </div>
+          </div>
+        </div>
+
       </div>
+    </aside>
 
-    </header>
+    <!-- Main content column -->
+    <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
 
-    <!-- Body -->
-    <div class="flex flex-1 overflow-hidden">
-
-      <!-- Mobile overlay -->
-      {#if sidebarOpen}
+      <!-- Mobile top bar -->
+      <header class="flex items-center gap-3 px-4 h-14 shrink-0 bg-base-200 border-b border-base-300 lg:hidden">
         <button
           type="button"
-          class="fixed inset-0 z-10 bg-black/40 lg:hidden"
-          onclick={() => (sidebarOpen = false)}
-          aria-label="Close navigation"
-          tabindex="-1"
-        ></button>
-      {/if}
+          class="btn btn-ghost btn-sm btn-square"
+          onclick={() => (sidebarOpen = !sidebarOpen)}
+          aria-label="Toggle navigation"
+        >
+          <MenuIcon class="size-5" />
+        </button>
+        <a href="/dashboard" class="flex items-center gap-2 flex-1 no-underline text-inherit">
+          <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
+        </a>
+      </header>
 
-      <!-- Sidebar: always visible on lg+, slide-in on mobile -->
-      <aside
-        class="
-          fixed top-14 left-0 z-10 h-[calc(100vh-3.5rem)] w-64
-          transition-transform duration-200
-          bg-base-100 border-r border-base-300
-          lg:static lg:top-auto lg:h-auto lg:z-auto lg:translate-x-0
-          {sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        "
-      >
-        <nav class="h-full p-3">
-          <ul class="flex flex-col gap-0.5">
-            {#each navItems as entry}
-              {#if isNavGroup(entry)}
-                {@const anyChildActive = entry.children.some(c => page.url.pathname.startsWith(c.href))}
-                {@const isOpen = openGroups[entry.label] ?? false}
-                {@const GroupIcon = entry.icon}
-                <li>
-                  <button
-                    type="button"
-                    class="flex items-center gap-3 p-3 rounded w-full text-sm {anyChildActive ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
-                    onclick={() => toggleGroup(entry.label)}
-                  >
-                    <GroupIcon class="size-4 shrink-0" />
-                    <span class="flex-1 text-left">{entry.label}</span>
-                    {#if isOpen}
-                      <ChevronDown class="size-3 opacity-40" />
-                    {:else}
-                      <ChevronRight class="size-3 opacity-40" />
-                    {/if}
-                  </button>
-                  <div class="nav-subnav" class:nav-subnav-open={isOpen}>
-                    <div class="nav-subnav-inner">
-                      {#each entry.children as child}
-                        {#if !child.permission || hasPermission(data.user, child.permission.resource, child.permission.action)}
-                          {@const ChildIcon = child.icon}
-                          <a
-                            href={child.href}
-                            class="flex items-center gap-3 pl-9 pr-3 py-2 rounded w-full text-sm {page.url.pathname.startsWith(child.href) ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
-                            onclick={() => (sidebarOpen = false)}
-                          >
-                            <ChildIcon class="size-3.5 shrink-0 opacity-70" />
-                            {child.label}
-                          </a>
-                        {/if}
-                      {/each}
-                    </div>
-                  </div>
-                </li>
-              {:else}
-                {#if !entry.permission || hasPermission(data.user, entry.permission.resource, entry.permission.action)}
-                  {@const Icon = entry.icon}
-                  <li>
-                    <a
-                      href={entry.href}
-                      class="flex items-center gap-3 p-3 rounded w-full {page.url.pathname === entry.href ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
-                      onclick={() => (sidebarOpen = false)}
-                    >
-                      <Icon class="size-4 shrink-0" />
-                      <span class="text-sm">{entry.label}</span>
-                    </a>
-                  </li>
-                {/if}
-              {/if}
-            {/each}
-          </ul>
-        </nav>
-      </aside>
-
-      <!-- Main content -->
+      <!-- Page content -->
       <main class="flex-1 overflow-auto">
         <div class="container mx-auto p-6 max-w-5xl">
           {@render children()}
         </div>
       </main>
-
     </div>
+
   </div>
 
   {#if data.chatEnabled}
@@ -281,7 +298,6 @@
   {/if}
 
 {:else}
-  <!-- Public / unauthenticated pages (login, register, etc.) -->
   {@render children()}
 {/if}
 

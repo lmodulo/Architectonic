@@ -6,8 +6,14 @@ import type { Action } from '$lib/permissions';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
-// Pages that unauthenticated users may visit (and authenticated users are redirected away from)
-const AUTH_REDIRECT_PATHS = new Set(['/login', '/register']);
+// All paths accessible without authentication
+const PUBLIC_PATHS = new Set([
+  '/', '/login', '/register', '/forgot-password', '/reset-password',
+  '/logout', '/upcoming-events'
+]);
+
+// Auth paths that authenticated users are bounced away from
+const AUTH_PATHS = new Set(['/login', '/register', '/forgot-password', '/reset-password']);
 
 // Routes customers (role: 'customer') may visit when authenticated
 const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout', '/upcoming-events']);
@@ -38,13 +44,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const path = event.url.pathname;
 
-  // Redirect authenticated users away from login/register
-  if (event.locals.user && AUTH_REDIRECT_PATHS.has(path)) {
+  // Redirect authenticated users away from auth pages
+  if (event.locals.user && AUTH_PATHS.has(path)) {
     redirect(303, event.locals.user.role === 'customer' ? '/' : '/dashboard');
   }
 
   // Redirect unauthenticated users to login
-  if (!event.locals.user && !AUTH_REDIRECT_PATHS.has(path) && path !== '/' && path !== '/logout' && path !== '/upcoming-events' && !path.startsWith('/api/') && !path.startsWith('/uploads/')) {
+  if (!event.locals.user && !PUBLIC_PATHS.has(path) && !path.startsWith('/api/') && !path.startsWith('/uploads/')) {
     redirect(303, '/login');
   }
 

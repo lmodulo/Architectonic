@@ -4,10 +4,11 @@ import {
 import type { Component } from 'svelte';
 
 export interface NavItem {
-  label:       string;
-  href:        string;
-  icon:        Component;
-  permission?: { resource: string; action: string };
+  label:        string;
+  href:         string;
+  icon:         Component;
+  permission?:  { resource: string; action: string };
+  matchPrefix?: boolean; // activate for all routes that start with href
 }
 
 export interface NavGroup {
@@ -28,5 +29,5 @@ export const navItems: NavEntry[] = [
   { label: 'My Calendar',   href: '/my-calendar',            icon: CalendarDays,  permission: { resource: 'calendar_events', action: 'read' } },
   { label: 'Public Events', href: '/calendar-events',        icon: CalendarRange },
   { label: 'Manage Events', href: '/calendar-events/admin',  icon: CalendarCog,   permission: { resource: 'calendar_events', action: 'create' } },
-  { label: 'Agile Tracker', href: '/agile',                  icon: Milestone,     permission: { resource: 'agile_milestones', action: 'read' } },
+  { label: 'Agile Tracker', href: '/agile', matchPrefix: true, icon: Milestone,     permission: { resource: 'agile_milestones', action: 'read' } },
 ];

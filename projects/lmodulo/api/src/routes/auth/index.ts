@@ -23,6 +23,12 @@ interface ResetPasswordBody  { token: string; password: string }
 
 export default async function authRoutes(app: FastifyInstance) {
 
+  // GET /auth/config — public: exposes flags that unauthenticated pages need
+  app.get('/config', { schema: { summary: 'Get public auth configuration' } }, async () => {
+    const setting = await app.mongo.db!.collection('settings').findOne({ key: 'app.registration_open' });
+    return { registrationOpen: setting ? setting.value !== false : true };
+  });
+
   // POST /auth/register
   app.post<{ Body: RegisterBody }>('/register', {
     schema: {
@@ -43,13 +49,21 @@ export default async function authRoutes(app: FastifyInstance) {
     const col = app.mongo.db!.collection(COLLECTION);
     const { username, email, password, firstName, lastName } = req.body;
 
+    // First user bootstraps the system; subsequent registrations respect the setting
+    const userCount = await col.countDocuments({});
+    if (userCount > 0) {
+      const regSetting = await app.mongo.db!.collection('settings').findOne({ key: 'app.registration_open' });
+      if (regSetting && regSetting.value === false) {
+        return reply.forbidden('Registration is currently closed');
+      }
+    }
+
     const conflict = await checkDuplicateUser(col, { email, username });
     if (conflict) return reply.conflict(conflict);
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const now       = new Date();
-    const userCount = await col.countDocuments({});
-    const role      = userCount === 0 ? 'admin' : 'customer';
+    const now  = new Date();
+    const role = userCount === 0 ? 'admin' : 'customer';
     const result    = await col.insertOne({
       username,
       email: email.toLowerCase(),

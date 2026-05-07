@@ -15,6 +15,7 @@
   <MarketingNav {brandName} {brandLogo} />
 
   <div class="grain" aria-hidden="true"></div>
+  <div class="auth-glow" aria-hidden="true"></div>
 
   <div class="auth-center">
     <div class="auth-card">
@@ -22,7 +23,7 @@
       <div class="auth-head">
         <div class="auth-eyebrow">
           <span class="auth-dot"></span>
-          lmodulo
+          {brandName ?? 'Application'}
         </div>
         <h1 class="auth-title">{title}</h1>
         {#if subtitle}
@@ -52,9 +53,21 @@
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.04;
+    opacity: 0.045;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
     background-size: 300px 300px;
+  }
+
+  .auth-glow {
+    position: fixed;
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(700px, 100vw);
+    height: 480px;
+    background: radial-gradient(ellipse, oklch(55% 0.22 305deg / 0.065) 0%, transparent 68%);
+    pointer-events: none;
+    z-index: 1;
   }
 
   .auth-center {
@@ -72,6 +85,8 @@
     max-width: 26rem;
     background: rgba(255, 255, 255, 0.025);
     border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.875rem;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 24px 56px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
   }
