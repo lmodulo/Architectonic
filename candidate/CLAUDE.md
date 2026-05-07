@@ -4,7 +4,7 @@
 Full-stack SvelteKit + Fastify application scaffold. The `candidate/` directory IS the scaffold — clone it to start a new project.
 
 ## Stack
-- **Frontend:** SvelteKit 2 + Svelte 5 runes, Tailwind v4, Skeleton v4 (`@skeletonlabs/skeleton-svelte`), TypeScript
+- **Frontend:** SvelteKit 2 + Svelte 5 runes, Tailwind v4, DaisyUI v5, TypeScript
 - **API:** Fastify 5, MongoDB 7, TypeScript
 - **Auth:** Session cookies (`@fastify/session`), bcryptjs password hashing
 - **Chat:** Ollama (host machine via `host.docker.internal:11434`)

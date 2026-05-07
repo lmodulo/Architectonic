@@ -16,13 +16,13 @@
     { num: '01', title: 'Auth & Sessions',       body: 'Login, registration, and password reset behind a polished dark-themed AuthShell. bcrypt hashing, HTTP-only signed session cookies, server-side validation, and registration gating via the settings store.' },
     { num: '02', title: 'Role-Based Access',      body: 'Six seeded roles — owner, admin, lead, contributor, viewer, customer. Per-route Fastify preHandlers, component-level permission checks, and a full roles management UI. Add a resource by appending to a JSON file.' },
     { num: '03', title: 'In-App Messaging',        body: 'A full email-style thread system — inbox, sent, archive, unread badges, and Tiptap rich-text composition. Ships ready to extend.' },
-    { num: '04', title: 'Avatar & UI Shell',       body: 'Canvas-based avatar crop and upload with initials and colour-picker fallback. Collapsible sidebar shell with animated accordion groups and a profile footer — wired to Skeleton v4 and Tailwind v4.' },
+    { num: '04', title: 'Avatar & UI Shell',       body: 'Canvas-based avatar crop and upload with initials and colour-picker fallback. Collapsible sidebar shell with animated accordion groups and a profile footer — built on DaisyUI v5 and Tailwind v4.' },
     { num: '05', title: 'Docker Dev Stack',        body: 'One command stands up SvelteKit, Fastify, and MongoDB with health-checked startup sequencing. Production uses the same compose file minus the dev overlay.' },
     { num: '06', title: 'CLI Module System',       body: 'arch.js merges nav entries, routes, permissions, and env vars from each module manifest into the scaffold — collision-checked before any write.' },
   ];
 
   const stackGroups = [
-    { label: 'Frontend',  items: ['SvelteKit 2', 'Svelte 5 Runes', 'TypeScript', 'Tailwind v4', 'Skeleton v4'] },
+    { label: 'Frontend',  items: ['SvelteKit 2', 'Svelte 5 Runes', 'TypeScript', 'Tailwind v4', 'DaisyUI v5'] },
     { label: 'Backend',   items: ['Fastify 5', 'MongoDB 7', 'TypeScript', 'connect-mongo', 'bcryptjs'] },
     { label: 'Tooling',   items: ['Docker Compose', 'Vite', 'Node 22', 'ESLint', 'Prettier'] },
     { label: 'Extras',    items: ['Ollama AI chat', 'Tiptap rich text', 'Avatar upload & crop', 'Audit logging'] },
