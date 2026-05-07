@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ChevronLeft, Plus, X, Zap, LayoutGrid } from 'lucide-svelte';
+  import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -11,14 +12,15 @@
   import {
     STATUS_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES, SPRINT_STATUSES,
     fmtDateRange, fmtEffort, toDateInput, completionColor,
-    type AgileSprint, type AgileJob, type AgileTask,
+    type AgileSprint, type AgileJob, type AgileTask, type AgileAttachment,
   } from '$lib/utils/agile';
 
   let { data }: { data: PageData } = $props();
 
-  let sprint  = $state<AgileSprint>(data.sprint);
-  let jobs    = $state<AgileJob[]>(data.jobs ?? []);
-  let tasks   = $state<AgileTask[]>((data.tasks ?? []) as AgileTask[]);
+  let sprint      = $state<AgileSprint>(data.sprint);
+  let jobs        = $state<AgileJob[]>(data.jobs ?? []);
+  let tasks       = $state<AgileTask[]>((data.tasks ?? []) as AgileTask[]);
+  let attachments = $state<AgileAttachment[]>(data.sprint.attachments ?? []);
 
   const pct    = $derived(Math.round(sprint.completionPct ?? 0));
   const barClr = $derived(completionColor(pct));
@@ -212,6 +214,19 @@
   <section class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
     <h2 class="text-sm font-semibold opacity-70">Burndown</h2>
     <BurndownChart {sprint} {tasks} />
+  </section>
+
+  <!-- Attachments -->
+  <section class="space-y-3">
+    <h2 class="text-lg font-semibold">Attachments</h2>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+      <AttachmentPanel
+        bind:attachments
+        uploadUrl="/api/agile/sprints/{sprint.id}/attachments"
+        deleteUrlFn={(fn) => `/api/agile/sprints/${sprint.id}/attachments/${encodeURIComponent(fn)}`}
+        canDelete={hasPermission(data.user, 'agile_sprints', 'update')}
+      />
+    </div>
   </section>
 
   <!-- Jobs summary table -->

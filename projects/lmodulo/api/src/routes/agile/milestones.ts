@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
+import { storage } from '../../lib/storage.js';
 
 const COL = 'agile_milestones';
 
@@ -270,6 +271,77 @@ export default async function milestonesRoutes(app: FastifyInstance) {
       { $pull: { calendarEventIds: eventId } as any, $set: { updatedAt: new Date() } }
     );
     if (result.matchedCount === 0) throw app.httpErrors.notFound('Milestone not found');
+
+    reply.status(204);
+  });
+
+  // POST /agile/milestones/:id/attachments — upload (replaces if same name)
+  app.post('/:id/attachments', { preHandler: app.requirePermission('agile_milestones', 'update') }, async (req, reply) => {
+    const db  = app.mongo.db!;
+    const oid = parseOid((req.params as { id: string }).id, app);
+
+    const doc = await db.collection(COL).findOne({ _id: oid });
+    if (!doc) throw app.httpErrors.notFound('Milestone not found');
+
+    const file = await req.file();
+    if (!file) throw app.httpErrors.badRequest('No file uploaded');
+
+    const buf  = await file.toBuffer();
+    const safe = (file.filename || 'file').replace(/[^a-zA-Z0-9._-]/g, '_') || 'file';
+
+    const existing = ((doc.attachments ?? []) as any[]).find((a: any) => a.name === safe);
+    if (existing?.url) await storage.remove(existing.url);
+
+    const url = await storage.save(safe, buf, file.mimetype, `agile/milestones/${oid.toString()}`);
+
+    const attachment = {
+      name:       safe,
+      url,
+      mimetype:   file.mimetype,
+      uploadedAt: new Date(),
+      uploadedBy: new ObjectId(req.session.userId!),
+    };
+
+    const updated = [
+      ...((doc.attachments ?? []) as any[]).filter((a: any) => a.name !== safe),
+      attachment,
+    ];
+
+    await db.collection(COL).updateOne({ _id: oid }, { $set: { attachments: updated, updatedAt: new Date() } });
+
+    logAudit(db, {
+      userId: req.session.userId!, username: req.session.username!,
+      action: 'agile_milestone.attachment_upload', resourceId: oid.toString(),
+      meta: { filename: safe }, ip: req.ip,
+    });
+
+    reply.status(201);
+    return { attachments: updated.map((a: any) => ({ ...a, uploadedBy: a.uploadedBy?.toString() })) };
+  });
+
+  // DELETE /agile/milestones/:id/attachments/:filename
+  app.delete('/:id/attachments/:filename', { preHandler: app.requirePermission('agile_milestones', 'update') }, async (req, reply) => {
+    const db       = app.mongo.db!;
+    const oid      = parseOid((req.params as { id: string; filename: string }).id, app);
+    const filename = (req.params as { id: string; filename: string }).filename;
+
+    const doc = await db.collection(COL).findOne({ _id: oid });
+    if (!doc) throw app.httpErrors.notFound('Milestone not found');
+
+    const attachment = ((doc.attachments ?? []) as any[]).find((a: any) => a.name === filename);
+    if (!attachment) throw app.httpErrors.notFound('Attachment not found');
+
+    await storage.remove(attachment.url);
+    await db.collection(COL).updateOne(
+      { _id: oid },
+      { $pull: { attachments: { name: filename } } as any, $set: { updatedAt: new Date() } }
+    );
+
+    logAudit(db, {
+      userId: req.session.userId!, username: req.session.username!,
+      action: 'agile_milestone.attachment_delete', resourceId: oid.toString(),
+      meta: { filename }, ip: req.ip,
+    });
 
     reply.status(204);
   });

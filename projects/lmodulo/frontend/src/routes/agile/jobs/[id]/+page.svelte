@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ChevronLeft, Plus, X, AlertCircle, Pencil } from 'lucide-svelte';
+  import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -13,13 +14,14 @@
   import {
     STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES,
     fmtEffort, fmtDate, toDateInput, completionColor,
-    type AgileJob, type AgileTask,
+    type AgileJob, type AgileTask, type AgileAttachment,
   } from '$lib/utils/agile';
 
   let { data }: { data: PageData } = $props();
 
-  let job   = $state<AgileJob>(data.job);
-  let tasks = $state<AgileTask[]>((data.tasks ?? []) as AgileTask[]);
+  let job             = $state<AgileJob>(data.job);
+  let tasks           = $state<AgileTask[]>((data.tasks ?? []) as AgileTask[]);
+  let jobAttachments  = $state<AgileAttachment[]>(data.job.attachments ?? []);
   const users       = $derived((data.users ?? []) as any[]);
   const sprintJobs  = $derived((data.sprintJobs ?? []) as AgileJob[]);
 
@@ -123,10 +125,11 @@
   const totalRem = $derived(tasks.reduce((s, t) => s + (t.remainingHours ?? Math.max(0, (t.estimateHours ?? 0) - (t.actualHours ?? 0))), 0));
 
   // ── Edit task modal ────────────────────────────────────────────────
-  let editModal   = $state(false);
-  let savingEdit  = $state(false);
-  let editError   = $state('');
-  let editingId   = $state('');
+  let editModal        = $state(false);
+  let savingEdit       = $state(false);
+  let editError        = $state('');
+  let editingId        = $state('');
+  let editTaskAttachments = $state<AgileAttachment[]>([]);
   let editForm    = $state<{
     title: string; description: string; assignedTo: string | null;
     priority: string; status: string;
@@ -144,6 +147,7 @@
   function openEditModal(task: AgileTask) {
     editingId = task.id ?? '';
     editError = '';
+    editTaskAttachments = [...(task.attachments ?? [])];
     editForm = {
       title:         task.title,
       description:   task.description ?? '',
@@ -192,6 +196,7 @@
         remainingHours: editForm.remainingHours,
         blockedReason:  editForm.blockedReason,
         dueDate:        editForm.dueDate || undefined,
+        attachments:    editTaskAttachments,
       } as AgileTask : t);
       editModal = false;
     } catch { editError = 'Network error'; }
@@ -243,6 +248,19 @@
       {@html job.description}
     </div>
   {/if}
+
+  <!-- Attachments -->
+  <section class="space-y-3">
+    <h2 class="text-lg font-semibold">Attachments</h2>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+      <AttachmentPanel
+        bind:attachments={jobAttachments}
+        uploadUrl="/api/agile/jobs/{job.id}/attachments"
+        deleteUrlFn={(fn) => `/api/agile/jobs/${job.id}/attachments/${encodeURIComponent(fn)}`}
+        canDelete={hasPermission(data.user, 'agile_jobs', 'update')}
+      />
+    </div>
+  </section>
 
   <!-- Effort bar -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-3">
@@ -426,9 +444,22 @@
             <input id="et-reason" type="text" class="input w-full" placeholder="Why is this blocked?" bind:value={editForm.blockedReason} />
           </div>
         {/if}
+
+        <div class="space-y-1 border-t border-base-300 pt-4">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Attachments</p>
+          <AttachmentPanel
+            bind:attachments={editTaskAttachments}
+            uploadUrl="/api/agile/tasks/{editingId}/attachments"
+            deleteUrlFn={(fn) => `/api/agile/tasks/${editingId}/attachments/${encodeURIComponent(fn)}`}
+            canDelete={hasPermission(data.user, 'agile_tasks', 'update')}
+          />
+        </div>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (editModal = false)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => {
+          tasks = tasks.map(t => t.id === editingId ? { ...t, attachments: editTaskAttachments } as AgileTask : t);
+          editModal = false;
+        }}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={savingEdit} onclick={saveEdit}>
           {savingEdit ? 'Saving…' : 'Save Changes'}
         </button>

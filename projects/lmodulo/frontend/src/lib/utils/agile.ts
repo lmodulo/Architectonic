@@ -77,6 +77,14 @@ export const TASK_STATUSES      = ['Backlog', 'Ready', 'In Progress', 'Blocked',
 export const PRIORITIES         = ['Low', 'Medium', 'High', 'Critical'] as const;
 export const JOB_CATEGORIES     = ['Feature', 'Bug', 'Tech Debt', 'Research'] as const;
 
+export interface AgileAttachment {
+  name: string;
+  url: string;
+  mimetype?: string;
+  uploadedAt?: string;
+  uploadedBy?: string;
+}
+
 export interface AgileMilestone {
   id: string;
   title: string;
@@ -87,6 +95,7 @@ export interface AgileMilestone {
   startDate?: string;
   endDate?: string;
   calendarEventIds?: string[];
+  attachments?: AgileAttachment[];
   completionPct?: number;
   totalEstimatedHours?: number;
   totalActualHours?: number;
@@ -106,6 +115,7 @@ export interface AgileSprint {
   startDate?: string;
   endDate?: string;
   calendarEventIds?: string[];
+  attachments?: AgileAttachment[];
   completionPct?: number;
   velocity?: number;
   committedEffort?: number;
@@ -125,6 +135,7 @@ export interface AgileJob {
   startDate?: string;
   endDate?: string;
   calendarEventIds?: string[];
+  attachments?: AgileAttachment[];
   completionPct?: number;
   estimatedHours?: number;
   actualHours?: number;
@@ -145,4 +156,5 @@ export interface AgileTask {
   blockedReason?: string;
   dueDate?: string;
   calendarEventIds?: string[];
+  attachments?: AgileAttachment[];
 }

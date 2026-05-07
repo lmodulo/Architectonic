@@ -6,16 +6,18 @@
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import {
     STATUS_COLOR, PRIORITY_COLOR, SPRINT_STATUSES, MILESTONE_STATUSES, PRIORITIES,
     fmtDateRange, fmtDate, fmtEffort, toDateInput, completionColor,
-    type AgileMilestone, type AgileSprint,
+    type AgileMilestone, type AgileSprint, type AgileAttachment,
   } from '$lib/utils/agile';
 
   let { data }: { data: PageData } = $props();
 
-  let milestone  = $state<AgileMilestone>(data.milestone);
-  let sprints    = $state<AgileSprint[]>(data.sprints ?? []);
+  let milestone    = $state<AgileMilestone>(data.milestone);
+  let sprints      = $state<AgileSprint[]>(data.sprints ?? []);
+  let attachments  = $state<AgileAttachment[]>(data.milestone.attachments ?? []);
 
   const pct    = $derived(Math.round(milestone.completionPct ?? 0));
   const barClr = $derived(completionColor(pct));
@@ -140,6 +142,19 @@
       </div>
     </div>
   </div>
+
+  <!-- Attachments -->
+  <section class="space-y-3">
+    <h2 class="text-lg font-semibold">Attachments</h2>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+      <AttachmentPanel
+        bind:attachments
+        uploadUrl="/api/agile/milestones/{milestone.id}/attachments"
+        deleteUrlFn={(fn) => `/api/agile/milestones/${milestone.id}/attachments/${encodeURIComponent(fn)}`}
+        canDelete={hasPermission(data.user, 'agile_milestones', 'update')}
+      />
+    </div>
+  </section>
 
   <!-- Sprints -->
   <section class="space-y-3">
