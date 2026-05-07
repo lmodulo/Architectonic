@@ -3,6 +3,7 @@
   import { cubicOut } from 'svelte/easing';
   import { Search, Pencil, Trash2, X, UserPlus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
+  import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -289,12 +290,17 @@
             {#each pageUsers as user}
               <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
                 <td class="px-4 py-3">
-                  {#if user.firstName || user.lastName}
-                    <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
-                    <div class="text-xs text-base-content/50">{user.username}</div>
-                  {:else}
-                    <div class="font-medium">{user.username}</div>
-                  {/if}
+                  <div class="flex items-center gap-3">
+                    <Avatar user={user} size="sm" />
+                    <div>
+                      {#if user.firstName || user.lastName}
+                        <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
+                        <div class="text-xs text-base-content/50">{user.username}</div>
+                      {:else}
+                        <div class="font-medium">{user.username}</div>
+                      {/if}
+                    </div>
+                  </div>
                 </td>
                 <td class="px-4 py-3 text-base-content/40">{user.email}</td>
                 <td class="px-4 py-3">
@@ -491,7 +497,7 @@
 <!-- New User modal -->
 {#if newUserOpen}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="New user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 w-full max-w-md shadow-xl">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">New User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
@@ -527,7 +533,7 @@
           <input type="password" class="input" bind:value={newForm.confirmPassword} minlength="8" placeholder="••••••••" />
         </label>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
         <button type="button" class="btn btn-ghost" onclick={() => (newUserOpen = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={creating} onclick={submitNewUser}>
           {creating ? 'Creating…' : 'Create User'}
@@ -540,7 +546,7 @@
 <!-- Edit modal -->
 {#if editTarget}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Edit user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 w-full max-w-md shadow-xl">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Edit User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTarget = null)} aria-label="Close"><X class="size-5" /></button>
@@ -568,7 +574,7 @@
           <input type="email" class="input" bind:value={editForm.email} required />
         </label>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
         <button type="button" class="btn btn-ghost" onclick={() => (editTarget = null)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={saving} onclick={submitEdit}>
           {saving ? 'Saving…' : 'Save Changes'}
@@ -581,7 +587,7 @@
 <!-- Delete confirm modal -->
 {#if deleteTarget}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Delete user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 w-full max-w-sm shadow-xl">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Delete User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)} aria-label="Close"><X class="size-5" /></button>
@@ -594,7 +600,7 @@
           Are you sure you want to delete <span class="font-semibold">{deleteTarget.username}</span>? This action cannot be undone.
         </p>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
         <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>Cancel</button>
         <button type="button" class="btn btn-error" disabled={deleting} onclick={confirmDelete}>
           {deleting ? 'Deleting…' : 'Delete'}

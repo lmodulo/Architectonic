@@ -58,13 +58,15 @@ export default async function usersRoutes(app: FastifyInstance) {
       .find({ role: { $ne: 'customer' } }, { projection: { passwordHash: 0 } })
       .toArray();
     return users.map(u => ({
-      id:        u._id.toString(),
-      username:  u.username,
-      email:     u.email,
-      firstName: u.firstName ?? '',
-      lastName:  u.lastName  ?? '',
-      role:      u.role ?? 'viewer',
-      createdAt: u.createdAt
+      id:          u._id.toString(),
+      username:    u.username,
+      email:       u.email,
+      firstName:   u.firstName   ?? '',
+      lastName:    u.lastName    ?? '',
+      role:        u.role        ?? 'viewer',
+      avatarUrl:   u.avatarUrl   ?? '',
+      avatarColor: u.avatarColor ?? '',
+      createdAt:   u.createdAt
     }));
   });
 

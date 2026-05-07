@@ -99,6 +99,7 @@ export default fp(async function seedPlugin(app: any) {
         await users.insertOne({
           username, email, password, passwordHash,
           firstName, lastName, role,
+          avatarUrl: '', avatarColor: '',
           createdAt: now, updatedAt: now,
         });
       }

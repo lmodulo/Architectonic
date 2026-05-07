@@ -1,4 +1,7 @@
 import crypto from 'crypto';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
@@ -6,12 +9,15 @@ import { checkDuplicateUser } from '../../lib/users.js';
 import { sendPasswordResetEmail } from '../../lib/email.js';
 import { logAudit } from '../../lib/audit.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = join(__filename, '..');
+
 const COLLECTION  = 'users';
 const SALT_ROUNDS = 12;
 
 interface RegisterBody      { username: string; email: string; password: string; firstName?: string; lastName?: string }
 interface LoginBody         { email: string; password: string }
-interface ProfileBody       { username?: string; email?: string; firstName?: string; lastName?: string }
+interface ProfileBody       { username?: string; email?: string; firstName?: string; lastName?: string; avatarColor?: string }
 interface ForgotPasswordBody { email: string }
 interface ResetPasswordBody  { token: string; password: string }
 
@@ -115,23 +121,25 @@ export default async function authRoutes(app: FastifyInstance) {
       body: {
         type: 'object',
         properties: {
-          username:  { type: 'string', minLength: 2, maxLength: 50 },
-          email:     { type: 'string', format: 'email' },
-          firstName: { type: 'string', maxLength: 50 },
-          lastName:  { type: 'string', maxLength: 50 }
+          username:    { type: 'string', minLength: 2, maxLength: 50 },
+          email:       { type: 'string', format: 'email' },
+          firstName:   { type: 'string', maxLength: 50 },
+          lastName:    { type: 'string', maxLength: 50 },
+          avatarColor: { type: 'string', maxLength: 20 }
         }
       }
     }
   }, async (req, reply) => {
     if (!req.session.userId) return reply.unauthorized('Not authenticated');
     const col = app.mongo.db!.collection(COLLECTION);
-    const { username, email, firstName, lastName } = req.body;
+    const { username, email, firstName, lastName, avatarColor } = req.body;
 
     const updates: Record<string, unknown> = { updatedAt: new Date() };
-    if (username)             updates.username  = username;
-    if (email)                updates.email     = email.toLowerCase();
-    if (firstName !== undefined) updates.firstName = firstName;
-    if (lastName  !== undefined) updates.lastName  = lastName;
+    if (username)                updates.username    = username;
+    if (email)                   updates.email       = email.toLowerCase();
+    if (firstName !== undefined) updates.firstName   = firstName;
+    if (lastName  !== undefined) updates.lastName    = lastName;
+    if (avatarColor !== undefined) updates.avatarColor = avatarColor;
 
     if (username || email) {
       const conflict = await col.findOne({
@@ -250,10 +258,50 @@ export default async function authRoutes(app: FastifyInstance) {
       id:          user._id.toString(),
       username:    user.username,
       email:       user.email,
-      firstName:   user.firstName ?? '',
-      lastName:    user.lastName  ?? '',
-      role:        user.role ?? 'viewer',
+      firstName:   user.firstName   ?? '',
+      lastName:    user.lastName    ?? '',
+      role:        user.role        ?? 'viewer',
+      avatarUrl:   user.avatarUrl   ?? '',
+      avatarColor: user.avatarColor ?? '',
       permissions
     };
+  });
+
+  // POST /auth/avatar — upload avatar image for the current user
+  app.post('/avatar', async (req, reply) => {
+    if (!req.session.userId) return reply.unauthorized('Not authenticated');
+
+    const file = await req.file();
+    if (!file) return reply.badRequest('No file uploaded');
+    if (!file.mimetype.startsWith('image/')) return reply.badRequest('File must be an image');
+
+    const buf      = await file.toBuffer();
+    const filename = `${req.session.userId}.jpg`;
+    const dir      = join(__dirname, '../../../../uploads/avatars');
+
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, filename), buf);
+
+    const url = `/uploads/avatars/${filename}`;
+    await app.mongo.db!.collection(COLLECTION).updateOne(
+      { _id: new ObjectId(req.session.userId) },
+      { $set: { avatarUrl: url, updatedAt: new Date() } }
+    );
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'auth.avatar_upload', ip: req.ip });
+    return { url };
+  });
+
+  // DELETE /auth/avatar — remove avatar for the current user
+  app.delete('/avatar', async (req, reply) => {
+    if (!req.session.userId) return reply.unauthorized('Not authenticated');
+
+    await app.mongo.db!.collection(COLLECTION).updateOne(
+      { _id: new ObjectId(req.session.userId) },
+      { $set: { avatarUrl: '', updatedAt: new Date() } }
+    );
+
+    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'auth.avatar_remove', ip: req.ip });
+    reply.code(204).send();
   });
 }

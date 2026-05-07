@@ -1,6 +1,7 @@
 <script lang="ts">
   import '../app.css';
-  import { Menu as MenuIcon, CircleUser, LogOut, X, User, Users, Mail as MailIcon, Settings, ChevronRight, ChevronDown } from 'lucide-svelte';
+  import { Menu as MenuIcon, LogOut, X, User, Users, Mail as MailIcon, Settings, ChevronRight, ChevronDown } from 'lucide-svelte';
+  import Avatar from '$lib/components/Avatar.svelte';
   import { navItems, isNavGroup } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { goto } from '$app/navigation';
@@ -132,7 +133,7 @@
             class="btn btn-ghost btn-sm btn-square"
             aria-label="User menu"
           >
-            <CircleUser class="size-6" />
+            <Avatar user={data.user} size="sm" />
           </summary>
           <ul class="dropdown-content menu bg-base-200 border border-base-300 rounded-box shadow-xl p-1 min-w-44 z-30 mt-1">
             <li>

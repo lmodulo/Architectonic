@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { Reply } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -41,11 +42,7 @@
     });
   }
 
-  function initials(name: string) {
-    return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
-  }
-
-  const threadId = $derived(messages[0]?.threadId ?? '');
+const threadId = $derived(messages[0]?.threadId ?? '');
 
   async function sendReply() {
     if (!replyBody.trim() || replyBody === '<p></p>') { error = 'Reply body is required'; return; }
@@ -86,10 +83,7 @@
   <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
     {#each messages as msg (msg.id)}
       <div class="flex gap-3">
-        <!-- Avatar -->
-        <div class="shrink-0 size-8 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-primary-content">
-          {initials(msg.from.name)}
-        </div>
+        <Avatar user={{ username: msg.from.username }} size="md" />
 
         <div class="flex-1 min-w-0">
           <div class="flex items-baseline gap-2 mb-1">
