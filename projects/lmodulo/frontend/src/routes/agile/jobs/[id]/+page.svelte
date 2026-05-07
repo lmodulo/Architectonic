@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronLeft, Plus, X, AlertCircle, Pencil } from 'lucide-svelte';
+  import { ChevronLeft, Plus, X, AlertCircle, Pencil, Copy } from 'lucide-svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
@@ -226,6 +226,12 @@
           {/if}
         </div>
         <h1 class="text-2xl font-bold">{job.title}</h1>
+        <button
+          type="button"
+          class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
+          onclick={() => navigator.clipboard.writeText(job.id ?? '')}
+          title="Copy job ID"
+        >{job.id} <Copy class="size-2.5 shrink-0" /></button>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         {#if hasPermission(data.user, 'agile_jobs', 'update')}

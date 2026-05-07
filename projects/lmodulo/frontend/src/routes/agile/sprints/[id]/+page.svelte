@@ -258,10 +258,13 @@
                 onclick={() => goto(`/agile/jobs/${job.id}`)}
               >
                 <td class="px-4 py-2.5 font-medium">
-                  {job.title}
-                  {#if job.blocked}
-                    <span class="ml-1 badge badge-error badge-soft text-[9px]">Blocked</span>
-                  {/if}
+                  <span class="flex items-center gap-1">
+                    {job.title}
+                    {#if job.blocked}
+                      <span class="badge badge-error badge-soft text-[9px]">Blocked</span>
+                    {/if}
+                  </span>
+                  <span class="font-mono text-[10px] opacity-30 select-all">{job.id}</span>
                 </td>
                 <td class="px-4 py-2.5">
                   <span class="badge badge-ghost text-xs">{job.category}</span>
