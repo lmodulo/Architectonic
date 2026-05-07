@@ -10,7 +10,7 @@
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
-  import { connect, disconnect } from '$lib/stores/notifications.svelte';
+  import { connect, disconnect, getUnreadCount } from '$lib/stores/notifications.svelte';
   import { brand } from '$lib/config/logo';
   import { APP_THEME } from '$lib/config/theme';
   import type { Snippet } from 'svelte';
@@ -159,6 +159,8 @@
               {#if !entry.permission || hasPermission(data.user, entry.permission.resource, entry.permission.action)}
                 {@const Icon = entry.icon}
                 {@const isMessages = entry.href === '/messages'}
+                {@const isNotifications = entry.href === '/notifications'}
+                {@const notifCount = getUnreadCount()}
                 <li>
                   <a
                     href={entry.href}
@@ -172,10 +174,18 @@
                           {unreadCount > 99 ? '99+' : unreadCount}
                         </span>
                       {/if}
+                      {#if isNotifications && notifCount > 0}
+                        <span class="bg-error absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
+                          {notifCount > 99 ? '99+' : notifCount}
+                        </span>
+                      {/if}
                     </span>
                     <span class="text-sm flex-1">{entry.label}</span>
                     {#if isMessages && unreadCount > 0}
                       <span class="badge badge-error badge-xs">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                    {/if}
+                    {#if isNotifications && notifCount > 0}
+                      <span class="badge badge-error badge-xs">{notifCount > 99 ? '99+' : notifCount}</span>
                     {/if}
                   </a>
                 </li>

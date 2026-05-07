@@ -1,0 +1,95 @@
+services:
+
+  # ── API (Fastify) ──────────────────────────────────────────────────────────
+  - type: web
+    name: lmodulo-api
+    env: docker
+    region: oregon
+    plan: free
+    rootDir: projects/lmodulo
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    healthCheckPath: /health
+    disk:
+      name: uploads
+      mountPath: /app/uploads
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 4000
+
+      # MongoDB Atlas connection string (include db name, e.g. mongodb+srv://user:pass@cluster.mongodb.net/appdb)
+      - key: MONGO_URI
+        sync: false
+
+      # Auto-generated 32-byte hex secret — never rotate unless invalidating all sessions
+      - key: SESSION_SECRET
+        generateValue: true
+
+      # Set to your frontend Render URL after first deploy, e.g. https://lmodulo-frontend.onrender.com
+      - key: FRONTEND_ORIGIN
+        sync: false
+
+      # Set to same value as FRONTEND_ORIGIN
+      - key: APP_URL
+        sync: false
+
+      # ── S3 storage (replaces MinIO) ──
+      - key: STORAGE_PROVIDER
+        value: s3
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_BUCKET
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      # e.g. https://s3.us-east-1.amazonaws.com
+      - key: S3_ENDPOINT
+        sync: false
+      # e.g. https://<bucket>.s3.us-east-1.amazonaws.com
+      - key: S3_PUBLIC_URL
+        sync: false
+
+      # ── SMTP (Resend / Postmark / Mailgun / etc.) ──
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      # e.g. App Name <noreply@example.com>
+      - key: SMTP_FROM
+        sync: false
+
+      # Optional
+      - key: APP_NAME
+        sync: false
+
+  # ── Frontend (SvelteKit / adapter-node) ───────────────────────────────────
+  - type: web
+    name: lmodulo-frontend
+    env: docker
+    region: oregon
+    plan: free
+    rootDir: projects/lmodulo
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Must exactly match this service's public URL (used by adapter-node for CSRF)
+      - key: ORIGIN
+        sync: false
+
+      # Public URL of the API service, e.g. https://lmodulo-api.onrender.com
+      - key: API_URL
+        sync: false
