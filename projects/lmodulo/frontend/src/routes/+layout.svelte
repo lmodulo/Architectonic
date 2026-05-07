@@ -166,7 +166,7 @@
                 </button>
               </li>
             {/if}
-            <li class="menu-title border-t border-base-300 my-0.5 pt-0.5"></li>
+            <li class="my-0.5 border-t border-base-300"></li>
             <li>
               <button
                 class="text-error"

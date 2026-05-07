@@ -6,14 +6,67 @@
 /* Force class-based dark mode — overrides Tailwind v4's default @media query */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Custom project theme */
-@import "../lmodulo-theme.css";
-
 body {
   font-family: var(--font-sans);
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+}
+
+/* ── Theme overrides ──────────────────────────────────────────────────────
+   Override DaisyUI luxury-theme CSS variables here.
+   Full variable list: https://daisyui.com/docs/themes/
+   ─────────────────────────────────────────────────────────────────────── */
+[data-theme='luxury'] {
+  /* Base surfaces */
+  --color-base-100: oklch(8% 0.008 268deg);
+  --color-base-200: oklch(13% 0.005 274deg);
+  --color-base-300: oklch(28.309% 0.02593 312.267);
+  --color-base-content: oklch(68.788% 0.03375 312.661);
+
+  /* Primary — vivid purple */
+  --color-primary: oklch(37.084% 0.14617 302.349);
+  --color-primary-content: oklch(81.519% 0.03114 313.896);
+
+  /* Secondary — amber/orange */
+  --color-secondary: oklch(59% 0.17 57deg);
+  --color-secondary-content: oklch(89.06% 0.06729 55.031);
+
+  /* Accent — mauve/rose */
+  --color-accent: oklch(62% 0.14 310deg);
+  --color-accent-content: oklch(96.455% 0.02373 312.963);
+
+  /* Neutral */
+  --color-neutral: oklch(30.08% 0.00766 308.028);
+  --color-neutral-content: oklch(78.48% 0.01078 310.849);
+
+  /* Info */
+  --color-info: oklch(62% 0.14 310deg);
+  --color-info-content: oklch(97% 0.03 326deg);
+
+  /* Success — teal/mint */
+  --color-success: oklch(79% 0.14 175deg);
+  --color-success-content: oklch(25% 0.05 185deg);
+
+  /* Warning — amber/gold */
+  --color-warning: oklch(81% 0.16 77deg);
+  --color-warning-content: oklch(25% 0.09 29deg);
+
+  /* Error — red/coral */
+  --color-error: oklch(62% 0.23 29deg);
+  --color-error-content: oklch(93% 0.04 16deg);
+
+  /* Shape */
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 1;
+
+  /* Typography */
+  --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-heading: 'Space Grotesk', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 

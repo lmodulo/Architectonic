@@ -232,6 +232,8 @@
   <title>Architectonic — Full-Stack SvelteKit Scaffold</title>
 </svelte:head>
 
+<div class="lp-root">
+
 <!-- ── Fixed backgrounds ───────────────────────────────────────────── -->
 <canvas bind:this={latticeCanvas} class="lattice-canvas" aria-hidden="true"></canvas>
 <div class="lattice-vignette" aria-hidden="true"></div>
@@ -454,9 +456,11 @@
   </div>
 </footer>
 
+</div><!-- /.lp-root -->
+
 <style>
   /* ── Tokens ──────────────────────────────────────────────────────── */
-  :root {
+  .lp-root {
     --lp-bg-solid:   oklch(8% 0.006 265deg);
     --lp-alt-solid:  oklch(10% 0.006 265deg);
     --lp-bg:         color-mix(in oklch, oklch(8%  0.006 265deg) 86%, transparent);
@@ -467,6 +471,10 @@
     --lp-muted:      rgba(230, 226, 216, 0.48);
     --lp-dim:        rgba(230, 226, 216, 0.22);
     --lp-card-bg:    rgba(255, 255, 255, 0.03);
+
+    background: var(--lp-bg-solid);
+    min-height: 100dvh;
+    color: var(--lp-text);
   }
 
   /* ── Lattice canvas ──────────────────────────────────────────────── */

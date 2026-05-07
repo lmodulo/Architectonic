@@ -15,13 +15,13 @@
 <AuthShell title="Sign In" subtitle="Welcome back to lmodulo." brandName={data.brandName} brandLogo={data.brandLogo}>
 
   {#if resetSuccess}
-    <div class="auth-alert auth-alert--success">
+    <div role="alert" class="alert alert-success text-sm">
       Password reset successfully. Sign in with your new password.
     </div>
   {/if}
 
   {#if form?.error}
-    <div class="auth-alert auth-alert--error">{form.error}</div>
+    <div role="alert" class="alert alert-error text-sm">{form.error}</div>
   {/if}
 
   <form method="POST" use:enhance class="space-y-4">
@@ -55,43 +55,10 @@
     </button>
   </form>
 
-  <div class="auth-links">
+  <div class="flex items-center justify-center gap-2.5 text-[0.8125rem] opacity-40 pt-1">
     <a href="/forgot-password" class="link link-primary">Forgot password?</a>
-    <span class="auth-link-sep">·</span>
+    <span>·</span>
     <a href="/register" class="link link-primary">Create account</a>
   </div>
 
 </AuthShell>
-
-<style>
-  .auth-alert {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    border: 1px solid transparent;
-  }
-
-  .auth-alert--success {
-    background: rgba(100, 200, 150, 0.08);
-    border-color: rgba(100, 200, 150, 0.2);
-    color: var(--color-success);
-  }
-
-  .auth-alert--error {
-    background: rgba(220, 80, 60, 0.08);
-    border-color: rgba(220, 80, 60, 0.2);
-    color: var(--color-error);
-  }
-
-  .auth-links {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.625rem;
-    font-size: 0.8125rem;
-    color: rgba(230, 226, 216, 0.4);
-    padding-top: 0.25rem;
-  }
-
-  .auth-link-sep { opacity: 0.4; }
-</style>
