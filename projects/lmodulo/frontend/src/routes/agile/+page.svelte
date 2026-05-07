@@ -7,6 +7,7 @@
   import { hasPermission } from '$lib/permissions';
   import MilestoneCard from '$lib/components/agile/MilestoneCard.svelte';
   import RoleQuickView from '$lib/components/agile/RoleQuickView.svelte';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
   import {
     STATUS_COLOR, PRIORITY_COLOR, MILESTONE_STATUSES, PRIORITIES,
     fmtEffort, completionColor,
@@ -227,15 +228,15 @@
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     role="dialog" aria-modal="true" aria-label="New Milestone">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-lg shadow-xl mx-4">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Milestone</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
           <X class="size-5" />
         </button>
       </header>
 
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if saveError}
           <aside class="alert alert-error p-3 rounded text-sm">{saveError}</aside>
         {/if}
@@ -248,6 +249,11 @@
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ms-goal">Strategic Goal</label>
           <input id="ms-goal" type="text" class="input w-full" placeholder="What business outcome does this achieve?" bind:value={form.strategicGoal} />
+        </div>
+
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={form.description} placeholder="Describe this milestone…" />
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -281,7 +287,7 @@
         </div>
       </div>
 
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (modalOpen = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={saving} onclick={saveMilestone}>
           {saving ? 'Creating…' : 'Create Milestone'}

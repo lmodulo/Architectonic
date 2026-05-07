@@ -7,8 +7,9 @@
   import { hasPermission } from '$lib/permissions';
   import KanbanBoard from '$lib/components/agile/KanbanBoard.svelte';
   import BurndownChart from '$lib/components/agile/BurndownChart.svelte';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
   import {
-    STATUS_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES,
+    STATUS_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES, SPRINT_STATUSES,
     fmtDateRange, fmtEffort, toDateInput, completionColor,
     type AgileSprint, type AgileJob, type AgileTask,
   } from '$lib/utils/agile';
@@ -56,6 +57,36 @@
       jobModal = false;
     } catch { jobError = 'Network error'; }
     finally { savingJob = false; }
+  }
+
+  // ── Edit sprint ────────────────────────────────────────────────────
+  let sprintEditing   = $state(false);
+  let sprintEditSaving = $state(false);
+  let sprintEditError  = $state('');
+  let sprintEditForm   = $state({
+    title:       sprint.title,
+    description: sprint.description ?? '',
+    capacity:    sprint.capacity ?? 0,
+    status:      sprint.status,
+    startDate:   toDateInput(sprint.startDate),
+    endDate:     toDateInput(sprint.endDate),
+  });
+
+  async function saveSprintEdit() {
+    if (!sprintEditForm.title.trim()) { sprintEditError = 'Title is required'; return; }
+    sprintEditSaving = true; sprintEditError = '';
+    try {
+      const res = await fetch(`/api/agile/sprints/${sprint.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(sprintEditForm),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { sprintEditError = (d as any).message ?? 'Save failed'; return; }
+      sprint = { ...sprint, ...sprintEditForm };
+      sprintEditing = false;
+    } catch { sprintEditError = 'Network error'; }
+    finally { sprintEditSaving = false; }
   }
 
   async function handleStatusChange(taskId: string, newStatus: string) {
@@ -117,8 +148,21 @@
         <h1 class="text-2xl font-bold">{sprint.title}</h1>
         <p class="text-xs opacity-50">{fmtDateRange(sprint.startDate ?? null, sprint.endDate ?? null)}</p>
       </div>
+      {#if hasPermission(data.user, 'agile_sprints', 'update')}
+        <button class="btn btn-ghost btn-sm shrink-0" onclick={() => {
+          sprintEditForm = { title: sprint.title, description: sprint.description ?? '', capacity: sprint.capacity ?? 0, status: sprint.status, startDate: toDateInput(sprint.startDate), endDate: toDateInput(sprint.endDate) };
+          sprintEditing = true;
+        }}>Edit</button>
+      {/if}
     </div>
   </div>
+
+  <!-- Description -->
+  {#if sprint.description?.replace(/<[^>]+>/g, '').trim()}
+    <div class="prose prose-sm dark:prose-invert max-w-none opacity-80">
+      {@html sprint.description}
+    </div>
+  {/if}
 
   <!-- Stats row -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -292,18 +336,22 @@
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     role="dialog" aria-modal="true">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-lg shadow-xl mx-4">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Job</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobModal = false)}><X class="size-5"/></button>
       </header>
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if jobError}
           <aside class="alert alert-error p-3 rounded text-sm">{jobError}</aside>
         {/if}
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="jb-title">Title *</label>
           <input id="jb-title" type="text" class="input w-full" placeholder="Job title" bind:value={jobForm.title} />
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={jobForm.description} placeholder="Describe this job…" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
@@ -330,10 +378,66 @@
           </div>
         </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (jobModal = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={savingJob} onclick={saveJob}>
           {savingJob ? 'Creating…' : 'Create Job'}
+        </button>
+      </footer>
+    </div>
+  </div>
+{/if}
+
+<!-- ── Edit Sprint Modal ──────────────────────────────────────────── -->
+{#if sprintEditing}
+  <div transition:fade={{ duration: 200 }}
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    role="dialog" aria-modal="true">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
+        <h2 class="text-lg font-semibold">Edit Sprint</h2>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintEditing = false)}><X class="size-5"/></button>
+      </header>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        {#if sprintEditError}
+          <aside class="alert alert-error p-3 rounded text-sm">{sprintEditError}</aside>
+        {/if}
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="se-title">Title *</label>
+          <input id="se-title" type="text" class="input w-full" bind:value={sprintEditForm.title} />
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={sprintEditForm.description} placeholder="Describe this sprint's goals…" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
+            <select class="select w-full" bind:value={sprintEditForm.status}>
+              {#each SPRINT_STATUSES as s}<option value={s}>{s}</option>{/each}
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="se-cap">Capacity (hrs)</label>
+            <input id="se-cap" type="number" min="0" class="input w-full" bind:value={sprintEditForm.capacity} />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="se-start">Start Date</label>
+            <input id="se-start" type="date" class="input w-full" bind:value={sprintEditForm.startDate} />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="se-end">End Date</label>
+            <input id="se-end" type="date" class="input w-full" bind:value={sprintEditForm.endDate} min={sprintEditForm.startDate} />
+          </div>
+        </div>
+      </div>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
+        <button type="button" class="btn btn-ghost" onclick={() => (sprintEditing = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={sprintEditSaving} onclick={saveSprintEdit}>
+          {sprintEditSaving ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
     </div>

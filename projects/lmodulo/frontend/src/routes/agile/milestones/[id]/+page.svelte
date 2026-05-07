@@ -5,6 +5,7 @@
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
   import {
     STATUS_COLOR, PRIORITY_COLOR, SPRINT_STATUSES, MILESTONE_STATUSES, PRIORITIES,
     fmtDateRange, fmtDate, fmtEffort, toDateInput, completionColor,
@@ -101,6 +102,13 @@
     </div>
   </div>
 
+  <!-- Description -->
+  {#if milestone.description?.replace(/<[^>]+>/g, '').trim()}
+    <div class="prose prose-sm dark:prose-invert max-w-none opacity-80">
+      {@html milestone.description}
+    </div>
+  {/if}
+
   <!-- Progress + stats grid -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 col-span-2 space-y-2">
@@ -195,18 +203,22 @@
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     role="dialog" aria-modal="true">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-lg shadow-xl mx-4">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Sprint</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintModal = false)}><X class="size-5"/></button>
       </header>
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if sprintError}
           <aside class="alert alert-error p-3 rounded text-sm">{sprintError}</aside>
         {/if}
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sp-title">Title *</label>
           <input id="sp-title" type="text" class="input w-full" placeholder="Sprint title" bind:value={sprintForm.title} />
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={sprintForm.description} placeholder="Describe this sprint's goals…" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
@@ -231,7 +243,7 @@
           </div>
         </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (sprintModal = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={savingSprint} onclick={saveSprint}>
           {savingSprint ? 'Creating…' : 'Create Sprint'}
@@ -247,12 +259,12 @@
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
     role="dialog" aria-modal="true">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-lg shadow-xl mx-4">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Milestone</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editing = false)}><X class="size-5"/></button>
       </header>
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editError}
           <aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>
         {/if}
@@ -263,6 +275,10 @@
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="em-goal">Strategic Goal</label>
           <input id="em-goal" type="text" class="input w-full" bind:value={editForm.strategicGoal} />
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={editForm.description} placeholder="Describe this milestone…" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
@@ -289,7 +305,7 @@
           </div>
         </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (editing = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={editSaving} onclick={saveEdit}>
           {editSaving ? 'Saving…' : 'Save Changes'}

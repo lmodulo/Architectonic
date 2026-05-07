@@ -9,8 +9,9 @@
   import EffortBar from '$lib/components/agile/EffortBar.svelte';
   import CommentFeed from '$lib/components/agile/CommentFeed.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
   import {
-    STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, TASK_STATUSES, PRIORITIES,
+    STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES,
     fmtEffort, fmtDate, toDateInput, completionColor,
     type AgileJob, type AgileTask,
   } from '$lib/utils/agile';
@@ -29,6 +30,37 @@
     if (!id) return 'Unassigned';
     const u = users.find((u: any) => u.id === id);
     return u ? (u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username) : id;
+  }
+
+  // ── Edit job modal ─────────────────────────────────────────────────
+  let jobEditing   = $state(false);
+  let jobEditSaving = $state(false);
+  let jobEditError  = $state('');
+  let jobEditForm   = $state({
+    title:       job.title,
+    description: job.description ?? '',
+    category:    job.category,
+    blocked:     job.blocked,
+    status:      job.status,
+    startDate:   toDateInput(job.startDate),
+    endDate:     toDateInput(job.endDate),
+  });
+
+  async function saveJobEdit() {
+    if (!jobEditForm.title.trim()) { jobEditError = 'Title is required'; return; }
+    jobEditSaving = true; jobEditError = '';
+    try {
+      const res = await fetch(`/api/agile/jobs/${job.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(jobEditForm),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { jobEditError = (d as any).message ?? 'Save failed'; return; }
+      job = { ...job, ...jobEditForm };
+      jobEditing = false;
+    } catch { jobEditError = 'Network error'; }
+    finally { jobEditSaving = false; }
   }
 
   // ── New task modal ─────────────────────────────────────────────────
@@ -190,14 +222,27 @@
         </div>
         <h1 class="text-2xl font-bold">{job.title}</h1>
       </div>
-      <div class="flex items-center gap-2 shrink-0 text-right">
-        <div>
+      <div class="flex items-center gap-2 shrink-0">
+        {#if hasPermission(data.user, 'agile_jobs', 'update')}
+          <button class="btn btn-ghost btn-sm" onclick={() => {
+            jobEditForm = { title: job.title, description: job.description ?? '', category: job.category, blocked: job.blocked, status: job.status, startDate: toDateInput(job.startDate), endDate: toDateInput(job.endDate) };
+            jobEditing = true;
+          }}>Edit</button>
+        {/if}
+        <div class="text-right">
           <p class="text-sm font-bold" style="color:{barClr}">{pct}%</p>
           <p class="text-xs opacity-50">complete</p>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Description -->
+  {#if job.description?.replace(/<[^>]+>/g, '').trim()}
+    <div class="prose prose-sm dark:prose-invert max-w-none opacity-80">
+      {@html job.description}
+    </div>
+  {/if}
 
   <!-- Effort bar -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-3">
@@ -338,8 +383,8 @@
           <input id="et-title" type="text" class="input w-full" placeholder="Task title" bind:value={editForm.title} />
         </div>
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="et-desc">Description</label>
-          <textarea id="et-desc" class="textarea w-full" rows="2" placeholder="Optional details…" bind:value={editForm.description}></textarea>
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={editForm.description} placeholder="Optional details…" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
@@ -411,6 +456,10 @@
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="tk-title">Title *</label>
           <input id="tk-title" type="text" class="input w-full" placeholder="Task title" bind:value={taskForm.title} />
         </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={taskForm.description} placeholder="Optional details…" />
+        </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
             <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Assigned To</label>
@@ -450,6 +499,68 @@
         <button type="button" class="btn btn-ghost" onclick={() => (taskModal = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={savingTask} onclick={saveTask}>
           {savingTask ? 'Creating…' : 'Create Task'}
+        </button>
+      </footer>
+    </div>
+  </div>
+{/if}
+
+<!-- ── Edit Job Modal ─────────────────────────────────────────────── -->
+{#if jobEditing}
+  <div transition:fade={{ duration: 200 }}
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    role="dialog" aria-modal="true" aria-label="Edit job">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
+        <h2 class="text-lg font-semibold">Edit Job</h2>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobEditing = false)}><X class="size-5"/></button>
+      </header>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        {#if jobEditError}
+          <aside class="alert alert-error p-3 rounded text-sm">{jobEditError}</aside>
+        {/if}
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="je-title">Title *</label>
+          <input id="je-title" type="text" class="input w-full" bind:value={jobEditForm.title} />
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={jobEditForm.description} placeholder="Describe this job…" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Category</label>
+            <select class="select w-full" bind:value={jobEditForm.category}>
+              {#each JOB_CATEGORIES as c}<option value={c}>{c}</option>{/each}
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
+            <select class="select w-full" bind:value={jobEditForm.status}>
+              {#each JOB_STATUSES as s}<option value={s}>{s}</option>{/each}
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="je-start">Start Date</label>
+            <input id="je-start" type="date" class="input w-full" bind:value={jobEditForm.startDate} />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="je-end">End Date</label>
+            <input id="je-end" type="date" class="input w-full" bind:value={jobEditForm.endDate} min={jobEditForm.startDate} />
+          </div>
+        </div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" class="checkbox checkbox-sm" bind:checked={jobEditForm.blocked} />
+          <span class="text-sm">Mark as Blocked</span>
+        </label>
+      </div>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
+        <button type="button" class="btn btn-ghost" onclick={() => (jobEditing = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={jobEditSaving} onclick={saveJobEdit}>
+          {jobEditSaving ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
     </div>
