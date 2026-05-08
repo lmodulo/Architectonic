@@ -181,7 +181,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
       title, description, category, blocked, dependencyIds,
-      status, startDate, endDate,
+      status, startDate, endDate, teamId,
     } = req.body as Record<string, unknown>;
 
     if (status !== undefined && !VALID_STATUS.includes(status as typeof VALID_STATUS[number]))
@@ -225,6 +225,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
     if (dependencyIds !== undefined) {
       $set.dependencyIds = (dependencyIds as string[]).map(id => parseOid(id, app));
     }
+    if (teamId !== undefined) $set.teamId = teamId ? parseOid(teamId as string, app) : null;
 
     const result = await db.collection(COL).updateOne({ _id: oid }, { $set });
     if (result.matchedCount === 0) return reply.notFound('Job not found');

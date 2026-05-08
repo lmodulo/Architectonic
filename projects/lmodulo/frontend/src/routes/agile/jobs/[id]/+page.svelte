@@ -24,6 +24,8 @@
   let jobAttachments  = $state<AgileAttachment[]>(data.job.attachments ?? []);
   const users       = $derived((data.users ?? []) as any[]);
   const sprintJobs  = $derived((data.sprintJobs ?? []) as AgileJob[]);
+  const teams       = $derived((data.teams ?? []) as { id: string; name: string }[]);
+  const jobTeam     = $derived(teams.find(t => t.id === (job as any).teamId));
 
   const pct    = $derived(Math.round(job.completionPct ?? 0));
   const barClr = $derived(completionColor(pct));
@@ -46,6 +48,7 @@
     status:      job.status,
     startDate:   toDateInput(job.startDate),
     endDate:     toDateInput(job.endDate),
+    teamId:      (job as any).teamId ?? '',
   });
 
   async function saveJobEdit() {
@@ -224,6 +227,9 @@
               <AlertCircle class="size-3.5" /> Blocked
             </span>
           {/if}
+          {#if jobTeam}
+            <span class="badge badge-ghost text-xs">{jobTeam.name}</span>
+          {/if}
         </div>
         <h1 class="text-2xl font-bold">{job.title}</h1>
         <button
@@ -236,7 +242,7 @@
       <div class="flex items-center gap-2 shrink-0">
         {#if hasPermission(data.user, 'agile_jobs', 'update')}
           <button class="btn btn-ghost btn-sm" onclick={() => {
-            jobEditForm = { title: job.title, description: job.description ?? '', category: job.category, blocked: job.blocked, status: job.status, startDate: toDateInput(job.startDate), endDate: toDateInput(job.endDate) };
+            jobEditForm = { title: job.title, description: job.description ?? '', category: job.category, blocked: job.blocked, status: job.status, startDate: toDateInput(job.startDate), endDate: toDateInput(job.endDate), teamId: (job as any).teamId ?? '' };
             jobEditing = true;
           }}>Edit</button>
         {/if}
@@ -589,6 +595,15 @@
             <input id="je-end" type="date" class="input w-full" bind:value={jobEditForm.endDate} min={jobEditForm.startDate} />
           </div>
         </div>
+        {#if teams.length > 0}
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Team</label>
+            <select class="select w-full" bind:value={jobEditForm.teamId}>
+              <option value="">— None —</option>
+              {#each teams as team}<option value={team.id}>{team.name}</option>{/each}
+            </select>
+          </div>
+        {/if}
         <label class="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" class="checkbox checkbox-sm" bind:checked={jobEditForm.blocked} />
           <span class="text-sm">Mark as Blocked</span>

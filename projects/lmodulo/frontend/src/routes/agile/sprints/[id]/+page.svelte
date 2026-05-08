@@ -62,6 +62,9 @@
   }
 
   // ── Edit sprint ────────────────────────────────────────────────────
+  const teams = $derived((data.teams ?? []) as { id: string; name: string }[]);
+  const sprintTeam = $derived(teams.find(t => t.id === (sprint as any).teamId));
+
   let sprintEditing   = $state(false);
   let sprintEditSaving = $state(false);
   let sprintEditError  = $state('');
@@ -72,6 +75,7 @@
     status:      sprint.status,
     startDate:   toDateInput(sprint.startDate),
     endDate:     toDateInput(sprint.endDate),
+    teamId:      (sprint as any).teamId ?? '',
   });
 
   async function saveSprintEdit() {
@@ -146,13 +150,16 @@
         <div class="flex items-center gap-2">
           <span class="badge badge-ghost text-xs font-mono">Sprint {sprint.sprintNumber}</span>
           <span class="badge text-xs {STATUS_COLOR[sprint.status] ?? 'badge-ghost'}">{sprint.status}</span>
+          {#if sprintTeam}
+            <span class="badge badge-ghost text-xs">{sprintTeam.name}</span>
+          {/if}
         </div>
         <h1 class="text-2xl font-bold">{sprint.title}</h1>
         <p class="text-xs opacity-50">{fmtDateRange(sprint.startDate ?? null, sprint.endDate ?? null)}</p>
       </div>
       {#if hasPermission(data.user, 'agile_sprints', 'update')}
         <button class="btn btn-ghost btn-sm shrink-0" onclick={() => {
-          sprintEditForm = { title: sprint.title, description: sprint.description ?? '', capacity: sprint.capacity ?? 0, status: sprint.status, startDate: toDateInput(sprint.startDate), endDate: toDateInput(sprint.endDate) };
+          sprintEditForm = { title: sprint.title, description: sprint.description ?? '', capacity: sprint.capacity ?? 0, status: sprint.status, startDate: toDateInput(sprint.startDate), endDate: toDateInput(sprint.endDate), teamId: (sprint as any).teamId ?? '' };
           sprintEditing = true;
         }}>Edit</button>
       {/if}
@@ -451,6 +458,15 @@
             <input id="se-end" type="date" class="input w-full" bind:value={sprintEditForm.endDate} min={sprintEditForm.startDate} />
           </div>
         </div>
+        {#if teams.length > 0}
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Team</label>
+            <select class="select w-full" bind:value={sprintEditForm.teamId}>
+              <option value="">— None —</option>
+              {#each teams as team}<option value={team.id}>{team.name}</option>{/each}
+            </select>
+          </div>
+        {/if}
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (sprintEditing = false)}>Cancel</button>

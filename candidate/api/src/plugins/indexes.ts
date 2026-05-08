@@ -57,5 +57,9 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('events').createIndex({ startDate: 1 });
     await db.collection('events').createIndex({ endDate: 1 });
     await db.collection('events').createIndex({ title: 'text' });
+
+    // teams
+    await db.collection('teams').createIndex({ name: 1 }, { unique: true });
+    await db.collection('teams').createIndex({ members: 1 });
   });
 }

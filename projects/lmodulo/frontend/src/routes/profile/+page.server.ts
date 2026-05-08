@@ -4,8 +4,15 @@ import type { PageServerLoad, Actions } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
-export const load: PageServerLoad = ({ locals }) => {
-  return { user: locals.user };
+export const load: PageServerLoad = async ({ locals, cookies }) => {
+  const sessionCookie = cookies.get('session');
+  const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
+  let myTeams: { id: string; name: string; description: string; memberCount: number }[] = [];
+  try {
+    const res = await fetch(`${API_URL}/teams/mine`, { headers });
+    if (res.ok) myTeams = await res.json();
+  } catch { /* non-fatal */ }
+  return { user: locals.user, myTeams };
 };
 
 export const actions: Actions = {

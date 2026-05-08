@@ -183,7 +183,7 @@ export default async function sprintsRoutes(app: FastifyInstance) {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
-      title, description, capacity, status, startDate, endDate,
+      title, description, capacity, status, startDate, endDate, teamId,
     } = req.body as Record<string, unknown>;
 
     if (status !== undefined && !VALID_STATUS.includes(status as typeof VALID_STATUS[number]))
@@ -209,6 +209,7 @@ export default async function sprintsRoutes(app: FastifyInstance) {
     if (status      !== undefined) $set.status      = String(status);
     if (startDate   !== undefined) $set.startDate   = new Date(startDate as string);
     if (endDate     !== undefined) $set.endDate     = new Date(endDate as string);
+    if (teamId      !== undefined) $set.teamId      = teamId ? parseOid(teamId as string, app) : null;
 
     const result = await db.collection(COL).updateOne({ _id: oid }, { $set });
     if (result.matchedCount === 0) return reply.notFound('Sprint not found');

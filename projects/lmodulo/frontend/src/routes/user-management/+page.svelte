@@ -1,7 +1,9 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Pencil, Trash2, X, UserPlus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { page } from '$app/state';
+  import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
   import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
@@ -9,17 +11,45 @@
   let { data }: { data: PageData } = $props();
 
   type User = typeof data.users[0];
+  type TeamSummary = typeof data.teams[0];
+  type Member = { id: string; username: string; firstName: string; lastName: string; avatarUrl: string; avatarColor: string; email: string };
+  type TeamDetail = { id: string; name: string; description: string; members: Member[] };
 
-  // Active tab
-  let activeTab = $state<'users' | 'roles'>(data.canReadUsers ? 'users' : 'roles');
+  const VALID_TABS = ['users', 'roles', 'teams'] as const;
+  type Tab = typeof VALID_TABS[number];
+
+  const firstTab = (data.canReadUsers ? 'users' : data.canReadRoles ? 'roles' : 'teams') as Tab;
+  const activeTab = $derived.by<Tab>(() => {
+    const p = page.url.searchParams.get('tab') as Tab | null;
+    return p && VALID_TABS.includes(p) ? p : firstTab;
+  });
+
+  function setTab(tab: Tab) {
+    goto(`?tab=${tab}`, { replaceState: true, noScroll: true, keepFocus: true });
+  }
+
+  const PAGE_SIZE = 20;
+
+  // ─── Pagination helper ────────────────────────────────────────────────────────
+
+  function paginationPages(total: number, pageSize: number, cur: number) {
+    const last = Math.ceil(total / pageSize);
+    const pages: Array<{ type: 'page'; value: number } | { type: 'ellipsis'; index: number }> = [];
+    for (let i = 1; i <= last; i++) {
+      if (i === 1 || i === last || Math.abs(i - cur) <= 1) {
+        pages.push({ type: 'page', value: i });
+      } else if (pages[pages.length - 1]?.type === 'page') {
+        pages.push({ type: 'ellipsis', index: pages.length });
+      }
+    }
+    return pages;
+  }
 
   // ─── Users tab ───────────────────────────────────────────────────────────────
 
   let users = $state([...data.users]);
   let query = $state('');
   let currentPage = $state(1);
-
-  const PAGE_SIZE = 20;
 
   const filtered = $derived(
     query.trim()
@@ -37,7 +67,6 @@
 
   $effect(() => { query; currentPage = 1; });
 
-  // --- New User modal ---
   let newUserOpen = $state(false);
   let newForm     = $state({ firstName: '', lastName: '', username: '', email: '', password: '', confirmPassword: '' });
   let creating    = $state(false);
@@ -54,113 +83,69 @@
       newError = 'Username, email, and password are required';
       return;
     }
-    if (newForm.password !== newForm.confirmPassword) {
-      newError = 'Passwords do not match';
-      return;
-    }
-    if (newForm.password.length < 8) {
-      newError = 'Password must be at least 8 characters';
-      return;
-    }
-    creating = true;
-    newError = '';
+    if (newForm.password !== newForm.confirmPassword) { newError = 'Passwords do not match'; return; }
+    if (newForm.password.length < 8) { newError = 'Password must be at least 8 characters'; return; }
+    creating = true; newError = '';
     try {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          firstName: newForm.firstName,
-          lastName:  newForm.lastName,
-          username:  newForm.username,
-          email:     newForm.email,
-          password:  newForm.password,
-        })
+        body: JSON.stringify({ firstName: newForm.firstName, lastName: newForm.lastName, username: newForm.username, email: newForm.email, password: newForm.password })
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        newError = body.message ?? 'Create failed';
-        return;
-      }
+      if (!res.ok) { const body = await res.json().catch(() => ({})); newError = body.message ?? 'Create failed'; return; }
       const created = await res.json();
       users = [{ ...created, createdAt: created.createdAt ?? new Date().toISOString() }, ...users];
       newUserOpen = false;
-    } catch {
-      newError = 'Network error';
-    } finally {
-      creating = false;
-    }
+    } catch { newError = 'Network error'; }
+    finally { creating = false; }
   }
 
-  // --- Edit modal ---
   let editTarget = $state<User | null>(null);
   let editForm   = $state({ firstName: '', lastName: '', username: '', email: '' });
   let saving     = $state(false);
   let editError  = $state('');
 
   function openEdit(user: User) {
-    editForm   = { firstName: user.firstName ?? '', lastName: user.lastName ?? '', username: user.username, email: user.email };
-    editError  = '';
-    editTarget = user;
+    editForm = { firstName: user.firstName ?? '', lastName: user.lastName ?? '', username: user.username, email: user.email };
+    editError = ''; editTarget = user;
   }
 
   async function submitEdit() {
     if (!editTarget) return;
-    saving = true;
-    editError = '';
+    saving = true; editError = '';
     try {
       const res = await fetch(`/api/users/${editTarget.id}`, {
-        method: 'PATCH',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(editForm)
+        method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(editForm)
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        editError = body.message ?? 'Update failed';
-        return;
-      }
+      if (!res.ok) { const body = await res.json().catch(() => ({})); editError = body.message ?? 'Update failed'; return; }
       users = users.map(u => u.id === editTarget!.id ? { ...u, ...editForm } : u);
       editTarget = null;
-    } catch {
-      editError = 'Network error';
-    } finally {
-      saving = false;
-    }
+    } catch { editError = 'Network error'; }
+    finally { saving = false; }
   }
 
-  // --- Delete modal ---
   let deleteTarget = $state<User | null>(null);
   let deleting     = $state(false);
   let deleteError  = $state('');
 
-  function openDelete(user: User) {
-    deleteError  = '';
-    deleteTarget = user;
-  }
+  function openDelete(user: User) { deleteError = ''; deleteTarget = user; }
 
   async function confirmDelete() {
     if (!deleteTarget) return;
-    deleting = true;
-    deleteError = '';
+    deleting = true; deleteError = '';
     try {
       const res = await fetch(`/api/users/${deleteTarget.id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        deleteError = body.message ?? 'Delete failed';
-        return;
-      }
+      if (!res.ok) { const body = await res.json().catch(() => ({})); deleteError = body.message ?? 'Delete failed'; return; }
       users = users.filter(u => u.id !== deleteTarget!.id);
       deleteTarget = null;
-    } catch {
-      deleteError = 'Network error';
-    } finally {
-      deleting = false;
-    }
+    } catch { deleteError = 'Network error'; }
+    finally { deleting = false; }
   }
 
   // ─── Roles tab ───────────────────────────────────────────────────────────────
 
   const ACTIONS   = ['create', 'read', 'update', 'delete'] as const;
-  const RESOURCES = ['dashboard', 'users', 'roles'] as const;
+  const RESOURCES = ['dashboard', 'users', 'roles', 'teams'] as const;
 
   let openRoles = $state<Set<string>>(new Set([data.roles[0]?.name]));
 
@@ -174,9 +159,7 @@
 
   async function assignRole(userId: string, role: string) {
     const res = await fetch(`/api/users/${userId}/role`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ role })
+      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ role })
     });
     if (res.ok) {
       roleUsers = roleUsers.map(u => u.id === userId ? { ...u, role } : u);
@@ -184,38 +167,156 @@
     }
   }
 
-  let userQuery   = $state('');
-  let rolesPage   = $state(1);
+  let userQuery = $state('');
+  let rolesPage = $state(1);
 
   const filteredRoleUsers = $derived(
     userQuery.trim()
       ? roleUsers.filter((u) => {
           const q = userQuery.toLowerCase();
-          return u.username?.toLowerCase().includes(q)
-            || u.email?.toLowerCase().includes(q)
-            || u.firstName?.toLowerCase().includes(q)
-            || u.lastName?.toLowerCase().includes(q);
+          return u.username?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
+            || u.firstName?.toLowerCase().includes(q) || u.lastName?.toLowerCase().includes(q);
         })
       : roleUsers
   );
 
   const pageRoleUsers = $derived(filteredRoleUsers.slice((rolesPage - 1) * PAGE_SIZE, rolesPage * PAGE_SIZE));
-
   $effect(() => { userQuery; rolesPage = 1; });
 
-  // ─── Pagination helper ────────────────────────────────────────────────────────
+  // ─── Teams tab ───────────────────────────────────────────────────────────────
 
-  function paginationPages(total: number, pageSize: number, cur: number) {
-    const last = Math.ceil(total / pageSize);
-    const pages: Array<{ type: 'page'; value: number } | { type: 'ellipsis'; index: number }> = [];
-    for (let i = 1; i <= last; i++) {
-      if (i === 1 || i === last || Math.abs(i - cur) <= 1) {
-        pages.push({ type: 'page', value: i });
-      } else if (pages[pages.length - 1]?.type === 'page') {
-        pages.push({ type: 'ellipsis', index: pages.length });
-      }
+  let teams = $state([...data.teams]);
+  let teamQuery = $state('');
+  let teamsPage = $state(1);
+
+  const filteredTeams = $derived(
+    teamQuery.trim()
+      ? teams.filter(t => {
+          const q = teamQuery.toLowerCase();
+          return t.name?.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q);
+        })
+      : teams
+  );
+  const pageTeams = $derived(filteredTeams.slice((teamsPage - 1) * PAGE_SIZE, teamsPage * PAGE_SIZE));
+  $effect(() => { teamQuery; teamsPage = 1; });
+
+  let expandedTeamId = $state<string | null>(null);
+  let teamDetails    = $state(new Map<string, TeamDetail>());
+  let detailLoading  = $state(false);
+
+  async function toggleTeam(id: string) {
+    if (expandedTeamId === id) { expandedTeamId = null; return; }
+    expandedTeamId = id;
+    if (!teamDetails.has(id)) {
+      detailLoading = true;
+      try {
+        const res = await fetch(`/api/teams/${id}`);
+        if (res.ok) teamDetails = new Map(teamDetails).set(id, await res.json());
+      } catch { /* silent */ }
+      finally { detailLoading = false; }
     }
-    return pages;
+  }
+
+  let newTeamOpen  = $state(false);
+  let newTeamForm  = $state({ name: '', description: '' });
+  let creatingTeam = $state(false);
+  let newTeamError = $state('');
+
+  async function submitNewTeam() {
+    if (!newTeamForm.name.trim()) { newTeamError = 'Name is required'; return; }
+    creatingTeam = true; newTeamError = '';
+    try {
+      const res = await fetch('/api/teams', {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(newTeamForm)
+      });
+      if (!res.ok) { const b = await res.json().catch(() => ({})); newTeamError = b.message ?? 'Create failed'; return; }
+      teams = [await res.json(), ...teams];
+      newTeamOpen = false;
+    } catch { newTeamError = 'Network error'; }
+    finally { creatingTeam = false; }
+  }
+
+  let editTeam      = $state<TeamSummary | null>(null);
+  let editTeamForm  = $state({ name: '', description: '' });
+  let savingTeam    = $state(false);
+  let editTeamError = $state('');
+
+  function openEditTeam(team: TeamSummary) {
+    editTeamForm = { name: team.name, description: team.description ?? '' };
+    editTeamError = ''; editTeam = team;
+  }
+
+  async function submitEditTeam() {
+    if (!editTeam) return;
+    savingTeam = true; editTeamError = '';
+    try {
+      const res = await fetch(`/api/teams/${editTeam.id}`, {
+        method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(editTeamForm)
+      });
+      if (!res.ok) { const b = await res.json().catch(() => ({})); editTeamError = b.message ?? 'Update failed'; return; }
+      const id = editTeam.id;
+      teams = teams.map(t => t.id === id ? { ...t, ...editTeamForm } : t);
+      if (teamDetails.has(id)) {
+        const det = teamDetails.get(id)!;
+        teamDetails = new Map(teamDetails).set(id, { ...det, ...editTeamForm });
+      }
+      editTeam = null;
+    } catch { editTeamError = 'Network error'; }
+    finally { savingTeam = false; }
+  }
+
+  let deleteTeam      = $state<TeamSummary | null>(null);
+  let deletingTeam    = $state(false);
+  let deleteTeamError = $state('');
+
+  async function confirmDeleteTeam() {
+    if (!deleteTeam) return;
+    deletingTeam = true; deleteTeamError = '';
+    try {
+      const res = await fetch(`/api/teams/${deleteTeam.id}`, { method: 'DELETE' });
+      if (!res.ok && res.status !== 204) { const b = await res.json().catch(() => ({})); deleteTeamError = b.message ?? 'Delete failed'; return; }
+      const id = deleteTeam.id;
+      teams = teams.filter(t => t.id !== id);
+      if (expandedTeamId === id) expandedTeamId = null;
+      deleteTeam = null;
+    } catch { deleteTeamError = 'Network error'; }
+    finally { deletingTeam = false; }
+  }
+
+  let addMemberTeamId = $state<string | null>(null);
+  let selectedUserId  = $state('');
+  let addingMember    = $state(false);
+  let addMemberError  = $state('');
+
+  async function addMember(teamId: string, userId: string) {
+    addingMember = true; addMemberError = '';
+    try {
+      const res = await fetch(`/api/teams/${teamId}/members`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ userId })
+      });
+      if (!res.ok) { const b = await res.json().catch(() => ({})); addMemberError = b.message ?? 'Add failed'; return; }
+      const detRes = await fetch(`/api/teams/${teamId}`);
+      if (detRes.ok) {
+        const detail: TeamDetail = await detRes.json();
+        teamDetails = new Map(teamDetails).set(teamId, detail);
+        teams = teams.map(t => t.id === teamId ? { ...t, memberCount: detail.members.length } : t);
+      }
+      selectedUserId = ''; addMemberTeamId = null;
+    } catch { addMemberError = 'Network error'; }
+    finally { addingMember = false; }
+  }
+
+  async function removeMember(teamId: string, userId: string) {
+    try {
+      const res = await fetch(`/api/teams/${teamId}/members/${userId}`, { method: 'DELETE' });
+      if (!res.ok) return;
+      const det = teamDetails.get(teamId);
+      if (det) {
+        const next = { ...det, members: det.members.filter(m => m.id !== userId) };
+        teamDetails = new Map(teamDetails).set(teamId, next);
+        teams = teams.map(t => t.id === teamId ? { ...t, memberCount: next.members.length } : t);
+      }
+    } catch { /* silent */ }
   }
 </script>
 
@@ -233,48 +334,37 @@
   <!-- Tabs -->
   <div class="flex gap-1 border-b border-base-300">
     {#if data.canReadUsers}
-      <button
-        type="button"
+      <button type="button"
         class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'users' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
-        onclick={() => (activeTab = 'users')}
-      >
-        Users
-      </button>
+        onclick={() => setTab('users')}>Users</button>
     {/if}
     {#if data.canReadRoles}
-      <button
-        type="button"
+      <button type="button"
         class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'roles' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
-        onclick={() => (activeTab = 'roles')}
-      >
-        Roles
-      </button>
+        onclick={() => setTab('roles')}>Roles</button>
+    {/if}
+    {#if data.canReadTeams}
+      <button type="button"
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'teams' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
+        onclick={() => setTab('teams')}>Teams</button>
     {/if}
   </div>
 
   <!-- ── Users tab ─────────────────────────────────────────────────────────── -->
   {#if activeTab === 'users'}
     <div class="space-y-4">
-      <!-- Search + New User -->
       <div class="flex items-center gap-3">
         <label class="input flex items-center gap-2 flex-1">
           <Search class="size-4 shrink-0 opacity-50" />
-          <input
-            type="search"
-            placeholder="Search by name or email…"
-            class="grow"
-            bind:value={query}
-          />
+          <input type="search" placeholder="Search by name or email…" class="grow" bind:value={query} />
         </label>
         {#if hasPermission(data.user, 'users', 'create')}
           <button type="button" class="btn btn-primary shrink-0" onclick={openNewUser}>
-            <UserPlus class="size-4" />
-            <span>New User</span>
+            <UserPlus class="size-4" /> <span>New User</span>
           </button>
         {/if}
       </div>
 
-      <!-- Table -->
       <div class="card bg-base-200 overflow-hidden">
         <table class="w-full text-sm">
           <thead>
@@ -303,31 +393,17 @@
                   </div>
                 </td>
                 <td class="px-4 py-3 text-base-content/40">{user.email}</td>
-                <td class="px-4 py-3">
-                  <span class="badge badge-primary badge-soft text-xs">{user.role ?? 'viewer'}</span>
-                </td>
-                <td class="px-4 py-3 text-base-content/50">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </td>
+                <td class="px-4 py-3"><span class="badge badge-primary badge-soft text-xs">{user.role ?? 'viewer'}</span></td>
+                <td class="px-4 py-3 text-base-content/50">{new Date(user.createdAt).toLocaleDateString()}</td>
                 <td class="px-4 py-3">
                   <div class="flex items-center justify-end gap-1">
                     {#if hasPermission(data.user, 'users', 'update')}
-                      <button
-                        type="button"
-                        class="btn btn-ghost btn-xs btn-square"
-                        aria-label="Edit {user.username}"
-                        onclick={() => openEdit(user)}
-                      >
+                      <button type="button" class="btn btn-ghost btn-xs btn-square" aria-label="Edit {user.username}" onclick={() => openEdit(user)}>
                         <Pencil class="size-4" />
                       </button>
                     {/if}
                     {#if hasPermission(data.user, 'users', 'delete')}
-                      <button
-                        type="button"
-                        class="btn btn-ghost btn-xs btn-square text-error"
-                        aria-label="Delete {user.username}"
-                        onclick={() => openDelete(user)}
-                      >
+                      <button type="button" class="btn btn-ghost btn-xs btn-square text-error" aria-label="Delete {user.username}" onclick={() => openDelete(user)}>
                         <Trash2 class="size-4" />
                       </button>
                     {/if}
@@ -335,18 +411,14 @@
                 </td>
               </tr>
             {:else}
-              <tr>
-                <td colspan="5" class="px-4 py-8 text-center text-base-content/50">No users found.</td>
-              </tr>
+              <tr><td colspan="5" class="px-4 py-8 text-center text-base-content/50">No users found.</td></tr>
             {/each}
           </tbody>
         </table>
 
         <div class="flex items-center justify-between px-4 py-2 border-t border-base-300">
           <span class="text-base-content/50 text-xs">
-            {filtered.length === 0
-              ? 'No users'
-              : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} of ${filtered.length}`}
+            {filtered.length === 0 ? 'No users' : `${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filtered.length)} of ${filtered.length}`}
           </span>
           <div class="join">
             <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => (currentPage = 1)}><ChevronFirst class="size-3" /></button>
@@ -369,24 +441,18 @@
   <!-- ── Roles tab ──────────────────────────────────────────────────────────── -->
   {#if activeTab === 'roles'}
     <div class="space-y-6">
-      <!-- Roles accordion -->
       <div class="card bg-base-200 divide-y divide-base-300 overflow-hidden">
         {#each data.roles as role}
           {@const open = openRoles.has(role.name)}
-          <button
-            type="button"
+          <button type="button"
             class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-base-300/50 transition-colors"
-            onclick={() => toggleRole(role.name)}
-            aria-expanded={open}
-          >
+            onclick={() => toggleRole(role.name)} aria-expanded={open}>
             <div>
               <span class="font-semibold">{role.label}</span>
               <span class="ml-2 text-xs text-base-content/50">{role.name}</span>
             </div>
-            <svg
-              class="size-4 text-base-content/40 transition-transform duration-200 {open ? 'rotate-180' : ''}"
-              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-            >
+            <svg class="size-4 text-base-content/40 transition-transform duration-200 {open ? 'rotate-180' : ''}"
+              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z" clip-rule="evenodd"/>
             </svg>
           </button>
@@ -402,10 +468,7 @@
                   <div class="flex items-center text-sm capitalize font-medium">{resource}</div>
                   {#each ACTIONS as action}
                     <div class="flex items-center justify-center">
-                      <span
-                        class="inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold {role.permissions?.[resource]?.[action] ? 'bg-success text-success-content' : 'bg-neutral opacity-40'}"
-                        title="{action}"
-                      >
+                      <span class="inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold {role.permissions?.[resource]?.[action] ? 'bg-success text-success-content' : 'bg-neutral opacity-40'}" title="{action}">
                         {action[0].toUpperCase()}
                       </span>
                     </div>
@@ -420,16 +483,13 @@
         {/each}
       </div>
 
-      <!-- User Assignments -->
       {#if data.canAssign && roleUsers.length > 0}
         <div class="space-y-3">
           <h2 class="text-lg font-semibold">User Assignments</h2>
-
           <label class="input flex items-center gap-2">
             <Search class="size-4 shrink-0 opacity-50" />
             <input type="search" placeholder="Search by name or email…" class="grow" bind:value={userQuery} />
           </label>
-
           <div class="card bg-base-200 overflow-hidden">
             <table class="w-full text-sm">
               <thead>
@@ -452,11 +512,8 @@
                     </td>
                     <td class="px-4 py-3 text-base-content/40">{user.email}</td>
                     <td class="px-4 py-3">
-                      <select
-                        class="select select-sm text-xs"
-                        value={user.role ?? 'viewer'}
-                        onchange={(e) => assignRole(user.id, (e.currentTarget as HTMLSelectElement).value)}
-                      >
+                      <select class="select select-sm text-xs" value={user.role ?? 'viewer'}
+                        onchange={(e) => assignRole(user.id, (e.currentTarget as HTMLSelectElement).value)}>
                         {#each data.roles as role}
                           <option value={role.name}>{role.label}</option>
                         {/each}
@@ -466,12 +523,9 @@
                 {/each}
               </tbody>
             </table>
-
             <div class="flex items-center justify-between px-4 py-2 border-t border-base-300">
               <span class="text-base-content/50 text-xs">
-                {filteredRoleUsers.length === 0
-                  ? 'No users'
-                  : `${(rolesPage - 1) * PAGE_SIZE + 1}–${Math.min(rolesPage * PAGE_SIZE, filteredRoleUsers.length)} of ${filteredRoleUsers.length}`}
+                {filteredRoleUsers.length === 0 ? 'No users' : `${(rolesPage-1)*PAGE_SIZE+1}–${Math.min(rolesPage*PAGE_SIZE,filteredRoleUsers.length)} of ${filteredRoleUsers.length}`}
               </span>
               <div class="join">
                 <button class="join-item btn btn-xs" disabled={rolesPage === 1} onclick={() => (rolesPage = 1)}><ChevronFirst class="size-3" /></button>
@@ -492,6 +546,145 @@
       {/if}
     </div>
   {/if}
+
+  <!-- ── Teams tab ─────────────────────────────────────────────────────────── -->
+  {#if activeTab === 'teams'}
+    <div class="space-y-4">
+      <div class="flex items-center gap-3">
+        <label class="input flex items-center gap-2 flex-1">
+          <Search class="size-4 shrink-0 opacity-50" />
+          <input type="search" placeholder="Search teams…" class="grow" bind:value={teamQuery} />
+        </label>
+        {#if data.canCreateTeam}
+          <button type="button" class="btn btn-primary shrink-0"
+            onclick={() => { newTeamForm = { name: '', description: '' }; newTeamError = ''; newTeamOpen = true; }}>
+            <Plus class="size-4" /> <span>New Team</span>
+          </button>
+        {/if}
+      </div>
+
+      <div class="card bg-base-200 divide-y divide-base-300 overflow-hidden">
+        {#each pageTeams as team}
+          {@const expanded = expandedTeamId === team.id}
+          {@const detail = teamDetails.get(team.id)}
+          <div>
+            <div class="flex items-center gap-2 px-4 py-3 hover:bg-base-300/50 transition-colors">
+              <button type="button" class="flex-1 flex items-center gap-3 text-left min-w-0" onclick={() => toggleTeam(team.id)}>
+                <svg class="size-4 text-base-content/40 transition-transform duration-200 shrink-0 {expanded ? 'rotate-90' : ''}"
+                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02z" clip-rule="evenodd" />
+                </svg>
+                <div class="min-w-0">
+                  <span class="font-semibold">{team.name}</span>
+                  {#if team.description}
+                    <span class="ml-2 text-sm text-base-content/50 truncate">{team.description}</span>
+                  {/if}
+                </div>
+                <span class="badge badge-ghost text-xs ml-auto shrink-0">
+                  {team.memberCount ?? 0} {(team.memberCount ?? 0) === 1 ? 'member' : 'members'}
+                </span>
+              </button>
+              <div class="flex items-center gap-1 shrink-0">
+                {#if data.canUpdateTeam}
+                  <button type="button" class="btn btn-ghost btn-xs btn-square" aria-label="Edit {team.name}" onclick={() => openEditTeam(team)}>
+                    <Pencil class="size-4" />
+                  </button>
+                {/if}
+                {#if data.canDeleteTeam}
+                  <button type="button" class="btn btn-ghost btn-xs btn-square text-error" aria-label="Delete {team.name}" onclick={() => { deleteTeamError = ''; deleteTeam = team; }}>
+                    <Trash2 class="size-4" />
+                  </button>
+                {/if}
+              </div>
+            </div>
+
+            {#if expanded}
+              <div class="px-4 py-4 border-t border-base-300 bg-base-200/30 space-y-3">
+                {#if detailLoading && !detail}
+                  <p class="text-sm text-base-content/50">Loading…</p>
+                {:else if detail}
+                  {#if detail.members.length > 0}
+                    <ul class="space-y-2">
+                      {#each detail.members as member}
+                        <li class="flex items-center gap-3">
+                          <Avatar user={member} size="sm" />
+                          <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium truncate">
+                              {[member.firstName, member.lastName].filter(Boolean).join(' ') || member.username}
+                            </div>
+                            <div class="text-xs text-base-content/50">{member.username}</div>
+                          </div>
+                          {#if data.canUpdateTeam}
+                            <button type="button" class="btn btn-ghost btn-xs btn-square text-error shrink-0"
+                              aria-label="Remove {member.username}" onclick={() => removeMember(team.id, member.id)}>
+                              <X class="size-4" />
+                            </button>
+                          {/if}
+                        </li>
+                      {/each}
+                    </ul>
+                  {:else}
+                    <p class="text-sm text-base-content/50">No members yet.</p>
+                  {/if}
+
+                  {#if data.canUpdateTeam}
+                    {#if addMemberTeamId === team.id}
+                      <div class="space-y-2 pt-1">
+                        <div class="flex items-center gap-2">
+                          <select class="select select-sm flex-1" bind:value={selectedUserId}>
+                            <option value="">Select a user…</option>
+                            {#each data.users.filter(u => !detail.members.some(m => m.id === u.id)) as u}
+                              <option value={u.id}>{[u.firstName, u.lastName].filter(Boolean).join(' ') || u.username} ({u.email})</option>
+                            {/each}
+                          </select>
+                          <button type="button" class="btn btn-primary btn-sm shrink-0"
+                            disabled={!selectedUserId || addingMember}
+                            onclick={() => addMember(team.id, selectedUserId)}>
+                            {addingMember ? 'Adding…' : 'Add'}
+                          </button>
+                          <button type="button" class="btn btn-ghost btn-sm shrink-0"
+                            onclick={() => { addMemberTeamId = null; selectedUserId = ''; addMemberError = ''; }}>
+                            Cancel
+                          </button>
+                        </div>
+                        {#if addMemberError}<p class="text-xs text-error">{addMemberError}</p>{/if}
+                      </div>
+                    {:else}
+                      <button type="button" class="btn btn-ghost btn-sm"
+                        onclick={() => { addMemberTeamId = team.id; selectedUserId = ''; addMemberError = ''; }}>
+                        <UserPlus class="size-4" /> Add Member
+                      </button>
+                    {/if}
+                  {/if}
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {:else}
+          <div class="px-4 py-8 text-center text-base-content/50 text-sm">No teams found.</div>
+        {/each}
+      </div>
+
+      <div class="flex items-center justify-between">
+        <span class="text-base-content/50 text-xs">
+          {filteredTeams.length === 0 ? 'No teams' : `${(teamsPage-1)*PAGE_SIZE+1}–${Math.min(teamsPage*PAGE_SIZE,filteredTeams.length)} of ${filteredTeams.length}`}
+        </span>
+        <div class="join">
+          <button class="join-item btn btn-xs" disabled={teamsPage === 1} onclick={() => (teamsPage = 1)}><ChevronFirst class="size-3" /></button>
+          <button class="join-item btn btn-xs" disabled={teamsPage === 1} onclick={() => (teamsPage -= 1)}><ChevronLeft class="size-3" /></button>
+          {#each paginationPages(filteredTeams.length, PAGE_SIZE, teamsPage) as p}
+            {#if p.type === 'page'}
+              <button class="join-item btn btn-xs {p.value === teamsPage ? 'btn-active' : ''}" onclick={() => (teamsPage = p.value)}>{p.value}</button>
+            {:else}
+              <span class="join-item btn btn-xs btn-disabled">…</span>
+            {/if}
+          {/each}
+          <button class="join-item btn btn-xs" disabled={teamsPage * PAGE_SIZE >= filteredTeams.length} onclick={() => (teamsPage += 1)}><ChevronRight class="size-3" /></button>
+          <button class="join-item btn btn-xs" disabled={teamsPage * PAGE_SIZE >= filteredTeams.length} onclick={() => (teamsPage = Math.ceil(filteredTeams.length / PAGE_SIZE))}><ChevronLast class="size-3" /></button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <!-- New User modal -->
@@ -503,9 +696,7 @@
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4">
-        {#if newError}
-          <aside class="alert alert-error p-3 rounded text-sm">{newError}</aside>
-        {/if}
+        {#if newError}<aside class="alert alert-error p-3 rounded text-sm">{newError}</aside>{/if}
         <div class="grid grid-cols-2 gap-4">
           <label class="flex flex-col gap-1">
             <span class="text-sm font-medium">First Name</span>
@@ -543,7 +734,7 @@
   </div>
 {/if}
 
-<!-- Edit modal -->
+<!-- Edit User modal -->
 {#if editTarget}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Edit user">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
@@ -552,9 +743,7 @@
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTarget = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4">
-        {#if editError}
-          <aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>
-        {/if}
+        {#if editError}<aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>{/if}
         <div class="grid grid-cols-2 gap-4">
           <label class="flex flex-col gap-1">
             <span class="text-sm font-medium">First Name</span>
@@ -584,7 +773,7 @@
   </div>
 {/if}
 
-<!-- Delete confirm modal -->
+<!-- Delete User modal -->
 {#if deleteTarget}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Delete user">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4">
@@ -593,17 +782,93 @@
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-3">
-        {#if deleteError}
-          <aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>
-        {/if}
-        <p class="text-sm">
-          Are you sure you want to delete <span class="font-semibold">{deleteTarget.username}</span>? This action cannot be undone.
-        </p>
+        {#if deleteError}<aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>{/if}
+        <p class="text-sm">Are you sure you want to delete <span class="font-semibold">{deleteTarget.username}</span>? This action cannot be undone.</p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
         <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>Cancel</button>
         <button type="button" class="btn btn-error" disabled={deleting} onclick={confirmDelete}>
           {deleting ? 'Deleting…' : 'Delete'}
+        </button>
+      </footer>
+    </div>
+  </div>
+{/if}
+
+<!-- New Team modal -->
+{#if newTeamOpen}
+  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="New team">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+        <h2 class="text-lg font-semibold">New Team</h2>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newTeamOpen = false)} aria-label="Close"><X class="size-5" /></button>
+      </header>
+      <div class="p-6 space-y-4">
+        {#if newTeamError}<aside class="alert alert-error p-3 rounded text-sm">{newTeamError}</aside>{/if}
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Name <span class="text-error">*</span></span>
+          <input type="text" class="input" bind:value={newTeamForm.name} maxlength="100" placeholder="Engineering" />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Description</span>
+          <textarea class="textarea" bind:value={newTeamForm.description} maxlength="500" rows="2" placeholder="Optional description"></textarea>
+        </label>
+      </div>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+        <button type="button" class="btn btn-ghost" onclick={() => (newTeamOpen = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={creatingTeam} onclick={submitNewTeam}>
+          {creatingTeam ? 'Creating…' : 'Create Team'}
+        </button>
+      </footer>
+    </div>
+  </div>
+{/if}
+
+<!-- Edit Team modal -->
+{#if editTeam}
+  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Edit team">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+        <h2 class="text-lg font-semibold">Edit Team</h2>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTeam = null)} aria-label="Close"><X class="size-5" /></button>
+      </header>
+      <div class="p-6 space-y-4">
+        {#if editTeamError}<aside class="alert alert-error p-3 rounded text-sm">{editTeamError}</aside>{/if}
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Name <span class="text-error">*</span></span>
+          <input type="text" class="input" bind:value={editTeamForm.name} maxlength="100" />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Description</span>
+          <textarea class="textarea" bind:value={editTeamForm.description} maxlength="500" rows="2"></textarea>
+        </label>
+      </div>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+        <button type="button" class="btn btn-ghost" onclick={() => (editTeam = null)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={savingTeam} onclick={submitEditTeam}>
+          {savingTeam ? 'Saving…' : 'Save Changes'}
+        </button>
+      </footer>
+    </div>
+  </div>
+{/if}
+
+<!-- Delete Team modal -->
+{#if deleteTeam}
+  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Delete team">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+        <h2 class="text-lg font-semibold">Delete Team</h2>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTeam = null)} aria-label="Close"><X class="size-5" /></button>
+      </header>
+      <div class="p-6 space-y-3">
+        {#if deleteTeamError}<aside class="alert alert-error p-3 rounded text-sm">{deleteTeamError}</aside>{/if}
+        <p class="text-sm">Are you sure you want to delete <span class="font-semibold">{deleteTeam.name}</span>? This action cannot be undone.</p>
+      </div>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+        <button type="button" class="btn btn-ghost" onclick={() => (deleteTeam = null)}>Cancel</button>
+        <button type="button" class="btn btn-error" disabled={deletingTeam} onclick={confirmDeleteTeam}>
+          {deletingTeam ? 'Deleting…' : 'Delete'}
         </button>
       </footer>
     </div>

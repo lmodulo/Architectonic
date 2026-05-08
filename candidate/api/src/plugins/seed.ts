@@ -68,8 +68,14 @@ interface SeedUser {
 }
 
 const SEED_USERS: SeedUser[] = [
-  { username: 'admin',  email: 'admin@example.com',  password: 'admin-password',  firstName: 'Admin',  lastName: '',      role: 'admin'  },
-  { username: 'viewer', email: 'viewer@example.com', password: 'viewer-password', firstName: 'Viewer', lastName: '',      role: 'viewer' },
+  { username: 'jnicora', email: 'joenicora@me.com',   password: 'j-password',      firstName: 'Joe',    lastName: 'Nicora', role: 'owner'       },
+  { username: 'knicora', email: 'kylenicora@me.com',  password: 'k-password',      firstName: 'Kyle',   lastName: 'Nicora', role: 'admin'       },
+  { username: 'owner',   email: 'owner@example.com',  password: 'owner-password',  firstName: 'Owner',  lastName: '',       role: 'owner'       },
+  { username: 'admin',   email: 'admin@example.com',  password: 'admin-password',  firstName: 'Admin',  lastName: '',       role: 'admin'       },
+  { username: 'alex',    email: 'alex@example.com',   password: 'alex-password',   firstName: 'Alex',   lastName: 'Chen',   role: 'lead'        },
+  { username: 'jordan',  email: 'jordan@example.com', password: 'jordan-password', firstName: 'Jordan', lastName: 'Rivera', role: 'contributor' },
+  { username: 'sam',     email: 'sam@example.com',    password: 'sam-password',    firstName: 'Sam',    lastName: 'Park',   role: 'contributor' },
+  { username: 'riley',   email: 'riley@example.com',  password: 'riley-password',  firstName: 'Riley',  lastName: 'Morgan', role: 'contributor' },
 ];
 
 export default fp(async function seedPlugin(app: any) {
@@ -123,6 +129,32 @@ export default fp(async function seedPlugin(app: any) {
         },
         { upsert: true }
       );
+    }
+
+    // ── Teams ─────────────────────────────────────────────────────────
+    const allUsers = await db.collection('users')
+      .find({ username: { $in: ['jnicora', 'knicora', 'owner', 'admin', 'alex', 'jordan', 'sam', 'riley'] } })
+      .toArray();
+    const uid = (name: string) => allUsers.find((u: any) => u.username === name)?._id;
+
+    const teamsColl = db.collection('teams');
+    const SEED_TEAMS = [
+      {
+        name:        'Product',
+        description: 'Product strategy, design, and go-to-market',
+        members:     ['jnicora', 'owner', 'alex', 'jordan'].map(uid).filter(Boolean),
+      },
+      {
+        name:        'Engineering',
+        description: 'Platform, infrastructure, and delivery',
+        members:     ['knicora', 'admin', 'sam', 'riley'].map(uid).filter(Boolean),
+      },
+    ];
+    for (const t of SEED_TEAMS) {
+      const existing = await teamsColl.findOne({ name: t.name });
+      if (!existing) {
+        await teamsColl.insertOne({ ...t, createdAt: now, updatedAt: now });
+      }
     }
   });
 });

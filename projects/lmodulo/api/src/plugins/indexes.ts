@@ -80,5 +80,9 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('agile_tasks').createIndex({ assignedTo: 1, status: 1 });
     await db.collection('agile_tasks').createIndex({ assignedTo: 1, dueDate: 1 });
     await db.collection('agile_tasks').createIndex({ jobId: 1, priority: 1 });
+
+    // teams
+    await db.collection('teams').createIndex({ name: 1 }, { unique: true });
+    await db.collection('teams').createIndex({ members: 1 });
   });
 }

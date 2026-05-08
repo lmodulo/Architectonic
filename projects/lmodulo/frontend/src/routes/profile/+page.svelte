@@ -6,6 +6,8 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  const myTeams = $derived(data.myTeams ?? []);
+
   let firstName = $state(data.user?.firstName ?? '');
   let lastName  = $state(data.user?.lastName  ?? '');
   let username  = $state(data.user?.username  ?? '');
@@ -186,6 +188,23 @@
 
     {/if}
   </div>
+
+  <!-- ── My Teams card ─────────────────────────────────────────────── -->
+  {#if myTeams.length > 0}
+    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-3">
+      <h2 class="text-lg font-semibold">My Teams</h2>
+      <ul class="space-y-2">
+        {#each myTeams as team}
+          <li class="flex items-center justify-between">
+            <span class="font-medium">{team.name}</span>
+            {#if team.description}
+              <span class="text-sm text-base-content/50">{team.description}</span>
+            {/if}
+          </li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
 
   <!-- ── Account info card ───────────────────────────────────────────── -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">

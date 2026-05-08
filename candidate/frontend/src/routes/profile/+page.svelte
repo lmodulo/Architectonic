@@ -187,6 +187,28 @@
     {/if}
   </div>
 
+  <!-- ── My Teams card ─────────────────────────────────────────────────── -->
+  {#if data.myTeams && data.myTeams.length > 0}
+    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-3">
+      <h2 class="text-lg font-semibold">My Teams</h2>
+      <ul class="space-y-2">
+        {#each data.myTeams as team}
+          <li class="flex items-center justify-between gap-3">
+            <div>
+              <span class="font-medium">{team.name}</span>
+              {#if team.description}
+                <span class="ml-2 text-sm opacity-50">{team.description}</span>
+              {/if}
+            </div>
+            <span class="badge badge-ghost text-xs shrink-0">
+              {team.memberCount} {team.memberCount === 1 ? 'member' : 'members'}
+            </span>
+          </li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
+
   <!-- ── Account info card ───────────────────────────────────────────── -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
     <h2 class="text-lg font-semibold">Account Information</h2>
