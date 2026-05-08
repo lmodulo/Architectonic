@@ -189,10 +189,15 @@ export default async function sprintsRoutes(app: FastifyInstance) {
     if (status !== undefined && !VALID_STATUS.includes(status as typeof VALID_STATUS[number]))
       throw app.httpErrors.badRequest(`Invalid status. Valid: ${VALID_STATUS.join(', ')}`);
 
-    // Enforce: cannot mark Completed unless all jobs Done
-    if (status === 'Completed') {
-      const jobs = await db.collection('agile_jobs').find({ sprintId: oid, status: { $nin: ['Done', 'Cancelled'] } }).limit(1).toArray();
-      if (jobs.length > 0) throw app.httpErrors.conflict('All jobs must be Done before marking sprint Completed');
+    let preSprint: any = null;
+    if (status !== undefined) {
+      preSprint = await db.collection(COL).findOne({ _id: oid });
+      if (!preSprint) return reply.notFound('Sprint not found');
+
+      if (status === 'Completed') {
+        const jobs = await db.collection('agile_jobs').find({ sprintId: oid, status: { $nin: ['Done', 'Cancelled'] } }).limit(1).toArray();
+        if (jobs.length > 0) throw app.httpErrors.conflict('All jobs must be Done before marking sprint Completed');
+      }
     }
 
     const $set: Record<string, unknown> = {
@@ -219,6 +224,23 @@ export default async function sprintsRoutes(app: FastifyInstance) {
       action: 'agile_sprint.update', resourceId: oid.toString(),
       meta: { fields: Object.keys($set) }, ip: req.ip,
     });
+
+    if (preSprint && status !== undefined && status !== preSprint.status && preSprint.teamId) {
+      const team = await db.collection('teams').findOne({ _id: preSprint.teamId }, { projection: { members: 1 } });
+      const updaterOid = new ObjectId(req.session.userId!);
+      const recipients = ((team?.members ?? []) as ObjectId[]).filter(m => !m.equals(updaterOid));
+      if (recipients.length > 0) {
+        await app.notify({
+          userId: recipients,
+          type: 'agile_sprint.status_changed',
+          title: 'Sprint status updated',
+          body: `${preSprint.title}: ${preSprint.status} → ${status}`,
+          link: `/agile/sprints/${oid.toString()}`,
+          source: { collection: COL, documentId: oid },
+          groupKey: `sprint-status-${oid.toString()}`,
+        });
+      }
+    }
 
     return { updated: true };
   });

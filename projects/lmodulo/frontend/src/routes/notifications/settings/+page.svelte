@@ -12,13 +12,15 @@
   } | null;
 
   const KNOWN_TYPES = [
-    { type: 'message.received',   label: 'New message received',   group: 'Messages' },
-    { type: 'message.reply',      label: 'Reply to your message',  group: 'Messages' },
-    { type: 'auth.password',      label: 'Password changed',       group: 'Account'  },
-    { type: 'role.changed',       label: 'Role / permissions updated', group: 'Account' },
-    { type: 'order.placed',       label: 'New order placed',       group: 'Storefront' },
-    { type: 'order.status',       label: 'Order status changed',   group: 'Storefront' },
-    { type: 'product.low_stock',  label: 'Low stock alert',        group: 'Storefront' },
+    { type: 'message.received',          label: 'New message received',        group: 'Messages' },
+    { type: 'message.reply',             label: 'Reply to your message',       group: 'Messages' },
+    { type: 'auth.password',             label: 'Password changed',            group: 'Account'  },
+    { type: 'role.changed',              label: 'Role / permissions updated',  group: 'Account'  },
+    { type: 'agile_task.assigned',       label: 'Task assigned to you',        group: 'Tasks'    },
+    { type: 'agile_task.status_changed', label: 'Task status changed',         group: 'Tasks'    },
+    { type: 'agile_job.status_changed',  label: 'Job status changed',          group: 'Jobs'     },
+    { type: 'agile_job.comment',         label: 'New comment on a job',        group: 'Jobs'     },
+    { type: 'agile_sprint.status_changed', label: 'Sprint status changed',     group: 'Sprints'  },
   ];
 
   const groups = [...new Set(KNOWN_TYPES.map(t => t.group))];

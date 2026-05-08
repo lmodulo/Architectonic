@@ -101,6 +101,17 @@ export default async function tasksRoutes(app: FastifyInstance) {
       meta: { title: doc.title, jobId: jobOid.toString(), estimateHours: est, status: doc.status }, ip: req.ip,
     });
 
+    if (doc.assignedTo && !doc.assignedTo.equals(new ObjectId(req.session.userId!))) {
+      await app.notify({
+        userId: doc.assignedTo,
+        type: 'agile_task.assigned',
+        title: 'Task assigned to you',
+        body: doc.title,
+        link: `/agile/jobs/${jobOid.toString()}`,
+        source: { collection: COL, documentId: result.insertedId },
+      });
+    }
+
     reply.status(201);
     return mapDoc({ ...doc, _id: result.insertedId } as Record<string, unknown>);
   });
@@ -119,12 +130,13 @@ export default async function tasksRoutes(app: FastifyInstance) {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
 
+    const preTask = await db.collection(COL).findOne({ _id: oid });
+    if (!preTask) return reply.notFound('Task not found');
+
     // Contributor restriction: can only update own tasks
     const sessionUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.userId!) });
     if (sessionUser?.role === 'contributor') {
-      const task = await db.collection(COL).findOne({ _id: oid });
-      if (!task) return reply.notFound('Task not found');
-      if (!task.assignedTo || task.assignedTo.toString() !== req.session.userId) {
+      if (!preTask.assignedTo || preTask.assignedTo.toString() !== req.session.userId) {
         throw app.httpErrors.forbidden('Contributors can only update tasks assigned to them');
       }
     }
@@ -138,13 +150,10 @@ export default async function tasksRoutes(app: FastifyInstance) {
       throw app.httpErrors.badRequest(`Invalid status. Valid: ${VALID_STATUS.join(', ')}`);
     if (priority !== undefined && !VALID_PRIORITY.includes(priority as typeof VALID_PRIORITY[number]))
       throw app.httpErrors.badRequest(`Invalid priority. Valid: ${VALID_PRIORITY.join(', ')}`);
-    if (status === 'In Progress' && !assignedTo) {
-      const existing = await db.collection(COL).findOne({ _id: oid });
-      if (!existing?.assignedTo) throw app.httpErrors.badRequest('assignedTo required for In Progress');
-    }
-    if (status === 'Blocked' && !(blockedReason as string)?.trim()) {
+    if (status === 'In Progress' && !assignedTo && !preTask.assignedTo)
+      throw app.httpErrors.badRequest('assignedTo required for In Progress');
+    if (status === 'Blocked' && !(blockedReason as string)?.trim())
       throw app.httpErrors.badRequest('blockedReason is required when status is Blocked');
-    }
 
     const $set: Record<string, unknown> = {
       updatedBy: new ObjectId(req.session.userId!),
@@ -170,13 +179,10 @@ export default async function tasksRoutes(app: FastifyInstance) {
       $set.actualHours = Number(actualHours);
     }
     if (remainingHours !== undefined) {
-      // Manual override of remainingHours
       $set.remainingHours = Number(remainingHours);
     } else if (estimateHours !== undefined || actualHours !== undefined) {
-      // Auto-recompute remaining = estimate - actual
-      const existing = await db.collection(COL).findOne({ _id: oid });
-      const est = ($set.estimateHours as number) ?? existing?.estimateHours ?? 0;
-      const act = ($set.actualHours  as number) ?? existing?.actualHours  ?? 0;
+      const est = (($set.estimateHours as number) ?? preTask.estimateHours ?? 0);
+      const act = (($set.actualHours  as number) ?? preTask.actualHours  ?? 0);
       $set.remainingHours = Math.max(0, est - act);
     }
 
@@ -188,6 +194,43 @@ export default async function tasksRoutes(app: FastifyInstance) {
       action: 'agile_task.update', resourceId: oid.toString(),
       meta: { fields: Object.keys($set) }, ip: req.ip,
     });
+
+    const updaterOid = new ObjectId(req.session.userId!);
+
+    if (assignedTo !== undefined) {
+      const newAssignee = assignedTo ? parseOid(assignedTo as string, app) : null;
+      const oldAssignee = preTask.assignedTo as ObjectId | null;
+      if (newAssignee && !newAssignee.equals(updaterOid) && (!oldAssignee || !newAssignee.equals(oldAssignee))) {
+        await app.notify({
+          userId: newAssignee,
+          type: 'agile_task.assigned',
+          title: 'Task assigned to you',
+          body: (($set.title as string) ?? preTask.title),
+          link: `/agile/jobs/${(preTask.jobId as ObjectId).toString()}`,
+          source: { collection: COL, documentId: oid },
+        });
+      }
+    }
+
+    if (status !== undefined && status !== preTask.status) {
+      const recipients: ObjectId[] = [];
+      if (!(preTask.createdBy as ObjectId).equals(updaterOid)) recipients.push(preTask.createdBy as ObjectId);
+      const assignedOid = preTask.assignedTo as ObjectId | null;
+      if (assignedOid && !assignedOid.equals(updaterOid) && !recipients.some(r => r.equals(assignedOid))) {
+        recipients.push(assignedOid);
+      }
+      if (recipients.length > 0) {
+        await app.notify({
+          userId: recipients,
+          type: 'agile_task.status_changed',
+          title: 'Task status updated',
+          body: `${preTask.title}: ${preTask.status} → ${status}`,
+          link: `/agile/jobs/${(preTask.jobId as ObjectId).toString()}`,
+          source: { collection: COL, documentId: oid },
+          groupKey: `task-status-${oid.toString()}`,
+        });
+      }
+    }
 
     return { updated: true };
   });

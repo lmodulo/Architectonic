@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Bell, Mail, ShieldCheck, Users, ShoppingCart, Package } from 'lucide-svelte';
+  import { Bell, Mail, ShieldCheck, Users, ShoppingCart, Package, Layers } from 'lucide-svelte';
   import type { AppNotification } from '$lib/stores/notifications.svelte';
   import type { Component } from 'svelte';
 
@@ -14,6 +14,7 @@
     if (type.startsWith('role.') || type.startsWith('rbac.'))    return Users;
     if (type.startsWith('order.'))     return ShoppingCart;
     if (type.startsWith('product.') || type.startsWith('stock.')) return Package;
+    if (type.startsWith('agile_'))    return Layers;
     return Bell;
   }
 

@@ -64,6 +64,26 @@ export default async function commentsRoutes(app: FastifyInstance) {
       meta: { jobId: jobOid.toString() }, ip: req.ip,
     });
 
+    const commenterOid = new ObjectId(req.session.userId!);
+    const taskAssignees = (await db.collection('agile_tasks')
+      .distinct('assignedTo', { jobId: jobOid, assignedTo: { $ne: null } })) as ObjectId[];
+    const recipientMap = new Map<string, ObjectId>();
+    if (!job.createdBy.equals(commenterOid)) recipientMap.set(job.createdBy.toString(), job.createdBy);
+    for (const assigneeOid of taskAssignees) {
+      if (!assigneeOid.equals(commenterOid)) recipientMap.set(assigneeOid.toString(), assigneeOid);
+    }
+    if (recipientMap.size > 0) {
+      await app.notify({
+        userId: [...recipientMap.values()],
+        type: 'agile_job.comment',
+        title: 'New comment on job',
+        body: job.title,
+        link: `/agile/jobs/${jobOid.toString()}`,
+        source: { collection: COL, documentId: result.insertedId },
+        groupKey: `job-comment-${jobOid.toString()}`,
+      });
+    }
+
     reply.status(201);
     return mapDoc({ ...doc, _id: result.insertedId } as Record<string, unknown>);
   });

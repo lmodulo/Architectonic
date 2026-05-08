@@ -189,22 +189,25 @@ export default async function jobsRoutes(app: FastifyInstance) {
     if (category !== undefined && !VALID_CATEGORY.includes(category as typeof VALID_CATEGORY[number]))
       throw app.httpErrors.badRequest(`Invalid category. Valid: ${VALID_CATEGORY.join(', ')}`);
 
-    // Cannot mark Done if dependencies are incomplete
-    if (status === 'Done') {
-      const job = await db.collection(COL).findOne({ _id: oid });
-      if (job?.dependencyIds?.length > 0) {
-        const incomplete = await db.collection(COL)
-          .find({ _id: { $in: job.dependencyIds }, status: { $nin: ['Done', 'Cancelled'] } })
+    let preJob: any = null;
+    if (status !== undefined) {
+      preJob = await db.collection(COL).findOne({ _id: oid });
+      if (!preJob) return reply.notFound('Job not found');
+
+      if (status === 'Done') {
+        if (preJob.dependencyIds?.length > 0) {
+          const incomplete = await db.collection(COL)
+            .find({ _id: { $in: preJob.dependencyIds }, status: { $nin: ['Done', 'Cancelled'] } })
+            .limit(1).toArray();
+          if (incomplete.length > 0)
+            throw app.httpErrors.conflict('Cannot mark job Done while dependencies are incomplete');
+        }
+        const openTasks = await db.collection('agile_tasks')
+          .find({ jobId: oid, status: { $nin: ['Done', 'Cancelled'] } })
           .limit(1).toArray();
-        if (incomplete.length > 0)
-          throw app.httpErrors.conflict('Cannot mark job Done while dependencies are incomplete');
+        if (openTasks.length > 0)
+          throw app.httpErrors.conflict('All tasks must be Done before marking job Done');
       }
-      // All tasks must be Done too
-      const openTasks = await db.collection('agile_tasks')
-        .find({ jobId: oid, status: { $nin: ['Done', 'Cancelled'] } })
-        .limit(1).toArray();
-      if (openTasks.length > 0)
-        throw app.httpErrors.conflict('All tasks must be Done before marking job Done');
     }
 
     const $set: Record<string, unknown> = {
@@ -235,6 +238,23 @@ export default async function jobsRoutes(app: FastifyInstance) {
       action: 'agile_job.update', resourceId: oid.toString(),
       meta: { fields: Object.keys($set) }, ip: req.ip,
     });
+
+    if (preJob && status !== undefined && status !== preJob.status && preJob.teamId) {
+      const team = await db.collection('teams').findOne({ _id: preJob.teamId }, { projection: { members: 1 } });
+      const updaterOid = new ObjectId(req.session.userId!);
+      const recipients = ((team?.members ?? []) as ObjectId[]).filter(m => !m.equals(updaterOid));
+      if (recipients.length > 0) {
+        await app.notify({
+          userId: recipients,
+          type: 'agile_job.status_changed',
+          title: 'Job status updated',
+          body: `${preJob.title}: ${preJob.status} → ${status}`,
+          link: `/agile/jobs/${oid.toString()}`,
+          source: { collection: COL, documentId: oid },
+          groupKey: `job-status-${oid.toString()}`,
+        });
+      }
+    }
 
     return { updated: true };
   });
