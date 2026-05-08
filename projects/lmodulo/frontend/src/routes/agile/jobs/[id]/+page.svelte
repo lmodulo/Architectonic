@@ -11,6 +11,7 @@
   import CommentFeed from '$lib/components/agile/CommentFeed.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import {
     STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES,
     fmtEffort, fmtDate, toDateInput, completionColor,
@@ -387,11 +388,7 @@
 
 <!-- ── Edit Task Modal ───────────────────────────────────────────── -->
 {#if editModal}
-  <div transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true" aria-label="Edit task">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-lg shadow-xl mx-4 flex flex-col max-h-[90vh]">
+  <Modal size="md" label="Edit task">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Task</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editModal = false)}><X class="size-5"/></button>
@@ -476,17 +473,12 @@
           {savingEdit ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- ── New Task Modal ─────────────────────────────────────────────── -->
 {#if taskModal}
-  <div transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-lg shadow-xl mx-4 flex flex-col max-h-[90vh]">
+  <Modal size="md" label="New Task">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Task</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (taskModal = false)}><X class="size-5"/></button>
@@ -544,17 +536,12 @@
           {savingTask ? 'Creating…' : 'Create Task'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- ── Edit Job Modal ─────────────────────────────────────────────── -->
 {#if jobEditing}
-  <div transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true" aria-label="Edit job">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+  <Modal size="lg" label="Edit job">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Job</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobEditing = false)}><X class="size-5"/></button>
@@ -615,6 +602,5 @@
           {jobEditSaving ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}

@@ -4,6 +4,7 @@
   import { X } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import { hasPermission } from '$lib/permissions';
   import { typeLabel, type CalendarEvent } from '$lib/utils/calendarEvents';
 
@@ -30,6 +31,8 @@
   } = $props();
 
   const today = new Date().toISOString().slice(0, 10);
+  const _ru = new Date(); _ru.setDate(_ru.getDate() + 28);
+  const defaultRecurUntil = _ru.toISOString().slice(0, 10);
 
   function displayName(u: UserOption) {
     return u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username;
@@ -58,6 +61,9 @@
   });
 
   let sharedWith = $state<string[] | null>(null);
+  let startTime  = $state('');
+  let endTime    = $state('');
+  let recurrence = $state({ enabled: false, frequency: 'weekly', until: defaultRecurUntil });
 
   let loading      = $state(false);
   let err          = $state('');
@@ -79,13 +85,18 @@
         visibility: event.visibility ?? 'private',
       };
       sharedWith = event.sharedWith?.length ? [...event.sharedWith] : null;
+      startTime  = event.startTime ?? '';
+      endTime    = event.endTime   ?? '';
     } else {
       form = {
         title: '', content: '', eventType: 'upcoming_event',
         startDate: today, endDate: today, singleDay: true, allDay: false,
         location: '', tags: '', status: 'active', visibility: 'private',
       };
-      sharedWith = null;
+      sharedWith  = null;
+      startTime   = '';
+      endTime     = '';
+      recurrence  = { enabled: false, frequency: 'weekly', until: defaultRecurUntil };
     }
     err          = '';
     deletePrompt = false;
@@ -98,13 +109,17 @@
   async function save() {
     if (!form.title.trim()) { err = 'Title is required'; return; }
     if (!form.startDate)    { err = 'Start date is required'; return; }
+    if (!event && recurrence.enabled && !recurrence.until) {
+      err = 'Recurrence end date is required'; return;
+    }
     loading = true; err = '';
+    const baseEnd = form.singleDay ? form.startDate : (form.endDate || form.startDate);
     const body: Record<string, unknown> = {
       title:      form.title.trim(),
       content:    form.content,
       eventType:  form.eventType,
-      startDate:  form.startDate,
-      endDate:    form.singleDay ? form.startDate : (form.endDate || form.startDate),
+      startDate:  (!form.allDay && startTime) ? `${form.startDate}T${startTime}:00Z` : form.startDate,
+      endDate:    (!form.allDay && endTime)   ? `${baseEnd}T${endTime}:00Z`           : baseEnd,
       singleDay:  form.singleDay,
       allDay:     form.allDay,
       location:   form.location,
@@ -113,6 +128,9 @@
       visibility: form.visibility,
       sharedWith: sharedWith ?? [],
     };
+    if (!event && recurrence.enabled) {
+      body.recurrence = { frequency: recurrence.frequency, until: recurrence.until };
+    }
     try {
       await onSave(body);
     } catch (e: unknown) {
@@ -135,15 +153,7 @@
 </script>
 
 {#if open}
-  <div
-    transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true" aria-label="{event ? 'Edit Event' : 'New Event'}"
-  >
-    <div
-      transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
-    >
+  <Modal size="lg" label={event ? 'Edit Event' : 'New Event'}>
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{event ? 'Edit Event' : 'New Event'}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={onClose} aria-label="Close">
@@ -210,6 +220,20 @@
           </div>
         </div>
 
+        <!-- Times (hidden when all day) -->
+        {#if !form.allDay}
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start-time">Start Time</label>
+            <input id="ev-start-time" type="time" class="input w-full" bind:value={startTime} />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end-time">End Time</label>
+            <input id="ev-end-time" type="time" class="input w-full" bind:value={endTime} />
+          </div>
+        </div>
+        {/if}
+
         <!-- Toggles -->
         <div class="flex gap-6">
           <label class="flex items-center gap-2 cursor-pointer select-none">
@@ -221,6 +245,35 @@
             <span class="text-sm">All day</span>
           </label>
         </div>
+
+        <!-- Recurrence (create only) -->
+        {#if !event}
+        <div class="space-y-3 border-l-2 border-base-300 pl-4">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" class="checkbox" bind:checked={recurrence.enabled} />
+            <span class="text-sm font-medium">Repeat event</span>
+          </label>
+          {#if recurrence.enabled}
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-freq">Frequency</label>
+              <select id="ev-freq" class="select w-full" bind:value={recurrence.frequency}>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Bi-weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-until">Until</label>
+              <input id="ev-until" type="date" class="input w-full"
+                bind:value={recurrence.until} min={form.startDate} />
+            </div>
+          </div>
+          {/if}
+        </div>
+        {/if}
 
         <!-- Visibility -->
         <div class="space-y-1">
@@ -269,8 +322,7 @@
           </button>
         </div>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- Delete confirm -->

@@ -7,6 +7,7 @@
   import { hasPermission } from '$lib/permissions';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import RoleQuickView from '$lib/components/agile/RoleQuickView.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import type { AgileMilestone, AgileSprint, AgileTask } from '$lib/utils/agile';
 
   let { data }: { data: PageData } = $props();
@@ -513,15 +514,7 @@
 
 <!-- ── Event Modal ──────────────────────────────────────────────────── -->
 {#if eventModalOpen}
-  <div
-    transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true" aria-label="{editingEventId ? 'Edit Event' : 'New Event'}"
-  >
-    <div
-      transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
-    >
+  <Modal size="lg" label={editingEventId ? 'Edit Event' : 'New Event'}>
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{editingEventId ? 'Edit Event' : 'New Event'}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (eventModalOpen = false)} aria-label="Close">
@@ -580,8 +573,7 @@
           </button>
         </div>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- ── Delete Confirm Modal ─────────────────────────────────────────── -->

@@ -7,6 +7,7 @@
   import { hasPermission } from '$lib/permissions';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import {
     STATUS_COLOR, PRIORITY_COLOR, SPRINT_STATUSES, MILESTONE_STATUSES, PRIORITIES,
     fmtDateRange, fmtDate, fmtEffort, toDateInput, completionColor,
@@ -214,11 +215,7 @@
 
 <!-- ── New Sprint Modal ───────────────────────────────────────────── -->
 {#if sprintModal}
-  <div transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+  <Modal size="lg" label="New Sprint">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Sprint</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintModal = false)}><X class="size-5"/></button>
@@ -264,17 +261,12 @@
           {savingSprint ? 'Creating…' : 'Create Sprint'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- ── Edit Milestone Modal ──────────────────────────────────────── -->
 {#if editing}
-  <div transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+  <Modal size="lg" label="Edit Milestone">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Milestone</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editing = false)}><X class="size-5"/></button>
@@ -326,6 +318,5 @@
           {editSaving ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}

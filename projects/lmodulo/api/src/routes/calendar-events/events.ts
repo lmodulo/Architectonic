@@ -6,6 +6,40 @@ import { notifyNewEvent, type CalendarEventDoc } from '../../lib/calendarNotify.
 const COL  = 'calendar_events';
 const SUBS = 'event_subscriptions';
 
+const RECURRENCE_LIMITS: Record<string, number> = {
+  daily:    365,
+  weekly:   52,
+  biweekly: 52,
+  monthly:  24,
+  yearly:   5,
+};
+
+function generateOccurrences(
+  base: Record<string, unknown>,
+  seriesId: ObjectId,
+  frequency: string,
+  until: Date,
+): Array<Record<string, unknown>> {
+  const limit    = RECURRENCE_LIMITS[frequency] ?? 52;
+  const baseStart = base.startDate as Date;
+  const duration  = (base.endDate as Date).getTime() - baseStart.getTime();
+  const cap       = new Date(Math.min(until.getTime(), new Date(baseStart).setFullYear(baseStart.getFullYear() + 3)));
+  const results: Array<Record<string, unknown>> = [];
+  const cursor    = new Date(baseStart);
+  for (let i = 0; i < limit; i++) {
+    switch (frequency) {
+      case 'daily':    cursor.setDate(cursor.getDate() + 1); break;
+      case 'weekly':   cursor.setDate(cursor.getDate() + 7); break;
+      case 'biweekly': cursor.setDate(cursor.getDate() + 14); break;
+      case 'monthly':  cursor.setMonth(cursor.getMonth() + 1); break;
+      case 'yearly':   cursor.setFullYear(cursor.getFullYear() + 1); break;
+    }
+    if (cursor > cap) break;
+    results.push({ ...base, startDate: new Date(cursor), endDate: new Date(cursor.getTime() + duration), seriesId });
+  }
+  return results;
+}
+
 function mapEvent(d: Record<string, unknown>) {
   const out: Record<string, unknown> = { ...d, id: (d._id as ObjectId).toString(), _id: undefined };
   if (out.ownerId   instanceof ObjectId) out.ownerId   = (out.ownerId   as ObjectId).toString();
@@ -152,7 +186,7 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
       title, content = '', eventType = 'upcoming_event',
       startDate, endDate, singleDay = false, allDay = false,
       location = '', tags = [], status = 'active', visibility = 'private',
-      sharedWith,
+      sharedWith, recurrence,
     } = req.body as Record<string, unknown>;
 
     if (!title || !(title as string).trim()) throw app.httpErrors.badRequest('Title is required');
@@ -192,6 +226,17 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
       meta: { title: doc.title, eventType: doc.eventType, visibility: doc.visibility },
       ip: req.ip,
     });
+
+    const rec = recurrence as { frequency?: string; until?: string } | null | undefined;
+    if (rec?.frequency && rec?.until && RECURRENCE_LIMITS[rec.frequency] !== undefined) {
+      const untilDate = new Date(rec.until);
+      if (!isNaN(untilDate.getTime()) && untilDate > start) {
+        const occurrences = generateOccurrences(doc as Record<string, unknown>, result.insertedId, rec.frequency, untilDate);
+        if (occurrences.length > 0) {
+          await db.collection(COL).insertMany(occurrences);
+        }
+      }
+    }
 
     const eventDoc: CalendarEventDoc = { ...doc, _id: result.insertedId };
     dispatchNewEventNotifications(app, eventDoc).catch(

@@ -6,6 +6,7 @@
   import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
   import Avatar from '$lib/components/Avatar.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -689,8 +690,7 @@
 
 <!-- New User modal -->
 {#if newUserOpen}
-  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="New user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
+  <Modal size="md" label="New user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">New User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
@@ -730,14 +730,12 @@
           {creating ? 'Creating…' : 'Create User'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- Edit User modal -->
 {#if editTarget}
-  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Edit user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
+  <Modal size="md" label="Edit user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Edit User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTarget = null)} aria-label="Close"><X class="size-5" /></button>
@@ -769,14 +767,12 @@
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- Delete User modal -->
 {#if deleteTarget}
-  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Delete user">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4">
+  <Modal size="sm" label="Delete user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Delete User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)} aria-label="Close"><X class="size-5" /></button>
@@ -791,14 +787,12 @@
           {deleting ? 'Deleting…' : 'Delete'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- New Team modal -->
 {#if newTeamOpen}
-  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="New team">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
+  <Modal size="md" label="New team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">New Team</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newTeamOpen = false)} aria-label="Close"><X class="size-5" /></button>
@@ -820,14 +814,12 @@
           {creatingTeam ? 'Creating…' : 'Create Team'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- Edit Team modal -->
 {#if editTeam}
-  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Edit team">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl mx-4">
+  <Modal size="md" label="Edit team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Edit Team</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTeam = null)} aria-label="Close"><X class="size-5" /></button>
@@ -849,14 +841,12 @@
           {savingTeam ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- Delete Team modal -->
 {#if deleteTeam}
-  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Delete team">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4">
+  <Modal size="sm" label="Delete team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Delete Team</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTeam = null)} aria-label="Close"><X class="size-5" /></button>
@@ -871,6 +861,5 @@
           {deletingTeam ? 'Deleting…' : 'Delete'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}

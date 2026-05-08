@@ -9,6 +9,7 @@
   import KanbanBoard from '$lib/components/agile/KanbanBoard.svelte';
   import BurndownChart from '$lib/components/agile/BurndownChart.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import {
     STATUS_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES, SPRINT_STATUSES,
     fmtDateRange, fmtEffort, toDateInput, completionColor,
@@ -357,11 +358,7 @@
 
 <!-- ── New Job Modal ──────────────────────────────────────────────── -->
 {#if jobModal}
-  <div transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+  <Modal size="lg" label="New Job">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Job</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobModal = false)}><X class="size-5"/></button>
@@ -409,17 +406,12 @@
           {savingJob ? 'Creating…' : 'Create Job'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
 
 <!-- ── Edit Sprint Modal ──────────────────────────────────────────── -->
 {#if sprintEditing}
-  <div transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+  <Modal size="lg" label="Edit Sprint">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Sprint</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintEditing = false)}><X class="size-5"/></button>
@@ -474,6 +466,5 @@
           {sprintEditSaving ? 'Saving…' : 'Save Changes'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}

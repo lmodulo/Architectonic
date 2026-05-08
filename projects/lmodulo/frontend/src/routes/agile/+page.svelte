@@ -8,6 +8,7 @@
   import MilestoneCard from '$lib/components/agile/MilestoneCard.svelte';
   import RoleQuickView from '$lib/components/agile/RoleQuickView.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import {
     STATUS_COLOR, PRIORITY_COLOR, MILESTONE_STATUSES, PRIORITIES,
     fmtEffort, completionColor,
@@ -224,11 +225,7 @@
 
 <!-- ── New Milestone Modal ─────────────────────────────────────────── -->
 {#if modalOpen}
-  <div transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true" aria-label="New Milestone">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]">
+  <Modal size="lg" label="New Milestone">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Milestone</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
@@ -293,6 +290,5 @@
           {saving ? 'Creating…' : 'Create Milestone'}
         </button>
       </footer>
-    </div>
-  </div>
+  </Modal>
 {/if}
