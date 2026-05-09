@@ -102,12 +102,12 @@
   }
 
   let editTarget = $state<User | null>(null);
-  let editForm   = $state({ firstName: '', lastName: '', username: '', email: '' });
+  let editForm   = $state({ firstName: '', lastName: '', username: '', email: '', phone: '' });
   let saving     = $state(false);
   let editError  = $state('');
 
   function openEdit(user: User) {
-    editForm = { firstName: user.firstName ?? '', lastName: user.lastName ?? '', username: user.username, email: user.email };
+    editForm = { firstName: user.firstName ?? '', lastName: user.lastName ?? '', username: user.username, email: user.email, phone: user.phone ?? '' };
     editError = ''; editTarget = user;
   }
 
@@ -759,6 +759,10 @@
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium">Email</span>
           <input type="email" class="input" bind:value={editForm.email} required />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Phone</span>
+          <input type="tel" class="input" bind:value={editForm.phone} maxlength="30" placeholder="+1 555 000 0000" />
         </label>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">

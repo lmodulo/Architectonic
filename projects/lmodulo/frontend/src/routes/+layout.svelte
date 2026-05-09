@@ -63,7 +63,7 @@
   <title>{data.appName ?? 'Application'} — {brand.description}</title>
 </svelte:head>
 
-{#if data.user && !page.url.pathname.startsWith('/documentation/')}
+{#if data.user && page.url.pathname !== '/' && !page.url.pathname.startsWith('/documentation/')}
 
   {#if navigating.to !== null}
     <div data-theme={APP_THEME} class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
