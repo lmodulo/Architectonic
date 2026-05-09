@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronLeft, Plus, X, Layers, Calendar, Clock, CheckCircle } from 'lucide-svelte';
+  import { ChevronLeft, Plus, X, Layers, Calendar, Clock, CheckCircle, Trash2 } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -74,6 +74,26 @@
     } catch { editError = 'Network error'; }
     finally { editSaving = false; }
   }
+
+  // ── Delete milestone ───────────────────────────────────────────────
+  let deleteConfirm = $state(false);
+  let deleting      = $state(false);
+  let deleteError   = $state('');
+
+  async function deleteMilestone() {
+    deleting = true; deleteError = '';
+    try {
+      const res = await fetch(`/api/agile/milestones/${milestone.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        deleteError = (d as any).message ?? 'Delete failed';
+        deleteConfirm = false;
+        return;
+      }
+      goto('/agile');
+    } catch { deleteError = 'Network error'; deleteConfirm = false; }
+    finally { deleting = false; }
+  }
 </script>
 
 <svelte:head><title>{milestone.title} — Milestone</title></svelte:head>
@@ -97,13 +117,32 @@
           <p class="text-sm opacity-60">{milestone.strategicGoal}</p>
         {/if}
       </div>
-      {#if hasPermission(data.user, 'agile_milestones', 'update')}
-        <button class="btn btn-ghost btn-sm shrink-0" onclick={() => { editForm = { ...milestone, startDate: toDateInput(milestone.startDate), endDate: toDateInput(milestone.endDate) }; editing = true; }}>
-          Edit
-        </button>
-      {/if}
+      <div class="flex items-center gap-2 shrink-0">
+        {#if hasPermission(data.user, 'agile_milestones', 'update')}
+          <button class="btn btn-ghost btn-sm" onclick={() => { editForm = { ...milestone, startDate: toDateInput(milestone.startDate), endDate: toDateInput(milestone.endDate) }; editing = true; }}>
+            Edit
+          </button>
+        {/if}
+        {#if hasPermission(data.user, 'agile_milestones', 'delete')}
+          {#if deleteConfirm}
+            <span class="text-xs text-error font-medium">Delete milestone?</span>
+            <button class="btn btn-error btn-sm" disabled={deleting} onclick={deleteMilestone}>
+              {deleting ? 'Deleting…' : 'Yes, delete'}
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick={() => { deleteConfirm = false; deleteError = ''; }}>Cancel</button>
+          {:else}
+            <button class="btn btn-ghost btn-sm text-error hover:bg-error/10" onclick={() => deleteConfirm = true}>
+              <Trash2 class="size-4" /> Delete
+            </button>
+          {/if}
+        {/if}
+      </div>
     </div>
   </div>
+
+  {#if deleteError}
+    <aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>
+  {/if}
 
   <!-- Description -->
   {#if milestone.description?.replace(/<[^>]+>/g, '').trim()}

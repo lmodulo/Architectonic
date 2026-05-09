@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronLeft, Plus, X, AlertCircle, Pencil, Copy } from 'lucide-svelte';
+  import { ChevronLeft, Plus, X, AlertCircle, Pencil, Copy, Trash2 } from 'lucide-svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
@@ -68,6 +68,47 @@
       jobEditing = false;
     } catch { jobEditError = 'Network error'; }
     finally { jobEditSaving = false; }
+  }
+
+  // ── Delete job ─────────────────────────────────────────────────────
+  let deleteConfirm = $state(false);
+  let deleting      = $state(false);
+  let deleteError   = $state('');
+
+  async function deleteJob() {
+    deleting = true; deleteError = '';
+    try {
+      const res = await fetch(`/api/agile/jobs/${job.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        deleteError = (d as any).message ?? 'Delete failed';
+        deleteConfirm = false;
+        return;
+      }
+      goto(job.sprintId ? `/agile/sprints/${job.sprintId}` : '/agile');
+    } catch { deleteError = 'Network error'; deleteConfirm = false; }
+    finally { deleting = false; }
+  }
+
+  // ── Delete task ────────────────────────────────────────────────────
+  let taskDeleteConfirm = $state(false);
+  let taskDeleting      = $state(false);
+  let taskDeleteError   = $state('');
+
+  async function deleteTask() {
+    taskDeleting = true; taskDeleteError = '';
+    try {
+      const res = await fetch(`/api/agile/tasks/${editingId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        taskDeleteError = (d as any).message ?? 'Delete failed';
+        taskDeleteConfirm = false;
+        return;
+      }
+      tasks = tasks.filter(t => t.id !== editingId);
+      editModal = false;
+    } catch { taskDeleteError = 'Network error'; taskDeleteConfirm = false; }
+    finally { taskDeleting = false; }
   }
 
   // ── New task modal ─────────────────────────────────────────────────
@@ -152,6 +193,8 @@
   function openEditModal(task: AgileTask) {
     editingId = task.id ?? '';
     editError = '';
+    taskDeleteConfirm = false;
+    taskDeleteError = '';
     editTaskAttachments = [...(task.attachments ?? [])];
     editForm = {
       title:         task.title,
@@ -241,12 +284,25 @@
           title="Copy job ID"
         >{job.id} <Copy class="size-2.5 shrink-0" /></button>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
         {#if hasPermission(data.user, 'agile_jobs', 'update')}
           <button class="btn btn-ghost btn-sm" onclick={() => {
             jobEditForm = { title: job.title, description: job.description ?? '', category: job.category, blocked: job.blocked, status: job.status, startDate: toDateInput(job.startDate), endDate: toDateInput(job.endDate), teamId: (job as any).teamId ?? '' };
             jobEditing = true;
           }}>Edit</button>
+        {/if}
+        {#if hasPermission(data.user, 'agile_jobs', 'delete')}
+          {#if deleteConfirm}
+            <span class="text-xs text-error font-medium">Delete job?</span>
+            <button class="btn btn-error btn-sm" disabled={deleting} onclick={deleteJob}>
+              {deleting ? 'Deleting…' : 'Yes, delete'}
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick={() => { deleteConfirm = false; deleteError = ''; }}>Cancel</button>
+          {:else}
+            <button class="btn btn-ghost btn-sm text-error hover:bg-error/10" onclick={() => deleteConfirm = true}>
+              <Trash2 class="size-4" /> Delete
+            </button>
+          {/if}
         {/if}
         <div class="text-right">
           <p class="text-sm font-bold" style="color:{barClr}">{pct}%</p>
@@ -255,6 +311,10 @@
       </div>
     </div>
   </div>
+
+  {#if deleteError}
+    <aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>
+  {/if}
 
   <!-- Description -->
   {#if job.description?.replace(/<[^>]+>/g, '').trim()}
@@ -318,7 +378,11 @@
             {#each tasks as task (task.id)}
               <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
                 <td class="px-4 py-2.5 font-medium">
-                  {task.title}
+                  <button
+                    type="button"
+                    class="text-left hover:text-primary hover:underline transition-colors"
+                    onclick={() => goto(`/agile/tasks/${task.id}`)}
+                  >{task.title}</button>
                   {#if task.status === 'Blocked' && task.blockedReason}
                     <p class="text-[10px] text-error mt-0.5">{task.blockedReason}</p>
                   {/if}
@@ -471,10 +535,27 @@
           />
         </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
+      <footer class="flex items-center gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
+        {#if hasPermission(data.user, 'agile_tasks', 'delete')}
+          {#if taskDeleteConfirm}
+            <span class="text-xs text-error font-medium mr-auto">Delete task?</span>
+            <button type="button" class="btn btn-error btn-sm" disabled={taskDeleting} onclick={deleteTask}>
+              {taskDeleting ? 'Deleting…' : 'Yes, delete'}
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick={() => { taskDeleteConfirm = false; taskDeleteError = ''; }}>Cancel</button>
+          {:else}
+            <button type="button" class="btn btn-ghost btn-sm text-error hover:bg-error/10 mr-auto" onclick={() => taskDeleteConfirm = true}>
+              <Trash2 class="size-4" /> Delete
+            </button>
+          {/if}
+        {/if}
+        {#if taskDeleteError}
+          <span class="text-xs text-error">{taskDeleteError}</span>
+        {/if}
         <button type="button" class="btn btn-ghost" onclick={() => {
           tasks = tasks.map(t => t.id === editingId ? { ...t, attachments: editTaskAttachments } as AgileTask : t);
           editModal = false;
+          taskDeleteConfirm = false;
         }}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={savingEdit} onclick={saveEdit}>
           {savingEdit ? 'Saving…' : 'Save Changes'}

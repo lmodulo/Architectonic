@@ -43,7 +43,7 @@ interface ThreadSummary {
 export default async function messagesRoutes(app: FastifyInstance) {
 
   // ── GET /messages — inbox ────────────────────────────────────────────────
-  app.get('/', { preHandler: app.requireAuth, schema: { summary: 'Inbox — undeleted threads where user is a recipient' } }, async (req) => {
+  app.get<{ Querystring: { limit?: string; before?: string } }>('/', { preHandler: app.requireAuth, schema: { summary: 'Inbox — undeleted threads where user is a recipient', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -53,7 +53,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
       .toArray();
 
     const messageIds = states.map(s => s.messageId);
-    if (!messageIds.length) return [];
+    if (!messageIds.length) return { threads: [], hasMore: false };
 
     // Messages where user is to/cc (inbox — not sent)
     const msgs = await db.collection(MSGS)
@@ -89,7 +89,12 @@ export default async function messagesRoutes(app: FastifyInstance) {
       });
     }
 
-    return threads.sort((a, b) => b.latestAt.getTime() - a.latestAt.getTime());
+    const limit  = Math.min(parseInt(req.query.limit ?? '25', 10) || 25, 100);
+    const before = req.query.before ? new Date(req.query.before) : null;
+    let   sorted = threads.sort((a, b) => b.latestAt.getTime() - a.latestAt.getTime());
+    if (before) sorted = sorted.filter(t => t.latestAt < before);
+    const hasMore = sorted.length > limit;
+    return { threads: sorted.slice(0, limit), hasMore };
   });
 
   // ── GET /messages/unread-count ───────────────────────────────────────────
@@ -107,7 +112,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/sent ───────────────────────────────────────────────────
-  app.get('/sent', { preHandler: app.requireAuth, schema: { summary: 'Sent threads — threads where user is the sender' } }, async (req) => {
+  app.get<{ Querystring: { limit?: string; before?: string } }>('/sent', { preHandler: app.requireAuth, schema: { summary: 'Sent threads — threads where user is the sender', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -118,18 +123,23 @@ export default async function messagesRoutes(app: FastifyInstance) {
 
     const threadMap = latestPerThread(msgs);
 
-    return [...threadMap.values()].map(m => ({
-      threadId:   m.threadId.toString(),
-      subject:    m.subject,
-      latestFrom: m.from.toString(),
-      latestAt:   m.createdAt,
-      totalCount: msgs.filter(x => x.threadId.toString() === m.threadId.toString()).length,
+    const limit  = Math.min(parseInt(req.query.limit ?? '25', 10) || 25, 100);
+    const before = req.query.before ? new Date(req.query.before) : null;
+    let   sorted = [...threadMap.values()].map(m => ({
+      threadId:    m.threadId.toString(),
+      subject:     m.subject,
+      latestFrom:  m.from.toString(),
+      latestAt:    m.createdAt,
+      totalCount:  msgs.filter(x => x.threadId.toString() === m.threadId.toString()).length,
       unreadCount: 0,
     })).sort((a: ThreadSummary, b: ThreadSummary) => b.latestAt.getTime() - a.latestAt.getTime());
+    if (before) sorted = sorted.filter(t => t.latestAt < before);
+    const hasMore = sorted.length > limit;
+    return { threads: sorted.slice(0, limit), hasMore };
   });
 
   // ── GET /messages/archived ───────────────────────────────────────────────
-  app.get('/archived', { preHandler: app.requireAuth, schema: { summary: 'Archived threads for the authenticated user' } }, async (req) => {
+  app.get<{ Querystring: { limit?: string; before?: string } }>('/archived', { preHandler: app.requireAuth, schema: { summary: 'Archived threads for the authenticated user', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -137,7 +147,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
       .find({ userId, archived: true, deleted: false })
       .toArray();
 
-    if (!states.length) return [];
+    if (!states.length) return { threads: [], hasMore: false };
 
     const messageIds = states.map(s => s.messageId);
     const msgs = await db.collection(MSGS)
@@ -147,7 +157,9 @@ export default async function messagesRoutes(app: FastifyInstance) {
 
     const threadMap = latestPerThread(msgs);
 
-    return [...threadMap.values()].map(m => ({
+    const limit  = Math.min(parseInt(req.query.limit ?? '25', 10) || 25, 100);
+    const before = req.query.before ? new Date(req.query.before) : null;
+    let   sorted = [...threadMap.values()].map(m => ({
       threadId:    m.threadId.toString(),
       subject:     m.subject,
       latestFrom:  m.from.toString(),
@@ -155,6 +167,9 @@ export default async function messagesRoutes(app: FastifyInstance) {
       unreadCount: 0,
       totalCount:  msgs.filter(x => x.threadId.toString() === m.threadId.toString()).length,
     })).sort((a: ThreadSummary, b: ThreadSummary) => b.latestAt.getTime() - a.latestAt.getTime());
+    if (before) sorted = sorted.filter(t => t.latestAt < before);
+    const hasMore = sorted.length > limit;
+    return { threads: sorted.slice(0, limit), hasMore };
   });
 
   // ── GET /messages/:threadId — full thread ────────────────────────────────

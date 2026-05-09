@@ -184,6 +184,7 @@ export default async function sprintsRoutes(app: FastifyInstance) {
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
       title, description, capacity, status, startDate, endDate, teamId,
+      retroWentWell, retroToImprove, retroActionItems,
     } = req.body as Record<string, unknown>;
 
     if (status !== undefined && !VALID_STATUS.includes(status as typeof VALID_STATUS[number]))
@@ -214,7 +215,10 @@ export default async function sprintsRoutes(app: FastifyInstance) {
     if (status      !== undefined) $set.status      = String(status);
     if (startDate   !== undefined) $set.startDate   = new Date(startDate as string);
     if (endDate     !== undefined) $set.endDate     = new Date(endDate as string);
-    if (teamId      !== undefined) $set.teamId      = teamId ? parseOid(teamId as string, app) : null;
+    if (teamId           !== undefined) $set.teamId           = teamId ? parseOid(teamId as string, app) : null;
+    if (retroWentWell    !== undefined) $set.retroWentWell    = String(retroWentWell);
+    if (retroToImprove   !== undefined) $set.retroToImprove   = String(retroToImprove);
+    if (retroActionItems !== undefined) $set.retroActionItems = String(retroActionItems);
 
     const result = await db.collection(COL).updateOne({ _id: oid }, { $set });
     if (result.matchedCount === 0) return reply.notFound('Sprint not found');

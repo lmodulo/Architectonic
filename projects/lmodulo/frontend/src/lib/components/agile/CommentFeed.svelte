@@ -5,18 +5,21 @@
   import UserNameLink from '$lib/components/UserNameLink.svelte';
 
   let {
-    jobId,
+    jobId  = '',
+    taskId = '',
     user,
     users = [],
   }: {
-    jobId: string;
+    jobId?:  string;
+    taskId?: string;
     user: any;
     users: any[];
   } = $props();
 
   interface Comment {
     id: string;
-    jobId: string;
+    jobId?:  string;
+    taskId?: string;
     text: string;
     createdBy: string;
     createdAt: string;
@@ -52,10 +55,20 @@
     return `${Math.floor(hrs / 24)}d ago`;
   }
 
+  function feedQs(): string {
+    if (taskId) return `taskId=${taskId}`;
+    return `jobId=${jobId}`;
+  }
+
+  function postBody(text: string): Record<string, string> {
+    if (taskId) return { taskId, text };
+    return { jobId, text };
+  }
+
   async function load() {
     loading = true;
     try {
-      const res = await fetch(`/api/agile/comments?jobId=${jobId}`);
+      const res = await fetch(`/api/agile/comments?${feedQs()}`);
       if (res.ok) {
         const data = await res.json();
         comments = ((data.comments ?? []) as Comment[]).reverse();
@@ -72,7 +85,7 @@
       const res = await fetch('/api/agile/comments', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ jobId, text: newText.trim() }),
+        body: JSON.stringify(postBody(newText.trim())),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) { postError = (d as any).message ?? 'Post failed'; return; }

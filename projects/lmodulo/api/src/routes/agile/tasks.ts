@@ -107,7 +107,7 @@ export default async function tasksRoutes(app: FastifyInstance) {
         type: 'agile_task.assigned',
         title: 'Task assigned to you',
         body: doc.title,
-        link: `/agile/jobs/${jobOid.toString()}`,
+        link: `/agile/tasks/${result.insertedId.toString()}`,
         source: { collection: COL, documentId: result.insertedId },
       });
     }
@@ -206,7 +206,7 @@ export default async function tasksRoutes(app: FastifyInstance) {
           type: 'agile_task.assigned',
           title: 'Task assigned to you',
           body: (($set.title as string) ?? preTask.title),
-          link: `/agile/jobs/${(preTask.jobId as ObjectId).toString()}`,
+          link: `/agile/tasks/${oid.toString()}`,
           source: { collection: COL, documentId: oid },
         });
       }
@@ -225,7 +225,7 @@ export default async function tasksRoutes(app: FastifyInstance) {
           type: 'agile_task.status_changed',
           title: 'Task status updated',
           body: `${preTask.title}: ${preTask.status} → ${status}`,
-          link: `/agile/jobs/${(preTask.jobId as ObjectId).toString()}`,
+          link: `/agile/tasks/${oid.toString()}`,
           source: { collection: COL, documentId: oid },
           groupKey: `task-status-${oid.toString()}`,
         });

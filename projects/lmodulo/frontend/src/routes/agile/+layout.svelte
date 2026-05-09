@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, Milestone } from 'lucide-svelte';
+  import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, Milestone, ClipboardList, BarChart2, ListChecks } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
 
@@ -9,11 +9,14 @@
   const navLinks = [
     { href: '/agile',          label: 'Overview',  icon: LayoutGrid    },
     { href: '/agile/board',    label: 'Board',     icon: KanbanSquare  },
+    { href: '/agile/plan',     label: 'Plan',      icon: ClipboardList },
     { href: '/agile/timeline', label: 'Timeline',  icon: GanttChart    },
     { href: '/agile/calendar', label: 'Calendar',  icon: CalendarDays  },
+    { href: '/agile/reports',   label: 'Reports',   icon: BarChart2     },
+    { href: '/agile/my-tasks',  label: 'My Tasks',  icon: ListChecks    },
   ];
 
-  const overviewPrefixes = ['/agile/milestones', '/agile/sprints', '/agile/jobs'];
+  const overviewPrefixes = ['/agile/milestones', '/agile/sprints', '/agile/jobs', '/agile/tasks'];
 
   const isActive = (href: string) =>
     href === '/agile'

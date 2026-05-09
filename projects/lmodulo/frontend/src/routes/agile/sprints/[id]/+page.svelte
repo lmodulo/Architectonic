@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronLeft, Plus, X, Zap, LayoutGrid } from 'lucide-svelte';
+  import { ChevronLeft, Plus, X, Zap, LayoutGrid, Trash2 } from 'lucide-svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
@@ -96,6 +96,26 @@
     finally { sprintEditSaving = false; }
   }
 
+  // ── Delete sprint ──────────────────────────────────────────────────
+  let deleteConfirm = $state(false);
+  let deleting      = $state(false);
+  let deleteError   = $state('');
+
+  async function deleteSprint() {
+    deleting = true; deleteError = '';
+    try {
+      const res = await fetch(`/api/agile/sprints/${sprint.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        deleteError = (d as any).message ?? 'Delete failed';
+        deleteConfirm = false;
+        return;
+      }
+      goto(sprint.milestoneId ? `/agile/milestones/${sprint.milestoneId}` : '/agile');
+    } catch { deleteError = 'Network error'; deleteConfirm = false; }
+    finally { deleting = false; }
+  }
+
   async function handleStatusChange(taskId: string, newStatus: string) {
     const res = await fetch(`/api/agile/tasks/${taskId}`, {
       method: 'PATCH',
@@ -120,6 +140,51 @@
     if (!u) return '?';
     if (u.firstName) return (u.firstName[0] + (u.lastName?.[0] ?? '')).toUpperCase();
     return u.username[0].toUpperCase();
+  }
+
+  // ── Retrospective ──────────────────────────────────────────────────
+  let retroEditing  = $state(false);
+  let retroSaving   = $state(false);
+  let retroError    = $state('');
+  let retroForm     = $state({
+    retroWentWell:    (sprint as any).retroWentWell    ?? '',
+    retroToImprove:   (sprint as any).retroToImprove   ?? '',
+    retroActionItems: (sprint as any).retroActionItems ?? '',
+  });
+
+  // Keep form in sync if sprint data is refreshed
+  $effect(() => {
+    if (!retroEditing) {
+      retroForm = {
+        retroWentWell:    (sprint as any).retroWentWell    ?? '',
+        retroToImprove:   (sprint as any).retroToImprove   ?? '',
+        retroActionItems: (sprint as any).retroActionItems ?? '',
+      };
+    }
+  });
+
+  function hasRetroContent(): boolean {
+    return !!(
+      (sprint as any).retroWentWell?.replace(/<[^>]+>/g, '').trim() ||
+      (sprint as any).retroToImprove?.replace(/<[^>]+>/g, '').trim() ||
+      (sprint as any).retroActionItems?.replace(/<[^>]+>/g, '').trim()
+    );
+  }
+
+  async function saveRetro() {
+    retroSaving = true; retroError = '';
+    try {
+      const res = await fetch(`/api/agile/sprints/${sprint.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(retroForm),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { retroError = (d as any).message ?? 'Save failed'; return; }
+      sprint = { ...sprint, ...retroForm } as any;
+      retroEditing = false;
+    } catch { retroError = 'Network error'; }
+    finally { retroSaving = false; }
   }
 
   let selectedJob      = $state('');
@@ -158,14 +223,33 @@
         <h1 class="text-2xl font-bold">{sprint.title}</h1>
         <p class="text-xs opacity-50">{fmtDateRange(sprint.startDate ?? null, sprint.endDate ?? null)}</p>
       </div>
-      {#if hasPermission(data.user, 'agile_sprints', 'update')}
-        <button class="btn btn-ghost btn-sm shrink-0" onclick={() => {
-          sprintEditForm = { title: sprint.title, description: sprint.description ?? '', capacity: sprint.capacity ?? 0, status: sprint.status, startDate: toDateInput(sprint.startDate), endDate: toDateInput(sprint.endDate), teamId: (sprint as any).teamId ?? '' };
-          sprintEditing = true;
-        }}>Edit</button>
-      {/if}
+      <div class="flex items-center gap-2 shrink-0">
+        {#if hasPermission(data.user, 'agile_sprints', 'update')}
+          <button class="btn btn-ghost btn-sm" onclick={() => {
+            sprintEditForm = { title: sprint.title, description: sprint.description ?? '', capacity: sprint.capacity ?? 0, status: sprint.status, startDate: toDateInput(sprint.startDate), endDate: toDateInput(sprint.endDate), teamId: (sprint as any).teamId ?? '' };
+            sprintEditing = true;
+          }}>Edit</button>
+        {/if}
+        {#if hasPermission(data.user, 'agile_sprints', 'delete')}
+          {#if deleteConfirm}
+            <span class="text-xs text-error font-medium">Delete sprint?</span>
+            <button class="btn btn-error btn-sm" disabled={deleting} onclick={deleteSprint}>
+              {deleting ? 'Deleting…' : 'Yes, delete'}
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick={() => { deleteConfirm = false; deleteError = ''; }}>Cancel</button>
+          {:else}
+            <button class="btn btn-ghost btn-sm text-error hover:bg-error/10" onclick={() => deleteConfirm = true}>
+              <Trash2 class="size-4" /> Delete
+            </button>
+          {/if}
+        {/if}
+      </div>
     </div>
   </div>
+
+  {#if deleteError}
+    <aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>
+  {/if}
 
   <!-- Description -->
   {#if sprint.description?.replace(/<[^>]+>/g, '').trim()}
@@ -350,8 +434,79 @@
       tasks={boardTasks}
       canUpdate={hasPermission(data.user, 'agile_tasks', 'update')}
       onStatusChange={handleStatusChange}
-      onTaskClick={t => goto(`/agile/jobs/${t.jobId}`)}
+      onTaskClick={t => goto(`/agile/tasks/${t.id}`)}
     />
+  </section>
+
+  <!-- Retrospective -->
+  <section class="space-y-3">
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-base font-semibold">Retrospective</h2>
+      {#if hasPermission(data.user, 'agile_sprints', 'update')}
+        {#if retroEditing}
+          <div class="flex items-center gap-2">
+            {#if retroError}
+              <span class="text-xs text-error">{retroError}</span>
+            {/if}
+            <button class="btn btn-ghost btn-sm" onclick={() => { retroEditing = false; retroError = ''; }}>Cancel</button>
+            <button class="btn btn-primary btn-sm" disabled={retroSaving} onclick={saveRetro}>
+              {retroSaving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        {:else}
+          <button class="btn btn-ghost btn-sm" onclick={() => retroEditing = true}>
+            {hasRetroContent() ? 'Edit Retrospective' : 'Add Retrospective'}
+          </button>
+        {/if}
+      {/if}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- What went well -->
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="size-2 rounded-full bg-success shrink-0"></span>
+          <h3 class="text-sm font-semibold">What went well</h3>
+        </div>
+        {#if retroEditing}
+          <MessageEditor bind:html={retroForm.retroWentWell} placeholder="Things that went smoothly…" />
+        {:else if (sprint as any).retroWentWell?.replace(/<[^>]+>/g, '').trim()}
+          <div class="prose prose-sm dark:prose-invert max-w-none opacity-80">{@html (sprint as any).retroWentWell}</div>
+        {:else}
+          <p class="text-xs opacity-40 italic">Nothing recorded yet.</p>
+        {/if}
+      </div>
+
+      <!-- What to improve -->
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="size-2 rounded-full bg-warning shrink-0"></span>
+          <h3 class="text-sm font-semibold">What to improve</h3>
+        </div>
+        {#if retroEditing}
+          <MessageEditor bind:html={retroForm.retroToImprove} placeholder="Areas needing improvement…" />
+        {:else if (sprint as any).retroToImprove?.replace(/<[^>]+>/g, '').trim()}
+          <div class="prose prose-sm dark:prose-invert max-w-none opacity-80">{@html (sprint as any).retroToImprove}</div>
+        {:else}
+          <p class="text-xs opacity-40 italic">Nothing recorded yet.</p>
+        {/if}
+      </div>
+
+      <!-- Action items -->
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="size-2 rounded-full bg-primary shrink-0"></span>
+          <h3 class="text-sm font-semibold">Action items</h3>
+        </div>
+        {#if retroEditing}
+          <MessageEditor bind:html={retroForm.retroActionItems} placeholder="Concrete steps to take next sprint…" />
+        {:else if (sprint as any).retroActionItems?.replace(/<[^>]+>/g, '').trim()}
+          <div class="prose prose-sm dark:prose-invert max-w-none opacity-80">{@html (sprint as any).retroActionItems}</div>
+        {:else}
+          <p class="text-xs opacity-40 italic">Nothing recorded yet.</p>
+        {/if}
+      </div>
+    </div>
   </section>
 
 </div>

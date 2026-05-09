@@ -24,12 +24,17 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 
   // Load inbox for left panel
   let inbox: unknown[] = [];
+  let inboxHasMore = false;
   try {
-    const res = await fetch(`${API_URL}/messages`, {
+    const res = await fetch(`${API_URL}/messages?limit=25`, {
       headers: sessionCookie ? { cookie: `session=${sessionCookie}` } : {}
     });
-    if (res.ok) inbox = await res.json();
+    if (res.ok) {
+      const d = await res.json();
+      inbox        = d.threads  ?? [];
+      inboxHasMore = d.hasMore  ?? false;
+    }
   } catch { /* non-fatal */ }
 
-  return { inbox, allUsers };
+  return { inbox, inboxHasMore, allUsers };
 };

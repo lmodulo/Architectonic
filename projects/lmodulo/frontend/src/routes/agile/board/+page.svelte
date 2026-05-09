@@ -66,7 +66,7 @@
     tasks={filtered}
     canUpdate={hasPermission(data.user, 'agile_tasks', 'update')}
     onStatusChange={handleStatusChange}
-    onTaskClick={t => goto(`/agile/jobs/${t.jobId}`)}
+    onTaskClick={t => goto(`/agile/tasks/${t.id}`)}
   />
 
 </div>

@@ -17,24 +17,49 @@
   };
 
   type Tab = 'inbox' | 'sent' | 'archived';
-  let activeTab = $state<Tab>('inbox');
-  let listData = $state<Thread[]>(data.inbox as Thread[]);
-  let loading = $state(false);
+  let activeTab   = $state<Tab>('inbox');
+  let listData    = $state<Thread[]>(data.inbox as Thread[]);
+  let hasMore     = $state(data.inboxHasMore ?? false);
+  let loading     = $state(false);
+  let loadingMore = $state(false);
+
+  const endpoints: Record<Tab, string> = {
+    inbox:    '/api/messages',
+    sent:     '/api/messages/sent',
+    archived: '/api/messages/archived',
+  };
 
   async function switchTab(tab: Tab) {
     if (tab === activeTab) return;
     activeTab = tab;
     loading = true;
+    hasMore = false;
     try {
-      const endpoints: Record<Tab, string> = {
-        inbox:    '/api/messages',
-        sent:     '/api/messages/sent',
-        archived: '/api/messages/archived',
-      };
-      const res = await fetch(endpoints[tab]);
-      if (res.ok) listData = await res.json();
+      const res = await fetch(`${endpoints[tab]}?limit=25`);
+      if (res.ok) {
+        const d = await res.json();
+        listData = d.threads ?? [];
+        hasMore  = d.hasMore ?? false;
+      }
     } catch { /* non-fatal */ } finally {
       loading = false;
+    }
+  }
+
+  async function loadMore() {
+    const oldest = listData[listData.length - 1];
+    if (!oldest || loadingMore) return;
+    loadingMore = true;
+    try {
+      const before = encodeURIComponent(new Date(oldest.latestAt).toISOString());
+      const res = await fetch(`${endpoints[activeTab]}?limit=25&before=${before}`);
+      if (res.ok) {
+        const d = await res.json();
+        listData = [...listData, ...(d.threads ?? [])];
+        hasMore  = d.hasMore ?? false;
+      }
+    } catch { /* non-fatal */ } finally {
+      loadingMore = false;
     }
   }
 
@@ -102,6 +127,18 @@
             active={currentThreadId === thread.threadId}
           />
         {/each}
+        {#if hasMore}
+          <div class="px-3 py-2">
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm w-full text-xs opacity-60 hover:opacity-100"
+              disabled={loadingMore}
+              onclick={loadMore}
+            >
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </button>
+          </div>
+        {/if}
       {/if}
     </div>
 

@@ -5,11 +5,15 @@ import type { RequestHandler } from './$types';
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
 // GET /api/messages — inbox
-export const GET: RequestHandler = async ({ cookies }) => {
+export const GET: RequestHandler = async ({ cookies, url }) => {
   const sessionCookie = cookies.get('session');
+  const qs = new URLSearchParams();
+  if (url.searchParams.get('limit'))  qs.set('limit',  url.searchParams.get('limit')!);
+  if (url.searchParams.get('before')) qs.set('before', url.searchParams.get('before')!);
+  const suffix = qs.toString() ? `?${qs}` : '';
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/messages`, {
+    res = await fetch(`${API_URL}/messages${suffix}`, {
       headers: sessionCookie ? { cookie: `session=${sessionCookie}` } : {}
     });
   } catch {

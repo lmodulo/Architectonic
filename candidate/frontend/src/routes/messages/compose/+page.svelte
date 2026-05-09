@@ -80,19 +80,19 @@
 <div class="max-w-2xl mx-auto p-6 space-y-4">
   <div class="flex items-center justify-between">
     <h1 class="text-lg font-semibold">New Message</h1>
-    <a href="/messages" class="btn btn-ghost btn-square btn-sm" aria-label="Cancel"><X class="size-5" /></a>
+    <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label="Cancel"><X class="size-5" /></a>
   </div>
 
   {#if error}
-    <div role="alert" class="alert alert-error text-sm">{error}</div>
+    <aside class="alert alert-error p-3 rounded text-sm">{error}</aside>
   {/if}
 
   <!-- To field -->
   <div class="space-y-1">
-    <span class="label-text text-xs font-medium opacity-60 uppercase tracking-wide">To</span>
-    <div class="flex flex-wrap gap-1.5 items-center border border-base-300 rounded-lg px-2 py-1.5 min-h-[2.5rem]">
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">To</label>
+    <div class="flex flex-wrap gap-1.5 items-center border border-base-300 rounded px-2 py-1.5 min-h-[2.5rem]">
       {#each toIds as id}
-        <span class="badge badge-primary badge-outline text-xs flex items-center gap-1">
+        <span class="badge badge-primary badge-soft text-xs flex items-center gap-1">
           {recipientName(id)}
           <button type="button" onclick={() => removeRecipient(id)} class="opacity-60 hover:opacity-100">
             <X class="size-3" />
@@ -119,14 +119,22 @@
     </div>
   </div>
 
-  <div class="form-control gap-1">
-    <span class="label-text text-xs font-medium opacity-60 uppercase tracking-wide">Subject</span>
-    <input id="subject" type="text" class="input input-bordered" placeholder="Subject"
-      bind:value={subject} maxlength="200" />
+  <!-- Subject -->
+  <div class="space-y-1">
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="subject">Subject</label>
+    <input
+      id="subject"
+      type="text"
+      class="input w-full"
+      placeholder="Subject"
+      bind:value={subject}
+      maxlength="200"
+    />
   </div>
 
+  <!-- Body -->
   <div class="space-y-1">
-    <span class="label-text text-xs font-medium opacity-60 uppercase tracking-wide">Message</span>
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Message</label>
     <MessageEditor bind:html={body} />
   </div>
 

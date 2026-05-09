@@ -181,7 +181,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
       title, description, category, blocked, dependencyIds,
-      status, startDate, endDate, teamId,
+      status, startDate, endDate, teamId, sprintId,
     } = req.body as Record<string, unknown>;
 
     if (status !== undefined && !VALID_STATUS.includes(status as typeof VALID_STATUS[number]))
@@ -229,6 +229,22 @@ export default async function jobsRoutes(app: FastifyInstance) {
       $set.dependencyIds = (dependencyIds as string[]).map(id => parseOid(id, app));
     }
     if (teamId !== undefined) $set.teamId = teamId ? parseOid(teamId as string, app) : null;
+
+    if (sprintId !== undefined) {
+      const newSprintOid = parseOid(sprintId as string, app);
+      const newSprint    = await db.collection('agile_sprints').findOne({ _id: newSprintOid });
+      if (!newSprint) throw app.httpErrors.notFound('Target sprint not found');
+
+      // Validate the new sprint belongs to the same milestone as the current job's sprint
+      const currentJob = await db.collection(COL).findOne({ _id: oid });
+      if (!currentJob) return reply.notFound('Job not found');
+      const currentSprint = await db.collection('agile_sprints').findOne({ _id: currentJob.sprintId });
+      if (currentSprint && !newSprint.milestoneId.equals(currentSprint.milestoneId)) {
+        throw app.httpErrors.badRequest('Cannot move job to a sprint in a different milestone');
+      }
+
+      $set.sprintId = newSprintOid;
+    }
 
     const result = await db.collection(COL).updateOne({ _id: oid }, { $set });
     if (result.matchedCount === 0) return reply.notFound('Job not found');
