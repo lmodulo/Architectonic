@@ -1,13 +1,16 @@
 export type Action = 'create' | 'read' | 'update' | 'delete';
 
 export interface UserWithPermissions {
-  id:          string;
-  username:    string;
-  email:       string;
-  firstName?:  string;
-  lastName?:   string;
-  role:        string;
-  permissions: Record<string, Record<Action, boolean>>;
+  id:           string;
+  username:     string;
+  email:        string;
+  firstName?:   string;
+  lastName?:    string;
+  role:         string;
+  avatarUrl?:   string;
+  avatarColor?: string;
+  phone?:       string;
+  permissions:  Record<string, Record<Action, boolean>>;
 }
 
 /** Pure helper — safe to call in hooks, +page.server.ts, and Svelte templates. */

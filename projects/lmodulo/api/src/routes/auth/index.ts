@@ -17,7 +17,7 @@ const SALT_ROUNDS = 12;
 
 interface RegisterBody      { username: string; email: string; password: string; firstName?: string; lastName?: string }
 interface LoginBody         { email: string; password: string }
-interface ProfileBody       { username?: string; email?: string; firstName?: string; lastName?: string; avatarColor?: string }
+interface ProfileBody       { username?: string; email?: string; firstName?: string; lastName?: string; avatarColor?: string; phone?: string }
 interface ForgotPasswordBody { email: string }
 interface ResetPasswordBody  { token: string; password: string }
 
@@ -139,14 +139,15 @@ export default async function authRoutes(app: FastifyInstance) {
           email:       { type: 'string', format: 'email' },
           firstName:   { type: 'string', maxLength: 50 },
           lastName:    { type: 'string', maxLength: 50 },
-          avatarColor: { type: 'string', maxLength: 20 }
+          avatarColor: { type: 'string', maxLength: 20 },
+          phone:       { type: 'string', maxLength: 30 }
         }
       }
     }
   }, async (req, reply) => {
     if (!req.session.userId) return reply.unauthorized('Not authenticated');
     const col = app.mongo.db!.collection(COLLECTION);
-    const { username, email, firstName, lastName, avatarColor } = req.body;
+    const { username, email, firstName, lastName, avatarColor, phone } = req.body;
 
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (username)                updates.username    = username;
@@ -154,6 +155,7 @@ export default async function authRoutes(app: FastifyInstance) {
     if (firstName !== undefined) updates.firstName   = firstName;
     if (lastName  !== undefined) updates.lastName    = lastName;
     if (avatarColor !== undefined) updates.avatarColor = avatarColor;
+    if (phone !== undefined)     updates.phone       = phone.trim();
 
     if (username || email) {
       const conflict = await col.findOne({
@@ -277,6 +279,7 @@ export default async function authRoutes(app: FastifyInstance) {
       role:        user.role        ?? 'viewer',
       avatarUrl:   user.avatarUrl   ?? '',
       avatarColor: user.avatarColor ?? '',
+      phone:       user.phone       ?? '',
       permissions
     };
   });

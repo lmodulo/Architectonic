@@ -2,7 +2,7 @@
   import '../app.css';
   import {
     Menu as MenuIcon, LogOut, X, User, Users,
-    Settings, ChevronRight, ChevronDown
+    Settings, ChevronRight, ChevronDown, HelpCircle
   } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import { navItems, isNavGroup } from '$lib/config/nav';
@@ -10,6 +10,7 @@
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
+  import UserCard from '$lib/components/UserCard.svelte';
   import { connect, disconnect, getUnreadCount } from '$lib/stores/notifications.svelte';
   import { brand } from '$lib/config/logo';
   import { APP_THEME } from '$lib/config/theme';
@@ -248,6 +249,15 @@
                 </a>
               {/if}
               <div class="border-t border-base-300/50 my-1"></div>
+              <a
+                href="/documentation/projects/lmodulo"
+                class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname.startsWith('/documentation') ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                onclick={() => { closeSidebar(); profileOpen = false; }}
+              >
+                <HelpCircle class="size-4 shrink-0" />
+                <span>Support</span>
+              </a>
+              <div class="border-t border-base-300/50 my-1"></div>
               <button
                 type="button"
                 class="flex items-center gap-3 w-full px-3 py-2 rounded text-sm text-error hover:bg-error/10 transition-colors"
@@ -291,6 +301,8 @@
 
   </div>
 
+  <div data-theme={APP_THEME} style="display:contents"><UserCard /></div>
+
   {#if data.chatEnabled}
     <div data-theme={APP_THEME} style="display:contents"><ChatAssistant /></div>
   {/if}
@@ -316,5 +328,4 @@
     flex-direction: column;
     gap: 0.125rem;
     padding-bottom: 0.25rem;
-  }
-</style>
+  }</style>

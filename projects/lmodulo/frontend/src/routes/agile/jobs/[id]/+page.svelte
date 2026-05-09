@@ -10,6 +10,7 @@
   import EffortBar from '$lib/components/agile/EffortBar.svelte';
   import CommentFeed from '$lib/components/agile/CommentFeed.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
+  import UserNameLink from '$lib/components/UserNameLink.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import {
@@ -322,7 +323,13 @@
                     <p class="text-[10px] text-error mt-0.5">{task.blockedReason}</p>
                   {/if}
                 </td>
-                <td class="px-4 py-2.5 text-xs opacity-70">{userName(task.assignedTo)}</td>
+                <td class="px-4 py-2.5 text-xs opacity-70">
+                  {#if task.assignedTo}
+                    <UserNameLink user={users.find((u: any) => u.id === task.assignedTo)} />
+                  {:else}
+                    Unassigned
+                  {/if}
+                </td>
                 <td class="px-4 py-2.5">
                   <span class="badge text-xs {PRIORITY_COLOR[task.priority] ?? 'badge-ghost'}">{task.priority}</span>
                 </td>

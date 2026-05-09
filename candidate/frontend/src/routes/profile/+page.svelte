@@ -10,6 +10,7 @@
   let lastName  = $state(data.user?.lastName  ?? '');
   let username  = $state(data.user?.username  ?? '');
   let email     = $state(data.user?.email     ?? '');
+  let phone     = $state(data.user?.phone     ?? '');
 
   // ── Avatar state ──────────────────────────────────────────────────────
   let localAvatarUrl   = $state(data.user?.avatarUrl   ?? '');
@@ -238,6 +239,10 @@
       <label class="flex flex-col gap-1">
         <span class="text-sm font-medium">Email</span>
         <input type="email" name="email" class="input" bind:value={email} required />
+      </label>
+      <label class="flex flex-col gap-1">
+        <span class="text-sm font-medium">Phone</span>
+        <input type="tel" name="phone" class="input" bind:value={phone} maxlength="30" placeholder="+1 555 000 0000" autocomplete="tel" />
       </label>
       <button type="submit" class="btn btn-primary w-full">Save Changes</button>
     </form>

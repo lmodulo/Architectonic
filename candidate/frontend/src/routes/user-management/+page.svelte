@@ -4,6 +4,7 @@
   import { Search, Pencil, Trash2, X, UserPlus, Plus } from 'lucide-svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
+  import UserNameLink from '$lib/components/UserNameLink.svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
 
@@ -361,11 +362,11 @@
             {#each pageUsers as user}
               <tr class="hover:bg-base-200/50">
                 <td>
+                  <div class="font-medium">
+                    <UserNameLink user={user} />
+                  </div>
                   {#if user.firstName || user.lastName}
-                    <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
                     <div class="text-xs opacity-50">{user.username}</div>
-                  {:else}
-                    <div class="font-medium">{user.username}</div>
                   {/if}
                 </td>
                 <td class="opacity-60">{user.email}</td>
@@ -473,11 +474,9 @@
                 {#each pageRoleUsers as user}
                   <tr class="hover:bg-base-200/50">
                     <td>
+                      <div class="font-medium"><UserNameLink user={user} /></div>
                       {#if user.firstName || user.lastName}
-                        <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
                         <div class="text-xs opacity-50">{user.username}</div>
-                      {:else}
-                        <div class="font-medium">{user.username}</div>
                       {/if}
                     </td>
                     <td class="opacity-60">{user.email}</td>
@@ -574,7 +573,7 @@
                           <Avatar user={member} size="sm" />
                           <div class="flex-1 min-w-0">
                             <div class="text-sm font-medium truncate">
-                              {[member.firstName, member.lastName].filter(Boolean).join(' ') || member.username}
+                              <UserNameLink user={member} />
                             </div>
                             <div class="text-xs opacity-50">{member.username}</div>
                           </div>

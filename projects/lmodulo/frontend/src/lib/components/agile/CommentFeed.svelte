@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { MessageSquare, Send, Pencil, Trash2, X, Check } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
+  import UserNameLink from '$lib/components/UserNameLink.svelte';
 
   let {
     jobId,
@@ -123,7 +124,7 @@
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline gap-2 flex-wrap">
-              <span class="text-xs font-semibold">{userName(c.createdBy)}</span>
+              <UserNameLink user={users.find((u: any) => u.id === c.createdBy)} class="text-xs font-semibold" />
               <span class="text-[10px] opacity-40">{timeAgo(c.createdAt)}</span>
               {#if c.createdBy === user?.id || hasPermission(user, 'agile_comments', 'delete')}
                 <span class="ml-auto flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">

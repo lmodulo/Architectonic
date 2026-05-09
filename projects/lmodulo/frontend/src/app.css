@@ -41,6 +41,10 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
 
+.card {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 24px 56px rgba(0, 0, 0, 0.4);
+}
+
 /* ── Theme overrides ──────────────────────────────────────────────────────
    Override DaisyUI luxury-theme CSS variables here.
    Full variable list: https://daisyui.com/docs/themes/

@@ -11,8 +11,9 @@
   const tasks  = $derived((data.tasks  ?? []) as any[]);
   const users  = $derived((data.users  ?? []) as { id: string; username: string; firstName: string; lastName: string }[]);
 
-  let modalOpen = $state(false);
-  let editing   = $state<CalendarEvent | null>(null);
+  let modalOpen     = $state(false);
+  let editing       = $state<CalendarEvent | null>(null);
+  let newEventDate  = $state('');
 
   const userId = (data.user as { id: string }).id;
 
@@ -59,7 +60,8 @@
       .sort((a, b) => a.startDate.localeCompare(b.startDate));
   });
 
-  function openNew() { editing = null; modalOpen = true; }
+  function openNew() { editing = null; newEventDate = ''; modalOpen = true; }
+  function openNewOnDate(dateStr: string) { editing = null; newEventDate = dateStr; modalOpen = true; }
   function openEdit(ev: CalendarEvent) {
     if (ev.ownerId !== userId) return; // can only edit own events
     editing = ev;
@@ -157,7 +159,10 @@
       {#each calDays as cell, i}
         {@const borderR = (i+1) % 7 !== 0 ? 'border-r' : ''}
         {@const borderB = i < calDays.length - 7 ? 'border-b' : ''}
-        <div class="min-h-[5.5rem] p-2 border-base-300 {borderR} {borderB} {cell?.isToday ? 'bg-primary/5' : ''}">
+        <div
+          class="min-h-[5.5rem] p-2 border-base-300 {borderR} {borderB} {cell?.isToday ? 'bg-primary/5' : ''}"
+          ondblclick={() => { if (cell && hasPermission(data.user, 'calendar_events', 'create')) openNewOnDate(ds(calYear, calMonth, cell.day)); }}
+        >
           {#if cell}
             <span class="text-xs font-semibold {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-content' : 'opacity-70'}">
               {cell.day}
@@ -248,6 +253,7 @@
   open={modalOpen}
   user={data.user}
   {users}
+  defaultStartDate={editing ? undefined : (newEventDate || undefined)}
   onSave={handleSave}
   onDelete={handleDelete}
   onClose={() => (modalOpen = false)}

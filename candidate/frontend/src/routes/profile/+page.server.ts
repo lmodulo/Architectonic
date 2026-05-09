@@ -24,8 +24,9 @@ export const actions: Actions = {
     const email     = (form.get('email')     as string)?.trim();
     const firstName = (form.get('firstName') as string)?.trim();
     const lastName  = (form.get('lastName')  as string)?.trim();
+    const phone     = (form.get('phone')     as string)?.trim();
 
-    if (!username && !email && firstName === undefined && lastName === undefined) {
+    if (!username && !email && firstName === undefined && lastName === undefined && phone === undefined) {
       return fail(400, { error: 'Nothing to update' });
     }
 
@@ -39,7 +40,7 @@ export const actions: Actions = {
           'content-type': 'application/json',
           ...(sessionCookie ? { cookie: `session=${sessionCookie}` } : {})
         },
-        body: JSON.stringify({ username, email, firstName, lastName })
+        body: JSON.stringify({ username, email, firstName, lastName, phone })
       });
     } catch {
       return fail(503, { error: 'Cannot reach the API server' });

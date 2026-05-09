@@ -12,6 +12,7 @@
   let lastName  = $state(data.user?.lastName  ?? '');
   let username  = $state(data.user?.username  ?? '');
   let email     = $state(data.user?.email     ?? '');
+  let phone     = $state(data.user?.phone     ?? '');
 
   // ── Avatar state ──────────────────────────────────────────────────────
   let localAvatarUrl   = $state(data.user?.avatarUrl   ?? '');
@@ -99,144 +100,155 @@
   <title>Profile</title>
 </svelte:head>
 
-<div class="max-w-lg space-y-6">
-  <h1 class="text-2xl font-bold">Profile</h1>
+<div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 max-w-3xl">
 
-  <!-- ── Avatar card ─────────────────────────────────────────────────── -->
-  <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
-    <h2 class="text-lg font-semibold">Avatar</h2>
+  <!-- ── Left column ────────────────────────────────────────────────── -->
+  <div class="space-y-6">
+    <h1 class="text-2xl font-bold">Profile</h1>
 
-    {#if avatarError}
-      <div role="alert" class="alert alert-error text-sm">{avatarError}</div>
-    {/if}
-    {#if avatarSuccess}
-      <div role="alert" class="alert alert-success text-sm">{avatarSuccess}</div>
-    {/if}
-
-    <div class="flex justify-center">
-      <Avatar user={avatarUser} size="xl" />
-    </div>
-
-    {#if cropSrc}
-
-      <AvatarCropper src={cropSrc} onApply={onCropApply} onCancel={onCropCancel} />
-
-    {:else}
-
-      <div role="tablist" class="tabs tabs-box">
-        <button role="tab" type="button" class="tab {avatarTab === 'photo' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'photo')}>
-          Photo
-        </button>
-        <button role="tab" type="button" class="tab {avatarTab === 'color' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'color')}>
-          Color
-        </button>
+    <!-- ── My Teams card ───────────────────────────────────────────── -->
+    {#if myTeams.length > 0}
+      <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-3">
+        <h2 class="text-lg font-semibold">My Teams</h2>
+        <ul class="space-y-2">
+          {#each myTeams as team}
+            <li class="flex items-center justify-between">
+              <span class="font-medium">{team.name}</span>
+              {#if team.description}
+                <span class="text-sm text-base-content/50">{team.description}</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
       </div>
+    {/if}
 
-      {#if avatarTab === 'photo'}
-        <div class="space-y-2">
-          <input bind:this={fileInput} type="file" accept="image/*" class="hidden" onchange={onFileChange} />
-          <button
-            type="button"
-            class="btn btn-outline w-full"
-            disabled={avatarUploading}
-            onclick={() => fileInput.click()}
-          >
-            {localAvatarUrl ? 'Change Photo' : 'Upload Photo'}
-          </button>
-          {#if localAvatarUrl}
-            <button
-              type="button"
-              class="btn btn-ghost btn-sm text-error w-full"
-              disabled={avatarUploading}
-              onclick={removeAvatar}
-            >
-              Remove Photo
-            </button>
-          {/if}
-        </div>
+    <!-- ── Account info card ─────────────────────────────────────────── -->
+    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
+      <h2 class="text-lg font-semibold">Account Information</h2>
 
-      {:else}
-        <div class="space-y-4">
-          <div class="grid grid-cols-6 gap-2">
-            {#each COLORS as color}
-              <button
-                type="button"
-                class="size-9 rounded-full border-2 transition-transform hover:scale-110 flex items-center justify-center"
-                style="background:{color}; border-color:{localAvatarColor === color ? 'white' : 'transparent'}"
-                onclick={() => { localAvatarColor = color; }}
-                aria-label="Select color {color}"
-                aria-pressed={localAvatarColor === color}
-              >
-                {#if localAvatarColor === color}
-                  <svg class="size-4 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
-                  </svg>
-                {/if}
-              </button>
-            {/each}
-          </div>
-          <button
-            type="button"
-            class="btn btn-primary btn-sm w-full"
-            disabled={colorSaving}
-            onclick={saveColor}
-          >
-            {colorSaving ? 'Saving…' : 'Save Color'}
-          </button>
-        </div>
+      {#if form?.success}
+        <div role="alert" class="alert alert-success text-sm">Profile updated successfully.</div>
+      {/if}
+      {#if form?.error}
+        <div role="alert" class="alert alert-error text-sm">{form.error}</div>
       {/if}
 
-    {/if}
-  </div>
-
-  <!-- ── My Teams card ─────────────────────────────────────────────── -->
-  {#if myTeams.length > 0}
-    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-3">
-      <h2 class="text-lg font-semibold">My Teams</h2>
-      <ul class="space-y-2">
-        {#each myTeams as team}
-          <li class="flex items-center justify-between">
-            <span class="font-medium">{team.name}</span>
-            {#if team.description}
-              <span class="text-sm text-base-content/50">{team.description}</span>
-            {/if}
-          </li>
-        {/each}
-      </ul>
+      <form method="POST" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">First Name</span>
+            <input type="text" name="firstName" class="input" bind:value={firstName} maxlength="50" autocomplete="given-name" placeholder="Jane" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">Last Name</span>
+            <input type="text" name="lastName" class="input" bind:value={lastName} maxlength="50" autocomplete="family-name" placeholder="Doe" />
+          </label>
+        </div>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Username</span>
+          <input type="text" name="username" class="input" bind:value={username} minlength="2" maxlength="50" required />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Email</span>
+          <input type="email" name="email" class="input" bind:value={email} required />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Phone</span>
+          <input type="tel" name="phone" class="input" bind:value={phone} maxlength="30" placeholder="+1 555 000 0000" autocomplete="tel" />
+        </label>
+        <button type="submit" class="btn btn-primary w-full">Save Changes</button>
+      </form>
     </div>
-  {/if}
-
-  <!-- ── Account info card ───────────────────────────────────────────── -->
-  <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
-    <h2 class="text-lg font-semibold">Account Information</h2>
-
-    {#if form?.success}
-      <div role="alert" class="alert alert-success text-sm">Profile updated successfully.</div>
-    {/if}
-    {#if form?.error}
-      <div role="alert" class="alert alert-error text-sm">{form.error}</div>
-    {/if}
-
-    <form method="POST" class="space-y-4">
-      <div class="grid grid-cols-2 gap-4">
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">First Name</span>
-          <input type="text" name="firstName" class="input" bind:value={firstName} maxlength="50" autocomplete="given-name" placeholder="Jane" />
-        </label>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Last Name</span>
-          <input type="text" name="lastName" class="input" bind:value={lastName} maxlength="50" autocomplete="family-name" placeholder="Doe" />
-        </label>
-      </div>
-      <label class="flex flex-col gap-1">
-        <span class="text-sm font-medium">Username</span>
-        <input type="text" name="username" class="input" bind:value={username} minlength="2" maxlength="50" required />
-      </label>
-      <label class="flex flex-col gap-1">
-        <span class="text-sm font-medium">Email</span>
-        <input type="email" name="email" class="input" bind:value={email} required />
-      </label>
-      <button type="submit" class="btn btn-primary w-full">Save Changes</button>
-    </form>
   </div>
+
+  <!-- ── Right column — Avatar ──────────────────────────────────────── -->
+  <div class="lg:sticky lg:top-6 lg:self-start">
+    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
+      <h2 class="text-lg font-semibold">Avatar</h2>
+
+      {#if avatarError}
+        <div role="alert" class="alert alert-error text-sm">{avatarError}</div>
+      {/if}
+      {#if avatarSuccess}
+        <div role="alert" class="alert alert-success text-sm">{avatarSuccess}</div>
+      {/if}
+
+      <div class="flex justify-center">
+        <Avatar user={avatarUser} size="xl" />
+      </div>
+
+      {#if cropSrc}
+
+        <AvatarCropper src={cropSrc} onApply={onCropApply} onCancel={onCropCancel} />
+
+      {:else}
+
+        <div role="tablist" class="tabs tabs-box">
+          <button role="tab" type="button" class="tab {avatarTab === 'photo' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'photo')}>
+            Photo
+          </button>
+          <button role="tab" type="button" class="tab {avatarTab === 'color' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'color')}>
+            Color
+          </button>
+        </div>
+
+        {#if avatarTab === 'photo'}
+          <div class="space-y-2">
+            <input bind:this={fileInput} type="file" accept="image/*" class="hidden" onchange={onFileChange} />
+            <button
+              type="button"
+              class="btn btn-outline w-full"
+              disabled={avatarUploading}
+              onclick={() => fileInput.click()}
+            >
+              {localAvatarUrl ? 'Change Photo' : 'Upload Photo'}
+            </button>
+            {#if localAvatarUrl}
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm text-error w-full"
+                disabled={avatarUploading}
+                onclick={removeAvatar}
+              >
+                Remove Photo
+              </button>
+            {/if}
+          </div>
+
+        {:else}
+          <div class="space-y-4">
+            <div class="grid grid-cols-6 gap-2">
+              {#each COLORS as color}
+                <button
+                  type="button"
+                  class="size-9 rounded-full border-2 transition-transform hover:scale-110 flex items-center justify-center"
+                  style="background:{color}; border-color:{localAvatarColor === color ? 'white' : 'transparent'}"
+                  onclick={() => { localAvatarColor = color; }}
+                  aria-label="Select color {color}"
+                  aria-pressed={localAvatarColor === color}
+                >
+                  {#if localAvatarColor === color}
+                    <svg class="size-4 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
+                    </svg>
+                  {/if}
+                </button>
+              {/each}
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary btn-sm w-full"
+              disabled={colorSaving}
+              onclick={saveColor}
+            >
+              {colorSaving ? 'Saving…' : 'Save Color'}
+            </button>
+          </div>
+        {/if}
+
+      {/if}
+    </div>
+  </div>
+
 </div>

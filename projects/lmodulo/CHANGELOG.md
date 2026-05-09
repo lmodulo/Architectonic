@@ -8,6 +8,35 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-05-09 (teams in agile tracker)
+
+### Added
+- **Team assignment on sprints and jobs** — `teamId` field added to `agile_sprints` and `agile_jobs` collections; optional, nullable via PATCH.
+  - Sprint and job edit modals now include a **Team** dropdown (Backend / Frontend / None) when teams exist.
+  - Assigned team displayed as a badge in the sprint header (next to status) and job header (next to category/status).
+  - Agile layout server (`+layout.server.ts`) fetches `GET /teams` once and passes `data.teams` to all agile pages.
+  - Seed data pre-assigns teams: Backend → S1 Foundation, S2 Core Features, S3 Data Layer, S6 Analytics Foundation and all API/data jobs; Frontend → S4 UI Layer, S5 Polish & Release and all UI jobs.
+  - Teams upsert moved before the agile idempotency guard in seed so team IDs are available for sprint/job `insertMany`.
+
+---
+
+## 2026-05-09 (teams)
+
+### Added
+- **Teams (user groups)** — named groups of users with full CRUD, member management, and RBAC.
+  - `teams` MongoDB collection: `name` (unique), `description`, `members: ObjectId[]`, `createdAt`, `updatedAt`.
+  - Indexes: unique on `teams.name`, standard on `teams.members`.
+  - **API routes** (`GET|POST /teams`, `GET|PATCH|DELETE /teams/:id`, `POST /teams/:id/members`, `DELETE /teams/:id/members/:userId`, `GET /teams/mine`).
+    - `GET /teams` returns each team with `memberCount`. `GET /teams/:id` returns full member objects (id, username, firstName, lastName, avatarUrl, avatarColor).
+    - `GET /teams/mine` uses `requireAuth` only — any authenticated user can retrieve their own teams.
+  - **Permissions** — `teams` resource added to all roles: owner/admin full CRUD; lead read+update; contributor/viewer read; customer none.
+  - **Frontend proxy routes** under `routes/api/teams/`.
+  - **User Management — Teams tab** — third tab alongside Users and Roles. Search, "New Team" button (gated), accordion rows with member list + add/remove, edit and delete modals. Tab state synced to `?tab=` URL param (replaceState).
+  - **Profile page — My Teams** — read-only card listing teams the logged-in user belongs to; fetched from `GET /teams/mine` at load time (non-fatal).
+  - **Seed data** — Backend team (Joe, owner, Alex, Jordan) and Frontend team (Kyle, admin, Sam, Riley); idempotent upsert by name.
+
+---
+
 ## 2026-03-17 (websocket fixes)
 
 ### Fixed

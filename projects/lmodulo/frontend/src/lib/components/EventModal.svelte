@@ -17,6 +17,7 @@
     open,
     user,
     users = [],
+    defaultStartDate,
     onSave,
     onDelete,
     onClose,
@@ -25,6 +26,7 @@
     open: boolean;
     user: unknown;
     users?: UserOption[];
+    defaultStartDate?: string;
     onSave: (body: Record<string, unknown>) => Promise<void>;
     onDelete: () => Promise<void>;
     onClose: () => void;
@@ -88,9 +90,10 @@
       startTime  = event.startTime ?? '';
       endTime    = event.endTime   ?? '';
     } else {
+      const d = defaultStartDate ?? today;
       form = {
         title: '', content: '', eventType: 'upcoming_event',
-        startDate: today, endDate: today, singleDay: true, allDay: false,
+        startDate: d, endDate: d, singleDay: true, allDay: false,
         location: '', tags: '', status: 'active', visibility: 'private',
       };
       sharedWith  = null;

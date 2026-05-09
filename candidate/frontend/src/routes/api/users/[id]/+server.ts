@@ -4,6 +4,24 @@ import type { RequestHandler } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
+// GET /api/users/:id — fetch user card data (name, email, phone, teams)
+export const GET: RequestHandler = async ({ params, cookies }) => {
+  const sessionCookie = cookies.get('session');
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/users/${params.id}`, {
+      headers: sessionCookie ? { cookie: `session=${sessionCookie}` } : {}
+    });
+  } catch {
+    throw error(503, 'Cannot reach the API server');
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw error(res.status, (data as { message?: string }).message ?? 'Not found');
+  return json(data);
+};
+
 // PATCH /api/users/:id — update profile fields
 export const PATCH: RequestHandler = async ({ params, request, cookies }) => {
   const sessionCookie = cookies.get('session');

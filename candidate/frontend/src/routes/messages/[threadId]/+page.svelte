@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { Reply } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import UserNameLink from '$lib/components/UserNameLink.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -87,7 +88,7 @@
 
         <div class="flex-1 min-w-0">
           <div class="flex items-baseline gap-2 mb-1">
-            <span class="text-sm font-medium">{msg.from.name}</span>
+            <UserNameLink user={{ id: msg.from.id, username: msg.from.username, name: msg.from.name }} class="text-sm font-medium" />
             <span class="text-[11px] opacity-40">{formatDate(msg.createdAt)}</span>
           </div>
           <div class="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">

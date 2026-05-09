@@ -58,18 +58,56 @@ export default async function usersRoutes(app: FastifyInstance) {
       .find({ role: { $ne: 'customer' } }, { projection: { passwordHash: 0 } })
       .toArray();
     return users.map(u => ({
-      id:        u._id.toString(),
-      username:  u.username,
-      email:     u.email,
-      firstName: u.firstName ?? '',
-      lastName:  u.lastName  ?? '',
-      role:      u.role ?? 'viewer',
-      createdAt: u.createdAt
+      id:          u._id.toString(),
+      username:    u.username,
+      email:       u.email,
+      firstName:   u.firstName   ?? '',
+      lastName:    u.lastName    ?? '',
+      role:        u.role        ?? 'viewer',
+      avatarUrl:   u.avatarUrl   ?? '',
+      avatarColor: u.avatarColor ?? '',
+      phone:       u.phone       ?? '',
+      createdAt:   u.createdAt
     }));
   });
 
+  // GET /users/:id — single user card data (auth required, no permission gate)
+  app.get<{ Params: { id: string } }>('/:id', {
+    preHandler: app.requireAuth,
+    schema: { summary: 'Get a single user with team memberships' }
+  }, async (req, reply) => {
+    const db = app.mongo.db!;
+    let oid: InstanceType<typeof ObjectId>;
+    try { oid = new ObjectId(req.params.id); }
+    catch { return reply.badRequest('Invalid user ID'); }
+
+    const user = await db.collection(COLLECTION).findOne(
+      { _id: oid },
+      { projection: { passwordHash: 0 } }
+    );
+    if (!user) return reply.notFound('User not found');
+
+    const teams = await db.collection('teams')
+      .find({ members: oid })
+      .project({ name: 1 })
+      .toArray();
+
+    return {
+      id:          user._id.toString(),
+      username:    user.username,
+      email:       user.email,
+      firstName:   user.firstName   ?? '',
+      lastName:    user.lastName    ?? '',
+      role:        user.role        ?? 'viewer',
+      avatarUrl:   user.avatarUrl   ?? '',
+      avatarColor: user.avatarColor ?? '',
+      phone:       user.phone       ?? '',
+      teams:       (teams as { name: string }[]).map(t => t.name),
+    };
+  });
+
   // PATCH /users/:id — update user profile fields
-  app.patch<{ Params: { id: string }; Body: { username?: string; email?: string; firstName?: string; lastName?: string } }>('/:id', {
+  app.patch<{ Params: { id: string }; Body: { username?: string; email?: string; firstName?: string; lastName?: string; phone?: string } }>('/:id', {
     preHandler: app.requirePermission('users', 'update'),
     schema: {
       summary: 'Update a user profile field',
@@ -79,18 +117,20 @@ export default async function usersRoutes(app: FastifyInstance) {
           username:  { type: 'string', minLength: 2, maxLength: 50 },
           email:     { type: 'string' },
           firstName: { type: 'string', maxLength: 50 },
-          lastName:  { type: 'string', maxLength: 50 }
+          lastName:  { type: 'string', maxLength: 50 },
+          phone:     { type: 'string', maxLength: 30 }
         }
       }
     }
   }, async (req, reply) => {
-    const { username, email, firstName, lastName } = req.body;
+    const { username, email, firstName, lastName, phone } = req.body;
     const db = app.mongo.db!;
     const $set: Record<string, unknown> = { updatedAt: new Date() };
     if (username  !== undefined) $set.username  = username.trim();
     if (email     !== undefined) $set.email     = email.trim();
     if (firstName !== undefined) $set.firstName = firstName.trim();
     if (lastName  !== undefined) $set.lastName  = lastName.trim();
+    if (phone     !== undefined) $set.phone     = phone.trim();
 
     const result = await db.collection(COLLECTION).updateOne(
       { _id: new ObjectId(req.params.id) },

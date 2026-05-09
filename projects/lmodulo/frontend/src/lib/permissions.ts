@@ -9,6 +9,7 @@ export interface UserWithPermissions {
   role:         string;
   avatarUrl?:   string;
   avatarColor?: string;
+  phone?:       string;
   permissions:  Record<string, Record<Action, boolean>>;
 }
 
