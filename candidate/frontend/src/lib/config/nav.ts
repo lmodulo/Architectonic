@@ -15,10 +15,16 @@ export interface NavGroup {
   children: NavItem[];
 }
 
-export type NavEntry = NavItem | NavGroup;
+export interface NavSeparator { separator: true; }
+
+export type NavEntry = NavItem | NavGroup | NavSeparator;
 
 export function isNavGroup(entry: NavEntry): entry is NavGroup {
   return 'children' in entry;
+}
+
+export function isSeparator(entry: NavEntry): entry is NavSeparator {
+  return 'separator' in entry;
 }
 
 export const navItems: NavEntry[] = [

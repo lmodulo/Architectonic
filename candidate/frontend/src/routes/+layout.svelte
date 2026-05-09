@@ -5,7 +5,7 @@
     Settings, ChevronRight, ChevronDown, HelpCircle
   } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
-  import { navItems, isNavGroup } from '$lib/config/nav';
+  import { navItems, isNavGroup, isSeparator } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
   import Logo from '$lib/components/Logo.svelte';
@@ -120,7 +120,9 @@
       <nav class="flex-1 overflow-y-auto p-3">
         <ul class="flex flex-col gap-0.5">
           {#each navItems as entry}
-            {#if isNavGroup(entry)}
+            {#if isSeparator(entry)}
+              <li><div class="border-t border-base-300/50 my-1"></div></li>
+            {:else if isNavGroup(entry)}
               {@const anyChildActive = entry.children.some(c => page.url.pathname.startsWith(c.href))}
               {@const isOpen = openGroups[entry.label] ?? false}
               {@const GroupIcon = entry.icon}
