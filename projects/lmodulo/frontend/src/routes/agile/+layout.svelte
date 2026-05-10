@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, Milestone, ClipboardList, BarChart2, ListChecks } from 'lucide-svelte';
+  import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, ClipboardList, BarChart2, ListChecks } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
 
@@ -25,24 +25,19 @@
 
   const levelActiveClass = $derived.by(() => {
     const p = $page.url.pathname;
-    if (p.startsWith('/agile/tasks'))      return 'border-accent text-accent';
-    if (p.startsWith('/agile/jobs'))       return 'border-success text-success';
-    if (p.startsWith('/agile/sprints'))    return 'border-secondary text-secondary';
-    if (p.startsWith('/agile/milestones')) return 'border-primary text-primary';
-    return 'border-primary text-primary';
+    if (p.startsWith('/agile/tasks'))      return 'bg-accent text-accent-content';
+    if (p.startsWith('/agile/jobs'))       return 'bg-success text-success-content';
+    if (p.startsWith('/agile/sprints'))    return 'bg-secondary text-secondary-content';
+    if (p.startsWith('/agile/milestones')) return 'bg-primary text-primary-content';
+    return 'bg-primary text-primary-content';
   });
 </script>
 
 <div class="flex flex-col gap-6">
   <!-- Page header -->
-  <div class="flex items-center gap-3">
-    <div class="p-2 rounded-lg bg-primary/15">
-      <Milestone class="size-5 text-primary" />
-    </div>
-    <div>
-      <h1 class="text-2xl font-bold leading-none">Agile Tracker</h1>
-      <p class="text-xs opacity-50 mt-0.5">Milestones · Sprints · Jobs · Tasks</p>
-    </div>
+  <div>
+    <h1 class="text-2xl font-bold leading-none">Agile Tracker</h1>
+    <p class="text-xs opacity-50 mt-0.5">Milestones · Sprints · Jobs · Tasks</p>
   </div>
 
   <!-- Sub-navigation -->
@@ -53,7 +48,7 @@
           href={link.href}
           class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
             {isActive(link.href)
-              ? `border-b-2 ${link.href === '/agile' ? levelActiveClass : 'border-primary text-primary'}`
+              ? (link.href === '/agile' ? levelActiveClass : 'bg-primary text-primary-content')
               : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         >
           <svelte:component this={link.icon} class="size-4" />

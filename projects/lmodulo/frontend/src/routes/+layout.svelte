@@ -129,7 +129,7 @@
               <li>
                 <button
                   type="button"
-                  class="flex items-center gap-3 p-3 rounded w-full text-sm {anyChildActive ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                  class="flex items-center gap-3 p-3 rounded w-full text-sm {anyChildActive ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                   onclick={() => toggleGroup(entry.label)}
                 >
                   <GroupIcon class="size-4 shrink-0" />
@@ -147,7 +147,7 @@
                         {@const ChildIcon = child.icon}
                         <a
                           href={child.href}
-                          class="flex items-center gap-3 pl-9 pr-3 py-2 rounded text-sm {page.url.pathname.startsWith(child.href) ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                          class="flex items-center gap-3 pl-9 pr-3 py-2 rounded text-sm {page.url.pathname.startsWith(child.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                           onclick={closeSidebar}
                         >
                           <ChildIcon class="size-3.5 shrink-0 opacity-70" />
@@ -167,7 +167,7 @@
                 <li>
                   <a
                     href={entry.href}
-                    class="flex items-center gap-3 p-3 rounded {(entry.matchPrefix ? page.url.pathname.startsWith(entry.href) : page.url.pathname === entry.href) ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                    class="flex items-center gap-3 p-3 rounded {(entry.matchPrefix ? page.url.pathname.startsWith(entry.href) : page.url.pathname === entry.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                     onclick={closeSidebar}
                   >
                     <span class="relative shrink-0">
@@ -224,7 +224,7 @@
             <div class="nav-subnav-inner pt-1">
               <a
                 href="/profile"
-                class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/profile' ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/profile' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >
                 <User class="size-4 shrink-0" />
@@ -233,7 +233,7 @@
               {#if hasPermission(data.user, 'users', 'read') || hasPermission(data.user, 'roles', 'read')}
                 <a
                   href="/user-management"
-                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/user-management' ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/user-management' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                   onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
                   <Users class="size-4 shrink-0" />
@@ -243,7 +243,7 @@
               {#if hasPermission(data.user, 'settings', 'read')}
                 <a
                   href="/settings"
-                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/settings' ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/settings' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                   onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
                   <Settings class="size-4 shrink-0" />
@@ -253,7 +253,7 @@
               <div class="border-t border-base-300/50 my-1"></div>
               <a
                 href="/documentation/projects/lmodulo"
-                class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname.startsWith('/documentation') ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+                class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname.startsWith('/documentation') ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >
                 <HelpCircle class="size-4 shrink-0" />

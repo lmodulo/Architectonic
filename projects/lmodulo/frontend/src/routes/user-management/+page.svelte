@@ -336,17 +336,17 @@
   <div class="flex gap-1 border-b border-base-300">
     {#if data.canReadUsers}
       <button type="button"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'users' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
+        class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'users' ? 'bg-primary text-primary-content rounded-t' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50 rounded-t'}"
         onclick={() => setTab('users')}>Users</button>
     {/if}
     {#if data.canReadRoles}
       <button type="button"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'roles' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
+        class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'roles' ? 'bg-primary text-primary-content rounded-t' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50 rounded-t'}"
         onclick={() => setTab('roles')}>Roles</button>
     {/if}
     {#if data.canReadTeams}
       <button type="button"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'teams' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
+        class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'teams' ? 'bg-primary text-primary-content rounded-t' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50 rounded-t'}"
         onclick={() => setTab('teams')}>Teams</button>
     {/if}
   </div>

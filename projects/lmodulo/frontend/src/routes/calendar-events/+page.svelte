@@ -219,22 +219,22 @@
       {#if data.user}
         <button
           type="button"
-          class="px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors
-            {activeTab === 'calendar' ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}"
+          class="px-5 py-2.5 text-sm font-medium transition-colors rounded-t
+            {activeTab === 'calendar' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
           onclick={() => switchTab('calendar')}
         >My Calendar</button>
       {/if}
       <button
         type="button"
-        class="px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors
-          {activeTab === 'events' ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}"
+        class="px-5 py-2.5 text-sm font-medium transition-colors rounded-t
+          {activeTab === 'events' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         onclick={() => switchTab('events')}
       >Events</button>
       {#if canManage}
         <button
           type="button"
-          class="px-5 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors
-            {activeTab === 'manage' ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}"
+          class="px-5 py-2.5 text-sm font-medium transition-colors rounded-t
+            {activeTab === 'manage' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
           onclick={() => switchTab('manage')}
         >Manage</button>
       {/if}

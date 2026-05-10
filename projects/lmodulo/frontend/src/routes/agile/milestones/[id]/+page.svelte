@@ -101,24 +101,27 @@
 
 <div class="space-y-6">
 
-  <!-- Back + header -->
-  <div class="space-y-3">
-    <Breadcrumb crumbs={[
-      { label: 'Agile', href: '/agile' },
-      { label: milestone.title, colorClass: LEVEL.milestone.text },
-    ]} />
+  <!-- Header -->
+  <div class="space-y-4">
+    <div class="pb-3 border-b border-base-300/60">
+      <Breadcrumb crumbs={[
+        { label: 'Agile', href: '/agile' },
+        { label: milestone.title, colorClass: LEVEL.milestone.badge },
+      ]} />
+    </div>
 
-    <div class="flex items-start justify-between gap-4">
-      <div class="space-y-1 min-w-0">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="badge text-xs {LEVEL.milestone.badge}">{LEVEL.milestone.label}</span>
-          <span class="badge text-xs {PRIORITY_COLOR[milestone.priority] ?? 'badge-ghost'}">{milestone.priority}</span>
-          <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'badge-ghost'}">{milestone.status}</span>
-        </div>
-        <h1 class="text-2xl font-bold leading-tight">{milestone.title}</h1>
-        {#if milestone.strategicGoal}
-          <p class="text-sm opacity-60">{milestone.strategicGoal}</p>
-        {/if}
+    <div class="space-y-1 min-w-0">
+      <h1 class="text-2xl font-bold leading-tight">{milestone.title}</h1>
+      {#if milestone.strategicGoal}
+        <p class="text-sm opacity-60">{milestone.strategicGoal}</p>
+      {/if}
+    </div>
+
+    <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="badge text-xs {LEVEL.milestone.badge}">{LEVEL.milestone.label}</span>
+        <span class="badge text-xs {PRIORITY_COLOR[milestone.priority] ?? 'badge-ghost'}">{milestone.priority}</span>
+        <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'badge-ghost'}">{milestone.status}</span>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         {#if hasPermission(data.user, 'agile_milestones', 'update')}

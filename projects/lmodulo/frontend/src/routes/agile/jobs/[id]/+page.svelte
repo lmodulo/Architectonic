@@ -257,39 +257,43 @@
 
 <div class="space-y-6">
 
-  <!-- Back + header -->
-  <div class="space-y-3">
-    <Breadcrumb crumbs={[
-      { label: 'Agile', href: '/agile' },
-      { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.text },
-      { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.text },
-      { label: job.title, colorClass: LEVEL.job.text },
-    ]} />
+  <!-- Header -->
+  <div class="space-y-4">
+    <div class="pb-3 border-b border-base-300/60">
+      <Breadcrumb crumbs={[
+        { label: 'Agile', href: '/agile' },
+        { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
+        { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.badge },
+        { label: job.title, colorClass: LEVEL.job.badge },
+      ]} />
+    </div>
 
-    <div class="flex items-start justify-between gap-4">
-      <div class="space-y-1 min-w-0">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="badge text-xs {LEVEL.job.badge}">{LEVEL.job.label}</span>
-          <span class="badge text-xs {CATEGORY_COLOR[job.category] ?? 'badge-ghost'}">{job.category}</span>
-          <span class="badge text-xs {STATUS_COLOR[job.status] ?? 'badge-ghost'}">{job.status}</span>
-          {#if job.blocked}
-            <span class="flex items-center gap-1 text-xs text-error">
-              <AlertCircle class="size-3.5" /> Blocked
-            </span>
-          {/if}
-          {#if jobTeam}
-            <span class="badge badge-ghost text-xs">{jobTeam.name}</span>
-          {/if}
-        </div>
-        <h1 class="text-2xl font-bold">{job.title}</h1>
-        <button
-          type="button"
-          class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
-          onclick={() => navigator.clipboard.writeText(job.id ?? '')}
-          title="Copy job ID"
-        >{job.id} <Copy class="size-2.5 shrink-0" /></button>
+    <div class="space-y-1 min-w-0">
+      <h1 class="text-2xl font-bold">{job.title}</h1>
+      <button
+        type="button"
+        class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
+        onclick={() => navigator.clipboard.writeText(job.id ?? '')}
+        title="Copy job ID"
+      >{job.id} <Copy class="size-2.5 shrink-0" /></button>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="badge text-xs {LEVEL.job.badge}">{LEVEL.job.label}</span>
+        <span class="badge text-xs {CATEGORY_COLOR[job.category] ?? 'badge-ghost'}">{job.category}</span>
+        <span class="badge text-xs {STATUS_COLOR[job.status] ?? 'badge-ghost'}">{job.status}</span>
+        {#if job.blocked}
+          <span class="flex items-center gap-1 text-xs text-error">
+            <AlertCircle class="size-3.5" /> Blocked
+          </span>
+        {/if}
+        {#if jobTeam}
+          <span class="badge badge-ghost text-xs">{jobTeam.name}</span>
+        {/if}
+        <span class="text-sm font-bold ml-2" style="color:{barClr}">{pct}%</span>
       </div>
-      <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+      <div class="flex items-center gap-2 shrink-0">
         {#if hasPermission(data.user, 'agile_jobs', 'update')}
           <button class="btn btn-ghost btn-sm" onclick={() => {
             jobEditForm = { title: job.title, description: job.description ?? '', category: job.category, blocked: job.blocked, status: job.status, startDate: toDateInput(job.startDate), endDate: toDateInput(job.endDate), teamId: (job as any).teamId ?? '' };
@@ -309,10 +313,6 @@
             </button>
           {/if}
         {/if}
-        <div class="text-right">
-          <p class="text-sm font-bold" style="color:{barClr}">{pct}%</p>
-          <p class="text-xs opacity-50">complete</p>
-        </div>
       </div>
     </div>
   </div>

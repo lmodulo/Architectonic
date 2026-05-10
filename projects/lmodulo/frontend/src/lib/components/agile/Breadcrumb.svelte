@@ -9,11 +9,11 @@
       <span class="opacity-30 select-none">›</span>
     {/if}
     {#if i === crumbs.length - 1}
-      <span class="font-medium opacity-80 {crumb.colorClass ?? ''}">{crumb.label}</span>
+      <span class="badge badge-sm {crumb.colorClass ?? 'badge-ghost'}">{crumb.label}</span>
     {:else if crumb.href}
-      <a href={crumb.href} class="opacity-50 hover:opacity-100 transition-opacity {crumb.colorClass ?? ''}">{crumb.label}</a>
+      <a href={crumb.href} class="badge badge-sm opacity-50 hover:opacity-100 transition-opacity {crumb.colorClass ?? 'badge-ghost'}">{crumb.label}</a>
     {:else}
-      <span class="opacity-50 {crumb.colorClass ?? ''}">{crumb.label}</span>
+      <span class="badge badge-sm opacity-50 {crumb.colorClass ?? 'badge-ghost'}">{crumb.label}</span>
     {/if}
   {/each}
 </nav>

@@ -117,37 +117,39 @@
 
 <div class="space-y-6">
 
-  <!-- Back + header -->
-  <div class="space-y-3">
-    <Breadcrumb crumbs={[
-      { label: 'Agile', href: '/agile' },
-      { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.text },
-      { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job?.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.text },
-      { label: job?.title ?? 'Job', href: task.jobId ? `/agile/jobs/${task.jobId}` : undefined, colorClass: LEVEL.job.text },
-      { label: task.title, colorClass: LEVEL.task.text },
-    ]} />
+  <!-- Header -->
+  <div class="space-y-4">
+    <div class="pb-3 border-b border-base-300/60">
+      <Breadcrumb crumbs={[
+        { label: 'Agile', href: '/agile' },
+        { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
+        { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job?.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.badge },
+        { label: job?.title ?? 'Job', href: task.jobId ? `/agile/jobs/${task.jobId}` : undefined, colorClass: LEVEL.job.badge },
+        { label: task.title, colorClass: LEVEL.task.badge },
+      ]} />
+    </div>
 
-    <div class="flex items-start justify-between gap-4">
-      <div class="space-y-1 min-w-0">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="badge text-xs {LEVEL.task.badge}">{LEVEL.task.label}</span>
-          <span class="badge text-xs {PRIORITY_COLOR[task.priority] ?? 'badge-ghost'}">{task.priority}</span>
-          <span class="badge text-xs {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
-          {#if task.status === 'Blocked'}
-            <span class="flex items-center gap-1 text-xs text-error">
-              <AlertCircle class="size-3.5" /> Blocked
-            </span>
-          {/if}
-        </div>
-        <h1 class="text-2xl font-bold leading-tight">{task.title}</h1>
-        <button
-          type="button"
-          class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
-          onclick={() => navigator.clipboard.writeText(task.id ?? '')}
-          title="Copy task ID"
-        >{task.id} <Copy class="size-2.5 shrink-0" /></button>
+    <div class="space-y-1 min-w-0">
+      <h1 class="text-2xl font-bold leading-tight">{task.title}</h1>
+      <button
+        type="button"
+        class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
+        onclick={() => navigator.clipboard.writeText(task.id ?? '')}
+        title="Copy task ID"
+      >{task.id} <Copy class="size-2.5 shrink-0" /></button>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="badge text-xs {LEVEL.task.badge}">{LEVEL.task.label}</span>
+        <span class="badge text-xs {PRIORITY_COLOR[task.priority] ?? 'badge-ghost'}">{task.priority}</span>
+        <span class="badge text-xs {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
+        {#if task.status === 'Blocked'}
+          <span class="flex items-center gap-1 text-xs text-error">
+            <AlertCircle class="size-3.5" /> Blocked
+          </span>
+        {/if}
       </div>
-
       <div class="flex items-center gap-2 shrink-0">
         {#if hasPermission(data.user, 'agile_tasks', 'update')}
           <button class="btn btn-ghost btn-sm" onclick={openEdit}>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { Bell } from 'lucide-svelte';
   import NotificationItem from '$lib/components/notifications/NotificationItem.svelte';
   import { markRead, setRecentNotifications } from '$lib/stores/notifications.svelte';
   import type { AppNotification } from '$lib/stores/notifications.svelte';
@@ -64,8 +63,7 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <Bell class="size-5 text-primary" />
-      <h1 class="text-xl font-semibold">Notifications</h1>
+      <h1 class="text-2xl font-bold">Notifications</h1>
     </div>
     <div class="flex items-center gap-3">
       <a href="/notifications/settings" class="text-sm text-primary hover:underline">
@@ -88,8 +86,8 @@
     {#each ['all', 'unread'] as f}
       <button
         type="button"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px
-          {filter === f ? 'border-primary text-primary' : 'border-transparent opacity-60 hover:opacity-100'}"
+        class="px-4 py-2 text-sm font-medium transition-colors rounded-t
+          {filter === f ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         onclick={() => setFilter(f)}
       >
         {f === 'all' ? 'All' : 'Unread'}

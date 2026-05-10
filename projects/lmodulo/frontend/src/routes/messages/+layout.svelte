@@ -101,7 +101,7 @@
         <button
           type="button"
           class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors
-            {activeTab === tab ? 'bg-primary/15 text-primary border-b-2 border-primary' : 'opacity-60 hover:opacity-100'}"
+            {activeTab === tab ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100'}"
           onclick={() => switchTab(tab)}
         >
           <Icon class="size-3.5" />

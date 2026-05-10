@@ -73,7 +73,7 @@
           <li>
             <a
               href={section.href}
-              class="flex items-center gap-3 p-3 rounded text-sm {isActive(section.href, section.exact ?? false) ? 'bg-primary/15 text-primary' : 'hover:bg-base-300/50'}"
+              class="flex items-center gap-3 p-3 rounded text-sm {isActive(section.href, section.exact ?? false) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
               onclick={() => (sidebarOpen = false)}
             >
               <Icon class="size-4 shrink-0 opacity-70" />

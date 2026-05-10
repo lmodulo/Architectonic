@@ -206,25 +206,28 @@
 
 <div class="space-y-6">
 
-  <!-- Back + header -->
-  <div class="space-y-3">
-    <Breadcrumb crumbs={[
-      { label: 'Agile', href: '/agile' },
-      { label: (data as any).milestone?.title ?? 'Milestone', href: sprint.milestoneId ? `/agile/milestones/${sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.text },
-      { label: `Sprint ${sprint.sprintNumber}`, colorClass: LEVEL.sprint.text },
-    ]} />
+  <!-- Header -->
+  <div class="space-y-4">
+    <div class="pb-3 border-b border-base-300/60">
+      <Breadcrumb crumbs={[
+        { label: 'Agile', href: '/agile' },
+        { label: (data as any).milestone?.title ?? 'Milestone', href: sprint.milestoneId ? `/agile/milestones/${sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
+        { label: `Sprint ${sprint.sprintNumber}`, colorClass: LEVEL.sprint.badge },
+      ]} />
+    </div>
 
-    <div class="flex items-start justify-between gap-4">
-      <div class="space-y-1">
-        <div class="flex items-center gap-2">
-          <span class="badge text-xs {LEVEL.sprint.badge}">Sprint {sprint.sprintNumber}</span>
-          <span class="badge text-xs {STATUS_COLOR[sprint.status] ?? 'badge-ghost'}">{sprint.status}</span>
-          {#if sprintTeam}
-            <span class="badge badge-ghost text-xs">{sprintTeam.name}</span>
-          {/if}
-        </div>
-        <h1 class="text-2xl font-bold">{sprint.title}</h1>
-        <p class="text-xs opacity-50">{fmtDateRange(sprint.startDate ?? null, sprint.endDate ?? null)}</p>
+    <div class="space-y-1">
+      <h1 class="text-2xl font-bold">{sprint.title}</h1>
+      <p class="text-xs opacity-50">{fmtDateRange(sprint.startDate ?? null, sprint.endDate ?? null)}</p>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="badge text-xs {LEVEL.sprint.badge}">Sprint {sprint.sprintNumber}</span>
+        <span class="badge text-xs {STATUS_COLOR[sprint.status] ?? 'badge-ghost'}">{sprint.status}</span>
+        {#if sprintTeam}
+          <span class="badge badge-ghost text-xs">{sprintTeam.name}</span>
+        {/if}
       </div>
       <div class="flex items-center gap-2 shrink-0">
         {#if hasPermission(data.user, 'agile_sprints', 'update')}

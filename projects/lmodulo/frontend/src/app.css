@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: luxury;
+  themes: light, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro, cyberpunk, valentine, halloween, garden, forest, aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk, autumn, business, acid, lemonade, night, coffee, winter, dim, nord, sunset;
 }
 
 /* ── svelte-select theme ─────────────────────────────────────────────────── */
@@ -41,63 +41,51 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
 
-.card {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 24px 56px rgba(0, 0, 0, 0.4);
+thead tr {
+  background: var(--color-neutral);
 }
 
+/*
+.card {
+  box-shadow: inset 0px 0px 48px -6px var(--color-base-300);
+}
+*/
+
 /* ── Theme overrides ──────────────────────────────────────────────────────
-   Override DaisyUI luxury-theme CSS variables here.
+   Applied to every DaisyUI theme — sets the brand palette and fonts.
    Full variable list: https://daisyui.com/docs/themes/
    ─────────────────────────────────────────────────────────────────────── */
 [data-theme] {
-  /* Base surfaces */
-  --color-base-100: oklch(8% 0.008 268deg);
-  --color-base-200: oklch(13% 0.005 274deg);
-  --color-base-300: oklch(28.309% 0.02593 312.267);
-  --color-base-content: oklch(68.788% 0.03375 312.661);
-
-  /* Primary — vivid purple */
-  --color-primary: oklch(37.084% 0.14617 302.349);
-  --color-primary-content: oklch(81.519% 0.03114 313.896);
-
-  /* Secondary — amber/orange */
-  --color-secondary: oklch(59% 0.17 57deg);
-  --color-secondary-content: oklch(89.06% 0.06729 55.031);
-
-  /* Accent — mauve/rose */
-  --color-accent: oklch(62% 0.14 310deg);
-  --color-accent-content: oklch(96.455% 0.02373 312.963);
-
-  /* Neutral */
-  --color-neutral: oklch(30.08% 0.00766 308.028);
-  --color-neutral-content: oklch(78.48% 0.01078 310.849);
-
-  /* Info */
-  --color-info: oklch(62% 0.14 310deg);
-  --color-info-content: oklch(97% 0.03 326deg);
-
-  /* Success — teal/mint */
-  --color-success: oklch(79% 0.14 175deg);
-  --color-success-content: oklch(25% 0.05 185deg);
-
-  /* Warning — amber/gold */
-  --color-warning: oklch(81% 0.16 77deg);
-  --color-warning-content: oklch(25% 0.09 29deg);
-
-  /* Error — red/coral */
-  --color-error: oklch(62% 0.23 29deg);
-  --color-error-content: oklch(93% 0.04 16deg);
-
-  /* Shape */
-  --radius-selector: 0.5rem;
-  --radius-field: 0.5rem;
-  --radius-box: 0.75rem;
+  color-scheme: dark;
+  --color-base-100: oklch(15.5% 0 0);
+  --color-base-200: oklch(11.5% 0 0);
+  --color-base-300: oklch(0% 0.007 17.911);
+  --color-base-content: oklch(86% 0 0);
+  --color-primary: #371840;
+  --color-primary-content: oklch(100% 0 0);
+  --color-secondary: #5E246E;
+  --color-secondary-content: oklch(86% 0 0);
+  --color-accent: #BE7ABF;
+  --color-accent-content: oklch(14.125% 0.023 185.713);
+  --color-neutral: oklch(43.2% 0.215 87.4);
+  --color-neutral-content: oklch(94.2% 0 0);
+  --color-info: oklch(72.06% 0.191 231.6);
+  --color-info-content: oklch(0% 0 0);
+  --color-success: oklch(64.8% 0.15 160);
+  --color-success-content: oklch(0% 0 0);
+  --color-warning: oklch(84.71% 0.199 83.87);
+  --color-warning-content: oklch(0% 0 0);
+  --color-error: oklch(71.76% 0.221 22.18);
+  --color-error-content: oklch(0% 0 0);
+  --radius-selector: 1rem;
+  --radius-field: 2rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
   --border: 1px;
   --depth: 1;
   --noise: 1;
-
-  /* Typography */
-  --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-heading: 'Space Grotesk', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-sans:    'DM Sans', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
 }
 

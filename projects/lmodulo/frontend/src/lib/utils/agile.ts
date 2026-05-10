@@ -73,7 +73,7 @@ export function completionColor(pct: number): string {
 export const LEVEL = {
   milestone: { label: 'Milestone', text: 'text-primary',   badge: 'badge-primary',            border: 'border-primary'   },
   sprint:    { label: 'Sprint',    text: 'text-secondary',  badge: 'badge-secondary',           border: 'border-secondary' },
-  job:       { label: 'Job',       text: 'text-success',    badge: 'badge-success badge-soft',  border: 'border-success'   },
+  job:       { label: 'Job',       text: 'text-success',    badge: 'badge-success',             border: 'border-success'   },
   task:      { label: 'Task',      text: 'text-accent',     badge: 'badge-accent',              border: 'border-accent'    },
 } as const;
 
