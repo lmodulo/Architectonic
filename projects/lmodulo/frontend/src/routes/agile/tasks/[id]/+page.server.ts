@@ -21,8 +21,18 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
     fetch(`${API_URL}/users`, { headers }).catch(() => null),
   ]);
 
-  const job   = jobRes?.ok   ? await jobRes.json()               : null;
-  const users = usersRes?.ok ? await usersRes.json()             : [];
+  const job   = jobRes?.ok   ? await jobRes.json() : null;
+  const users = usersRes?.ok ? await usersRes.json() : [];
 
-  return { user: locals.user, task, job, users };
+  // Fetch parent sprint then milestone for breadcrumb
+  const sprint = job?.sprintId
+    ? await fetch(`${API_URL}/agile/sprints/${job.sprintId}`, { headers })
+        .then(r => r.ok ? r.json() : null).catch(() => null)
+    : null;
+  const milestone = sprint?.milestoneId
+    ? await fetch(`${API_URL}/agile/milestones/${sprint.milestoneId}`, { headers })
+        .then(r => r.ok ? r.json() : null).catch(() => null)
+    : null;
+
+  return { user: locals.user, task, job, users, sprint, milestone };
 };

@@ -24,16 +24,25 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
   const tasks = tasksRes.ok    ? (await tasksRes.json()).tasks    ?? [] : [];
   const deps  = sprintJobsRes.ok ? await sprintJobsRes.json()           : [];
 
-  // Fetch all jobs in same sprint for dependency graph
-  let sprintJobs: unknown[] = [];
-  if (job.sprintId) {
-    const sjRes = await fetch(`${API_URL}/agile/jobs?sprintId=${job.sprintId}&limit=100`, { headers });
-    sprintJobs = sjRes.ok ? (await sjRes.json()).jobs ?? [] : [];
-  }
+  // Fetch sprint jobs + users in parallel
+  const [sameSprintRes, usersRes] = await Promise.all([
+    job.sprintId
+      ? fetch(`${API_URL}/agile/jobs?sprintId=${job.sprintId}&limit=100`, { headers })
+      : Promise.resolve(null),
+    fetch(`${API_URL}/users`, { headers }).catch(() => null),
+  ]);
+  const sprintJobs = sameSprintRes?.ok ? (await sameSprintRes.json()).jobs ?? [] : [];
+  const users      = usersRes?.ok ? await usersRes.json() : [];
 
-  // Fetch users for assignee display
-  const usersRes = await fetch(`${API_URL}/users`, { headers }).catch(() => null);
-  const users    = usersRes?.ok ? await usersRes.json() : [];
+  // Fetch parent sprint then milestone for breadcrumb
+  const sprint = job.sprintId
+    ? await fetch(`${API_URL}/agile/sprints/${job.sprintId}`, { headers })
+        .then(r => r.ok ? r.json() : null).catch(() => null)
+    : null;
+  const milestone = sprint?.milestoneId
+    ? await fetch(`${API_URL}/agile/milestones/${sprint.milestoneId}`, { headers })
+        .then(r => r.ok ? r.json() : null).catch(() => null)
+    : null;
 
-  return { user: locals.user, job, tasks, deps, sprintJobs, users };
+  return { user: locals.user, job, tasks, deps, sprintJobs, users, sprint, milestone };
 };

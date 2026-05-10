@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { ChevronLeft, X, Copy, AlertCircle, Trash2, Pencil } from 'lucide-svelte';
+  import { X, Copy, AlertCircle, Trash2, Pencil } from 'lucide-svelte';
+  import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
@@ -10,7 +11,7 @@
   import UserNameLink from '$lib/components/UserNameLink.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import {
-    STATUS_COLOR, PRIORITY_COLOR, TASK_STATUSES, PRIORITIES,
+    STATUS_COLOR, PRIORITY_COLOR, TASK_STATUSES, PRIORITIES, LEVEL,
     fmtEffort, fmtDate, toDateInput,
     type AgileTask, type AgileAttachment,
   } from '$lib/utils/agile';
@@ -118,14 +119,18 @@
 
   <!-- Back + header -->
   <div class="space-y-3">
-    <button class="btn btn-ghost btn-sm gap-1" onclick={() => goto(task.jobId ? `/agile/jobs/${task.jobId}` : '/agile')}>
-      <ChevronLeft class="size-4" />
-      {job ? job.title : 'Job'}
-    </button>
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.text },
+      { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job?.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.text },
+      { label: job?.title ?? 'Job', href: task.jobId ? `/agile/jobs/${task.jobId}` : undefined, colorClass: LEVEL.job.text },
+      { label: task.title, colorClass: LEVEL.task.text },
+    ]} />
 
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
+          <span class="badge text-xs {LEVEL.task.badge}">{LEVEL.task.label}</span>
           <span class="badge text-xs {PRIORITY_COLOR[task.priority] ?? 'badge-ghost'}">{task.priority}</span>
           <span class="badge text-xs {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
           {#if task.status === 'Blocked'}

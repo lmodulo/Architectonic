@@ -25,7 +25,6 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
   const users  = usersRes.ok ? (await usersRes.json()).users ?? [] : [];
 
   // Fetch tasks for all jobs
-  const taskIds = jobs.map((j: any) => j.id).join(',');
   let tasks: unknown[] = [];
   if (jobs.length > 0) {
     const tRes = await fetch(`${API_URL}/agile/tasks?limit=500`, { headers });
@@ -33,5 +32,11 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
     tasks = (tData.tasks ?? []).filter((t: any) => jobs.some((j: any) => j.id === t.jobId));
   }
 
-  return { user: locals.user, sprint, jobs, tasks, users };
+  // Fetch parent milestone for breadcrumb
+  const milestone = sprint.milestoneId
+    ? await fetch(`${API_URL}/agile/milestones/${sprint.milestoneId}`, { headers })
+        .then(r => r.ok ? r.json() : null).catch(() => null)
+    : null;
+
+  return { user: locals.user, sprint, jobs, tasks, users, milestone };
 };

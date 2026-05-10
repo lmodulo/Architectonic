@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { ChevronLeft, Plus, X, AlertCircle, Pencil, Copy, Trash2 } from 'lucide-svelte';
+  import { Plus, X, AlertCircle, Pencil, Copy, Trash2 } from 'lucide-svelte';
+  import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
@@ -14,7 +15,7 @@
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import {
-    STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES,
+    STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES, LEVEL,
     fmtEffort, fmtDate, toDateInput, completionColor,
     type AgileJob, type AgileTask, type AgileAttachment,
   } from '$lib/utils/agile';
@@ -258,13 +259,17 @@
 
   <!-- Back + header -->
   <div class="space-y-3">
-    <button class="btn btn-ghost btn-sm gap-1" onclick={() => job.sprintId && goto(`/agile/sprints/${job.sprintId}`)}>
-      <ChevronLeft class="size-4" /> Sprint
-    </button>
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.text },
+      { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.text },
+      { label: job.title, colorClass: LEVEL.job.text },
+    ]} />
 
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
+          <span class="badge text-xs {LEVEL.job.badge}">{LEVEL.job.label}</span>
           <span class="badge text-xs {CATEGORY_COLOR[job.category] ?? 'badge-ghost'}">{job.category}</span>
           <span class="badge text-xs {STATUS_COLOR[job.status] ?? 'badge-ghost'}">{job.status}</span>
           {#if job.blocked}

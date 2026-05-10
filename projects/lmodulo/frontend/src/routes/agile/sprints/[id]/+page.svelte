@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { ChevronLeft, Plus, X, Zap, LayoutGrid, Trash2 } from 'lucide-svelte';
+  import { Plus, X, Zap, LayoutGrid, Trash2 } from 'lucide-svelte';
+  import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
@@ -11,7 +12,7 @@
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import {
-    STATUS_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES, SPRINT_STATUSES,
+    STATUS_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES, SPRINT_STATUSES, LEVEL,
     fmtDateRange, fmtEffort, toDateInput, completionColor,
     type AgileSprint, type AgileJob, type AgileTask, type AgileAttachment,
   } from '$lib/utils/agile';
@@ -207,14 +208,16 @@
 
   <!-- Back + header -->
   <div class="space-y-3">
-    <button class="btn btn-ghost btn-sm gap-1" onclick={() => sprint.milestoneId && goto(`/agile/milestones/${sprint.milestoneId}`)}>
-      <ChevronLeft class="size-4" /> Milestone
-    </button>
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: (data as any).milestone?.title ?? 'Milestone', href: sprint.milestoneId ? `/agile/milestones/${sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.text },
+      { label: `Sprint ${sprint.sprintNumber}`, colorClass: LEVEL.sprint.text },
+    ]} />
 
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-1">
         <div class="flex items-center gap-2">
-          <span class="badge badge-ghost text-xs font-mono">Sprint {sprint.sprintNumber}</span>
+          <span class="badge text-xs {LEVEL.sprint.badge}">Sprint {sprint.sprintNumber}</span>
           <span class="badge text-xs {STATUS_COLOR[sprint.status] ?? 'badge-ghost'}">{sprint.status}</span>
           {#if sprintTeam}
             <span class="badge badge-ghost text-xs">{sprintTeam.name}</span>

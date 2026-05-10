@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronLeft, Plus, X, Layers, Calendar, Clock, CheckCircle, Trash2 } from 'lucide-svelte';
+  import { Plus, X, Layers, Calendar, Clock, CheckCircle, Trash2 } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -9,10 +9,11 @@
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import {
-    STATUS_COLOR, PRIORITY_COLOR, SPRINT_STATUSES, MILESTONE_STATUSES, PRIORITIES,
+    STATUS_COLOR, PRIORITY_COLOR, SPRINT_STATUSES, MILESTONE_STATUSES, PRIORITIES, LEVEL,
     fmtDateRange, fmtDate, fmtEffort, toDateInput, completionColor,
     type AgileMilestone, type AgileSprint, type AgileAttachment,
   } from '$lib/utils/agile';
+  import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -101,14 +102,16 @@
 <div class="space-y-6">
 
   <!-- Back + header -->
-  <div class="space-y-4">
-    <button class="btn btn-ghost btn-sm gap-1" onclick={() => goto('/agile')}>
-      <ChevronLeft class="size-4" /> Milestones
-    </button>
+  <div class="space-y-3">
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: milestone.title, colorClass: LEVEL.milestone.text },
+    ]} />
 
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
+          <span class="badge text-xs {LEVEL.milestone.badge}">{LEVEL.milestone.label}</span>
           <span class="badge text-xs {PRIORITY_COLOR[milestone.priority] ?? 'badge-ghost'}">{milestone.priority}</span>
           <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'badge-ghost'}">{milestone.status}</span>
         </div>

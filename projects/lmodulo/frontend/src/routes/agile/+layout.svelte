@@ -22,6 +22,15 @@
     href === '/agile'
       ? $page.url.pathname === '/agile' || overviewPrefixes.some(p => $page.url.pathname.startsWith(p))
       : $page.url.pathname.startsWith(href);
+
+  const levelActiveClass = $derived.by(() => {
+    const p = $page.url.pathname;
+    if (p.startsWith('/agile/tasks'))      return 'border-accent text-accent';
+    if (p.startsWith('/agile/jobs'))       return 'border-success text-success';
+    if (p.startsWith('/agile/sprints'))    return 'border-secondary text-secondary';
+    if (p.startsWith('/agile/milestones')) return 'border-primary text-primary';
+    return 'border-primary text-primary';
+  });
 </script>
 
 <div class="flex flex-col gap-6">
@@ -44,7 +53,7 @@
           href={link.href}
           class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
             {isActive(link.href)
-              ? 'border-b-2 border-primary text-primary'
+              ? `border-b-2 ${link.href === '/agile' ? levelActiveClass : 'border-primary text-primary'}`
               : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         >
           <svelte:component this={link.icon} class="size-4" />

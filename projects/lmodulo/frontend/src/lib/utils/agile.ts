@@ -70,6 +70,13 @@ export function completionColor(pct: number): string {
   return 'var(--color-error)';
 }
 
+export const LEVEL = {
+  milestone: { label: 'Milestone', text: 'text-primary',   badge: 'badge-primary',            border: 'border-primary'   },
+  sprint:    { label: 'Sprint',    text: 'text-secondary',  badge: 'badge-secondary',           border: 'border-secondary' },
+  job:       { label: 'Job',       text: 'text-success',    badge: 'badge-success badge-soft',  border: 'border-success'   },
+  task:      { label: 'Task',      text: 'text-accent',     badge: 'badge-accent',              border: 'border-accent'    },
+} as const;
+
 export const MILESTONE_STATUSES = ['Planning', 'Active', 'On Hold', 'Completed', 'Cancelled'] as const;
 export const SPRINT_STATUSES    = ['Planning', 'Active', 'Review', 'Completed', 'Cancelled'] as const;
 export const JOB_STATUSES       = ['Backlog', 'In Progress', 'Blocked', 'Review', 'Done', 'Cancelled'] as const;
