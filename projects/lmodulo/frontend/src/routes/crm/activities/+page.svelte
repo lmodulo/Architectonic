@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X } from 'lucide-svelte';
+  import { Plus, X, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -15,9 +15,39 @@
 
   let filterType = $state('');
 
-  const visible = $derived(
-    filterType ? activities.filter(a => a.type === filterType) : activities
-  );
+  // Pagination
+  const PAGE_SIZE = 20;
+  let currentPage = $state(1);
+  const totalPages = $derived(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+  const startItem  = $derived((currentPage - 1) * PAGE_SIZE + 1);
+  const endItem    = $derived(Math.min(currentPage * PAGE_SIZE, total));
+
+  function paginationPages(tot: number, cur: number) {
+    const last = Math.max(1, Math.ceil(tot / PAGE_SIZE));
+    const pages: Array<{ type: 'page'; value: number } | { type: 'ellipsis'; index: number }> = [];
+    for (let i = 1; i <= last; i++) {
+      if (i === 1 || i === last || Math.abs(i - cur) <= 1) {
+        pages.push({ type: 'page', value: i });
+      } else if (pages[pages.length - 1]?.type === 'page') {
+        pages.push({ type: 'ellipsis', index: pages.length });
+      }
+    }
+    return pages;
+  }
+  const pages = $derived(paginationPages(total, currentPage));
+
+  async function doSearch() {
+    const params = new URLSearchParams();
+    if (filterType) params.set('type', filterType);
+    params.set('limit', String(PAGE_SIZE));
+    params.set('skip',  String((currentPage - 1) * PAGE_SIZE));
+    const res = await fetch(`/api/crm/activities?${params}`);
+    if (res.ok) { const d = await res.json(); activities = d.activities ?? []; total = d.total ?? 0; }
+  }
+
+  function gotoPage(n: number) { currentPage = n; doSearch(); }
+
+  function onFilterChange() { currentPage = 1; doSearch(); }
 
   async function markComplete(id: string) {
     const res = await fetch(`/api/crm/activities/${id}`, {
@@ -70,7 +100,7 @@
   <div class="flex items-center justify-between gap-4 flex-wrap">
     <h2 class="text-lg font-semibold">Activities <span class="text-sm opacity-40 font-normal">({total})</span></h2>
     <div class="flex items-center gap-2">
-      <select class="select select-sm" bind:value={filterType}>
+      <select class="select select-sm" bind:value={filterType} onchange={onFilterChange}>
         <option value="">All types</option>
         {#each ACTIVITY_TYPES as t}<option value={t}>{t}</option>{/each}
       </select>
@@ -82,19 +112,37 @@
     </div>
   </div>
 
-  {#if visible.length === 0}
+  {#if activities.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center opacity-50">
       <p class="text-sm">No activities yet.{#if hasPermission(data.user, 'crm_activities', 'create')} Log one to get started.{/if}</p>
     </div>
   {:else}
     <div class="card bg-base-200 border border-base-300 rounded-box px-4 py-2">
-      {#each visible as activity (activity.id)}
+      {#each activities as activity (activity.id)}
         <ActivityItem
           {activity}
           onComplete={hasPermission(data.user, 'crm_activities', 'update') ? markComplete : undefined}
         />
       {/each}
     </div>
+    {#if totalPages > 1}
+      <div class="flex items-center justify-between mt-2">
+        <span class="text-xs opacity-50">{startItem}–{endItem} of {total}</span>
+        <div class="join">
+          <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => gotoPage(1)}><ChevronFirst class="size-3" /></button>
+          <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => gotoPage(currentPage - 1)}><ChevronLeft class="size-3" /></button>
+          {#each pages as p}
+            {#if p.type === 'ellipsis'}
+              <button class="join-item btn btn-xs btn-disabled">…</button>
+            {:else}
+              <button class="join-item btn btn-xs {p.value === currentPage ? 'btn-active' : ''}" onclick={() => gotoPage(p.value)}>{p.value}</button>
+            {/if}
+          {/each}
+          <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => gotoPage(currentPage + 1)}><ChevronRight class="size-3" /></button>
+          <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => gotoPage(totalPages)}><ChevronLast class="size-3" /></button>
+        </div>
+      </div>
+    {/if}
   {/if}
 </div>
 

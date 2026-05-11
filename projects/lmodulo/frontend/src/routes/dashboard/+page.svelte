@@ -225,6 +225,33 @@
     return agileTasks.filter(t => t.dueDate?.slice(0, 10) === ds);
   }
 
+  // ── CRM metrics ───────────────────────────────────────────────────
+  const crmDeals          = $derived((data.crmDeals      ?? []) as any[]);
+  const crmActivities     = $derived((data.crmActivities ?? []) as any[]);
+  const crmContactsTotal  = $derived(data.crmContactsTotal  ?? 0);
+  const crmCompaniesTotal = $derived(data.crmCompaniesTotal ?? 0);
+
+  const openDeals     = $derived(crmDeals.filter((d: any) => d.stage !== 'Closed Won' && d.stage !== 'Closed Lost'));
+  const pipelineValue = $derived(openDeals.reduce((sum: number, d: any) => sum + (d.value ?? 0), 0));
+  const closingSoon   = $derived(openDeals.filter((d: any) => {
+    if (!d.expectedCloseDate) return false;
+    const days = (new Date(d.expectedCloseDate).getTime() - today.getTime()) / 86400000;
+    return days >= 0 && days <= 30;
+  }).length);
+
+  const DEAL_STAGES = ['Discovery', 'Proposal', 'Negotiation', 'Contract', 'Closed Won', 'Closed Lost'];
+  const dealsByStage = $derived(() => {
+    const counts: Record<string, number> = {};
+    for (const d of crmDeals) counts[d.stage] = (counts[d.stage] ?? 0) + 1;
+    return DEAL_STAGES.map(s => ({ stage: s, count: counts[s] ?? 0 })).filter(s => s.count > 0);
+  });
+
+  function fmtCurrency(v: number): string {
+    if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
+    if (v >= 1_000)     return `$${(v / 1_000).toFixed(0)}k`;
+    return `$${v}`;
+  }
+
   // ── Task status donut chart ────────────────────────────────────────
   const STATUS_COLORS: Record<string, string> = {
     'Todo':        'var(--color-base-content)',
@@ -371,6 +398,92 @@
                       <span class="text-xs font-semibold w-8 text-right">{pct}%</span>
                     </div>
                   </a>
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+        </div>
+      {/if}
+    </div>
+  {/if}
+
+  <!-- ── CRM Summary ────────────────────────────────────────────────── -->
+  {#if hasPermission(data.user, 'crm_contacts', 'read')}
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">CRM</h2>
+        <a href="/crm" class="btn btn-ghost btn-sm text-xs">Open CRM →</a>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+          <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Pipeline</p>
+          <p class="text-2xl font-bold">{fmtCurrency(pipelineValue)}</p>
+          <p class="text-xs opacity-40">{openDeals.length} open deal{openDeals.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+          <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Closing Soon</p>
+          <p class="text-2xl font-bold {closingSoon > 0 ? 'text-warning' : ''}">{closingSoon}</p>
+          <p class="text-xs opacity-40">within 30 days</p>
+        </div>
+        <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+          <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Contacts</p>
+          <p class="text-2xl font-bold">{crmContactsTotal}</p>
+          <p class="text-xs opacity-40">total</p>
+        </div>
+        <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+          <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Companies</p>
+          <p class="text-2xl font-bold">{crmCompaniesTotal}</p>
+          <p class="text-xs opacity-40">total</p>
+        </div>
+      </div>
+
+      {#if crmDeals.length > 0 || crmActivities.length > 0}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+          <!-- Deal stage funnel -->
+          {#if crmDeals.length > 0}
+            <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+              <div class="px-4 py-2.5 border-b border-base-300">
+                <span class="text-xs font-semibold opacity-60 uppercase tracking-wide">Deal Stages</span>
+              </div>
+              <div class="p-4 space-y-3">
+                {#each dealsByStage() as { stage, count }}
+                  {@const maxCount = Math.max(...dealsByStage().map((s: any) => s.count))}
+                  {@const barColor = stage === 'Closed Won' ? 'bg-success' : stage === 'Closed Lost' ? 'bg-error/60' : 'bg-primary'}
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs w-24 shrink-0 opacity-70">{stage}</span>
+                    <div class="flex-1 h-1.5 rounded-full bg-base-300 overflow-hidden">
+                      <div class="h-full rounded-full {barColor}" style="width:{Math.round(count / maxCount * 100)}%"></div>
+                    </div>
+                    <span class="text-xs font-semibold w-3 text-right">{count}</span>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+          <!-- Recent activities -->
+          {#if crmActivities.length > 0}
+            <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+              <div class="px-4 py-2.5 border-b border-base-300">
+                <span class="text-xs font-semibold opacity-60 uppercase tracking-wide">Recent Activities</span>
+              </div>
+              <div class="divide-y divide-base-300">
+                {#each crmActivities as act}
+                  <div class="px-4 py-2.5 flex items-start gap-3">
+                    <span class="badge badge-sm badge-ghost shrink-0 mt-0.5">{act.type}</span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm truncate">{act.title}</p>
+                      <p class="text-xs opacity-40">
+                        {act.scheduledAt
+                          ? new Date(act.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                          : 'No date'}
+                      </p>
+                    </div>
+                  </div>
                 {/each}
               </div>
             </div>

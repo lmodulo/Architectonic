@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Plus, X, Search } from 'lucide-svelte';
+  import { Plus, X, Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -11,26 +11,53 @@
 
   let { data }: { data: PageData } = $props();
 
-  let companies    = $state<CrmCompany[]>((data.companies ?? []) as CrmCompany[]);
-  let total        = $state(data.total ?? 0);
+  let companies   = $state<CrmCompany[]>((data.companies ?? []) as CrmCompany[]);
+  let total       = $state(data.total ?? 0);
 
-  let search          = $state('');
-  let filterType      = $state('');
-  let filterIndustry  = $state('');
+  let search         = $state('');
+  let filterType     = $state('');
+  let filterIndustry = $state('');
+
+  // Pagination
+  const PAGE_SIZE = 20;
+  let currentPage = $state(1);
+  const totalPages = $derived(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+  const startItem  = $derived((currentPage - 1) * PAGE_SIZE + 1);
+  const endItem    = $derived(Math.min(currentPage * PAGE_SIZE, total));
+
+  function paginationPages(tot: number, cur: number) {
+    const last = Math.max(1, Math.ceil(tot / PAGE_SIZE));
+    const pages: Array<{ type: 'page'; value: number } | { type: 'ellipsis'; index: number }> = [];
+    for (let i = 1; i <= last; i++) {
+      if (i === 1 || i === last || Math.abs(i - cur) <= 1) {
+        pages.push({ type: 'page', value: i });
+      } else if (pages[pages.length - 1]?.type === 'page') {
+        pages.push({ type: 'ellipsis', index: pages.length });
+      }
+    }
+    return pages;
+  }
+  const pages = $derived(paginationPages(total, currentPage));
 
   let searchTimer: ReturnType<typeof setTimeout>;
   async function doSearch() {
     const params = new URLSearchParams();
-    if (search.trim())    params.set('search',   search.trim());
-    if (filterType)       params.set('type',      filterType);
-    if (filterIndustry)   params.set('industry',  filterIndustry);
+    if (search.trim())  params.set('search',   search.trim());
+    if (filterType)     params.set('type',     filterType);
+    if (filterIndustry) params.set('industry', filterIndustry);
+    params.set('limit', String(PAGE_SIZE));
+    params.set('skip',  String((currentPage - 1) * PAGE_SIZE));
     const res = await fetch(`/api/crm/companies?${params}`);
     if (res.ok) { const d = await res.json(); companies = d.companies ?? []; total = d.total ?? 0; }
   }
 
+  function gotoPage(n: number) { currentPage = n; doSearch(); }
+
+  function onFilterChange() { currentPage = 1; doSearch(); }
+
   function onSearchInput() {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(doSearch, 300);
+    searchTimer = setTimeout(() => { currentPage = 1; doSearch(); }, 300);
   }
 
   let modalOpen = $state(false);
@@ -79,11 +106,11 @@
           bind:value={search} oninput={onSearchInput}
         />
       </div>
-      <select class="select select-sm" bind:value={filterType} onchange={doSearch}>
+      <select class="select select-sm" bind:value={filterType} onchange={onFilterChange}>
         <option value="">All types</option>
         {#each COMPANY_TYPES as t}<option value={t}>{t}</option>{/each}
       </select>
-      <select class="select select-sm" bind:value={filterIndustry} onchange={doSearch}>
+      <select class="select select-sm" bind:value={filterIndustry} onchange={onFilterChange}>
         <option value="">All industries</option>
         {#each COMPANY_INDUSTRIES as i}<option value={i}>{i}</option>{/each}
       </select>
@@ -105,6 +132,24 @@
         <CompanyCard {company} onclick={() => goto(`/crm/companies/${company.id}`)} />
       {/each}
     </div>
+    {#if totalPages > 1}
+      <div class="flex items-center justify-between mt-2">
+        <span class="text-xs opacity-50">{startItem}–{endItem} of {total}</span>
+        <div class="join">
+          <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => gotoPage(1)}><ChevronFirst class="size-3" /></button>
+          <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => gotoPage(currentPage - 1)}><ChevronLeft class="size-3" /></button>
+          {#each pages as p}
+            {#if p.type === 'ellipsis'}
+              <button class="join-item btn btn-xs btn-disabled">…</button>
+            {:else}
+              <button class="join-item btn btn-xs {p.value === currentPage ? 'btn-active' : ''}" onclick={() => gotoPage(p.value)}>{p.value}</button>
+            {/if}
+          {/each}
+          <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => gotoPage(currentPage + 1)}><ChevronRight class="size-3" /></button>
+          <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => gotoPage(totalPages)}><ChevronLast class="size-3" /></button>
+        </div>
+      </div>
+    {/if}
   {/if}
 </div>
 

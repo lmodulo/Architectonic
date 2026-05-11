@@ -4,7 +4,7 @@
   import {
     Menu as MenuIcon, X,
     BookOpen, Rocket, Layers, Lock, ShieldCheck,
-    Code2, ListTodo, Mail, CalendarDays, Settings,
+    Code2, ListTodo, Mail, CalendarDays, Settings, Handshake,
   } from 'lucide-svelte';
   import type { Snippet } from 'svelte';
 
@@ -21,6 +21,7 @@
     { label: 'Roles & Permissions',href: `${BASE}/rbac`,              icon: ShieldCheck },
     { label: 'API Reference',      href: `${BASE}/api`,               icon: Code2 },
     { label: 'Agile Module',       href: `${BASE}/agile`,             icon: ListTodo },
+    { label: 'Nexus CRM',         href: `${BASE}/crm`,               icon: Handshake },
     { label: 'Messaging',          href: `${BASE}/messaging`,         icon: Mail },
     { label: 'Calendar & Events',  href: `${BASE}/calendar`,          icon: CalendarDays },
     { label: 'Administration',     href: `${BASE}/administration`,    icon: Settings },

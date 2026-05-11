@@ -66,9 +66,7 @@
       <h1 class="text-2xl font-bold">Notifications</h1>
     </div>
     <div class="flex items-center gap-3">
-      <a href="/notifications/settings" class="text-sm text-primary hover:underline">
-        Preferences
-      </a>
+      <a href="/notifications/settings" class="btn btn-ghost btn-sm">Preferences</a>
       {#if items.some(n => !n.read)}
         <button
           type="button"
