@@ -7,7 +7,10 @@
   import Avatar from '$lib/components/Avatar.svelte';
   import { navItems, isNavGroup, isSeparator } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
+  import { beforeNavigate, afterNavigate } from '$app/navigation';
+  import { tick } from 'svelte';
   import { hasPermission } from '$lib/permissions';
+  import { scrollStore } from '$lib/stores/scroll';
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
   import UserCard from '$lib/components/UserCard.svelte';
@@ -51,6 +54,22 @@
     if (data.user) {
       connect();
       return () => disconnect();
+    }
+  });
+
+  let mainEl: HTMLElement;
+
+  beforeNavigate(() => {
+    if (mainEl) scrollStore.save(page.url.pathname, mainEl.scrollTop);
+  });
+
+  afterNavigate(async ({ type }) => {
+    if (!mainEl) return;
+    if (type === 'popstate') {
+      await tick();
+      mainEl.scrollTop = scrollStore.get(page.url.pathname);
+    } else {
+      mainEl.scrollTop = 0;
     }
   });
 
@@ -294,7 +313,7 @@
       </header>
 
       <!-- Page content -->
-      <main class="flex-1 overflow-auto">
+      <main bind:this={mainEl} class="flex-1 overflow-auto">
         <div class="container mx-auto p-6 max-w-5xl">
           {@render children()}
         </div>

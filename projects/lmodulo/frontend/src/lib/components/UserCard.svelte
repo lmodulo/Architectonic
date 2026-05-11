@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import Avatar from './Avatar.svelte';
-  import { Mail, Phone, Users } from 'lucide-svelte';
+  import { Mail, Phone, Users, MessageSquare } from 'lucide-svelte';
   import { isOpen, getPopX, getPopY, isAbove, getUser, isLoading, closeCard, handleDocClick } from '$lib/stores/userCard.svelte';
 
   function dname(u: ReturnType<typeof getUser>) {
@@ -68,6 +69,19 @@
           </div>
         {/if}
       </div>
+
+      {#if u.id}
+        <div class="border-t border-base-200 px-4 py-2">
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm w-full justify-start gap-2 text-xs"
+            onclick={() => { closeCard(); goto(`/messages/compose?to=${u.id}`); }}
+          >
+            <MessageSquare class="size-3.5 opacity-60" />
+            Message
+          </button>
+        </div>
+      {/if}
     {/if}
   </div>
 {/if}

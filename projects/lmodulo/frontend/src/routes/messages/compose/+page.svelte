@@ -1,19 +1,23 @@
 <script lang="ts">
   import { goto, invalidate, invalidateAll } from '$app/navigation';
+  import { page } from '$app/state';
   import { Send, X } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import type { LayoutData } from '../$types';
 
   let { data }: { data: LayoutData } = $props();
 
+  const allUsers = data.allUsers as Array<{ id: string; username: string; firstName?: string; lastName?: string }>;
+
+  const preselected = page.url.searchParams.get('to');
   let toInput    = $state('');
-  let toIds      = $state<string[]>([]);
+  let toIds      = $state<string[]>(
+    preselected && allUsers.some(u => u.id === preselected) ? [preselected] : []
+  );
   let subject    = $state('');
   let body       = $state('');
   let sending    = $state(false);
   let error      = $state('');
-
-  const allUsers = data.allUsers as Array<{ id: string; username: string; firstName?: string; lastName?: string }>;
 
   function displayName(u: typeof allUsers[0]) {
     const name = [u.firstName, u.lastName].filter(Boolean).join(' ');

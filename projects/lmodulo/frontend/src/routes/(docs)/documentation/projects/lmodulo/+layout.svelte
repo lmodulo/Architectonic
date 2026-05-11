@@ -1,6 +1,9 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { beforeNavigate, afterNavigate } from '$app/navigation';
+  import { tick } from 'svelte';
   import { APP_THEME } from '$lib/config/theme';
+  import { scrollStore } from '$lib/stores/scroll';
   import {
     Menu as MenuIcon, X,
     BookOpen, Rocket, Layers, Lock, ShieldCheck,
@@ -10,6 +13,21 @@
 
   let { children }: { children: Snippet } = $props();
   let sidebarOpen = $state(false);
+  let mainEl: HTMLElement;
+
+  beforeNavigate(() => {
+    if (mainEl) scrollStore.save(page.url.pathname, mainEl.scrollTop);
+  });
+
+  afterNavigate(async ({ type }) => {
+    if (!mainEl) return;
+    if (type === 'popstate') {
+      await tick();
+      mainEl.scrollTop = scrollStore.get(page.url.pathname);
+    } else {
+      mainEl.scrollTop = 0;
+    }
+  });
 
   const BASE = '/documentation/projects/lmodulo';
 
@@ -105,7 +123,7 @@
       <span class="text-sm font-semibold">lmodulo docs</span>
     </header>
 
-    <main class="flex-1 overflow-auto">
+    <main bind:this={mainEl} class="flex-1 overflow-auto">
       <div class="container mx-auto p-8 max-w-4xl">
         {@render children()}
       </div>
