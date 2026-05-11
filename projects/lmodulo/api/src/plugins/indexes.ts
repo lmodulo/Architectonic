@@ -84,5 +84,44 @@ export default async function ensureIndexes(app: FastifyInstance) {
     // teams
     await db.collection('teams').createIndex({ name: 1 }, { unique: true });
     await db.collection('teams').createIndex({ members: 1 });
+
+    // crm_contacts
+    await db.collection('crm_contacts').createIndex({ companyId: 1, status: 1 });
+    await db.collection('crm_contacts').createIndex({ assignedTo: 1, status: 1 });
+    await db.collection('crm_contacts').createIndex({ email: 1 }, { unique: true, sparse: true });
+    await db.collection('crm_contacts').createIndex({ status: 1, createdAt: -1 });
+    await db.collection('crm_contacts').createIndex({ tags: 1 });
+    await db.collection('crm_contacts').createIndex(
+      { firstName: 'text', lastName: 'text', email: 'text' },
+      { weights: { email: 10, firstName: 5, lastName: 5 } }
+    );
+
+    // crm_companies
+    await db.collection('crm_companies').createIndex({ type: 1, createdAt: -1 });
+    await db.collection('crm_companies').createIndex({ industry: 1 });
+    await db.collection('crm_companies').createIndex({ assignedTo: 1 });
+    await db.collection('crm_companies').createIndex({ domain: 1 }, { unique: true, sparse: true });
+    await db.collection('crm_companies').createIndex({ tags: 1 });
+    await db.collection('crm_companies').createIndex(
+      { name: 'text', description: 'text', domain: 'text' },
+      { weights: { name: 10, domain: 5, description: 1 } }
+    );
+
+    // crm_deals
+    await db.collection('crm_deals').createIndex({ companyId: 1, stage: 1 });
+    await db.collection('crm_deals').createIndex({ contactIds: 1 });
+    await db.collection('crm_deals').createIndex({ assignedTo: 1, stage: 1 });
+    await db.collection('crm_deals').createIndex({ stage: 1, expectedCloseDate: 1 });
+    await db.collection('crm_deals').createIndex({ expectedCloseDate: 1 });
+    await db.collection('crm_deals').createIndex({ createdAt: -1 });
+    await db.collection('crm_deals').createIndex({ title: 'text', description: 'text' });
+
+    // crm_activities
+    await db.collection('crm_activities').createIndex({ entityType: 1, entityId: 1, createdAt: -1 });
+    await db.collection('crm_activities').createIndex({ assignedTo: 1, scheduledAt: 1 });
+    await db.collection('crm_activities').createIndex({ type: 1, createdAt: -1 });
+    await db.collection('crm_activities').createIndex({ scheduledAt: 1 });
+    await db.collection('crm_activities').createIndex({ completedAt: 1 });
+    await db.collection('crm_activities').createIndex({ createdAt: -1 });
   });
 }

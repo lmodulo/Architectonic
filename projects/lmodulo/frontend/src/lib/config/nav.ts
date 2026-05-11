@@ -1,5 +1,5 @@
 import {
-  House, Bell, Mail, CalendarRange, Milestone,
+  House, Bell, Mail, CalendarRange, Milestone, Handshake,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
@@ -32,6 +32,7 @@ export function isSeparator(entry: NavEntry): entry is NavSeparator {
 export const navItems: NavEntry[] = [
   { label: 'Dashboard',     href: '/dashboard',       icon: House },
   { label: 'Agile Tracker', href: '/agile',           icon: Milestone,    matchPrefix: true, permission: { resource: 'agile_milestones', action: 'read' } },
+  { label: 'Nexus',         href: '/crm',             icon: Handshake,    matchPrefix: true, permission: { resource: 'crm_contacts',      action: 'read' } },
   { label: 'Calendar',      href: '/calendar-events', icon: CalendarRange, matchPrefix: true },
   { separator: true },
   { label: 'Messages',      href: '/messages',        icon: Mail,         matchPrefix: true },
