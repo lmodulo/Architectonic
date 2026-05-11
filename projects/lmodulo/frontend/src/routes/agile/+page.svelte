@@ -181,9 +181,9 @@
 
   <!-- ── Milestones section ─────────────────────────────────────────── -->
   <section class="space-y-4">
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex items-start justify-between gap-4">
       <h2 class="text-lg font-semibold">Milestones</h2>
-      <div class="flex items-center gap-2 flex-wrap">
+      <div class="flex flex-col items-end gap-2">
         <!-- Filters -->
         <select class="select text-xs h-8 px-2" bind:value={filterStatus}>
           <option value="">All statuses</option>

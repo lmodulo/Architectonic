@@ -97,9 +97,9 @@
 <svelte:head><title>Activities — Nexus</title></svelte:head>
 
 <div class="space-y-4">
-  <div class="flex items-center justify-between gap-4 flex-wrap">
+  <div class="flex items-start justify-between gap-4">
     <h2 class="text-lg font-semibold">Activities <span class="text-sm opacity-40 font-normal">({total})</span></h2>
-    <div class="flex items-center gap-2">
+    <div class="flex flex-col items-end gap-2">
       <select class="select select-sm" bind:value={filterType} onchange={onFilterChange}>
         <option value="">All types</option>
         {#each ACTIVITY_TYPES as t}<option value={t}>{t}</option>{/each}

@@ -74,7 +74,7 @@
 <svelte:head><title>Pipeline — Nexus</title></svelte:head>
 
 <div class="space-y-4">
-  <div class="flex items-center justify-between gap-4">
+  <div class="flex items-start justify-between gap-4">
     <div>
       <h2 class="text-lg font-semibold">Pipeline</h2>
       <p class="text-xs opacity-40">{fmtCurrency(totalPipeline)} total pipeline value</p>

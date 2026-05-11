@@ -96,9 +96,9 @@
 <svelte:head><title>Companies — Nexus</title></svelte:head>
 
 <div class="space-y-4">
-  <div class="flex items-center justify-between gap-4 flex-wrap">
+  <div class="flex items-start justify-between gap-4">
     <h2 class="text-lg font-semibold">Companies <span class="text-sm opacity-40 font-normal">({total})</span></h2>
-    <div class="flex items-center gap-2 flex-wrap">
+    <div class="flex flex-col items-end gap-2">
       <div class="relative">
         <Search class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 opacity-40" />
         <input

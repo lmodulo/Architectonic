@@ -75,7 +75,7 @@
           <button
             type="button"
             class="btn btn-ghost btn-sm w-full justify-start gap-2 text-xs"
-            onclick={() => { closeCard(); goto(`/messages/compose?to=${u.id}`); }}
+            onclick={() => { const id = u.id; closeCard(); goto(`/messages/compose?to=${id}`); }}
           >
             <MessageSquare class="size-3.5 opacity-60" />
             Message

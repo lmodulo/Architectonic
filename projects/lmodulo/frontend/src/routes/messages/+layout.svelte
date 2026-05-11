@@ -85,7 +85,7 @@
   <div class="flex flex-1 overflow-hidden border border-base-300 rounded-box">
 
   <!-- Left panel — message list -->
-  <aside class="w-72 shrink-0 flex flex-col border-r border-base-300 overflow-hidden">
+  <aside class="w-72 shrink-0 flex flex-col border-r border-base-300 overflow-hidden bg-base-200">
 
     <!-- Compose button -->
     <div class="px-3 py-3 border-b border-base-300">
@@ -145,7 +145,7 @@
   </aside>
 
   <!-- Right panel -->
-  <main class="flex-1 overflow-y-auto">
+  <main class="flex-1 overflow-y-auto bg-base-100">
     {@render children()}
   </main>
 

@@ -39,9 +39,9 @@
 
 <div class="space-y-5">
 
-  <div class="flex items-center justify-between gap-4 flex-wrap">
+  <div class="flex items-start justify-between gap-4">
     <h2 class="text-lg font-semibold">Global Task Board</h2>
-    <div class="flex items-center gap-2 flex-wrap">
+    <div class="flex flex-col items-end gap-2">
       <!-- Search -->
       <label class="input flex items-center gap-2 h-8 text-xs">
         <Search class="size-3.5 opacity-50" />
