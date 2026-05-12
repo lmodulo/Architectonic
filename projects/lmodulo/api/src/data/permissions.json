@@ -21,7 +21,10 @@
     "crm_contacts":       { "create": true,  "read": true,  "update": true,  "delete": true  },
     "crm_companies":      { "create": true,  "read": true,  "update": true,  "delete": true  },
     "crm_deals":          { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "crm_activities":     { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "crm_activities":     { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "finance_invoices":   { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "finance_payments":   { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "client_portal":      { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "admin": {
     "users":              { "create": true,  "read": true,  "update": true,  "delete": true  },
@@ -45,7 +48,10 @@
     "crm_contacts":       { "create": true,  "read": true,  "update": true,  "delete": true  },
     "crm_companies":      { "create": true,  "read": true,  "update": true,  "delete": true  },
     "crm_deals":          { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "crm_activities":     { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "crm_activities":     { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "finance_invoices":   { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "finance_payments":   { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "client_portal":      { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "lead": {
     "users":              { "create": false, "read": true,  "update": false, "delete": false },
@@ -69,7 +75,10 @@
     "crm_contacts":       { "create": true,  "read": true,  "update": true,  "delete": false },
     "crm_companies":      { "create": true,  "read": true,  "update": true,  "delete": false },
     "crm_deals":          { "create": true,  "read": true,  "update": true,  "delete": false },
-    "crm_activities":     { "create": true,  "read": true,  "update": true,  "delete": false }
+    "crm_activities":     { "create": true,  "read": true,  "update": true,  "delete": false },
+    "finance_invoices":   { "create": false, "read": true,  "update": false, "delete": false },
+    "finance_payments":   { "create": false, "read": true,  "update": false, "delete": false },
+    "client_portal":      { "create": false, "read": false, "update": false, "delete": false }
   },
   "contributor": {
     "users":              { "create": false, "read": true,  "update": false, "delete": false },
@@ -93,14 +102,17 @@
     "crm_contacts":       { "create": false, "read": true,  "update": false, "delete": false },
     "crm_companies":      { "create": false, "read": true,  "update": false, "delete": false },
     "crm_deals":          { "create": false, "read": true,  "update": false, "delete": false },
-    "crm_activities":     { "create": true,  "read": true,  "update": true,  "delete": false }
+    "crm_activities":     { "create": true,  "read": true,  "update": true,  "delete": false },
+    "finance_invoices":   { "create": false, "read": true,  "update": false, "delete": false },
+    "finance_payments":   { "create": false, "read": true,  "update": false, "delete": false },
+    "client_portal":      { "create": false, "read": false, "update": false, "delete": false }
   },
   "customer": {
     "users":              { "create": false, "read": false, "update": false, "delete": false },
     "dashboard":          { "create": false, "read": false, "update": false, "delete": false },
     "roles":              { "create": false, "read": false, "update": false, "delete": false },
     "teams":              { "create": false, "read": false, "update": false, "delete": false },
-    "messages":           { "create": false, "read": false, "update": false, "delete": false },
+    "messages":           { "create": true,  "read": true,  "update": true,  "delete": false },
     "audit":              { "create": false, "read": false, "update": false, "delete": false },
     "settings":           { "create": false, "read": false, "update": false, "delete": false },
     "commerce_products":  { "create": false, "read": true,  "update": false, "delete": false },
@@ -114,7 +126,10 @@
     "crm_contacts":       { "create": false, "read": false, "update": false, "delete": false },
     "crm_companies":      { "create": false, "read": false, "update": false, "delete": false },
     "crm_deals":          { "create": false, "read": false, "update": false, "delete": false },
-    "crm_activities":     { "create": false, "read": false, "update": false, "delete": false }
+    "crm_activities":     { "create": false, "read": false, "update": false, "delete": false },
+    "finance_invoices":   { "create": false, "read": true,  "update": false, "delete": false },
+    "finance_payments":   { "create": true,  "read": true,  "update": false, "delete": false },
+    "client_portal":      { "create": true,  "read": true,  "update": false, "delete": false }
   },
   "viewer": {
     "users":              { "create": false, "read": true,  "update": false, "delete": false },
@@ -138,6 +153,9 @@
     "crm_contacts":       { "create": false, "read": true,  "update": false, "delete": false },
     "crm_companies":      { "create": false, "read": true,  "update": false, "delete": false },
     "crm_deals":          { "create": false, "read": true,  "update": false, "delete": false },
-    "crm_activities":     { "create": false, "read": true,  "update": false, "delete": false }
+    "crm_activities":     { "create": false, "read": true,  "update": false, "delete": false },
+    "finance_invoices":   { "create": false, "read": true,  "update": false, "delete": false },
+    "finance_payments":   { "create": false, "read": true,  "update": false, "delete": false },
+    "client_portal":      { "create": false, "read": false, "update": false, "delete": false }
   }
 }

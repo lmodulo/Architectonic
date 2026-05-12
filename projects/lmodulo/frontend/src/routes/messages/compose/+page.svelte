@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidate, invalidateAll } from '$app/navigation';
   import { page } from '$app/state';
-  import { Send, X } from 'lucide-svelte';
+  import { Send, X, Paperclip, FileText } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import type { LayoutData } from '../$types';
 
@@ -10,14 +10,16 @@
   const allUsers = data.allUsers as Array<{ id: string; username: string; firstName?: string; lastName?: string }>;
 
   const preselected = page.url.searchParams.get('to');
-  let toInput    = $state('');
-  let toIds      = $state<string[]>(
+  let toInput      = $state('');
+  let toIds        = $state<string[]>(
     preselected && allUsers.some(u => u.id === preselected) ? [preselected] : []
   );
-  let subject    = $state('');
-  let body       = $state('');
-  let sending    = $state(false);
-  let error      = $state('');
+  let subject      = $state('');
+  let body         = $state('');
+  let sending      = $state(false);
+  let error        = $state('');
+  let pendingFiles = $state<File[]>([]);
+  let fileInput: HTMLInputElement;
 
   function displayName(u: typeof allUsers[0]) {
     const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
@@ -51,6 +53,20 @@
     }
   }
 
+  function onFileSelect(e: Event) {
+    const target = e.target as HTMLInputElement;
+    const file   = target.files?.[0];
+    target.value = '';
+    if (!file) return;
+    if (!pendingFiles.some(f => f.name === file.name)) {
+      pendingFiles = [...pendingFiles, file];
+    }
+  }
+
+  function removePending(name: string) {
+    pendingFiles = pendingFiles.filter(f => f.name !== name);
+  }
+
   async function send() {
     if (!toIds.length) { error = 'Add at least one recipient'; return; }
     if (!subject.trim()) { error = 'Subject is required'; return; }
@@ -68,7 +84,14 @@
         error = (d as { message?: string }).message ?? 'Send failed';
         return;
       }
-      const { threadId } = await res.json();
+      const { threadId, messageId } = await res.json();
+
+      for (const file of pendingFiles) {
+        const form = new FormData();
+        form.append('file', file);
+        await fetch(`/api/messages/${messageId}/attachments`, { method: 'POST', body: form });
+      }
+
       await Promise.all([invalidate('app:unread'), invalidateAll()]);
       goto(`/messages/${threadId}`);
     } catch {
@@ -80,6 +103,8 @@
 </script>
 
 <svelte:head><title>New Message</title></svelte:head>
+
+<input bind:this={fileInput} type="file" class="hidden" onchange={onFileSelect} />
 
 <div class="max-w-2xl mx-auto p-6 space-y-4">
   <div class="flex items-center justify-between">
@@ -142,7 +167,36 @@
     <MessageEditor bind:html={body} />
   </div>
 
-  <div class="flex justify-end">
+  <!-- Attachments -->
+  {#if pendingFiles.length > 0}
+    <ul class="space-y-1">
+      {#each pendingFiles as f (f.name)}
+        <li class="flex items-center gap-2 text-sm p-2 rounded bg-base-300/40">
+          <FileText class="size-4 shrink-0 opacity-50" />
+          <span class="flex-1 truncate">{f.name}</span>
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100"
+            onclick={() => removePending(f.name)}
+            aria-label="Remove {f.name}"
+          >
+            <X class="size-3.5" />
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
+  <div class="flex items-center justify-between">
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm gap-1.5 opacity-60 hover:opacity-100"
+      onclick={() => fileInput.click()}
+      aria-label="Attach file"
+    >
+      <Paperclip class="size-4" />
+      Attach
+    </button>
     <button type="button" class="btn btn-primary" disabled={sending} onclick={send}>
       <Send class="size-4" />
       {sending ? 'Sending…' : 'Send'}

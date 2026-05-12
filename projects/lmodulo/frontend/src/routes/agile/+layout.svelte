@@ -36,7 +36,7 @@
 <div class="flex flex-col gap-6">
   <!-- Page header -->
   <div>
-    <h1 class="text-2xl font-bold leading-none">Agile Tracker</h1>
+    <h1 class="text-2xl font-bold leading-none">Agile</h1>
     <p class="text-xs opacity-50 mt-0.5">Milestones · Sprints · Jobs · Tasks</p>
   </div>
 

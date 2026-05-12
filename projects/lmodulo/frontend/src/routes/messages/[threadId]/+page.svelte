@@ -1,12 +1,19 @@
 <script lang="ts">
   import { invalidate, invalidateAll } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { Reply } from 'lucide-svelte';
+  import { Reply, Paperclip, FileText, X } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
+  type Attachment = {
+    name: string;
+    url: string;
+    mimetype?: string;
+    uploadedAt?: string;
+  };
 
   type Message = {
     id: string;
@@ -14,24 +21,28 @@
     from: { id: string; username: string; name: string };
     subject: string;
     body: string;
+    attachments: Attachment[];
     createdAt: string | Date;
   };
 
-  let messages = $state<Message[]>(data.messages as Message[]);
-  let replyOpen = $state(false);
-  let replyBody = $state('');
-  let sending = $state(false);
-  let error = $state('');
+  let messages    = $state<Message[]>(data.messages as Message[]);
+  let replyOpen   = $state(false);
+  let replyBody   = $state('');
+  let replyFiles  = $state<File[]>([]);
+  let sending     = $state(false);
+  let error       = $state('');
+  let replyFileInput: HTMLInputElement;
 
   // Refresh badge when thread opens (API marks messages read on GET)
   onMount(() => { invalidate('app:unread'); });
 
   // Update messages when route changes
   $effect(() => {
-    messages = data.messages as Message[];
-    replyOpen = false;
-    replyBody = '';
-    error = '';
+    messages   = data.messages as Message[];
+    replyOpen  = false;
+    replyBody  = '';
+    replyFiles = [];
+    error      = '';
   });
 
   function formatDate(d: string | Date) {
@@ -42,7 +53,21 @@
     });
   }
 
-const threadId = $derived(messages[0]?.threadId ?? '');
+  const threadId = $derived(messages[0]?.threadId ?? '');
+
+  function onReplyFileSelect(e: Event) {
+    const target = e.target as HTMLInputElement;
+    const file   = target.files?.[0];
+    target.value = '';
+    if (!file) return;
+    if (!replyFiles.some(f => f.name === file.name)) {
+      replyFiles = [...replyFiles, file];
+    }
+  }
+
+  function removeReplyFile(name: string) {
+    replyFiles = replyFiles.filter(f => f.name !== name);
+  }
 
   async function sendReply() {
     if (!replyBody.trim() || replyBody === '<p></p>') { error = 'Reply body is required'; return; }
@@ -58,8 +83,17 @@ const threadId = $derived(messages[0]?.threadId ?? '');
         error = (d as { message?: string }).message ?? 'Send failed';
         return;
       }
-      replyBody = '';
-      replyOpen = false;
+      const { messageId } = await res.json();
+
+      for (const file of replyFiles) {
+        const form = new FormData();
+        form.append('file', file);
+        await fetch(`/api/messages/${messageId}/attachments`, { method: 'POST', body: form });
+      }
+
+      replyBody  = '';
+      replyFiles = [];
+      replyOpen  = false;
       await Promise.all([invalidate('app:unread'), invalidateAll()]);
     } catch {
       error = 'Network error';
@@ -68,6 +102,8 @@ const threadId = $derived(messages[0]?.threadId ?? '');
     }
   }
 </script>
+
+<input bind:this={replyFileInput} type="file" class="hidden" onchange={onReplyFileSelect} />
 
 <div class="flex flex-col h-full">
 
@@ -95,6 +131,20 @@ const threadId = $derived(messages[0]?.threadId ?? '');
             <!-- eslint-disable-next-line svelte/no-at-html-tags -->
             {@html msg.body}
           </div>
+          <!-- Attachments -->
+          {#if msg.attachments?.length > 0}
+            <ul class="mt-2 space-y-1">
+              {#each msg.attachments as att (att.name)}
+                <li class="flex items-center gap-2 text-xs p-1.5 rounded bg-base-300/40 hover:bg-base-300/60 transition-colors">
+                  <FileText class="size-3.5 shrink-0 opacity-50" />
+                  <a href={att.url} target="_blank" rel="noreferrer" class="flex-1 truncate font-medium hover:underline">{att.name}</a>
+                  {#if att.uploadedAt}
+                    <span class="opacity-40 shrink-0">{formatDate(att.uploadedAt)}</span>
+                  {/if}
+                </li>
+              {/each}
+            </ul>
+          {/if}
         </div>
       </div>
     {/each}
@@ -109,21 +159,53 @@ const threadId = $derived(messages[0]?.threadId ?? '');
     {#if replyOpen}
       <div class="space-y-3">
         <MessageEditor bind:html={replyBody} />
-        <div class="flex gap-2 justify-end">
+
+        <!-- Pending reply attachments -->
+        {#if replyFiles.length > 0}
+          <ul class="space-y-1">
+            {#each replyFiles as f (f.name)}
+              <li class="flex items-center gap-2 text-sm p-2 rounded bg-base-300/40">
+                <FileText class="size-4 shrink-0 opacity-50" />
+                <span class="flex-1 truncate">{f.name}</span>
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100"
+                  onclick={() => removeReplyFile(f.name)}
+                  aria-label="Remove {f.name}"
+                >
+                  <X class="size-3.5" />
+                </button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+
+        <div class="flex items-center justify-between">
           <button
             type="button"
-            class="btn btn-ghost"
-            onclick={() => { replyOpen = false; replyBody = ''; error = ''; }}
-          >Cancel</button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            disabled={sending}
-            onclick={sendReply}
+            class="btn btn-ghost btn-sm gap-1.5 opacity-60 hover:opacity-100"
+            onclick={() => replyFileInput.click()}
+            aria-label="Attach file"
           >
-            <Reply class="size-4" />
-            {sending ? 'Sending…' : 'Reply'}
+            <Paperclip class="size-4" />
+            Attach
           </button>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="btn btn-ghost"
+              onclick={() => { replyOpen = false; replyBody = ''; replyFiles = []; error = ''; }}
+            >Cancel</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              disabled={sending}
+              onclick={sendReply}
+            >
+              <Reply class="size-4" />
+              {sending ? 'Sending…' : 'Reply'}
+            </button>
+          </div>
         </div>
       </div>
     {:else}

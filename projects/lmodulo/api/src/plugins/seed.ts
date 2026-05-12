@@ -442,7 +442,7 @@ export default fp(async function seedPlugin(app: any) {
       },
       {
         title: 'Customer Demo — v1.1 Preview',
-        content: '<p>Live walkthrough of the Agile Tracker module for prospective customers. Joe and Alex presenting; Sam on standby for technical questions.</p>',
+        content: '<p>Live walkthrough of the Agile module for prospective customers. Joe and Alex presenting; Sam on standby for technical questions.</p>',
         eventType: 'upcoming_event',
         startDate: dh(18, 14), endDate: dh(18, 16), singleDay: true, allDay: false,
         location: 'Video Call',
@@ -454,7 +454,7 @@ export default fp(async function seedPlugin(app: any) {
       },
       {
         title: 'v1.1 Release Deadline',
-        content: '<p>Target cutoff date for the Agile Tracker milestone release. Code freeze at EOD.</p>',
+        content: '<p>Target cutoff date for the Agile milestone release. Code freeze at EOD.</p>',
         eventType: 'deadline',
         startDate: d(21), endDate: d(21), singleDay: true, allDay: true,
         location: '',
@@ -528,7 +528,7 @@ export default fp(async function seedPlugin(app: any) {
 
     // ── Milestone IDs ─────────────────────────────────────────────────
     const m1Id = new ObjectId(); // v1.0 Core Platform   — Completed
-    const m2Id = new ObjectId(); // v1.1 Agile Tracker   — Active
+    const m2Id = new ObjectId(); // v1.1 Agile   — Active
     const m3Id = new ObjectId(); // v2.0 Analytics       — Planning
 
     await milestones.insertMany([
@@ -545,7 +545,7 @@ export default fp(async function seedPlugin(app: any) {
       },
       {
         _id: m2Id,
-        title: 'v1.1 – Agile Tracker',
+        title: 'v1.1 – Agile',
         description: 'Milestones, sprints, jobs, and tasks with full permission gating.',
         strategicGoal: 'Enable teams to plan and track work end-to-end within the platform.',
         priority: 'High', status: 'Active',
@@ -1259,7 +1259,7 @@ export default fp(async function seedPlugin(app: any) {
           stage: 'Discovery', type: 'New Business',
           value: 8400, currency: 'USD', probability: 20,
           expectedCloseDate: d(60),
-          description: 'Agency tier for 15 seats. Evaluating against a competitor. Carmen wants to see the Agile Tracker in a live walkthrough before committing.',
+          description: 'Agency tier for 15 seats. Evaluating against a competitor. Carmen wants to see the Agile in a live walkthrough before committing.',
           assignedTo: alexId, lostReason: null,
           createdBy: alexId, updatedBy: null,
           createdAt: d(-3), updatedAt: d(-3),
@@ -1336,7 +1336,7 @@ export default fp(async function seedPlugin(app: any) {
         },
         {
           type: 'Meeting', title: 'Onboarding kickoff — Vertex Systems',
-          body: 'Walked Priya\'s team through Docker setup, roles/permissions, and Agile Tracker. Committed to 60-day check-in. They\'re starting with the Backend team as the pilot group.',
+          body: 'Walked Priya\'s team through Docker setup, roles/permissions, and Agile. Committed to 60-day check-in. They\'re starting with the Backend team as the pilot group.',
           entityType: 'company', entityId: coVertex,
           scheduledAt: dh(-65, 10), completedAt: dh(-65, 12), outcome: 'Productive',
           assignedTo: alexId, createdBy: alexId, updatedBy: alexId,
@@ -1390,7 +1390,7 @@ export default fp(async function seedPlugin(app: any) {
         },
         {
           type: 'Call', title: 'Intro call — Dana Kowalski, TechFusion',
-          body: 'Dana runs their sprint planning process. Pain point: no single view connecting milestones to daily tasks. Demo\'d the Agile Tracker overview — strong positive reaction. Scheduling a full product demo.',
+          body: 'Dana runs their sprint planning process. Pain point: no single view connecting milestones to daily tasks. Demo\'d the Agile overview — strong positive reaction. Scheduling a full product demo.',
           entityType: 'contact', entityId: ctDana,
           scheduledAt: dh(-12, 10), completedAt: dh(-12, 11), outcome: 'Productive',
           assignedTo: alexId, createdBy: alexId, updatedBy: alexId,
@@ -1431,7 +1431,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           // Matches the 'Customer Demo — v1.1 Preview' calendar event at d(18)
           type: 'Demo', title: 'v1.1 Prospect Demo — TechFusion',
-          body: 'Live walkthrough of the complete v1.1 Agile Tracker for TechFusion\'s extended team (Dana + 3 team leads). Joe and Alex presenting. Engineering to have demo environment fully seeded beforehand (see Sprint 5 job).',
+          body: 'Live walkthrough of the complete v1.1 Agile for TechFusion\'s extended team (Dana + 3 team leads). Joe and Alex presenting. Engineering to have demo environment fully seeded beforehand (see Sprint 5 job).',
           entityType: 'deal', entityId: dlTech1,
           scheduledAt: dh(18, 14), completedAt: null, outcome: 'N/A',
           assignedTo: joeId, createdBy: joeId, updatedBy: null,
@@ -1449,7 +1449,7 @@ export default fp(async function seedPlugin(app: any) {
         },
         {
           type: 'Note', title: 'BluePeak — competitor context',
-          body: 'Carmen mentioned they\'re evaluating against Teamwork Projects. Key differentiators to emphasise: native Agile Tracker, no per-feature pricing, open-source scaffold for their dev team.',
+          body: 'Carmen mentioned they\'re evaluating against Teamwork Projects. Key differentiators to emphasise: native Agile, no per-feature pricing, open-source scaffold for their dev team.',
           entityType: 'company', entityId: coBluePeak,
           scheduledAt: null, completedAt: null, outcome: 'N/A',
           assignedTo: alexId, createdBy: alexId, updatedBy: null,
@@ -1457,7 +1457,165 @@ export default fp(async function seedPlugin(app: any) {
         },
       ]);
 
+      // ── Folio: customer users + invoices + welcome messages ──────────
+      // (intentionally outside the CRM guard so it seeds even when CRM data already exists)
+
     } // end CRM snapshot
+
+    const financeInvColl = db.collection('finance_invoices');
+    if (!await financeInvColl.countDocuments()) {
+
+      // Look up CRM company IDs from the DB (CRM may have been seeded in a prior run)
+      const [coVertexDoc, coTechDoc, coBluePeakDoc] = await Promise.all([
+        db.collection('crm_companies').findOne({ name: 'Vertex Systems' }),
+        db.collection('crm_companies').findOne({ name: 'TechFusion Inc' }),
+        db.collection('crm_companies').findOne({ name: 'BluePeak Agency' }),
+      ]);
+      const coVertex   = coVertexDoc?._id   as ObjectId;
+      const coTech     = coTechDoc?._id     as ObjectId;
+      const coBluePeak = coBluePeakDoc?._id as ObjectId;
+
+      if (!coVertex || !coTech || !coBluePeak) {
+        console.warn('[seed] Folio: CRM companies not found — skipping finance seed');
+      } else {
+
+        // Customer users — paying/active customers only (Discovery-stage prospects excluded)
+        // cvId → Marcus Powell (Vertex Systems — Enterprise Customer, Closed Won)
+        // ctId → Priya Nair   (TechFusion Inc — Pilot customer, Q2 deal in Proposal)
+        const cvId = new ObjectId();
+        const ctId = new ObjectId();
+        const customerPasswordHash = await bcrypt.hash('ClientPass1!', 12);
+
+        for (const [cusId, username, email, firstName, lastName, companyId] of [
+          [cvId, 'client.vertex',    'client@vertexsystems.io', 'Marcus', 'Powell', coVertex],
+          [ctId, 'client.techfusion','client@techfusion.io',    'Priya',  'Nair',   coTech  ],
+        ] as [ObjectId, string, string, string, string, ObjectId][]) {
+          const existing = await users.findOne({ email });
+          if (!existing) {
+            await users.insertOne({
+              _id: cusId, username, email,
+              passwordHash: customerPasswordHash,
+              firstName, lastName,
+              role: 'customer', companyId,
+              avatarUrl: '', avatarColor: '',
+              createdAt: now, updatedAt: now,
+            });
+          }
+        }
+
+        // Invoice seed helper
+        const inv = (
+          invoiceNumber: string, customerId: ObjectId, companyId: ObjectId,
+          items: Array<{desc: string; qty: number; price: number}>,
+          taxRate: number, status: string, daysOffset: number, dueOffset: number,
+          notes: string,
+        ) => {
+          const lineItems = items.map(i => ({
+            description: i.desc, quantity: i.qty, unitPrice: i.price,
+            amount: i.qty * i.price,
+          }));
+          const subtotal  = lineItems.reduce((s, i) => s + i.amount, 0);
+          const taxAmount = subtotal * (taxRate / 100);
+          const total     = subtotal + taxAmount;
+          return {
+            invoiceNumber, customerId, companyId, lineItems,
+            subtotal, taxRate, taxAmount, total,
+            currency: 'USD', status, notes,
+            dueDate:   d(dueOffset),
+            createdBy: adminId,
+            createdAt: d(daysOffset),
+            updatedAt: d(daysOffset),
+            ...(status === 'paid' ? { paidAt: d(daysOffset + 5) } : {}),
+          };
+        };
+
+        await financeInvColl.insertMany([
+
+          // ── Vertex Systems — Enterprise Customer ($48k ARR, Closed Won) ───
+          // INV-0001: v1.0 Core Platform milestone delivery (Sprints 1 & 2)
+          inv('INV-0001', cvId, coVertex, [
+            { desc: 'v1.0 Core Platform — Milestone Delivery (Sprints 1 & 2)', qty: 1, price: 8500 },
+            { desc: 'Production Deployment & Environment Setup',                qty: 1, price: 500  },
+          ], 8, 'paid', -90, -60,
+            'Covers v1.0 – Core Platform milestone: Foundation (Sprint 1: auth, MongoDB, Fastify scaffold) and Core Features (Sprint 2: user management, RBAC, settings). Delivered per Enterprise License agreement (Vertex Systems, $48k ARR). Primary contact: Marcus Webb.'),
+
+          // INV-0002: Enterprise retainer + Sprint 3 Data Layer progress billing
+          inv('INV-0002', cvId, coVertex, [
+            { desc: 'Enterprise Platform Retainer — Monthly',           qty: 1, price: 6000 },
+            { desc: 'Sprint 3: Data Layer API — Progress Billing',      qty: 1, price: 500  },
+          ], 8, 'paid', -60, -30,
+            'Monthly enterprise retainer (Priority Support SLA). Includes a progress credit for Sprint 3 (Data Layer: milestone/sprint/job/task CRUD APIs) under the v1.1 – Agile milestone. Priya Sharma (Technical lead) confirmed delivery scope.'),
+
+          // INV-0003: Sprint 4 UI Layer progress billing (v1.1 Agile)
+          inv('INV-0003', cvId, coVertex, [
+            { desc: 'Sprint 4: UI Layer — Overview & Milestones UI (Done)',    qty: 28, price: 175 },
+            { desc: 'Sprint 4: UI Layer — Sprint Detail & Board Views (WIP)',  qty: 12, price: 175 },
+            { desc: 'Code Review & QA — Sprint 4 Component Reviews',          qty: 8,  price: 150 },
+          ], 8, 'sent', -30, 15,
+            'Sprint 4 (UI Layer) progress billing under v1.1 – Agile milestone. Covers: Overview & Milestones UI (Done), Sprint detail page (Review), and Board/Kanban (In Progress — Safari pointer-events spike in flight). Timeline/Gantt view billed upon completion.'),
+
+          // INV-0004: Annual API Access License (from Priya's technical evaluation requirement)
+          inv('INV-0004', cvId, coVertex, [
+            { desc: 'API Access — Annual License (REST + Webhooks)', qty: 1, price: 2500 },
+          ], 8, 'overdue', -45, -10,
+            'Annual REST API access tier. Originally scoped during Priya Sharma\'s technical deep-dive: CSV export and programmatic sprint data access for Vertex\'s internal BI tooling. Part of Enterprise License ($48k ARR). Payment overdue — follow up with Marcus Webb.'),
+
+          // ── TechFusion Inc — Prospect Pilot ($18k Q2 Pilot in Proposal) ──
+          // INV-0008: Pre-pilot v1.0 integration work (paid, oldest)
+          inv('INV-0008', ctId, coTech, [
+            { desc: 'v1.0 Platform Integration Development',         qty: 80, price: 150 },
+            { desc: 'Project Management — v1.0 Core Platform scope', qty: 1,  price: 2000 },
+          ], 5, 'paid', -75, -45,
+            'Pre-pilot engagement scoped before TechFusion\'s formal evaluation. Custom development work aligned with v1.0 – Core Platform milestone (Foundation + Core Features). Completed prior to Dana Kowalski\'s inbound lead (d-15) and Q2 Pilot deal.'),
+
+          // INV-0007: Team Plan retainer during pilot ramp-up (overdue)
+          inv('INV-0007', ctId, coTech, [
+            { desc: 'Monthly Retainer — Team Plan (30 seats)',   qty: 1, price: 3000 },
+            { desc: 'Sprint Planning Facilitation — 2 sessions', qty: 2, price: 500  },
+          ], 5, 'overdue', -50, -5,
+            'Team Plan retainer for TechFusion pilot ramp-up. Sprint planning sessions aligned with Sprint 3 (Data Layer) and Sprint 4 (UI Layer) milestones. Tyler Osei (Finance/budget owner) is responsible for payment approval — CFO review still in progress for the Q2 Pilot deal ($18k).'),
+
+          // INV-0006: Sprint 4 demo prep & consulting (sent)
+          inv('INV-0006', ctId, coTech, [
+            { desc: 'Sprint 4 Live Walkthrough & Configuration (16h)', qty: 16, price: 200 },
+            { desc: 'Data Migration — Notion/Jira Export Processing',  qty: 4,  price: 150 },
+          ], 5, 'sent', -15, 20,
+            'Consulting engagement supporting TechFusion\'s Sprint 4 (UI Layer) evaluation: live walkthrough of Board (Kanban), Sprint detail, and Milestones views. Data migration assistance for Notion/Jira exports (Kwame Asante\'s integration team requirement). Part of Q2 Pilot deal — Dana Kowalski confirmed scope.'),
+
+          // INV-0005: Q2 Pilot onboarding package (draft, pending CFO sign-off)
+          inv('INV-0005', ctId, coTech, [
+            { desc: 'Q2 Pilot Onboarding & Setup — 30 seats',          qty: 8, price: 200 },
+            { desc: 'Agile User Guide — Documentation Package', qty: 1, price: 500 },
+          ], 5, 'draft', -20, 25,
+            'Pre-billing draft for TechFusion Q2 Pilot (Team Plan, 30 seats, $18k/yr). Awaiting CFO approval per Tyler Osei. Dana Kowalski confirmed onboarding scope following the full product demo (Sprint 4 UI Layer walkthrough). To be issued once the Q2 Pilot deal moves to Closed Won.'),
+
+        ]);
+
+        // Welcome messages for each customer
+        const adminUser = await users.findOne({ username: 'admin' });
+        if (adminUser) {
+          for (const [cusId, firstName, companyName] of [
+            [cvId, 'Marcus', 'Vertex Systems'],
+            [ctId, 'Priya',  'TechFusion Inc'],
+          ] as [ObjectId, string, string][]) {
+            const msgId = new ObjectId();
+            const msgBody = `<p>Hi ${firstName},</p><p>Welcome to the Client Portal! Your account is ready.</p><ul><li>View invoices and payment history</li><li>Make secure payments online</li><li>Message our team directly</li></ul><p>Reply here if you have any questions.</p><p>Best regards,<br />${adminUser.firstName || adminUser.username}</p>`;
+            await db.collection('messages').insertOne({
+              _id: msgId, threadId: msgId, parentId: null,
+              from: adminUser._id, to: [cusId], cc: [],
+              subject: `Welcome to the Client Portal — ${companyName}`,
+              body: msgBody, attachments: [], createdAt: now,
+            });
+            await db.collection('message_state').insertMany([
+              { messageId: msgId, userId: adminUser._id, read: true,  readAt: now,  archived: false, deleted: false },
+              { messageId: msgId, userId: cusId,         read: false, readAt: null, archived: false, deleted: false },
+            ]);
+          }
+        }
+
+      } // end finance snapshot (inner coVertex guard)
+
+    } // end finance snapshot
 
   });
 });

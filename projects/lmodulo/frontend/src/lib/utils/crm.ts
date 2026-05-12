@@ -114,6 +114,10 @@ export interface CrmContact {
   linkedInUrl?: string;
   timezone?: string;
   tags?: string[];
+  isUser?: boolean;
+  userId?: string | null;
+  userUsername?: string | null;
+  userCreatedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

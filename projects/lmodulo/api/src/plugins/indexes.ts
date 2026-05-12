@@ -123,5 +123,17 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('crm_activities').createIndex({ scheduledAt: 1 });
     await db.collection('crm_activities').createIndex({ completedAt: 1 });
     await db.collection('crm_activities').createIndex({ createdAt: -1 });
+
+    // finance_invoices
+    await db.collection('finance_invoices').createIndex({ customerId: 1, status: 1 });
+    await db.collection('finance_invoices').createIndex({ companyId: 1 });
+    await db.collection('finance_invoices').createIndex({ invoiceNumber: 1 }, { unique: true });
+    await db.collection('finance_invoices').createIndex({ status: 1, dueDate: 1 });
+    await db.collection('finance_invoices').createIndex({ createdAt: -1 });
+
+    // finance_payments
+    await db.collection('finance_payments').createIndex({ invoiceId: 1 });
+    await db.collection('finance_payments').createIndex({ customerId: 1 });
+    await db.collection('finance_payments').createIndex({ createdAt: -1 });
   });
 }

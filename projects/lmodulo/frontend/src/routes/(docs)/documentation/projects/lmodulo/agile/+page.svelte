@@ -13,7 +13,7 @@
 
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">Hierarchy</h2>
-    <pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto leading-relaxed"><code>Milestone  ← strategic goal or product version (e.g. "v1.1 Agile Tracker")
+    <pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto leading-relaxed"><code>Milestone  ← strategic goal or product version (e.g. "v1.1 Agile")
   └── Sprint  ← time-boxed iteration (e.g. "Sprint 1 — Mar 1–14")
         └── Job  ← a deliverable unit of work (e.g. "Design kanban board UI")
               └── Task  ← atomic work item assigned to a person</code></pre>
@@ -29,7 +29,7 @@
       <table class="table table-sm w-full">
         <thead><tr class="bg-base-200"><th>Field</th><th>Type</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td class="font-mono text-xs">title</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">Short name for the milestone (e.g. "v1.1 Agile Tracker")</td></tr>
+          <tr><td class="font-mono text-xs">title</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">Short name for the milestone (e.g. "v1.1 Agile")</td></tr>
           <tr><td class="font-mono text-xs">description</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">Detailed description of the goal</td></tr>
           <tr><td class="font-mono text-xs">strategicGoal</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">The business objective this milestone advances</td></tr>
           <tr><td class="font-mono text-xs">priority</td><td class="text-xs opacity-60">Low | Medium | High | Critical</td><td class="text-sm opacity-70">Importance relative to other milestones</td></tr>

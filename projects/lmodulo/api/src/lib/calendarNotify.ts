@@ -1,8 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { dispatch } from './notifications/dispatch.js';
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import { sendCalendarNewEventEmail, sendCalendarReminderEmail } from './email.js';
 
 export interface CalendarEventDoc {
   _id: ObjectId;
@@ -14,27 +13,6 @@ export interface CalendarEventDoc {
   visibility: string;
   ownerId: ObjectId;
   sharedWith: ObjectId[];
-}
-
-let _transporter: Transporter | null = null;
-
-async function getTransporter(): Promise<Transporter> {
-  if (_transporter) return _transporter;
-  if (process.env.SMTP_HOST) {
-    _transporter = nodemailer.createTransport({
-      host:   process.env.SMTP_HOST,
-      port:   Number(process.env.SMTP_PORT ?? 587),
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-  } else {
-    const test = await nodemailer.createTestAccount();
-    _transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email', port: 587, secure: false,
-      auth: { user: test.user, pass: test.pass },
-    });
-  }
-  return _transporter;
 }
 
 function fmtDate(d: Date): string {
@@ -72,7 +50,8 @@ export async function notifyNewEvent(
     if (prefs?.muted?.includes('calendar_event.new')) continue;
     const user = await db.collection('users').findOne({ _id: sub.userId });
     if (!user?.email) continue;
-    sendNewEventEmail(user.email, event, dateStr, label).catch(
+    const appUrl = process.env.APP_URL ?? '';
+    sendCalendarNewEventEmail(user.email, { title: event.title, label, dateStr, url: `${appUrl}/calendar-events` }).catch(
       err => app.log.error({ err }, '[calendar] new-event email failed'),
     );
   }
@@ -107,30 +86,10 @@ export async function notifyEventReminder(
     if (prefs?.muted?.includes('calendar_event.reminder')) continue;
     const user = await db.collection('users').findOne({ _id: userId });
     if (!user?.email) continue;
-    sendReminderEmail(user.email, event, dateStr, when).catch(
+    const appUrl = process.env.APP_URL ?? '';
+    sendCalendarReminderEmail(user.email, { title: event.title, dateStr, when, url: `${appUrl}/calendar-events` }).catch(
       err => app.log.error({ err }, '[calendar] reminder email failed'),
     );
   }
 }
 
-async function sendNewEventEmail(to: string, event: CalendarEventDoc, dateStr: string, label: string): Promise<void> {
-  const t    = await getTransporter();
-  const from = process.env.SMTP_FROM ?? 'noreply@example.com';
-  await t.sendMail({
-    from, to,
-    subject: `New event: ${event.title}`,
-    text:    `A new ${label} has been scheduled: "${event.title}" on ${dateStr}`,
-    html:    `<p>A new event has been scheduled:</p><h2>${event.title}</h2><p>${dateStr}</p><p><a href="/calendar-events">View all events</a></p>`,
-  });
-}
-
-async function sendReminderEmail(to: string, event: CalendarEventDoc, dateStr: string, when: string): Promise<void> {
-  const t    = await getTransporter();
-  const from = process.env.SMTP_FROM ?? 'noreply@example.com';
-  await t.sendMail({
-    from, to,
-    subject: `Reminder: ${event.title} ${when}`,
-    text:    `This is a reminder that "${event.title}" ${when}. Date: ${dateStr}`,
-    html:    `<p>Reminder: <strong>${event.title}</strong> ${when}.</p><p>${dateStr}</p><p><a href="/calendar-events">View all events</a></p>`,
-  });
-}

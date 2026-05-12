@@ -116,7 +116,7 @@
       {/each}
 
       {#if (byStage[stage]?.length ?? 0) === 0}
-        <div class="flex-1 flex items-center justify-center text-xs opacity-30 py-8">
+        <div class="flex-1 flex items-start justify-center text-xs opacity-30 pt-3">
           Drop here
         </div>
       {/if}

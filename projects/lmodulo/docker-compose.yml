@@ -8,6 +8,7 @@ services:
     environment:
       - ORIGIN=http://localhost:${WEB_PORT:-3000}
       - API_URL=http://api:4000
+      - PUBLIC_STRIPE_PUBLISHABLE_KEY=${PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
     depends_on:
       api:
         condition: service_healthy
@@ -38,6 +39,8 @@ services:
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-minioadmin}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-minioadmin}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
     volumes:
       - uploads:/app/uploads
     depends_on:

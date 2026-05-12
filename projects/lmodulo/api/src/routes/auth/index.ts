@@ -6,7 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
 import { checkDuplicateUser } from '../../lib/users.js';
-import { sendPasswordResetEmail } from '../../lib/email.js';
+import { sendPasswordResetEmail, sendPasswordSetEmail } from '../../lib/email.js';
 import { logAudit } from '../../lib/audit.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,6 +20,7 @@ interface LoginBody         { email: string; password: string }
 interface ProfileBody       { username?: string; email?: string; firstName?: string; lastName?: string; avatarColor?: string; phone?: string }
 interface ForgotPasswordBody { email: string }
 interface ResetPasswordBody  { token: string; password: string }
+interface SetPasswordBody    { token: string; password: string }
 
 export default async function authRoutes(app: FastifyInstance) {
 
@@ -252,6 +253,43 @@ export default async function authRoutes(app: FastifyInstance) {
     );
 
     logAudit(app.mongo.db!, { userId: user._id.toString(), username: user.username as string, action: 'auth.password_reset', ip: req.ip });
+
+    reply.code(204).send();
+  });
+
+  // POST /auth/set-password — set password using a welcome/invite token (48h expiry)
+  app.post<{ Body: SetPasswordBody }>('/set-password', {
+    schema: {
+      summary: 'Set account password using an invite token',
+      body: {
+        type: 'object',
+        required: ['token', 'password'],
+        properties: {
+          token:    { type: 'string', minLength: 1 },
+          password: { type: 'string', minLength: 8 }
+        }
+      }
+    }
+  }, async (req, reply) => {
+    const col  = app.mongo.db!.collection(COLLECTION);
+    const hash = crypto.createHash('sha256').update(req.body.token).digest('hex');
+
+    const user = await col.findOne({
+      passwordSetTokenHash:   hash,
+      passwordSetTokenExpiry: { $gt: new Date() }
+    });
+    if (!user) return reply.badRequest('Invalid or expired token');
+
+    const passwordHash = await bcrypt.hash(req.body.password, SALT_ROUNDS);
+    await col.updateOne(
+      { _id: user._id },
+      {
+        $set:   { passwordHash, updatedAt: new Date() },
+        $unset: { passwordSetTokenHash: '', passwordSetTokenExpiry: '' }
+      }
+    );
+
+    logAudit(app.mongo.db!, { userId: user._id.toString(), username: user.username as string, action: 'auth.password_set', ip: req.ip });
 
     reply.code(204).send();
   });

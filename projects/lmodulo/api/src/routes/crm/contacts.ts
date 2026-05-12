@@ -1,6 +1,11 @@
+import crypto from 'crypto';
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
+import bcrypt from 'bcryptjs';
 import { logAudit } from '../../lib/audit.js';
+import { checkDuplicateUser } from '../../lib/users.js';
+import { sendPasswordSetEmail } from '../../lib/email.js';
+import { sendWelcomeMessage } from '../../lib/financeMessages.js';
 
 const COL = 'crm_contacts';
 
@@ -45,7 +50,21 @@ export default async function contactsRoutes(app: FastifyInstance) {
         { $match: match },
         { $lookup: { from: 'crm_companies', localField: 'companyId', foreignField: '_id', as: '_co' } },
         { $addFields: { companyName: { $arrayElemAt: ['$_co.name', 0] } } },
-        { $project: { _co: 0 } },
+        { $lookup: {
+            from: 'users',
+            let: { contactEmail: '$email' },
+            pipeline: [
+              { $match: { $expr: { $and: [
+                { $ne: ['$$contactEmail', null] },
+                { $eq: ['$email', '$$contactEmail'] },
+              ]}}},
+              { $limit: 1 },
+              { $project: { _id: 1 } },
+            ],
+            as: '_user',
+        }},
+        { $addFields: { isUser: { $gt: [{ $size: '$_user' }, 0] } } },
+        { $project: { _co: 0, _user: 0 } },
         { $sort: { createdAt: -1 } },
         { $skip: Number(skip) },
         { $limit: Number(limit) },
@@ -113,7 +132,26 @@ export default async function contactsRoutes(app: FastifyInstance) {
       { $match: { _id: oid } },
       { $lookup: { from: 'crm_companies', localField: 'companyId', foreignField: '_id', as: '_co' } },
       { $addFields: { companyName: { $arrayElemAt: ['$_co.name', 0] } } },
-      { $project: { _co: 0 } },
+      { $lookup: {
+          from: 'users',
+          let: { contactEmail: '$email' },
+          pipeline: [
+            { $match: { $expr: { $and: [
+              { $ne: ['$$contactEmail', null] },
+              { $eq: ['$email', '$$contactEmail'] },
+            ]}}},
+            { $limit: 1 },
+            { $project: { _id: 1, username: 1, createdAt: 1 } },
+          ],
+          as: '_user',
+      }},
+      { $addFields: {
+          isUser:        { $gt: [{ $size: '$_user' }, 0] },
+          userId:        { $toString: { $arrayElemAt: ['$_user._id',       0] } },
+          userUsername:  { $arrayElemAt: ['$_user.username',  0] },
+          userCreatedAt: { $arrayElemAt: ['$_user.createdAt', 0] },
+      }},
+      { $project: { _co: 0, _user: 0 } },
     ]).toArray();
 
     if (!doc) return reply.notFound('Contact not found');
@@ -159,6 +197,66 @@ export default async function contactsRoutes(app: FastifyInstance) {
     });
 
     return { updated: true };
+  });
+
+  // POST /crm/contacts/:id/convert-to-client
+  app.post('/:id/convert-to-client', { preHandler: app.requirePermission('crm_contacts', 'update') }, async (req, reply) => {
+    const db  = app.mongo.db!;
+    const oid = parseOid((req.params as { id: string }).id, app);
+
+    const contact = await db.collection(COL).findOne({ _id: oid });
+    if (!contact) return reply.notFound('Contact not found');
+    if (!contact.email) return reply.badRequest('Contact must have an email address');
+    if (!contact.companyId) return reply.badRequest('Contact must be linked to a company');
+
+    const usersCol = db.collection('users');
+    const conflict = await checkDuplicateUser(usersCol, { email: contact.email as string });
+    if (conflict) return reply.conflict('A user with this email already exists');
+
+    const company = await db.collection('crm_companies').findOne({ _id: contact.companyId as ObjectId });
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const now = new Date();
+
+    const result = await usersCol.insertOne({
+      username:               contact.email as string,
+      email:                  (contact.email as string).toLowerCase(),
+      passwordHash:           await bcrypt.hash(crypto.randomUUID(), 12),
+      firstName:              contact.firstName ?? '',
+      lastName:               contact.lastName  ?? '',
+      role:                   'customer',
+      companyId:              contact.companyId,
+      passwordSetTokenHash:   tokenHash,
+      passwordSetTokenExpiry: new Date(now.getTime() + 48 * 60 * 60 * 1000),
+      avatarUrl:   '',
+      avatarColor: '',
+      createdAt:   now,
+      updatedAt:   now,
+    });
+
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
+    const setUrl = `${appUrl}/set-password?token=${rawToken}`;
+
+    sendPasswordSetEmail(contact.email as string, contact.firstName as string, setUrl).catch(err =>
+      console.error('[email] Failed to send password set email:', err)
+    );
+
+    await sendWelcomeMessage(
+      db,
+      result.insertedId,
+      (company?.name as string) ?? 'your company',
+      `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim()
+    );
+
+    logAudit(db, {
+      userId: req.session.userId!, username: req.session.username!,
+      action: 'user.create', resourceId: result.insertedId.toString(),
+      meta: { email: contact.email, source: 'crm_convert' }, ip: req.ip,
+    });
+
+    reply.status(201);
+    return { userId: result.insertedId.toString() };
   });
 
   // DELETE /crm/contacts/:id

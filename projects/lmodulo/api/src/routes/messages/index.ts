@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
+import { storage } from '../../lib/storage.js';
 
 const MSGS   = 'messages';
 const STATES = 'message_state';
@@ -326,6 +327,76 @@ export default async function messagesRoutes(app: FastifyInstance) {
 
     reply.code(201);
     return { threadId: threadId.toString(), messageId: msgId.toString() };
+  });
+
+  // ── POST /messages/:messageId/attachments ───────────────────────────────
+  app.post<{ Params: { messageId: string } }>('/:messageId/attachments', { preHandler: app.requireAuth }, async (req, reply) => {
+    const db  = app.mongo.db!;
+    const uid = new ObjectId(req.session.userId!);
+    let msgId: ObjectId;
+    try { msgId = new ObjectId((req.params as { messageId: string }).messageId); }
+    catch { return reply.badRequest('Invalid messageId'); }
+
+    const msg = await db.collection(MSGS).findOne({ _id: msgId });
+    if (!msg) return reply.notFound('Message not found');
+
+    const isParticipant =
+      msg.from.equals(uid) ||
+      (msg.to as ObjectId[]).some((id: ObjectId) => id.equals(uid)) ||
+      (msg.cc as ObjectId[]).some((id: ObjectId) => id.equals(uid));
+    if (!isParticipant) return reply.forbidden('Access denied');
+
+    const file = await req.file();
+    if (!file) return reply.badRequest('No file uploaded');
+
+    const buf  = await file.toBuffer();
+    const safe = (file.filename || 'file').replace(/[^a-zA-Z0-9._-]/g, '_') || 'file';
+
+    const existing = ((msg.attachments ?? []) as any[]).find((a: any) => a.name === safe);
+    if (existing?.url) await storage.remove(existing.url);
+
+    const url = await storage.save(safe, buf, file.mimetype, `messages/${msgId.toString()}`);
+
+    const attachment = {
+      name: safe, url, mimetype: file.mimetype,
+      uploadedAt: new Date(), uploadedBy: uid,
+    };
+
+    const updated = [
+      ...((msg.attachments ?? []) as any[]).filter((a: any) => a.name !== safe),
+      attachment,
+    ];
+
+    await db.collection(MSGS).updateOne({ _id: msgId }, { $set: { attachments: updated, updatedAt: new Date() } });
+
+    reply.status(201);
+    return { attachments: updated.map((a: any) => ({ ...a, uploadedBy: a.uploadedBy?.toString() })) };
+  });
+
+  // ── DELETE /messages/:messageId/attachments/:filename ────────────────────
+  app.delete<{ Params: { messageId: string; filename: string } }>('/:messageId/attachments/:filename', { preHandler: app.requireAuth }, async (req, reply) => {
+    const db  = app.mongo.db!;
+    const uid = new ObjectId(req.session.userId!);
+    let msgId: ObjectId;
+    try { msgId = new ObjectId((req.params as { messageId: string; filename: string }).messageId); }
+    catch { return reply.badRequest('Invalid messageId'); }
+
+    const filename = (req.params as { messageId: string; filename: string }).filename;
+    const msg = await db.collection(MSGS).findOne({ _id: msgId });
+    if (!msg) return reply.notFound('Message not found');
+
+    if (!msg.from.equals(uid)) return reply.forbidden('Only the sender can remove attachments');
+
+    const att = ((msg.attachments ?? []) as any[]).find((a: any) => a.name === filename);
+    if (!att) return reply.notFound('Attachment not found');
+
+    await storage.remove(att.url);
+    await db.collection(MSGS).updateOne(
+      { _id: msgId },
+      { $pull: { attachments: { name: filename } } as any, $set: { updatedAt: new Date() } }
+    );
+
+    reply.status(204);
   });
 
   // ── PATCH /messages/:threadId/state ─────────────────────────────────────

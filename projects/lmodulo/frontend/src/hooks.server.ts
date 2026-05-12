@@ -9,19 +9,20 @@ const API_URL = env.API_URL ?? 'http://localhost:4000';
 // All paths accessible without authentication
 const PUBLIC_PATHS = new Set([
   '/', '/login', '/register', '/forgot-password', '/reset-password',
-  '/logout', '/upcoming-events'
+  '/logout', '/upcoming-events', '/set-password'
 ]);
 
 // Auth paths that authenticated users are bounced away from
 const AUTH_PATHS = new Set(['/login', '/register', '/forgot-password', '/reset-password']);
 
 // Routes customers (role: 'customer') may visit when authenticated
-const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout', '/upcoming-events']);
+const CUSTOMER_ALLOWED_PATHS = new Set(['/client-portal', '/payments', '/profile', '/logout']);
 
 // Routes that require a specific permission beyond authentication
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {
-  '/manage-users': { resource: 'users', action: 'read' },
-  '/roles':        { resource: 'roles', action: 'read' }
+  '/manage-users': { resource: 'users',            action: 'read' },
+  '/roles':        { resource: 'roles',            action: 'read' },
+  '/folio':        { resource: 'finance_invoices', action: 'read' }
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -46,7 +47,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   // Redirect authenticated users away from auth pages
   if (event.locals.user && AUTH_PATHS.has(path)) {
-    redirect(303, event.locals.user.role === 'customer' ? '/' : '/dashboard');
+    redirect(303, event.locals.user.role === 'customer' ? '/client-portal' : '/dashboard');
   }
 
   // Redirect unauthenticated users to login
@@ -55,8 +56,13 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   // Customers may only access their allowed paths
-  if (event.locals.user?.role === 'customer' && !CUSTOMER_ALLOWED_PATHS.has(path) && !path.startsWith('/api/')) {
-    redirect(303, '/');
+  if (
+    event.locals.user?.role === 'customer' &&
+    !CUSTOMER_ALLOWED_PATHS.has(path) &&
+    !path.startsWith('/api/') &&
+    !path.startsWith('/messages/')
+  ) {
+    redirect(303, '/client-portal');
   }
 
   // Permission-based route guards (staff only — customers already redirected above)

@@ -1,14 +1,16 @@
 import {
   House, Bell, Mail, CalendarRange, Milestone, Handshake,
+  Receipt, LayoutDashboard, CreditCard,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
 export interface NavItem {
-  label:        string;
-  href:         string;
-  icon:         Component;
-  permission?:  { resource: string; action: string };
-  matchPrefix?: boolean;
+  label:         string;
+  href:          string;
+  icon:          Component;
+  permission?:   { resource: string; action: string };
+  matchPrefix?:  boolean;
+  customerOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -30,11 +32,17 @@ export function isSeparator(entry: NavEntry): entry is NavSeparator {
 }
 
 export const navItems: NavEntry[] = [
+  // Staff-only items (hidden from customers via customerOnly filter)
   { label: 'Dashboard',     href: '/dashboard',       icon: House },
-  { label: 'Agile Tracker', href: '/agile',           icon: Milestone,    matchPrefix: true, permission: { resource: 'agile_milestones', action: 'read' } },
-  { label: 'Nexus',         href: '/crm',             icon: Handshake,    matchPrefix: true, permission: { resource: 'crm_contacts',      action: 'read' } },
-  { label: 'Calendar',      href: '/calendar-events', icon: CalendarRange, matchPrefix: true },
+  { label: 'Agile', href: '/agile',           icon: Milestone,       matchPrefix: true, permission: { resource: 'agile_milestones', action: 'read' } },
+  { label: 'Nexus',         href: '/crm',             icon: Handshake,       matchPrefix: true, permission: { resource: 'crm_contacts',      action: 'read' } },
+  { label: 'Folio',         href: '/folio',           icon: Receipt,         matchPrefix: true, permission: { resource: 'finance_invoices',   action: 'read' } },
+  { label: 'Calendar',      href: '/calendar-events', icon: CalendarRange,   matchPrefix: true },
   { separator: true },
-  { label: 'Messages',      href: '/messages',        icon: Mail,         matchPrefix: true },
+  { label: 'Messages',      href: '/messages',        icon: Mail,            matchPrefix: true },
   { label: 'Notifications', href: '/notifications',   icon: Bell },
+
+  // Customer-only items
+  { label: 'Client Portal', href: '/client-portal',   icon: LayoutDashboard, customerOnly: true },
+  { label: 'Payments',      href: '/payments',        icon: CreditCard,      customerOnly: true },
 ];

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { CONTACT_STATUS_COLOR, fmtDate, type CrmContact } from '$lib/utils/crm';
+  import { UserCheck } from 'lucide-svelte';
 
   let {
     contact,
@@ -22,6 +23,9 @@
         <span class="font-medium text-sm">{contact.firstName} {contact.lastName}</span>
         <span class="badge badge-xs badge-ghost">{contact.role}</span>
         <span class="badge badge-xs {CONTACT_STATUS_COLOR[contact.status] ?? 'badge-ghost'}">{contact.status}</span>
+        {#if contact.isUser}
+          <span class="badge badge-xs badge-primary gap-1"><UserCheck class="size-2.5" />Client</span>
+        {/if}
       </div>
       <div class="flex items-center gap-3 mt-1 text-xs opacity-50 flex-wrap">
         {#if contact.companyName}

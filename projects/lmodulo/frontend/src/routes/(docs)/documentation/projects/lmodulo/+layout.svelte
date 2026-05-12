@@ -7,11 +7,13 @@
   import {
     Menu as MenuIcon, X,
     BookOpen, Rocket, Layers, Lock, ShieldCheck,
-    Code2, ListTodo, Mail, CalendarDays, Settings, Handshake,
+    Code2, ListTodo, Mail, CalendarDays, Settings, Handshake, Receipt,
   } from 'lucide-svelte';
   import type { Snippet } from 'svelte';
+  import type { LayoutData } from './$types';
+  import Logo from '$lib/components/Logo.svelte';
 
-  let { children }: { children: Snippet } = $props();
+  let { children, data }: { children: Snippet; data: LayoutData } = $props();
   let sidebarOpen = $state(false);
   let mainEl: HTMLElement;
 
@@ -40,6 +42,7 @@
     { label: 'API Reference',      href: `${BASE}/api`,               icon: Code2 },
     { label: 'Agile Module',       href: `${BASE}/agile`,             icon: ListTodo },
     { label: 'Nexus CRM',         href: `${BASE}/crm`,               icon: Handshake },
+    { label: 'Folio',             href: `${BASE}/folio`,             icon: Receipt },
     { label: 'Messaging',          href: `${BASE}/messaging`,         icon: Mail },
     { label: 'Calendar & Events',  href: `${BASE}/calendar`,          icon: CalendarDays },
     { label: 'Administration',     href: `${BASE}/administration`,    icon: Settings },
@@ -70,8 +73,13 @@
     lg:static lg:translate-x-0
     {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
   ">
-    <div class="flex items-center gap-2 px-4 h-16 shrink-0 border-b border-base-300">
+    <div class="flex items-center gap-2 px-4 py-3 shrink-0 border-b border-base-300">
       <a href={BASE} class="flex-1 min-w-0 no-underline text-inherit">
+        {#if data.brandName || data.brandLogo}
+          <div class="flex items-center gap-2 mb-1.5">
+            <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
+          </div>
+        {/if}
         <p class="text-sm font-bold leading-tight">lmodulo</p>
         <p class="text-xs opacity-50 leading-tight">Documentation</p>
       </a>

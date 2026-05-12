@@ -122,7 +122,7 @@
 
       <!-- Brand -->
       <div class="flex items-center gap-2 px-4 h-16 shrink-0 border-b border-base-300">
-        <a href="/dashboard" class="flex items-center gap-2 flex-1 min-w-0 no-underline text-inherit" onclick={closeSidebar}>
+        <a href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'} class="flex items-center gap-2 flex-1 min-w-0 no-underline text-inherit" onclick={closeSidebar}>
           <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
         </a>
         <button
@@ -138,7 +138,12 @@
       <!-- Nav items -->
       <nav class="flex-1 overflow-y-auto p-3">
         <ul class="flex flex-col gap-0.5">
-          {#each navItems as entry}
+          {#each navItems.filter(entry => {
+            if (!data.user) return false;
+            const isCustomer = data.user.role === 'customer';
+            if (isCustomer) return 'customerOnly' in entry && (entry as import('$lib/config/nav').NavItem).customerOnly;
+            return !('customerOnly' in entry) || !(entry as import('$lib/config/nav').NavItem).customerOnly;
+          }) as entry}
             {#if isSeparator(entry)}
               <li><div class="border-t border-base-300/50 my-1"></div></li>
             {:else if isNavGroup(entry)}
@@ -295,7 +300,7 @@
     </aside>
 
     <!-- Main content column -->
-    <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+    <div class="flex flex-col flex-1 min-w-0 overflow-hidden content-area-bg">
 
       <!-- Mobile top bar -->
       <header class="flex items-center gap-3 px-4 h-14 shrink-0 bg-base-200 border-b border-base-300 lg:hidden">
@@ -307,7 +312,7 @@
         >
           <MenuIcon class="size-5" />
         </button>
-        <a href="/dashboard" class="flex items-center gap-2 flex-1 no-underline text-inherit">
+        <a href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'} class="flex items-center gap-2 flex-1 no-underline text-inherit">
           <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
         </a>
       </header>
@@ -341,6 +346,22 @@
 
   .nav-subnav.nav-subnav-open {
     grid-template-rows: 1fr;
+  }
+
+  .content-area-bg {
+    position: relative;
+  }
+
+  .content-area-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('/background-0.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    opacity: 0.15;
+    pointer-events: none;
   }
 
   .nav-subnav-inner {

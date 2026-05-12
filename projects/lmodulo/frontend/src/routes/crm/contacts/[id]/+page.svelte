@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Pencil, Trash2, X, Check } from 'lucide-svelte';
+  import { Pencil, Trash2, X, Check, UserPlus, UserCheck } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -16,12 +16,37 @@
   let deals      = $state<CrmDeal[]>((data.deals ?? []) as CrmDeal[]);
   let activities = $state<CrmActivity[]>((data.activities ?? []) as CrmActivity[]);
 
-  let editing   = $state(false);
-  let saving    = $state(false);
-  let saveError = $state('');
+  let editing        = $state(false);
+  let saving         = $state(false);
+  let saveError      = $state('');
+  let converting     = $state(false);
+  let convertSuccess = $state('');
+  let convertError   = $state('');
   let form = $state({ ...contact });
 
   function startEdit() { form = { ...contact }; editing = true; saveError = ''; }
+
+  async function convertToClient() {
+    converting = true; convertError = ''; convertSuccess = '';
+    try {
+      const res = await fetch(`/api/crm/contacts/${contact.id}/convert`, { method: 'POST' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        convertError = (d as { message?: string }).message ?? 'Conversion failed';
+        return;
+      }
+      contact = { ...contact, isUser: true };
+      convertSuccess = `Password setup email sent to ${contact.email}`;
+    } catch {
+      convertError = 'Network error';
+    } finally {
+      converting = false;
+    }
+  }
+
+  const canConvert = $derived(
+    !!contact.email && !!contact.companyId && !contact.isUser
+  );
 
   async function saveEdit() {
     saving = true; saveError = '';
@@ -71,12 +96,29 @@
       <h2 class="text-xl font-bold">{contact.firstName} {contact.lastName}</h2>
       <p class="text-sm opacity-50">{contact.role}{contact.companyName ? ` · ${contact.companyName}` : ''}</p>
     </div>
-    <div class="flex gap-2">
+    <div class="flex gap-2 flex-wrap">
       {#if hasPermission(data.user, 'crm_contacts', 'update') && !editing}
         <button class="btn btn-ghost btn-sm" onclick={startEdit}><Pencil class="size-4" /> Edit</button>
       {/if}
+      {#if contact.isUser}
+        <span class="badge badge-primary gap-1.5 px-3 py-2.5">
+          <UserCheck class="size-3.5" /> Client Portal Active
+        </span>
+      {:else if hasPermission(data.user, 'crm_contacts', 'update') && canConvert}
+        <button class="btn btn-secondary btn-sm" disabled={converting} onclick={convertToClient}>
+          <UserPlus class="size-4" />
+          {converting ? 'Converting…' : 'Convert to Client'}
+        </button>
+      {/if}
     </div>
   </div>
+
+  {#if convertSuccess}
+    <aside class="alert alert-success p-3 rounded text-sm">{convertSuccess}</aside>
+  {/if}
+  {#if convertError}
+    <aside class="alert alert-error p-3 rounded text-sm">{convertError}</aside>
+  {/if}
 
   <!-- Edit form or detail view -->
   {#if editing}
@@ -154,6 +196,30 @@
           <span class="opacity-50">Added</span>
           <span>{fmtDate(contact.createdAt)}</span>
         </div>
+
+        {#if contact.isUser}
+          <div class="border-t border-base-300 pt-3 mt-1 space-y-3">
+            <p class="text-xs font-semibold uppercase tracking-wide opacity-40">Portal Account</p>
+            <div class="flex items-center justify-between">
+              <span class="opacity-50">Username</span>
+              <span class="font-mono text-xs">{contact.userUsername}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="opacity-50">Account created</span>
+              <span>{fmtDate(contact.userCreatedAt ?? undefined)}</span>
+            </div>
+            {#if hasPermission(data.user, 'finance_invoices', 'read')}
+              <div class="flex items-center justify-between">
+                <span class="opacity-50">Invoices</span>
+                <a
+                  href="/folio/invoices?customerId={contact.userId}"
+                  class="link link-primary text-xs"
+                  onclick={(e) => e.stopPropagation()}
+                >View in Folio →</a>
+              </div>
+            {/if}
+          </div>
+        {/if}
       </div>
 
       <!-- Deals -->

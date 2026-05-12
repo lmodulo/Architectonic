@@ -1,50 +1,194 @@
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 
-let transporter: Transporter | null = null;
+// ── Transporter (singleton) ──────────────────────────────────────────────────
+
+let _transporter: Transporter | null = null;
 
 async function getTransporter(): Promise<Transporter> {
-  if (transporter) return transporter;
+  if (_transporter) return _transporter;
 
   if (process.env.SMTP_HOST) {
-    transporter = nodemailer.createTransport({
+    _transporter = nodemailer.createTransport({
       host:   process.env.SMTP_HOST,
       port:   Number(process.env.SMTP_PORT ?? 587),
       secure: Number(process.env.SMTP_PORT) === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
+      auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
   } else {
-    // Dev fallback: Ethereal catch-all account
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host:   'smtp.ethereal.email',
-      port:   587,
-      secure: false,
-      auth: { user: testAccount.user, pass: testAccount.pass }
+    const test = await nodemailer.createTestAccount();
+    _transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email', port: 587, secure: false,
+      auth: { user: test.user, pass: test.pass },
     });
-    console.log('[email] No SMTP_HOST set — using Ethereal test account');
-    console.log(`[email] Preview emails at https://ethereal.email (user: ${testAccount.user})`);
+    console.log('[email] No SMTP_HOST — using Ethereal. Preview at https://ethereal.email');
+    console.log(`[email] Ethereal credentials: ${test.user} / ${test.pass}`);
   }
 
-  return transporter;
+  return _transporter;
 }
 
-export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+// ── Send wrapper ─────────────────────────────────────────────────────────────
+
+async function sendMail(opts: {
+  to:      string;
+  subject: string;
+  html:    string;
+  text:    string;
+}): Promise<void> {
   const t    = await getTransporter();
   const from = process.env.SMTP_FROM ?? 'noreply@example.com';
+  const info = await t.sendMail({ from, ...opts });
+  if (!process.env.SMTP_HOST) {
+    console.log(`[email] "${opts.subject}" → ${opts.to}`);
+    console.log(`[email] Preview: ${nodemailer.getTestMessageUrl(info)}`);
+  }
+}
 
-  const info = await t.sendMail({
-    from,
+// ── HTML layout template ──────────────────────────────────────────────────────
+//
+// Structural only — no inline styles. Style hooks:
+//   .email-wrapper  .email-header  .email-brand
+//   .email-body     .email-heading .email-cta  .email-cta-link
+//   .email-footer   .email-note
+
+interface LayoutOpts {
+  heading: string;
+  body:    string;                           // HTML — paragraphs, lists, etc.
+  cta?:    { label: string; url: string };  // primary action button
+  note?:   string;                          // footer note (expiry, ignore notice)
+}
+
+function layout(opts: LayoutOpts): string {
+  const appName = process.env.APP_NAME ?? 'Architectonic';
+  const cta = opts.cta
+    ? `<p class="email-cta"><a class="email-cta-link" href="${opts.cta.url}">${opts.cta.label}</a></p>`
+    : '';
+  const footer = opts.note
+    ? `<div class="email-footer"><p class="email-note">${opts.note}</p></div>`
+    : '';
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${opts.heading}</title>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="email-header">
+      <p class="email-brand">${appName}</p>
+    </div>
+    <div class="email-body">
+      <h1 class="email-heading">${opts.heading}</h1>
+      ${opts.body}
+      ${cta}
+    </div>
+    ${footer}
+  </div>
+</body>
+</html>`;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+  await sendMail({
     to,
     subject: 'Reset your password',
-    text:    `You requested a password reset.\n\nClick the link below to set a new password (expires in 1 hour):\n\n${resetUrl}\n\nIf you did not request this, you can safely ignore this email.`,
-    html:    `<p>You requested a password reset.</p><p><a href="${resetUrl}">Reset your password</a> (expires in 1 hour)</p><p>If you did not request this, you can safely ignore this email.</p>`
+    html: layout({
+      heading: 'Reset your password',
+      body:    `<p>We received a request to reset the password for this account.</p>
+                <p>Click the button below to choose a new password. This link expires in 1 hour.</p>`,
+      cta:  { label: 'Reset password', url: resetUrl },
+      note: 'If you did not request this, you can safely ignore this email.',
+    }),
+    text: [
+      'Reset your password',
+      '',
+      'We received a request to reset the password for this account.',
+      'Click the link below to choose a new password (expires in 1 hour):',
+      '',
+      resetUrl,
+      '',
+      'If you did not request this, you can safely ignore this email.',
+    ].join('\n'),
   });
+}
 
-  if (!process.env.SMTP_HOST) {
-    console.log(`[email] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-  }
+export async function sendPasswordSetEmail(to: string, firstName: string, setUrl: string): Promise<void> {
+  await sendMail({
+    to,
+    subject: 'Create your password — Welcome to the Client Portal',
+    html: layout({
+      heading: `Welcome, ${firstName}`,
+      body:    `<p>Your client portal account has been created.</p>
+                <p>Click the button below to set your password and get started.
+                   This link expires in 48 hours.</p>`,
+      cta:  { label: 'Set your password', url: setUrl },
+      note: 'If you did not expect this email, you can safely ignore it.',
+    }),
+    text: [
+      `Welcome, ${firstName}`,
+      '',
+      'Your client portal account has been created.',
+      'Set your password using the link below (expires in 48 hours):',
+      '',
+      setUrl,
+      '',
+      'If you did not expect this email, you can safely ignore it.',
+    ].join('\n'),
+  });
+}
+
+// ── Calendar ──────────────────────────────────────────────────────────────────
+
+export async function sendCalendarNewEventEmail(to: string, opts: {
+  title:   string;
+  label:   string;
+  dateStr: string;
+  url:     string;
+}): Promise<void> {
+  await sendMail({
+    to,
+    subject: `New event: ${opts.title}`,
+    html: layout({
+      heading: `New ${opts.label}: ${opts.title}`,
+      body:    `<p>A new event has been shared with you.</p>
+                <p><strong>Date:</strong> ${opts.dateStr}</p>`,
+      cta: { label: 'View event', url: opts.url },
+    }),
+    text: [
+      `New event: ${opts.title}`,
+      '',
+      `Date: ${opts.dateStr}`,
+      '',
+      opts.url,
+    ].join('\n'),
+  });
+}
+
+export async function sendCalendarReminderEmail(to: string, opts: {
+  title:   string;
+  dateStr: string;
+  when:    string;
+  url:     string;
+}): Promise<void> {
+  await sendMail({
+    to,
+    subject: `Reminder: ${opts.title} ${opts.when}`,
+    html: layout({
+      heading: `Reminder: ${opts.title}`,
+      body:    `<p>This event ${opts.when}.</p>
+                <p><strong>Date:</strong> ${opts.dateStr}</p>`,
+      cta: { label: 'View event', url: opts.url },
+    }),
+    text: [
+      `Reminder: ${opts.title} ${opts.when}`,
+      '',
+      `Date: ${opts.dateStr}`,
+      '',
+      opts.url,
+    ].join('\n'),
+  });
 }
