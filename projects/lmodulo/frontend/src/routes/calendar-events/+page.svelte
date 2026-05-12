@@ -12,11 +12,15 @@
 
   // ── Shared state ───────────────────────────────────────────────────────────
   type UserOption = { id: string; username: string; firstName: string; lastName: string };
+  type CrmActivity = { id: string; title: string; type: string; scheduledAt: string | null; entityType: string; entityId: string };
+
   let events    = $state<CalendarEvent[]>(data.events ?? []);
   const tasks   = $derived((data.tasks ?? []) as any[]);
   const users   = $derived((data.users ?? []) as UserOption[]);
   const userId  = $derived((data.user as { id?: string } | null)?.id ?? '');
-  const canManage = $derived(hasPermission(data.user, 'calendar_events', 'create'));
+  const canManage     = $derived(hasPermission(data.user, 'calendar_events', 'create'));
+  const canSeeCrmActs = $derived(hasPermission(data.user, 'crm_activities', 'read'));
+  const crmActivities = $derived(canSeeCrmActs ? ((data.crmActivities ?? []) as CrmActivity[]) : []);
 
   // ── Tabs ───────────────────────────────────────────────────────────────────
   type Tab = 'calendar' | 'events' | 'manage';
@@ -120,7 +124,8 @@
         e.startDate <= dStr && dStr <= e.endDate && e.ownerId !== userId &&
         e.status !== 'draft' && e.status !== 'cancelled');
       const dueTasks = tasks.filter((t: any) => t.dueDate?.slice(0, 10) === dStr);
-      return { day, isToday: d.toDateString() === today.toDateString(), myEvs, sharedEvs, dueTasks };
+      const dayActs  = crmActivities.filter(a => a.scheduledAt?.slice(0, 10) === dStr);
+      return { day, isToday: d.toDateString() === today.toDateString(), myEvs, sharedEvs, dueTasks, dayActs };
     });
   }
 
@@ -300,6 +305,13 @@
                   {#if cell.dueTasks.length > 2}
                     <div class="text-[9px] opacity-50 px-1">+{cell.dueTasks.length - 2} tasks</div>
                   {/if}
+                  {#each cell.dayActs as act}
+                    <a
+                      href="/crm/activities"
+                      class="block text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate bg-info/70 text-info-content mt-0.5"
+                      title="{act.type}: {act.title}"
+                    >{act.type}: {act.title}</a>
+                  {/each}
                 </div>
               {/if}
             </div>
@@ -312,6 +324,9 @@
         <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-primary/80 inline-block"></span>My events</span>
         <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-secondary/70 inline-block"></span>Shared with me</span>
         <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-warning/70 inline-block"></span>Task due</span>
+        {#if canSeeCrmActs}
+          <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-info/70 inline-block"></span>CRM activity</span>
+        {/if}
       </div>
 
       <!-- Upcoming events list -->
@@ -448,7 +463,7 @@
       </div>
 
       {#if manageView === 'calendar'}
-        <EventCalendarGrid events={filtered} onEventClick={openEdit} />
+        <EventCalendarGrid events={filtered} onEventClick={openEdit} onDayDblClick={canManage ? openNewOnDate : undefined} />
       {/if}
 
       {#if manageView === 'list'}

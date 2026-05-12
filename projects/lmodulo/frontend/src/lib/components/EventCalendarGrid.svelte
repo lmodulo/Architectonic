@@ -6,11 +6,17 @@
     events,
     readonly = false,
     onEventClick,
+    onDayDblClick,
   }: {
     events: CalendarEvent[];
     readonly?: boolean;
     onEventClick?: (ev: CalendarEvent) => void;
+    onDayDblClick?: (dateStr: string) => void;
   } = $props();
+
+  function ds(year: number, month: number, day: number): string {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
@@ -64,8 +70,10 @@
     {#each calDays as cell, i}
       {@const borderR = (i + 1) % 7 !== 0 ? 'border-r' : ''}
       {@const borderB = i < calDays.length - 7 ? 'border-b' : ''}
-      <div class="min-h-[5.5rem] p-2 border-base-300 {borderR} {borderB}
-        {cell?.isToday ? 'bg-primary/5' : ''}">
+      <div
+        class="min-h-[5.5rem] p-2 border-base-300 {borderR} {borderB} {cell?.isToday ? 'bg-primary/5' : ''}"
+        ondblclick={() => { if (cell && onDayDblClick) onDayDblClick(ds(calYear, calMonth, cell.day)); }}
+      >
         {#if cell}
           <span class="text-xs font-semibold
             {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-content' : 'opacity-70'}">

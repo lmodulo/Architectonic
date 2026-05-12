@@ -71,7 +71,7 @@
   <form method="POST" use:enhance class="space-y-8">
 
     <!-- Channels -->
-    <section class="card bg-base-100 border border-base-300 p-4 space-y-3">
+    <section class="card bg-base-200 border border-base-300 p-4 space-y-3">
       <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Delivery Channels</h2>
       <label class="flex items-center gap-3 text-sm">
         <input type="checkbox" class="checkbox" checked disabled />
@@ -89,7 +89,7 @@
     </section>
 
     <!-- Muted types -->
-    <section class="card bg-base-100 border border-base-300 p-4 space-y-4">
+    <section class="card bg-base-200 border border-base-300 p-4 space-y-4">
       <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Notification Types</h2>
       <p class="text-xs opacity-50">Uncheck to silence a notification type.</p>
 
@@ -116,7 +116,7 @@
     </section>
 
     <!-- Quiet hours -->
-    <section class="card bg-base-100 border border-base-300 p-4 space-y-4">
+    <section class="card bg-base-200 border border-base-300 p-4 space-y-4">
       <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Quiet Hours</h2>
       <label class="flex items-center gap-3 text-sm">
         <input

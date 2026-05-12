@@ -54,7 +54,7 @@
   {/if}
 
   {#if !isSubscribed}
-    <section class="card bg-base-100 border border-base-300 p-4 space-y-3">
+    <section class="card bg-base-200 border border-base-300 p-4 space-y-3">
       <p class="text-sm opacity-70">You are not currently subscribed to event notifications.</p>
       <form method="POST" action="?/save" use:enhance>
         <input type="hidden" name="notify_new_event" value="on" />
@@ -72,7 +72,7 @@
 
       <!-- Event types -->
       {#if eventTypes.length > 0}
-        <section class="card bg-base-100 border border-base-300 p-4 space-y-3">
+        <section class="card bg-base-200 border border-base-300 p-4 space-y-3">
           <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Event Types</h2>
           <p class="text-xs opacity-50">Receive notifications for these event types. Leave all unchecked to follow all types.</p>
           <div class="flex flex-wrap gap-x-6 gap-y-2">
@@ -92,7 +92,7 @@
       {/if}
 
       <!-- Triggers -->
-      <section class="card bg-base-100 border border-base-300 p-4 space-y-3">
+      <section class="card bg-base-200 border border-base-300 p-4 space-y-3">
         <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">When to Notify</h2>
         <label class="flex items-center gap-3 text-sm">
           <input type="checkbox" name="notify_new_event" class="checkbox" bind:checked={notifyNewEvent} />
@@ -120,7 +120,7 @@
       </section>
 
       <!-- Channels -->
-      <section class="card bg-base-100 border border-base-300 p-4 space-y-3">
+      <section class="card bg-base-200 border border-base-300 p-4 space-y-3">
         <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Delivery Channels</h2>
         <label class="flex items-center gap-3 text-sm">
           <input type="checkbox" class="checkbox" checked disabled />

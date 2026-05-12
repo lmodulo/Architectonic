@@ -26,7 +26,7 @@
   <div
     data-user-card
     class="fixed z-[9999] w-72 rounded-xl bg-base-100 border border-base-200 overflow-hidden"
-    style="{isAbove() ? `bottom:${getPopY()}px` : `top:${getPopY()}px`}; left:{getPopX()}px; box-shadow:0 0 22px rgba(0,0,0,0.15);"
+    style="{isAbove() ? `bottom:${getPopY()}px` : `top:${getPopY()}px`}; left:{getPopX()}px; box-shadow:0 0 80px rgba(0,0,0,0.45);"
     role="tooltip"
   >
     {#if u}
