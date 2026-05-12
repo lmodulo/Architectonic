@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import Stripe from 'stripe';
 import { logAudit } from '../../lib/audit.js';
+import { calcNextDate } from '../../lib/recurringDates.js';
 
 const INV_COL = 'finance_invoices';
 const PAY_COL = 'finance_payments';
@@ -18,13 +19,21 @@ function parseOid(id: string, app: FastifyInstance): ObjectId {
 type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
 
 function mapInvoice(doc: Record<string, unknown>) {
+  const rec = doc.recurrence as Record<string, unknown> | undefined;
   return {
     ...doc,
-    id:         (doc._id as ObjectId).toString(),
-    _id:        undefined,
-    customerId: doc.customerId ? (doc.customerId as ObjectId).toString() : null,
-    companyId:  doc.companyId  ? (doc.companyId  as ObjectId).toString() : null,
-    createdBy:  doc.createdBy  ? (doc.createdBy  as ObjectId).toString() : null,
+    id:             (doc._id as ObjectId).toString(),
+    _id:            undefined,
+    customerId:     doc.customerId     ? (doc.customerId     as ObjectId).toString() : null,
+    companyId:      doc.companyId      ? (doc.companyId      as ObjectId).toString() : null,
+    createdBy:      doc.createdBy      ? (doc.createdBy      as ObjectId).toString() : null,
+    subscriptionId: doc.subscriptionId ? (doc.subscriptionId as ObjectId).toString() : undefined,
+    ...(rec ? {
+      recurrence: {
+        ...rec,
+        generatedFromId: rec.generatedFromId ? (rec.generatedFromId as ObjectId).toString() : undefined,
+      }
+    } : {}),
   };
 }
 
@@ -42,8 +51,9 @@ export default async function financeRoutes(app: FastifyInstance) {
       match.customerId = new ObjectId(userId);
     }
 
-    const { status, limit = '50', skip = '0', sort = 'createdAt', sortDir = 'desc' } = req.query as Record<string, string>;
-    if (status) match.status = status;
+    const { status, limit = '50', skip = '0', sort = 'createdAt', sortDir = 'desc', subscriptionId } = req.query as Record<string, string>;
+    if (status)         match.status         = status;
+    if (subscriptionId) match.subscriptionId = parseOid(subscriptionId, app);
 
     const SORTABLE = new Set(['invoiceNumber', 'dueDate', 'total', 'status', 'createdAt']);
     const sortField = SORTABLE.has(sort) ? sort : 'createdAt';
@@ -68,7 +78,7 @@ export default async function financeRoutes(app: FastifyInstance) {
     const now = new Date();
     const {
       customerId, companyId, lineItems = [], taxRate = 0, currency = 'USD',
-      status = 'draft', dueDate, notes = '',
+      status = 'draft', dueDate, notes = '', recurrence,
     } = req.body as Record<string, unknown>;
 
     if (!customerId) throw app.httpErrors.badRequest('customerId is required');
@@ -95,6 +105,17 @@ export default async function financeRoutes(app: FastifyInstance) {
       : 0;
     const invoiceNumber = `INV-${String(lastNum + 1).padStart(4, '0')}`;
 
+    const rec = recurrence as { enabled?: boolean; frequency?: string; until?: string; dueDateOffsetDays?: number } | undefined;
+    const recurrenceField = rec?.enabled ? {
+      recurrence: {
+        enabled:   true,
+        frequency: rec.frequency ?? 'monthly',
+        nextDate:  calcNextDate(now, rec.frequency ?? 'monthly'),
+        ...(rec.until             ? { until:             new Date(rec.until) }             : {}),
+        ...(rec.dueDateOffsetDays != null ? { dueDateOffsetDays: rec.dueDateOffsetDays } : {}),
+      }
+    } : {};
+
     const doc = {
       invoiceNumber,
       customerId: parseOid(customerId as string, app),
@@ -111,6 +132,7 @@ export default async function financeRoutes(app: FastifyInstance) {
       createdBy:  new ObjectId(req.session.userId!),
       createdAt:  now,
       updatedAt:  now,
+      ...recurrenceField,
     };
 
     const result = await db.collection(INV_COL).insertOne(doc);
@@ -147,7 +169,7 @@ export default async function financeRoutes(app: FastifyInstance) {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
-      lineItems, taxRate, status, dueDate, notes, currency, customerId, companyId,
+      lineItems, taxRate, status, dueDate, notes, currency, customerId, companyId, recurrence,
     } = req.body as Record<string, unknown>;
 
     const $set: Record<string, unknown> = { updatedAt: new Date() };
@@ -183,6 +205,21 @@ export default async function financeRoutes(app: FastifyInstance) {
         $set.taxRate    = tr;
         $set.taxAmount  = taxAmount;
         $set.total      = subtotal + taxAmount;
+      }
+    }
+
+    if (recurrence !== undefined) {
+      const rec = recurrence as { enabled?: boolean; frequency?: string; until?: string; dueDateOffsetDays?: number } | null;
+      if (!rec || !rec.enabled) {
+        $set['recurrence.enabled'] = false;
+      } else {
+        $set['recurrence.enabled']   = true;
+        $set['recurrence.frequency'] = rec.frequency ?? 'monthly';
+        if (!$set['recurrence.nextDate']) {
+          $set['recurrence.nextDate'] = calcNextDate(new Date(), rec.frequency ?? 'monthly');
+        }
+        if (rec.until != null)             $set['recurrence.until']             = new Date(rec.until);
+        if (rec.dueDateOffsetDays != null)  $set['recurrence.dueDateOffsetDays'] = rec.dueDateOffsetDays;
       }
     }
 

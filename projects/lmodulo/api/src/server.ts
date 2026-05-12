@@ -11,10 +11,11 @@ import websocket from '@fastify/websocket';
 import type { WebSocket } from 'ws';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
-import sessionPlugin from './plugins/session.js';
-import ensureIndexes from './plugins/indexes.js';
-import authPlugin    from './plugins/auth.js';
-import seedPlugin    from './plugins/seed.js';
+import sessionPlugin   from './plugins/session.js';
+import ensureIndexes  from './plugins/indexes.js';
+import authPlugin     from './plugins/auth.js';
+import seedPlugin     from './plugins/seed.js';
+import schedulerPlugin from './plugins/scheduler.js';
 import { dispatch }  from './lib/notifications/dispatch.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -57,9 +58,10 @@ await app.register(mongodb, {
 });
 
 await app.register(sessionPlugin); // Must come after mongodb (shares MONGO_URI)
-await app.register(ensureIndexes); // Creates user/roles indexes on first boot
-await app.register(authPlugin);    // Decorates requireAuth + requirePermission
-await app.register(seedPlugin);    // Upserts default roles on every boot
+await app.register(ensureIndexes);   // Creates user/roles indexes on first boot
+await app.register(authPlugin);      // Decorates requireAuth + requirePermission
+await app.register(seedPlugin);      // Upserts default roles on every boot
+await app.register(schedulerPlugin); // Recurring invoice + subscription billing runner
 
 // WebSocket support — must register before autoload so WS routes work
 await app.register(websocket);

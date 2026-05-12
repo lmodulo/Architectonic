@@ -8,20 +8,28 @@
   let { data }: { data: PageData } = $props();
 
   type Invoice = {
-    id:            string;
-    invoiceNumber: string;
-    customerId:    string;
-    companyId?:    string;
-    lineItems:     Array<{ description: string; quantity: number; unitPrice: number; amount: number }>;
-    subtotal:      number;
-    taxRate:       number;
-    taxAmount:     number;
-    total:         number;
-    currency:      string;
-    status:        string;
-    dueDate?:      string;
-    notes?:        string;
-    paidAt?:       string;
+    id:              string;
+    invoiceNumber:   string;
+    customerId:      string;
+    companyId?:      string;
+    lineItems:       Array<{ description: string; quantity: number; unitPrice: number; amount: number }>;
+    subtotal:        number;
+    taxRate:         number;
+    taxAmount:       number;
+    total:           number;
+    currency:        string;
+    status:          string;
+    dueDate?:        string;
+    notes?:          string;
+    paidAt?:         string;
+    subscriptionId?: string;
+    recurrence?: {
+      enabled?:         boolean;
+      frequency?:       string;
+      nextDate?:        string;
+      until?:           string;
+      generatedFromId?: string;
+    };
   };
 
   type Customer = { id: string; firstName: string; lastName: string; companyName?: string };
@@ -29,10 +37,13 @@
   let invoice   = $state<Invoice>(data.invoice as Invoice);
   let customers = data.customers as Customer[];
 
-  let saving    = $state(false);
-  let saveError = $state('');
-  let editing   = $state(false);
-  let editForm  = $state({ ...invoice });
+  let saving              = $state(false);
+  let saveError           = $state('');
+  let editing             = $state(false);
+  let editForm            = $state({ ...invoice });
+  let editRecEnabled      = $state(invoice.recurrence?.enabled ?? false);
+  let editRecFrequency    = $state(invoice.recurrence?.frequency ?? 'monthly');
+  let editRecUntil        = $state(invoice.recurrence?.until ? invoice.recurrence.until.substring(0, 10) : '');
 
   const STATUS_CLASS: Record<string, string> = {
     paid:    'badge-success',
@@ -81,10 +92,15 @@
   }
 
   async function saveEdit() {
+    const recurrencePatch = editRecEnabled
+      ? { enabled: true, frequency: editRecFrequency, ...(editRecUntil ? { until: editRecUntil } : {}) }
+      : { enabled: false };
+
     const ok = await patchInvoice({
-      status:  editForm.status,
-      dueDate: editForm.dueDate,
-      notes:   editForm.notes,
+      status:     editForm.status,
+      dueDate:    editForm.dueDate,
+      notes:      editForm.notes,
+      recurrence: recurrencePatch,
     });
     if (ok) {
       invoice = { ...invoice, status: editForm.status, dueDate: editForm.dueDate, notes: editForm.notes };
@@ -155,6 +171,32 @@
         <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-notes">Notes</label>
         <textarea id="edit-notes" class="textarea w-full" rows="2" bind:value={editForm.notes}></textarea>
       </div>
+      <!-- Recurrence -->
+      <div class="space-y-3 border-l-2 border-base-300 pl-4">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" class="checkbox checkbox-sm" bind:checked={editRecEnabled} />
+          <span class="text-sm font-medium">Repeat invoice</span>
+        </label>
+        {#if editRecEnabled}
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Frequency</label>
+              <select class="select w-full" bind:value={editRecFrequency}>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Bi-weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Until</label>
+              <input type="date" class="input w-full" bind:value={editRecUntil} />
+            </div>
+          </div>
+        {/if}
+      </div>
+
       <div class="flex gap-2 justify-end">
         <button class="btn btn-ghost btn-sm" onclick={() => (editing = false)}><X class="size-4" /> Cancel</button>
         <button class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}><Check class="size-4" /> {saving ? 'Saving…' : 'Save'}</button>
@@ -195,6 +237,30 @@
     <div class="flex justify-between"><span class="opacity-60">Due date</span><span>{fmtDate(invoice.dueDate)}</span></div>
     {#if invoice.paidAt}
       <div class="flex justify-between"><span class="opacity-60">Paid on</span><span class="text-success">{fmtDate(invoice.paidAt)}</span></div>
+    {/if}
+    {#if invoice.recurrence?.enabled}
+      <div class="flex justify-between">
+        <span class="opacity-60">Repeats</span>
+        <span>{invoice.recurrence.frequency} · next {fmtDate(invoice.recurrence.nextDate)}</span>
+      </div>
+      {#if invoice.recurrence.until}
+        <div class="flex justify-between">
+          <span class="opacity-60">Until</span>
+          <span>{fmtDate(invoice.recurrence.until)}</span>
+        </div>
+      {/if}
+    {/if}
+    {#if invoice.recurrence?.generatedFromId}
+      <div class="flex justify-between">
+        <span class="opacity-60">Template</span>
+        <a href="/folio/invoices/{invoice.recurrence.generatedFromId}" class="link link-primary text-xs">View template →</a>
+      </div>
+    {/if}
+    {#if invoice.subscriptionId}
+      <div class="flex justify-between">
+        <span class="opacity-60">Subscription</span>
+        <a href="/folio/subscriptions/{invoice.subscriptionId}" class="link link-primary text-xs">View subscription →</a>
+      </div>
     {/if}
     {#if invoice.notes}
       <div class="pt-2 border-t border-base-300">

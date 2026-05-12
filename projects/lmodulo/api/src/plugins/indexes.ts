@@ -135,5 +135,16 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('finance_payments').createIndex({ invoiceId: 1 });
     await db.collection('finance_payments').createIndex({ customerId: 1 });
     await db.collection('finance_payments').createIndex({ createdAt: -1 });
+
+    // recurring invoice scheduler
+    await db.collection('finance_invoices').createIndex(
+      { 'recurrence.enabled': 1, 'recurrence.nextDate': 1 }
+    );
+
+    // finance_subscriptions
+    await db.collection('finance_subscriptions').createIndex({ status: 1, nextBillingDate: 1 });
+    await db.collection('finance_subscriptions').createIndex({ customerId: 1 });
+    await db.collection('finance_subscriptions').createIndex({ companyId: 1 });
+    await db.collection('finance_subscriptions').createIndex({ createdAt: -1 });
   });
 }

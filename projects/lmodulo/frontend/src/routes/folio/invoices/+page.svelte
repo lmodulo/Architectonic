@@ -9,14 +9,20 @@
   let { data }: { data: PageData } = $props();
 
   type Invoice = {
-    id:            string;
-    invoiceNumber: string;
-    customerId:    string;
-    total:         number;
-    status:        string;
-    dueDate?:      string;
-    createdAt?:    string;
-    lineItems:     Array<{ description: string }>;
+    id:              string;
+    invoiceNumber:   string;
+    customerId:      string;
+    total:           number;
+    status:          string;
+    dueDate?:        string;
+    createdAt?:      string;
+    lineItems:       Array<{ description: string }>;
+    subscriptionId?: string;
+    recurrence?: {
+      enabled?:          boolean;
+      frequency?:        string;
+      generatedFromId?:  string;
+    };
   };
 
   type Customer = { id: string; firstName: string; lastName: string; companyName?: string; companyId?: string };
@@ -221,6 +227,15 @@
               <td class="text-right font-semibold text-sm">{fmtCurrency(inv.total)}</td>
               <td>
                 <span class="badge badge-sm {STATUS_CLASS[inv.status] ?? 'badge-ghost'}">{inv.status}</span>
+                {#if inv.recurrence?.enabled}
+                  <span class="badge badge-outline badge-sm ml-1">Recurring</span>
+                {/if}
+                {#if inv.recurrence?.generatedFromId}
+                  <span class="badge badge-ghost badge-sm ml-1">Auto</span>
+                {/if}
+                {#if inv.subscriptionId}
+                  <span class="badge badge-ghost badge-sm ml-1">Auto</span>
+                {/if}
               </td>
             </tr>
           {/each}

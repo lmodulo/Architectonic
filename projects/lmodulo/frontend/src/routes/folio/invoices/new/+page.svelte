@@ -14,6 +14,9 @@
   let lineItems    = $state<LineItem[]>([{ description: '', quantity: 1, unitPrice: 0 }]);
   let selectedCust = $state('');
   let submitting   = $state(false);
+  let recurrenceEnabled   = $state(false);
+  let recurrenceFrequency = $state('monthly');
+  let recurrenceUntil     = $state('');
 
   const selectedCustomer = $derived(customers.find(c => c.id === selectedCust));
 
@@ -122,6 +125,35 @@
 
       <div class="text-right text-sm font-semibold border-t border-base-300 pt-3">
         Subtotal: {fmtCurrency(subtotal)}
+      </div>
+    </div>
+
+    <!-- Recurrence -->
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4 mb-4">
+      <h2 class="text-sm font-semibold">Schedule</h2>
+      <div class="space-y-3 border-l-2 border-base-300 pl-4">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" name="recurrenceEnabled" class="checkbox" bind:checked={recurrenceEnabled} value="true" />
+          <span class="text-sm font-medium">Repeat invoice</span>
+        </label>
+        {#if recurrenceEnabled}
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="recFreq">Frequency</label>
+              <select id="recFreq" name="recurrenceFrequency" class="select w-full" bind:value={recurrenceFrequency}>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Bi-weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="recUntil">Until</label>
+              <input id="recUntil" name="recurrenceUntil" type="date" class="input w-full" bind:value={recurrenceUntil} />
+            </div>
+          </div>
+        {/if}
       </div>
     </div>
 
