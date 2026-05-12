@@ -2,7 +2,7 @@
   import '../app.css';
   import {
     Menu as MenuIcon, LogOut, X, User, Users,
-    Settings, ChevronRight, ChevronDown, HelpCircle
+    Settings, ChevronDown, HelpCircle
   } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import { navItems, isNavGroup, isSeparator } from '$lib/config/nav';
@@ -134,11 +134,7 @@
                 >
                   <GroupIcon class="size-4 shrink-0" />
                   <span class="flex-1 text-left">{entry.label}</span>
-                  {#if isOpen}
-                    <ChevronDown class="size-3 opacity-40" />
-                  {:else}
-                    <ChevronRight class="size-3 opacity-40" />
-                  {/if}
+                  <ChevronDown class="size-3 opacity-40 transition-transform duration-200 {isOpen ? 'rotate-180' : ''}" />
                 </button>
                 <div class="nav-subnav" class:nav-subnav-open={isOpen}>
                   <div class="nav-subnav-inner">
@@ -171,7 +167,7 @@
                     <span class="relative shrink-0">
                       <Icon class="size-4" />
                       {#if isMessages && unreadCount > 0}
-                        <span class="bg-error absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
+                        <span class="bg-error absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-white">
                           {unreadCount > 99 ? '99+' : unreadCount}
                         </span>
                       {/if}

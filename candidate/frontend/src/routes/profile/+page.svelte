@@ -1,5 +1,6 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import AvatarCropper from '$lib/components/AvatarCropper.svelte';
   import type { PageData, ActionData } from './$types';
@@ -99,7 +100,7 @@
 </svelte:head>
 
 <div class="max-w-lg space-y-6">
-  <h1 class="text-2xl font-bold">Profile</h1>
+  <PageHeader title="Profile" />
 
   <!-- ── Avatar card ─────────────────────────────────────────────────── -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">

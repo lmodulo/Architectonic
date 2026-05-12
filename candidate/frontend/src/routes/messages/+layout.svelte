@@ -2,6 +2,7 @@
   import { page } from '$app/state';
   import { goto, invalidateAll } from '$app/navigation';
   import { SquarePen, Inbox, Send, Archive } from 'lucide-svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import MessageListItem from '$lib/components/MessageListItem.svelte';
   import type { LayoutData } from './$types';
   import type { Snippet } from 'svelte';
@@ -77,8 +78,7 @@
 
   <!-- Header -->
   <div class="shrink-0">
-    <h1 class="text-2xl font-bold">Messages</h1>
-    <p class="text-sm opacity-60 mt-0.5">Inbox, sent mail, and archived conversations</p>
+    <PageHeader title="Messages" subtitle="Inbox, sent mail, and archived conversations" />
   </div>
 
   <!-- Two-panel shell -->

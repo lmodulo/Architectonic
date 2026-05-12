@@ -300,7 +300,7 @@
     </aside>
 
     <!-- Main content column -->
-    <div class="flex flex-col flex-1 min-w-0 overflow-hidden content-area-bg">
+    <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
 
       <!-- Mobile top bar -->
       <header class="flex items-center gap-3 px-4 h-14 shrink-0 bg-base-200 border-b border-base-300 lg:hidden">
@@ -348,23 +348,7 @@
     grid-template-rows: 1fr;
   }
 
-  .content-area-bg {
-    position: relative;
-  }
-
-  .content-area-bg::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url('/background-0.jpg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center top;
-    opacity: 0.15;
-    pointer-events: none;
-  }
-
-  .nav-subnav-inner {
+.nav-subnav-inner {
     overflow: hidden;
     display: flex;
     flex-direction: column;

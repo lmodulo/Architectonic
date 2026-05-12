@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import { Search, TrendingUp, ShoppingCart, DollarSign, MapPin, ChevronUp, ChevronDown,
            Plus, X, ChevronLeft, ChevronRight } from 'lucide-svelte';
@@ -333,10 +334,7 @@
 <div class="space-y-8">
 
   <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-bold">Dashboard</h1>
-    <p class="text-sm opacity-60 mt-0.5">Welcome back, <strong>{data.user?.firstName ?? data.user?.username}</strong> — last 90 days of sales activity</p>
-  </div>
+  <PageHeader title="Dashboard">Welcome back, <strong>{data.user?.firstName ?? data.user?.username}</strong> — last 90 days of sales activity</PageHeader>
 
   <!-- KPI Cards -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">

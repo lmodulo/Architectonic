@@ -43,7 +43,7 @@
   </div>
 
   {#if unreadCount > 0}
-    <span class="shrink-0 mt-1 badge badge-primary text-[10px] px-1.5 py-0.5">
+    <span class="shrink-0 mt-1 bg-primary min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-white">
       {unreadCount}
     </span>
   {/if}

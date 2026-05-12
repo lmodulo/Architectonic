@@ -57,7 +57,7 @@
   >
     <Bell class="size-5" />
     {#if count > 0}
-      <span class="badge badge-error badge-xs absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] text-[10px] leading-[14px] text-center">
+      <span class="bg-error absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-white">
         {count > 99 ? '99+' : count}
       </span>
     {/if}

@@ -28,9 +28,20 @@
 >
   <div
     transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-    class="card bg-base-200 border border-base-300 rounded-box w-full {widths[size]} mx-4 flex flex-col max-h-[90vh]"
+    class="modal-inner card bg-base-200 border border-base-300 rounded-box w-full {widths[size]} mx-4 flex flex-col max-h-[90vh]"
     style="box-shadow: 0 0 80px rgba(0,0,0,0.45);"
   >
     {@render children()}
   </div>
 </div>
+
+<style>
+  .modal-inner :global(header) {
+    background-color: var(--color-secondary);
+    border-radius: var(--rounded-box, 1rem) var(--rounded-box, 1rem) 0 0;
+  }
+  .modal-inner :global(footer) {
+    background-color: var(--color-secondary);
+    border-radius: 0 0 var(--rounded-box, 1rem) var(--rounded-box, 1rem);
+  }
+</style>

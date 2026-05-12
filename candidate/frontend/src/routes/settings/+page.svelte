@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import LogoIcon from '$lib/components/LogoIcon.svelte';
   import type { PageData } from './$types';
 
@@ -115,10 +116,7 @@
 </script>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-bold">Settings</h1>
-    <p class="text-sm opacity-60 mt-1">Application-wide configuration. Changes take effect immediately.</p>
-  </div>
+  <PageHeader title="Settings" subtitle="Application-wide configuration. Changes take effect immediately." />
 
   <!-- Brand card -->
   <div class="card bg-base-100 border border-base-200 p-5 space-y-4">

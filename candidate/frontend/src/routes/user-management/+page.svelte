@@ -1,7 +1,8 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Pencil, Trash2, X, UserPlus, Plus } from 'lucide-svelte';
+  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronDown } from 'lucide-svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import UserNameLink from '$lib/components/UserNameLink.svelte';
@@ -307,7 +308,7 @@
 </svelte:head>
 
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold">User Management</h1>
+  <PageHeader title="User Management" />
 
   {#if data.error}
     <div role="alert" class="alert alert-error text-sm">{data.error}</div>
@@ -360,7 +361,7 @@
           </thead>
           <tbody>
             {#each pageUsers as user}
-              <tr class="hover:bg-base-200/50">
+              <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
                 <td>
                   <div class="font-medium">
                     <UserNameLink user={user} />
@@ -419,10 +420,7 @@
               <span class="font-semibold">{role.label}</span>
               <span class="ml-2 text-xs opacity-50">{role.name}</span>
             </div>
-            <svg class="size-4 opacity-40 transition-transform duration-200 {open ? 'rotate-180' : ''}"
-              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z" clip-rule="evenodd"/>
-            </svg>
+            <ChevronDown class="size-4 opacity-40 transition-transform duration-200 {open ? 'rotate-180' : ''}" />
           </button>
 
           {#if open}
@@ -472,7 +470,7 @@
               </thead>
               <tbody>
                 {#each pageRoleUsers as user}
-                  <tr class="hover:bg-base-200/50">
+                  <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
                     <td>
                       <div class="font-medium"><UserNameLink user={user} /></div>
                       {#if user.firstName || user.lastName}
@@ -531,10 +529,7 @@
             <div class="flex items-center gap-2 px-4 py-3 hover:bg-base-200/50 transition-colors">
               <button type="button" class="flex-1 flex items-center gap-3 text-left min-w-0"
                 onclick={() => toggleTeam(team.id)}>
-                <svg class="size-4 opacity-40 transition-transform duration-200 shrink-0 {expanded ? 'rotate-90' : ''}"
-                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02z" clip-rule="evenodd" />
-                </svg>
+                <ChevronDown class="size-4 opacity-40 transition-transform duration-200 shrink-0 {expanded ? 'rotate-180' : ''}" />
                 <div class="min-w-0">
                   <span class="font-semibold">{team.name}</span>
                   {#if team.description}
