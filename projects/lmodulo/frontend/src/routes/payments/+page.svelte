@@ -201,7 +201,7 @@
                     <button
                       type="button"
                       class="btn btn-primary btn-xs"
-                      onclick|stopPropagation={() => selectInvoice(inv)}
+                      onclick={(e) => { e.stopPropagation(); selectInvoice(inv); }}
                     >
                       Pay
                     </button>

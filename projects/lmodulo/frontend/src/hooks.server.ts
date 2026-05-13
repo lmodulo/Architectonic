@@ -16,7 +16,7 @@ const PUBLIC_PATHS = new Set([
 const AUTH_PATHS = new Set(['/login', '/register', '/forgot-password', '/reset-password']);
 
 // Routes customers (role: 'customer') may visit when authenticated
-const CUSTOMER_ALLOWED_PATHS = new Set(['/client-portal', '/payments', '/profile', '/logout']);
+const CUSTOMER_ALLOWED_PATHS = new Set(['/client-portal', '/client-portal/tickets', '/payments', '/profile', '/logout']);
 
 // Routes that require a specific permission beyond authentication
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {

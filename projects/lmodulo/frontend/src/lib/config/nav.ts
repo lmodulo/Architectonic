@@ -1,6 +1,6 @@
 import {
   House, Bell, Mail, CalendarRange, Milestone, Handshake,
-  Receipt, LayoutDashboard, CreditCard,
+  Receipt, LayoutDashboard, CreditCard, Ticket,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
@@ -43,6 +43,7 @@ export const navItems: NavEntry[] = [
   { label: 'Notifications', href: '/notifications',   icon: Bell },
 
   // Customer-only items
-  { label: 'Client Portal', href: '/client-portal',   icon: LayoutDashboard, customerOnly: true },
-  { label: 'Payments',      href: '/payments',        icon: CreditCard,      customerOnly: true },
+  { label: 'Client Portal', href: '/client-portal',         icon: LayoutDashboard, customerOnly: true },
+  { label: 'Tickets',       href: '/client-portal/tickets', icon: Ticket,          customerOnly: true, matchPrefix: true },
+  { label: 'Payments',      href: '/payments',              icon: CreditCard,      customerOnly: true },
 ];

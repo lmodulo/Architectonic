@@ -10,13 +10,13 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
-  // Get all owner/admin users so the customer can message them
+  // Get owner/admin users to use as recipients (customer role cannot read /users)
   let staffUsers: Array<{ id: string; username: string; firstName?: string; lastName?: string }> = [];
   try {
-    const res = await fetch(`${API_URL}/users`, { headers });
+    const res = await fetch(`${API_URL}/messages/staff-recipients`, { headers });
     if (res.ok) {
-      const all = await res.json() as Array<{ id: string; username: string; firstName?: string; lastName?: string; role?: string }>;
-      staffUsers = all.filter(u => u.role === 'owner' || u.role === 'admin');
+      const d = await res.json() as { staff: Array<{ id: string; username: string; firstName?: string; lastName?: string }> };
+      staffUsers = d.staff ?? [];
     }
   } catch { /* non-fatal */ }
 

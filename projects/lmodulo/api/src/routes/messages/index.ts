@@ -399,6 +399,15 @@ export default async function messagesRoutes(app: FastifyInstance) {
     reply.status(204);
   });
 
+  // ── GET /messages/staff-recipients ─────────────────────────────────────
+  app.get('/staff-recipients', { preHandler: app.requireAuth, schema: { summary: 'Returns all users with role owner or admin' } }, async () => {
+    const db    = app.mongo.db!;
+    const staff = await db.collection('users')
+      .find({ role: { $in: ['owner', 'admin'] } }, { projection: { _id: 1, firstName: 1, lastName: 1, username: 1 } })
+      .toArray();
+    return { staff: staff.map(u => ({ id: (u._id as ObjectId).toString(), firstName: u.firstName, lastName: u.lastName, username: u.username })) };
+  });
+
   // ── PATCH /messages/:threadId/state ─────────────────────────────────────
   app.patch<{
     Params: { threadId: string };

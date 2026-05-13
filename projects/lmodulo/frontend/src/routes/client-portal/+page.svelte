@@ -123,21 +123,6 @@
       <aside class="alert alert-error p-3 rounded text-sm">{sendError}</aside>
     {/if}
 
-    <!-- Recipients (read-only chip list) -->
-    <div class="space-y-1">
-      <label class="text-xs font-medium opacity-60 uppercase tracking-wide">To</label>
-      <div class="flex flex-wrap gap-1.5 items-center border border-base-300 rounded px-2 py-1.5 min-h-[2.5rem] bg-base-100">
-        {#each staffUsers as u}
-          <span class="badge badge-primary badge-soft text-xs">
-            {[u.firstName, u.lastName].filter(Boolean).join(' ') || u.username}
-          </span>
-        {/each}
-        {#if staffUsers.length === 0}
-          <span class="text-sm opacity-40">No staff recipients configured</span>
-        {/if}
-      </div>
-    </div>
-
     <!-- Subject -->
     <div class="space-y-1">
       <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="portal-subject">Subject</label>

@@ -79,6 +79,8 @@ const SEED_USERS: SeedUser[] = [
   { username: 'jordan',  email: 'jordan@lmodulo.com', password: 'jordan-password',firstName: 'Jordan', lastName: 'Rivera', role: 'contributor' },
   { username: 'sam',     email: 'sam@lmodulo.com',    password: 'sam-password',   firstName: 'Sam',    lastName: 'Park',   role: 'contributor' },
   { username: 'riley',   email: 'riley@lmodulo.com',  password: 'riley-password', firstName: 'Riley',  lastName: 'Morgan', role: 'contributor' },
+  // Demo customer (converted client)
+  { username: 'customer', email: 'customer@lmodulo.com', password: 'c-password', firstName: 'Customer', lastName: 'Demo', role: 'customer' },
 ];
 
 export default fp(async function seedPlugin(app: any) {
