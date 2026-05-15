@@ -19,6 +19,13 @@
 </script>
 
 <div class="flex flex-col gap-6">
+  <!-- Page header -->
+  <div>
+    <h1 class="text-2xl font-bold leading-none">Folio</h1>
+    <p class="text-xs opacity-50 mt-0.5">Invoices · Subscriptions</p>
+  </div>
+
+  <!-- Sub-navigation -->
   {#if hasPermission(data.user, 'finance_invoices', 'read')}
     <nav class="flex gap-1 border-b border-base-300 -mb-2">
       {#each navLinks as link}

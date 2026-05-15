@@ -123,7 +123,7 @@
       <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Invoices', href: '/folio/invoices' }, { label: invoice.invoiceNumber }]} />
     </div>
     <div class="space-y-1 min-w-0">
-      <h1 class="text-2xl font-bold font-mono">{invoice.invoiceNumber}</h1>
+      <h1 class="text-2xl font-bold font-mono leading-tight">{invoice.invoiceNumber}</h1>
       {#if customer}
         <p class="text-sm opacity-60">{customer.firstName} {customer.lastName}{customer.companyName ? ` — ${customer.companyName}` : ''}</p>
       {/if}

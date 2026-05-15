@@ -2,7 +2,6 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { Plus, RefreshCw } from 'lucide-svelte';
-  import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
 
@@ -66,22 +65,14 @@
 <svelte:head><title>Subscriptions — Folio</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Subscriptions' }]} />
-    </div>
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Subscriptions</h1>
-        <p class="text-sm opacity-60 mt-0.5">{subscriptions.length} subscription{subscriptions.length !== 1 ? 's' : ''}</p>
-      </div>
-      {#if hasPermission(data.user, 'finance_subscriptions', 'create')}
-        <a href="/folio/subscriptions/new" class="btn btn-primary btn-sm">
-          <Plus class="size-4" />
-          New Subscription
-        </a>
-      {/if}
-    </div>
+  <div class="flex items-center justify-between gap-4">
+    <p class="text-sm opacity-60">{subscriptions.length} subscription{subscriptions.length !== 1 ? 's' : ''}</p>
+    {#if hasPermission(data.user, 'finance_subscriptions', 'create')}
+      <a href="/folio/subscriptions/new" class="btn btn-primary btn-sm">
+        <Plus class="size-4" />
+        New Subscription
+      </a>
+    {/if}
   </div>
 
   <!-- Status filter -->

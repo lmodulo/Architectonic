@@ -169,6 +169,71 @@ export async function sendPasswordSetEmail(to: string, firstName: string, setUrl
   });
 }
 
+// ── Finance ───────────────────────────────────────────────────────────────────
+
+export async function sendInvoiceEmail(to: string, opts: {
+  invoiceNumber: string;
+  total:         number;
+  currency:      string;
+  invoiceUrl:    string;
+}): Promise<void> {
+  const appName  = process.env.APP_NAME ?? 'Us';
+  const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: opts.currency }).format(opts.total);
+  await sendMail({
+    to,
+    subject: `Invoice ${opts.invoiceNumber} from ${appName}`,
+    html: layout({
+      heading: `Invoice ${opts.invoiceNumber}`,
+      body:    `<p>Please find your invoice of ${formatted} attached.</p>`,
+      cta:     { label: 'View Invoice', url: opts.invoiceUrl },
+      note:    'Reply to this email if you have any questions.',
+    }),
+    text: `Invoice ${opts.invoiceNumber}\n\nAmount: ${formatted}\n\nView: ${opts.invoiceUrl}`,
+  });
+}
+
+export async function sendInvoiceOverdueEmail(to: string, opts: {
+  invoiceNumber: string;
+  total:         number;
+  currency:      string;
+  dueDate:       Date;
+  invoiceUrl:    string;
+}): Promise<void> {
+  const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: opts.currency }).format(opts.total);
+  const dueDateStr = opts.dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  await sendMail({
+    to,
+    subject: `Invoice ${opts.invoiceNumber} is overdue`,
+    html: layout({
+      heading: `Invoice ${opts.invoiceNumber} is overdue`,
+      body:    `<p>Your invoice of ${formatted} was due on ${dueDateStr} and has not been paid.</p>
+                <p>Please arrange payment at your earliest convenience.</p>`,
+      cta:     { label: 'View Invoice', url: opts.invoiceUrl },
+      note:    'Reply to this email if you have any questions.',
+    }),
+    text: `Invoice ${opts.invoiceNumber} is overdue\n\nAmount: ${formatted}\nDue: ${dueDateStr}\n\nView: ${opts.invoiceUrl}`,
+  });
+}
+
+export async function sendTicketNotificationEmail(to: string, opts: {
+  ticketId:    string;
+  title:       string;
+  submittedBy: string;
+  ticketUrl:   string;
+}): Promise<void> {
+  await sendMail({
+    to,
+    subject: `New support ticket: ${opts.title}`,
+    html: layout({
+      heading: 'New support ticket',
+      body:    `<p><strong>${opts.submittedBy}</strong> submitted a new support ticket.</p>
+                <p><strong>Title:</strong> ${opts.title}</p>`,
+      cta:     { label: 'View ticket', url: opts.ticketUrl },
+    }),
+    text: `New support ticket\n\nFrom: ${opts.submittedBy}\nTitle: ${opts.title}\n\nView: ${opts.ticketUrl}`,
+  });
+}
+
 // ── Calendar ──────────────────────────────────────────────────────────────────
 
 export async function sendCalendarNewEventEmail(to: string, opts: {

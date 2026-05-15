@@ -102,11 +102,7 @@
 <svelte:head><title>Folio</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-start justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold">Folio</h1>
-      <p class="text-sm opacity-60 mt-0.5">Finance overview — clients and invoices.</p>
-    </div>
+  <div class="flex justify-end">
     <button type="button" class="btn btn-primary btn-sm" onclick={openModal}>
       <FileText class="size-4" />
       New Invoice

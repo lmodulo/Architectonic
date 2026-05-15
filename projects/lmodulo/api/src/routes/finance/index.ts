@@ -3,6 +3,7 @@ import { ObjectId } from '@fastify/mongodb';
 import Stripe from 'stripe';
 import { logAudit } from '../../lib/audit.js';
 import { calcNextDate } from '../../lib/recurringDates.js';
+import { sendInvoiceEmail } from '../../lib/email.js';
 
 const INV_COL = 'finance_invoices';
 const PAY_COL = 'finance_payments';
@@ -225,6 +226,20 @@ export default async function financeRoutes(app: FastifyInstance) {
 
     const result = await db.collection(INV_COL).updateOne({ _id: oid }, { $set });
     if (result.matchedCount === 0) return reply.notFound('Invoice not found');
+
+    if (status === 'sent') {
+      const inv = await db.collection(INV_COL).findOne({ _id: oid });
+      const customer = inv && await db.collection('users').findOne({ _id: inv.customerId });
+      if (customer?.email) {
+        const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
+        sendInvoiceEmail(customer.email as string, {
+          invoiceNumber: inv.invoiceNumber as string,
+          total:         inv.total as number,
+          currency:      inv.currency as string,
+          invoiceUrl:    `${appUrl}/payments`,
+        }).catch(err => console.error('[email] invoice send failed:', err));
+      }
+    }
 
     logAudit(db, {
       userId: req.session.userId!, username: req.session.username!,

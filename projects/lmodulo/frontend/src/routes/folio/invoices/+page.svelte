@@ -2,7 +2,6 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { Plus, FileText, ChevronUp, ChevronDown, ChevronsUpDown, Trash2, X } from 'lucide-svelte';
-  import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import type { PageData } from './$types';
 
@@ -140,21 +139,12 @@
 <svelte:head><title>Invoices — Folio</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Invoices' }]} />
-    </div>
-    <div class="space-y-1 min-w-0">
-      <h1 class="text-2xl font-bold">Invoices</h1>
-      <p class="text-sm opacity-60">{total} invoice{total !== 1 ? 's' : ''}</p>
-    </div>
-    <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
-      <div></div>
-      <button type="button" class="btn btn-primary btn-sm" onclick={openModal}>
-        <Plus class="size-4" />
-        New Invoice
-      </button>
-    </div>
+  <div class="flex items-center justify-between gap-4">
+    <p class="text-sm opacity-60">{total} invoice{total !== 1 ? 's' : ''}</p>
+    <button type="button" class="btn btn-primary btn-sm" onclick={openModal}>
+      <Plus class="size-4" />
+      New Invoice
+    </button>
   </div>
 
   <!-- Status filter -->

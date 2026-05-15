@@ -3,6 +3,7 @@ import { ObjectId } from '@fastify/mongodb';
 import { storage } from '../lib/storage.js';
 import { getSupportSprint } from '../lib/supportSprint.js';
 import { logAudit } from '../lib/audit.js';
+import { sendTicketNotificationEmail } from '../lib/email.js';
 
 const COL = 'agile_jobs';
 
@@ -103,6 +104,20 @@ export default async function ticketsRoutes(app: FastifyInstance) {
       action: 'ticket.create', resourceId: result.insertedId.toString(),
       meta: { title: doc.title }, ip: req.ip,
     });
+
+    const staff = await db.collection('users').find({ role: { $in: ['owner', 'admin'] } }).toArray();
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
+    const ticketUrl = `${appUrl}/folio/tickets`;
+    for (const member of staff) {
+      if (member.email) {
+        sendTicketNotificationEmail(member.email as string, {
+          ticketId:    result.insertedId.toString(),
+          title:       doc.title,
+          submittedBy: req.session.username!,
+          ticketUrl,
+        }).catch(console.error);
+      }
+    }
 
     reply.status(201);
     return mapDoc({ ...doc, _id: result.insertedId } as Record<string, unknown>);

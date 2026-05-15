@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { Db } from 'mongodb';
 import { ObjectId } from '@fastify/mongodb';
 import { calcNextDate } from '../lib/recurringDates.js';
+import { sendInvoiceOverdueEmail } from '../lib/email.js';
 
 const INV_COL = 'finance_invoices';
 const SUB_COL = 'finance_subscriptions';
@@ -93,10 +94,33 @@ async function processSubscriptions(db: Db, now: Date) {
   }
 }
 
+async function processOverdueInvoices(db: Db, now: Date) {
+  const overdue = await db.collection(INV_COL).find({
+    status:  'sent',
+    dueDate: { $lt: now },
+  }).toArray();
+
+  for (const inv of overdue) {
+    await db.collection(INV_COL).updateOne({ _id: inv._id }, { $set: { status: 'overdue', updatedAt: now } });
+    const customer = await db.collection('users').findOne({ _id: inv.customerId });
+    if (customer?.email) {
+      const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
+      sendInvoiceOverdueEmail(customer.email as string, {
+        invoiceNumber: inv.invoiceNumber as string,
+        total:         inv.total as number,
+        currency:      inv.currency as string,
+        dueDate:       inv.dueDate as Date,
+        invoiceUrl:    `${appUrl}/payments`,
+      }).catch(err => console.error('[email] overdue reminder failed:', err));
+    }
+  }
+}
+
 async function tick(db: Db) {
   const now = new Date();
   await processRecurringInvoices(db, now);
   await processSubscriptions(db, now);
+  await processOverdueInvoices(db, now);
 }
 
 export default async function schedulerPlugin(app: FastifyInstance) {
