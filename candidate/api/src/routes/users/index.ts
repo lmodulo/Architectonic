@@ -1,26 +1,27 @@
+import crypto from 'crypto';
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
 import { checkDuplicateUser } from '../../lib/users.js';
 import { logAudit } from '../../lib/audit.js';
+import { sendInviteEmail } from '../../lib/email/index.js';
 
 const COLLECTION  = 'users';
 const SALT_ROUNDS = 12;
 
 export default async function usersRoutes(app: FastifyInstance) {
 
-  // POST /users — admin creates a new user (no auto-login)
-  app.post<{ Body: { username: string; email: string; password: string; firstName?: string; lastName?: string } }>('/', {
+  // POST /users/invite — admin invites a new user via email
+  app.post<{ Body: { email: string; role: string; firstName?: string; lastName?: string } }>('/invite', {
     preHandler: app.requirePermission('users', 'create'),
     schema: {
-      summary: 'Create a new user (admin)',
+      summary: 'Invite a new user (admin)',
       body: {
         type: 'object',
-        required: ['username', 'email', 'password'],
+        required: ['email', 'role'],
         properties: {
-          username:  { type: 'string', minLength: 2, maxLength: 50 },
           email:     { type: 'string', format: 'email' },
-          password:  { type: 'string', minLength: 8 },
+          role:      { type: 'string', minLength: 1 },
           firstName: { type: 'string', maxLength: 50 },
           lastName:  { type: 'string', maxLength: 50 }
         }
@@ -28,25 +29,107 @@ export default async function usersRoutes(app: FastifyInstance) {
     }
   }, async (req, reply) => {
     const col = app.mongo.db!.collection(COLLECTION);
-    const { username, email, password, firstName = '', lastName = '' } = req.body;
+    const { email, role, firstName = '', lastName = '' } = req.body;
 
-    const conflict = await checkDuplicateUser(col, { email, username });
+    const roleDoc = await app.mongo.db!.collection('roles').findOne({ name: role });
+    if (!roleDoc) return reply.notFound(`Role '${role}' does not exist`);
+
+    const conflict = await checkDuplicateUser(col, { email });
     if (conflict) return reply.conflict(conflict);
 
-    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const now = new Date();
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hash     = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const now      = new Date();
+
     const result = await col.insertOne({
-      username, email: email.toLowerCase(), passwordHash,
-      firstName, lastName, role: 'viewer', createdAt: now, updatedAt: now
+      email:              email.toLowerCase(),
+      firstName,
+      lastName,
+      role,
+      status:             'pending',
+      inviteToken:        hash,
+      inviteTokenExpires: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+      avatarUrl:          '',
+      avatarColor:        '',
+      createdAt:          now,
+      updatedAt:          now
     });
 
-    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'user.create', resourceId: result.insertedId.toString(), meta: { target: username }, ip: req.ip });
+    const appUrl    = process.env.APP_URL ?? 'http://localhost:3000';
+    const inviteUrl = `${appUrl}/accept-invite?token=${rawToken}`;
+    const inviter   = req.session.username ?? undefined;
+
+    sendInviteEmail(email.toLowerCase(), inviteUrl, inviter).catch(err =>
+      console.error('[email] Failed to send invite email:', err)
+    );
+
+    logAudit(app.mongo.db!, {
+      userId:     req.session.userId!,
+      username:   req.session.username!,
+      action:     'user.invite',
+      resourceId: result.insertedId.toString(),
+      meta:       { target: email },
+      ip:         req.ip
+    });
 
     reply.code(201);
     return {
-      id: result.insertedId.toString(), username,
-      email: email.toLowerCase(), firstName, lastName, role: 'viewer', createdAt: now
+      id:        result.insertedId.toString(),
+      email:     email.toLowerCase(),
+      firstName,
+      lastName,
+      role,
+      status:    'pending',
+      createdAt: now
     };
+  });
+
+  // POST /users/invite/accept — public, no auth — invited user sets username + password
+  app.post<{ Body: { token: string; username: string; password: string } }>('/invite/accept', {
+    schema: {
+      summary: 'Accept an invitation and activate account',
+      body: {
+        type: 'object',
+        required: ['token', 'username', 'password'],
+        properties: {
+          token:    { type: 'string', minLength: 1 },
+          username: { type: 'string', minLength: 2, maxLength: 50 },
+          password: { type: 'string', minLength: 8 }
+        }
+      }
+    }
+  }, async (req, reply) => {
+    const col  = app.mongo.db!.collection(COLLECTION);
+    const hash = crypto.createHash('sha256').update(req.body.token).digest('hex');
+
+    const user = await col.findOne({
+      inviteToken:        hash,
+      inviteTokenExpires: { $gt: new Date() },
+      status:             'pending'
+    });
+    if (!user) return reply.badRequest('Invalid or expired invitation');
+
+    const conflict = await checkDuplicateUser(col, { username: req.body.username });
+    if (conflict) return reply.conflict(conflict);
+
+    const passwordHash = await bcrypt.hash(req.body.password, SALT_ROUNDS);
+
+    await col.updateOne(
+      { _id: user._id },
+      {
+        $set:   { username: req.body.username, passwordHash, status: 'active', updatedAt: new Date() },
+        $unset: { inviteToken: '', inviteTokenExpires: '' }
+      }
+    );
+
+    logAudit(app.mongo.db!, {
+      userId:   user._id.toString(),
+      username: req.body.username,
+      action:   'auth.invite_accept',
+      ip:       req.ip
+    });
+
+    reply.code(204).send();
   });
 
   // GET /users
@@ -59,11 +142,12 @@ export default async function usersRoutes(app: FastifyInstance) {
       .toArray();
     return users.map(u => ({
       id:          u._id.toString(),
-      username:    u.username,
+      username:    u.username    ?? '',
       email:       u.email,
       firstName:   u.firstName   ?? '',
       lastName:    u.lastName    ?? '',
       role:        u.role        ?? 'viewer',
+      status:      u.status      ?? 'active',
       avatarUrl:   u.avatarUrl   ?? '',
       avatarColor: u.avatarColor ?? '',
       phone:       u.phone       ?? '',
@@ -94,11 +178,12 @@ export default async function usersRoutes(app: FastifyInstance) {
 
     return {
       id:          user._id.toString(),
-      username:    user.username,
+      username:    user.username    ?? '',
       email:       user.email,
       firstName:   user.firstName   ?? '',
       lastName:    user.lastName    ?? '',
       role:        user.role        ?? 'viewer',
+      status:      user.status      ?? 'active',
       avatarUrl:   user.avatarUrl   ?? '',
       avatarColor: user.avatarColor ?? '',
       phone:       user.phone       ?? '',

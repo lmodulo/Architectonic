@@ -41,30 +41,29 @@
   $effect(() => { query; currentPage = 1; });
 
   let newUserOpen = $state(false);
-  let newForm     = $state({ firstName: '', lastName: '', username: '', email: '', password: '', confirmPassword: '' });
+  let newForm     = $state({ firstName: '', lastName: '', email: '', role: 'viewer' });
   let creating    = $state(false);
   let newError    = $state('');
 
   function openNewUser() {
-    newForm  = { firstName: '', lastName: '', username: '', email: '', password: '', confirmPassword: '' };
+    newForm  = { firstName: '', lastName: '', email: '', role: 'viewer' };
     newError = '';
     newUserOpen = true;
   }
 
-  async function submitNewUser() {
-    if (!newForm.username || !newForm.email || !newForm.password) { newError = 'Username, email, and password are required'; return; }
-    if (newForm.password !== newForm.confirmPassword) { newError = 'Passwords do not match'; return; }
-    if (newForm.password.length < 8) { newError = 'Password must be at least 8 characters'; return; }
+  async function submitInvite() {
+    if (!newForm.email) { newError = 'Email is required'; return; }
+    if (!newForm.role)  { newError = 'Role is required'; return; }
     creating = true; newError = '';
     try {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ firstName: newForm.firstName, lastName: newForm.lastName, username: newForm.username, email: newForm.email, password: newForm.password })
+        body: JSON.stringify({ firstName: newForm.firstName, lastName: newForm.lastName, email: newForm.email, role: newForm.role })
       });
-      if (!res.ok) { const body = await res.json().catch(() => ({})); newError = body.message ?? 'Create failed'; return; }
+      if (!res.ok) { const body = await res.json().catch(() => ({})); newError = body.message ?? 'Invite failed'; return; }
       const created = await res.json();
-      users = [{ ...created, createdAt: created.createdAt ?? new Date().toISOString() }, ...users];
+      users = [{ ...created, username: '', status: 'pending', createdAt: created.createdAt ?? new Date().toISOString() }, ...users];
       newUserOpen = false;
     } catch { newError = 'Network error'; }
     finally { creating = false; }
@@ -343,7 +342,7 @@
         </label>
         {#if hasPermission(data.user, 'users', 'create')}
           <button type="button" class="btn btn-primary shrink-0" onclick={openNewUser}>
-            <UserPlus class="size-4" /> New User
+            <UserPlus class="size-4" /> Invite User
           </button>
         {/if}
       </div>
@@ -363,10 +362,15 @@
             {#each pageUsers as user}
               <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
                 <td>
-                  <div class="font-medium">
-                    <UserNameLink user={user} />
+                  <div class="flex items-center gap-2 font-medium">
+                    {#if user.status === 'pending'}
+                      <span class="opacity-50 italic">{user.email}</span>
+                      <span class="badge badge-warning badge-sm">Pending</span>
+                    {:else}
+                      <UserNameLink user={user} />
+                    {/if}
                   </div>
-                  {#if user.firstName || user.lastName}
+                  {#if user.status !== 'pending' && (user.firstName || user.lastName)}
                     <div class="text-xs opacity-50">{user.username}</div>
                   {/if}
                 </td>
@@ -638,12 +642,12 @@
   {/if}
 </div>
 
-<!-- New User modal -->
+<!-- Invite User modal -->
 {#if newUserOpen}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true">
     <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-100 w-full max-w-md shadow-xl">
       <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-200">
-        <h2 class="text-lg font-semibold">New User</h2>
+        <h2 class="text-lg font-semibold">Invite User</h2>
         <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={() => (newUserOpen = false)}><X class="size-5" /></button>
       </div>
       <div class="p-6 space-y-4">
@@ -659,26 +663,23 @@
           </div>
         </div>
         <div class="form-control gap-1">
-          <span class="label-text font-medium">Username <span class="text-error">*</span></span>
-          <input type="text" class="input input-bordered" bind:value={newForm.username} minlength="2" maxlength="50" placeholder="johndoe" />
-        </div>
-        <div class="form-control gap-1">
           <span class="label-text font-medium">Email <span class="text-error">*</span></span>
           <input type="email" class="input input-bordered" bind:value={newForm.email} placeholder="you@example.com" />
         </div>
         <div class="form-control gap-1">
-          <span class="label-text font-medium">Password <span class="text-error">*</span></span>
-          <input type="password" class="input input-bordered" bind:value={newForm.password} minlength="8" placeholder="Min. 8 characters" />
+          <span class="label-text font-medium">Role <span class="text-error">*</span></span>
+          <select class="select select-bordered" bind:value={newForm.role}>
+            {#each data.roles as role}
+              <option value={role.name}>{role.label}</option>
+            {/each}
+          </select>
         </div>
-        <div class="form-control gap-1">
-          <span class="label-text font-medium">Confirm Password <span class="text-error">*</span></span>
-          <input type="password" class="input input-bordered" bind:value={newForm.confirmPassword} minlength="8" placeholder="••••••••" />
-        </div>
+        <p class="text-sm opacity-60">An invitation email will be sent. The user sets their own username and password.</p>
       </div>
       <div class="flex justify-end gap-3 px-6 pb-5">
         <button type="button" class="btn btn-ghost" onclick={() => (newUserOpen = false)}>Cancel</button>
-        <button type="button" class="btn btn-primary" disabled={creating} onclick={submitNewUser}>
-          {creating ? 'Creating…' : 'Create User'}
+        <button type="button" class="btn btn-primary" disabled={creating} onclick={submitInvite}>
+          {creating ? 'Sending…' : 'Send Invitation'}
         </button>
       </div>
     </div>

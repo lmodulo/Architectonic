@@ -5,7 +5,8 @@
   import type { ActionData, PageData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
-  let resetSuccess = $derived(page.url.searchParams.get('reset') === '1');
+  let resetSuccess  = $derived(page.url.searchParams.get('reset')   === '1');
+  let inviteSuccess = $derived(page.url.searchParams.get('invited') === '1');
 </script>
 
 <svelte:head>
@@ -17,6 +18,12 @@
   {#if resetSuccess}
     <div role="alert" class="alert alert-success text-sm">
       Password reset successfully. Sign in with your new password.
+    </div>
+  {/if}
+
+  {#if inviteSuccess}
+    <div role="alert" class="alert alert-success text-sm">
+      Account activated! Sign in with your new credentials.
     </div>
   {/if}
 

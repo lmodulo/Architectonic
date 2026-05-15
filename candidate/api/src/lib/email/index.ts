@@ -51,6 +51,41 @@ export async function sendEmail(opts: {
   }
 }
 
+export async function sendInviteEmail(to: string, inviteUrl: string, inviterName?: string): Promise<void> {
+  const appName = process.env.SMTP_FROM
+    ? process.env.SMTP_FROM.replace(/^.*?<|>.*$/g, '').trim() || 'Architectonic'
+    : 'Architectonic';
+
+  const intro = inviterName
+    ? `${inviterName} has invited you to join ${appName}.`
+    : `You've been invited to join ${appName}.`;
+
+  const template = getTemplate('default');
+  const { subject, html, text } = template({
+    appName,
+    title:     `You're invited to ${appName}`,
+    preheader: intro,
+    blocks: [
+      {
+        type:    'text',
+        content: `${intro} Click the button below to set up your account. This invitation expires in <strong>7 days</strong>.`
+      },
+      {
+        type:  'action',
+        url:   inviteUrl,
+        label: 'Accept invitation'
+      },
+      { type: 'divider' },
+      {
+        type:    'note',
+        content: 'If you were not expecting this invitation, you can safely ignore this email.'
+      }
+    ]
+  });
+
+  await sendEmail({ to, subject, html, text });
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
   const appName = process.env.SMTP_FROM
     ? process.env.SMTP_FROM.replace(/^.*?<|>.*$/g, '').trim() || 'Architectonic'

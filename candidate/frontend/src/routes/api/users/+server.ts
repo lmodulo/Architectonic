@@ -4,14 +4,14 @@ import type { RequestHandler } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
-// POST /api/users — admin creates a new user
+// POST /api/users — admin invites a new user
 export const POST: RequestHandler = async ({ request, cookies }) => {
   const sessionCookie = cookies.get('session');
   const body = await request.json();
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/users`, {
+    res = await fetch(`${API_URL}/users/invite`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -24,6 +24,6 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw error(res.status, (data as { message?: string }).message ?? 'Create failed');
+  if (!res.ok) throw error(res.status, (data as { message?: string }).message ?? 'Invite failed');
   return json(data, { status: 201 });
 };

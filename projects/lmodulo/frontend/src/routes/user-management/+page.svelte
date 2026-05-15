@@ -69,33 +69,29 @@
   $effect(() => { query; currentPage = 1; });
 
   let newUserOpen = $state(false);
-  let newForm     = $state({ firstName: '', lastName: '', username: '', email: '', password: '', confirmPassword: '' });
+  let newForm     = $state({ firstName: '', lastName: '', email: '', role: 'viewer' });
   let creating    = $state(false);
   let newError    = $state('');
 
   function openNewUser() {
-    newForm  = { firstName: '', lastName: '', username: '', email: '', password: '', confirmPassword: '' };
+    newForm  = { firstName: '', lastName: '', email: '', role: 'viewer' };
     newError = '';
     newUserOpen = true;
   }
 
-  async function submitNewUser() {
-    if (!newForm.username || !newForm.email || !newForm.password) {
-      newError = 'Username, email, and password are required';
-      return;
-    }
-    if (newForm.password !== newForm.confirmPassword) { newError = 'Passwords do not match'; return; }
-    if (newForm.password.length < 8) { newError = 'Password must be at least 8 characters'; return; }
+  async function submitInvite() {
+    if (!newForm.email) { newError = 'Email is required'; return; }
+    if (!newForm.role)  { newError = 'Role is required'; return; }
     creating = true; newError = '';
     try {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ firstName: newForm.firstName, lastName: newForm.lastName, username: newForm.username, email: newForm.email, password: newForm.password })
+        body: JSON.stringify({ firstName: newForm.firstName, lastName: newForm.lastName, email: newForm.email, role: newForm.role })
       });
-      if (!res.ok) { const body = await res.json().catch(() => ({})); newError = body.message ?? 'Create failed'; return; }
+      if (!res.ok) { const body = await res.json().catch(() => ({})); newError = body.message ?? 'Invite failed'; return; }
       const created = await res.json();
-      users = [{ ...created, createdAt: created.createdAt ?? new Date().toISOString() }, ...users];
+      users = [{ ...created, username: '', status: 'pending', createdAt: created.createdAt ?? new Date().toISOString() }, ...users];
       newUserOpen = false;
     } catch { newError = 'Network error'; }
     finally { creating = false; }
@@ -357,11 +353,11 @@
       <div class="flex items-center gap-3">
         <label class="input flex items-center gap-2 flex-1">
           <Search class="size-4 shrink-0 opacity-50" />
-          <input type="search" placeholder="Search by name or email…" class="grow" bind:value={query} />
+          <input type="search" placeholder="Search by name or email…" class="grow" bind:value={query} autocomplete="off" />
         </label>
         {#if hasPermission(data.user, 'users', 'create')}
           <button type="button" class="btn btn-primary shrink-0" onclick={openNewUser}>
-            <UserPlus class="size-4" /> <span>New User</span>
+            <UserPlus class="size-4" /> <span>Invite User</span>
           </button>
         {/if}
       </div>
@@ -384,7 +380,12 @@
                   <div class="flex items-center gap-3">
                     <Avatar user={user} size="sm" />
                     <div>
-                      {#if user.firstName || user.lastName}
+                      {#if user.status === 'pending'}
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium opacity-50 italic">{user.email}</span>
+                          <span class="badge badge-warning badge-sm">Pending</span>
+                        </div>
+                      {:else if user.firstName || user.lastName}
                         <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
                         <div class="text-xs text-base-content/50">{user.username}</div>
                       {:else}
@@ -688,11 +689,11 @@
   {/if}
 </div>
 
-<!-- New User modal -->
+<!-- Invite User modal -->
 {#if newUserOpen}
-  <Modal size="md" label="New user">
+  <Modal size="md" label="Invite user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
-        <h2 class="text-lg font-semibold">New User</h2>
+        <h2 class="text-lg font-semibold">Invite User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4">
@@ -708,26 +709,23 @@
           </label>
         </div>
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Username <span class="text-error">*</span></span>
-          <input type="text" class="input" bind:value={newForm.username} minlength="2" maxlength="50" placeholder="johndoe" />
-        </label>
-        <label class="flex flex-col gap-1">
           <span class="text-sm font-medium">Email <span class="text-error">*</span></span>
-          <input type="email" class="input" bind:value={newForm.email} placeholder="you@example.com" />
+          <input type="email" class="input" bind:value={newForm.email} placeholder="you@example.com" autocomplete="off" />
         </label>
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Password <span class="text-error">*</span></span>
-          <input type="password" class="input" bind:value={newForm.password} minlength="8" placeholder="Min. 8 characters" />
+          <span class="text-sm font-medium">Role <span class="text-error">*</span></span>
+          <select class="select" bind:value={newForm.role}>
+            {#each data.roles as role}
+              <option value={role.name}>{role.label}</option>
+            {/each}
+          </select>
         </label>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Confirm Password <span class="text-error">*</span></span>
-          <input type="password" class="input" bind:value={newForm.confirmPassword} minlength="8" placeholder="••••••••" />
-        </label>
+        <p class="text-sm text-base-content/50">An invitation email will be sent. The user sets their own username and password.</p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
         <button type="button" class="btn btn-ghost" onclick={() => (newUserOpen = false)}>Cancel</button>
-        <button type="button" class="btn btn-primary" disabled={creating} onclick={submitNewUser}>
-          {creating ? 'Creating…' : 'Create User'}
+        <button type="button" class="btn btn-primary" disabled={creating} onclick={submitInvite}>
+          {creating ? 'Sending…' : 'Send Invitation'}
         </button>
       </footer>
   </Modal>

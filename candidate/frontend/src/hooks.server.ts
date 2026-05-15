@@ -9,7 +9,7 @@ const API_URL = env.API_URL ?? 'http://localhost:4000';
 // All paths accessible without authentication
 const PUBLIC_PATHS = new Set([
   '/', '/login', '/register', '/forgot-password', '/reset-password',
-  '/logout', '/upcoming-events'
+  '/accept-invite', '/logout', '/upcoming-events'
 ]);
 
 // Auth paths that authenticated users are bounced away from

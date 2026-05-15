@@ -92,6 +92,34 @@ function layout(opts: LayoutOpts): string {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
+export async function sendInviteEmail(to: string, inviteUrl: string, inviterName?: string): Promise<void> {
+  const appName = process.env.APP_NAME ?? 'Architectonic';
+  const intro = inviterName
+    ? `${inviterName} has invited you to join ${appName}.`
+    : `You've been invited to join ${appName}.`;
+  await sendMail({
+    to,
+    subject: `You're invited to join ${appName}`,
+    html: layout({
+      heading: `You're invited to ${appName}`,
+      body:    `<p>${intro}</p>
+                <p>Click the button below to set up your account. This invitation expires in 7 days.</p>`,
+      cta:  { label: 'Accept invitation', url: inviteUrl },
+      note: 'If you were not expecting this invitation, you can safely ignore this email.',
+    }),
+    text: [
+      `You're invited to join ${appName}`,
+      '',
+      intro,
+      'Click the link below to set up your account (expires in 7 days):',
+      '',
+      inviteUrl,
+      '',
+      'If you were not expecting this invitation, you can safely ignore this email.',
+    ].join('\n'),
+  });
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
   await sendMail({
     to,

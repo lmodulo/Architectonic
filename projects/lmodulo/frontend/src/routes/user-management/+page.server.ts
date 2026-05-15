@@ -16,9 +16,10 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
   try {
+    const canInvite = hasPermission(locals.user, 'users', 'create');
     const [usersRes, rolesRes, teamsRes] = await Promise.all([
       canReadUsers ? fetch(`${API_URL}/users`, { headers }) : Promise.resolve(null),
-      canReadRoles ? fetch(`${API_URL}/roles`, { headers }) : Promise.resolve(null),
+      (canReadRoles || canInvite) ? fetch(`${API_URL}/roles`, { headers }) : Promise.resolve(null),
       canReadTeams ? fetch(`${API_URL}/teams`, { headers }) : Promise.resolve(null),
     ]);
     return {
