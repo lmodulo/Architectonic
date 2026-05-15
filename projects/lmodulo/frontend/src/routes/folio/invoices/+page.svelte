@@ -34,13 +34,14 @@
   let filters   = $derived(data.filters   as { status: string; customerId: string; skip: number; sort: string; sortDir: string });
 
   const LIMIT    = 25;
-  const STATUSES = ['', 'draft', 'sent', 'paid', 'overdue'];
+  const STATUSES = ['', 'draft', 'sent', 'paid', 'overdue', 'proposal'];
 
   const STATUS_CLASS: Record<string, string> = {
-    paid:    'badge-success',
-    overdue: 'badge-error',
-    sent:    'badge-warning',
-    draft:   'badge-ghost',
+    paid:     'badge-success',
+    overdue:  'badge-error',
+    sent:     'badge-warning',
+    draft:    'badge-ghost',
+    proposal: 'badge-info',
   };
 
   function fmtCurrency(n: number) {

@@ -1,3 +1,10 @@
+Mobile navigation / responsive sidebar
+CSV import for bulk contacts/invoices
+Zoho/QuickBooks connectors
+Rate limiting
+S3 file storage (local volume is fine for two users)
+Audit log UI (data is collected; surfacing it can wait)
+
 CI/CD
     GitHub Actions
     container registry

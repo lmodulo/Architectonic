@@ -46,10 +46,11 @@
   let editRecUntil        = $state(invoice.recurrence?.until ? invoice.recurrence.until.substring(0, 10) : '');
 
   const STATUS_CLASS: Record<string, string> = {
-    paid:    'badge-success',
-    overdue: 'badge-error',
-    sent:    'badge-warning',
-    draft:   'badge-ghost',
+    paid:     'badge-success',
+    overdue:  'badge-error',
+    sent:     'badge-warning',
+    draft:    'badge-ghost',
+    proposal: 'badge-info',
   };
 
   const customer = $derived(customers.find(c => c.id === invoice.customerId));
@@ -89,6 +90,11 @@
   async function markSent() {
     const ok = await patchInvoice({ status: 'sent' });
     if (ok) invoice = { ...invoice, status: 'sent' };
+  }
+
+  async function convertToInvoice() {
+    const ok = await patchInvoice({ status: 'draft' });
+    if (ok) invoice = { ...invoice, status: 'draft' };
   }
 
   async function saveEdit() {
@@ -132,6 +138,11 @@
             <Pencil class="size-4" /> Edit
           </button>
         {/if}
+        {#if invoice.status === 'proposal' && hasPermission(data.user, 'finance_invoices', 'update')}
+          <button class="btn btn-primary btn-sm" disabled={saving} onclick={convertToInvoice}>
+            <CheckCircle class="size-4" /> Convert to Invoice
+          </button>
+        {/if}
         {#if invoice.status === 'draft' && hasPermission(data.user, 'finance_invoices', 'update')}
           <button class="btn btn-primary btn-sm" disabled={saving} onclick={markSent}>
             <Send class="size-4" /> Send to client
@@ -151,7 +162,7 @@
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-status">Status</label>
           <select id="edit-status" class="select w-full" bind:value={editForm.status}>
-            {#each ['draft','sent','paid','overdue'] as s}
+            {#each ['proposal','draft','sent','paid','overdue'] as s}
               <option value={s}>{s}</option>
             {/each}
           </select>

@@ -14,8 +14,12 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
   if (!res.ok) throw error(res.status, 'Failed to load deal');
   const deal = await res.json();
 
-  const activitiesRes = await fetch(`${API_URL}/crm/activities?entityType=deal&entityId=${params.id}&limit=50`, { headers });
+  const [activitiesRes, customersRes] = await Promise.all([
+    fetch(`${API_URL}/crm/activities?entityType=deal&entityId=${params.id}&limit=50`, { headers }),
+    fetch(`${API_URL}/finance/customers`, { headers }),
+  ]);
   const activities = activitiesRes.ok ? (await activitiesRes.json()).activities ?? [] : [];
+  const customers  = customersRes.ok  ? (await customersRes.json()).customers  ?? [] : [];
 
-  return { user: locals.user, deal, activities };
+  return { user: locals.user, deal, activities, customers };
 };
