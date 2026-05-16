@@ -13,5 +13,9 @@ declare module 'fastify' {
     ) => (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
     wsConnections: Map<string, Set<WebSocket>>;
     notify: (payload: NotificationPayload) => Promise<void>;
+    bus: {
+      fire:        (event: string, payload: Record<string, unknown>) => void;
+      reloadRules: () => Promise<void>;
+    };
   }
 }

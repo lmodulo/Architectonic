@@ -11,11 +11,12 @@ import websocket from '@fastify/websocket';
 import type { WebSocket } from 'ws';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
-import sessionPlugin from './plugins/session.js';
-import ensureIndexes from './plugins/indexes.js';
-import authPlugin    from './plugins/auth.js';
-import seedPlugin    from './plugins/seed.js';
-import { dispatch }  from './lib/notifications/dispatch.js';
+import sessionPlugin    from './plugins/session.js';
+import ensureIndexes    from './plugins/indexes.js';
+import authPlugin       from './plugins/auth.js';
+import seedPlugin       from './plugins/seed.js';
+import automationPlugin from './plugins/automation.js';
+import { dispatch }     from './lib/notifications/dispatch.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -56,10 +57,11 @@ await app.register(mongodb, {
   url: MONGO_URI
 });
 
-await app.register(sessionPlugin); // Must come after mongodb (shares MONGO_URI)
-await app.register(ensureIndexes); // Creates user/roles indexes on first boot
-await app.register(authPlugin);    // Decorates requireAuth + requirePermission
-await app.register(seedPlugin);    // Upserts default roles on every boot
+await app.register(sessionPlugin);    // Must come after mongodb (shares MONGO_URI)
+await app.register(ensureIndexes);    // Creates indexes on first boot
+await app.register(authPlugin);       // Decorates requireAuth + requirePermission
+await app.register(seedPlugin);       // Upserts default roles on every boot
+await app.register(automationPlugin); // Decorates app.bus; loads rules on onReady
 
 // WebSocket support — must register before autoload so WS routes work
 await app.register(websocket);

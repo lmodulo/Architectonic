@@ -10,7 +10,8 @@
     "commerce_products":    { "create": true,  "read": true,  "update": true,  "delete": true  },
     "commerce_orders":      { "create": true,  "read": true,  "update": true,  "delete": true  },
     "commerce_categories":  { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "events":               { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "events":               { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "automation":           { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "customer": {
     "users":               { "create": false, "read": false, "update": false, "delete": false },
@@ -23,7 +24,8 @@
     "commerce_products":   { "create": false, "read": true,  "update": false, "delete": false },
     "commerce_orders":     { "create": true,  "read": true,  "update": false, "delete": false },
     "commerce_categories": { "create": false, "read": true,  "update": false, "delete": false },
-    "events":              { "create": false, "read": true,  "update": false, "delete": false }
+    "events":              { "create": false, "read": true,  "update": false, "delete": false },
+    "automation":          { "create": false, "read": false, "update": false, "delete": false }
   },
   "viewer": {
     "users":                { "create": false, "read": true,  "update": false, "delete": false },
@@ -36,6 +38,7 @@
     "commerce_products":    { "create": false, "read": true,  "update": false, "delete": false },
     "commerce_orders":      { "create": false, "read": true,  "update": false, "delete": false },
     "commerce_categories":  { "create": false, "read": true,  "update": false, "delete": false },
-    "events":               { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "events":               { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "automation":           { "create": false, "read": false, "update": false, "delete": false }
   }
 }

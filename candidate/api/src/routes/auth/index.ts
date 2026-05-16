@@ -84,6 +84,10 @@ export default async function authRoutes(app: FastifyInstance) {
 
     logAudit(app.mongo.db!, { userId: req.session.userId, username, action: 'auth.register', ip: req.ip });
 
+    app.bus.fire('auth.user.registered', {
+      user: { id: result.insertedId.toString(), username, email: email.toLowerCase(), role, firstName: firstName ?? '', lastName: lastName ?? '' }
+    });
+
     reply.code(201);
     return { id: result.insertedId.toString(), username, email: email.toLowerCase(), role };
   });

@@ -84,6 +84,11 @@ export default async function eventsRoutes(app: FastifyInstance) {
       meta: { title: doc.title }, ip: req.ip,
     });
 
+    app.bus.fire('calendar.event.created', {
+      event: { id: result.insertedId.toString(), title: doc.title, startDate: doc.startDate.toISOString(), endDate: doc.endDate.toISOString(), singleDay: doc.singleDay },
+      createdBy: { id: req.session.userId!, username: req.session.username! }
+    });
+
     reply.status(201);
     return { id: result.insertedId.toString(), ...doc, createdBy: req.session.userId! };
   });

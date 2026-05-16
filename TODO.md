@@ -1,15 +1,11 @@
-Mobile navigation / responsive sidebar
+formalize organizations/workspaces before growth makes it painful
+
+CI/CD — GitHub Actions → Render; render.yaml already exists
 CSV import for bulk contacts/invoices
 Zoho/QuickBooks connectors
 Rate limiting
 S3 file storage (local volume is fine for two users)
 Audit log UI (data is collected; surfacing it can wait)
-
-CI/CD
-    GitHub Actions
-    container registry
-    staging/prod orchestration
-    centralized logs
 
 
 FUTURE FOCUS

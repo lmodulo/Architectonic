@@ -72,6 +72,11 @@ export default async function usersRoutes(app: FastifyInstance) {
       ip:         req.ip
     });
 
+    app.bus.fire('auth.user.invited', {
+      user: { id: result.insertedId.toString(), email: email.toLowerCase(), firstName, lastName, role, status: 'pending' },
+      invitedBy: { id: req.session.userId, username: req.session.username }
+    });
+
     reply.code(201);
     return {
       id:        result.insertedId.toString(),
@@ -127,6 +132,10 @@ export default async function usersRoutes(app: FastifyInstance) {
       username: req.body.username,
       action:   'auth.invite_accept',
       ip:       req.ip
+    });
+
+    app.bus.fire('auth.user.invite.accepted', {
+      user: { id: user._id.toString(), username: req.body.username, email: user.email, role: user.role }
     });
 
     reply.code(204).send();
