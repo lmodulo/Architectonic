@@ -41,6 +41,10 @@
       <p class="text-sm font-semibold">File Storage</p>
       <p class="text-sm opacity-60 leading-relaxed">Attachments on jobs and tasks, avatar uploads, and brand logo management — backed by MinIO (S3-compatible) or local disk.</p>
     </div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
+      <p class="text-sm font-semibold">Automation</p>
+      <p class="text-sm opacity-60 leading-relaxed">Event-driven rules that connect modules. Define trigger → condition → action workflows — send notifications, create messages, or schedule calendar events when platform events occur.</p>
+    </div>
   </div>
 
   <!-- Tech stack -->

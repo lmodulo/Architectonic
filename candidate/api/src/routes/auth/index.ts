@@ -63,26 +63,39 @@ export default async function authRoutes(app: FastifyInstance) {
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const now  = new Date();
-    const role = userCount === 0 ? 'admin' : 'customer';
-    const result    = await col.insertOne({
+    const role = userCount === 0 ? 'owner' : 'customer';
+    const result = await col.insertOne({
       username,
-      email: email.toLowerCase(),
+      email:       email.toLowerCase(),
       passwordHash,
-      firstName: firstName ?? '',
-      lastName:  lastName  ?? '',
-      role,
+      firstName:   firstName ?? '',
+      lastName:    lastName  ?? '',
       avatarUrl:   '',
       avatarColor: '',
-      createdAt: now,
-      updatedAt: now
+      createdAt:   now,
+      updatedAt:   now
     });
+
+    // Add to the default workspace with the resolved role
+    const db = app.mongo.db!;
+    const defaultWorkspace = await db.collection('workspaces').findOne({});
+    if (defaultWorkspace) {
+      await db.collection('workspace_members').insertOne({
+        workspaceId: defaultWorkspace._id,
+        userId:      result.insertedId,
+        role,
+        createdAt:   now,
+        updatedAt:   now,
+      });
+      req.session.workspaceId = defaultWorkspace._id.toString();
+    }
 
     req.session.userId   = result.insertedId.toString();
     req.session.username = username;
     req.session.email    = email.toLowerCase();
     await req.session.save();
 
-    logAudit(app.mongo.db!, { userId: req.session.userId, username, action: 'auth.register', ip: req.ip });
+    logAudit(db, { userId: req.session.userId, username, action: 'auth.register', ip: req.ip });
 
     app.bus.fire('auth.user.registered', {
       user: { id: result.insertedId.toString(), username, email: email.toLowerCase(), role, firstName: firstName ?? '', lastName: lastName ?? '' }
@@ -115,14 +128,21 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.unauthorized('Invalid credentials');
     }
 
-    req.session.userId   = user._id.toString();
-    req.session.username = user.username as string;
-    req.session.email    = user.email    as string;
+    // Resolve workspace membership for this user
+    const membership = await app.mongo.db!.collection('workspace_members').findOne(
+      { userId: user._id },
+      { projection: { workspaceId: 1, role: 1 } }
+    );
+
+    req.session.userId      = user._id.toString();
+    req.session.username    = user.username as string;
+    req.session.email       = user.email    as string;
+    req.session.workspaceId = membership?.workspaceId?.toString();
     await req.session.save();
 
     logAudit(app.mongo.db!, { userId: req.session.userId, username: req.session.username, action: 'auth.login', ip: req.ip });
 
-    return { id: user._id.toString(), username: user.username, email: user.email, role: user.role };
+    return { id: user._id.toString(), username: user.username, email: user.email, role: membership?.role ?? 'viewer' };
   });
 
   // POST /auth/logout
@@ -262,7 +282,7 @@ export default async function authRoutes(app: FastifyInstance) {
     reply.code(204).send();
   });
 
-  // GET /auth/me — returns user with role + live permissions
+  // GET /auth/me — returns user with workspace role + live permissions
   app.get('/me', { schema: { summary: 'Get authenticated user with role and permissions' } }, async (req, reply) => {
     if (!req.session.userId) return reply.unauthorized('Not authenticated');
 
@@ -273,7 +293,27 @@ export default async function authRoutes(app: FastifyInstance) {
     );
     if (!user) return reply.unauthorized('User not found');
 
-    const roleDoc     = await db.collection('roles').findOne({ name: user.role });
+    // Resolve workspace membership (active workspace or first found)
+    let membership: { role: string; workspaceId: unknown } | null = null;
+    if (req.session.workspaceId) {
+      membership = await db.collection('workspace_members').findOne({
+        workspaceId: new ObjectId(req.session.workspaceId),
+        userId:      new ObjectId(req.session.userId),
+      }, { projection: { role: 1, workspaceId: 1 } }) as typeof membership;
+    }
+    if (!membership) {
+      membership = await db.collection('workspace_members').findOne(
+        { userId: new ObjectId(req.session.userId) },
+        { projection: { role: 1, workspaceId: 1 } }
+      ) as typeof membership;
+      if (membership && !req.session.workspaceId) {
+        req.session.workspaceId = String(membership.workspaceId);
+        await req.session.save();
+      }
+    }
+
+    const role        = membership?.role ?? 'viewer';
+    const roleDoc     = await db.collection('roles').findOne({ name: role });
     const permissions = roleDoc?.permissions ?? {};
 
     return {
@@ -282,10 +322,11 @@ export default async function authRoutes(app: FastifyInstance) {
       email:       user.email,
       firstName:   user.firstName   ?? '',
       lastName:    user.lastName    ?? '',
-      role:        user.role        ?? 'viewer',
+      role,
       avatarUrl:   user.avatarUrl   ?? '',
       avatarColor: user.avatarColor ?? '',
       phone:       user.phone       ?? '',
+      workspaceId: req.session.workspaceId ?? null,
       permissions
     };
   });

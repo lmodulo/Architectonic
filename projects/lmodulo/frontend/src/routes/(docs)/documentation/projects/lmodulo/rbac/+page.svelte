@@ -7,7 +7,7 @@
   <div class="space-y-3">
     <h1 class="text-3xl font-bold">Roles & Permissions</h1>
     <p class="text-base opacity-70 leading-relaxed">
-      Access control in lmodulo is role-based. Every user has one role, and every role carries a set of permissions that define which resources the user can create, read, update, or delete. Permissions are enforced on both the API and the frontend.
+      Access control in lmodulo is role-based and workspace-scoped. Every user has a role <em>per workspace</em>, and every role carries a set of permissions that define which resources the user can create, read, update, or delete. The same user can hold different roles in different workspaces. Permissions are enforced on both the API and the frontend.
     </p>
   </div>
 
@@ -22,7 +22,7 @@
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <div class="flex items-center gap-2"><span class="badge badge-warning badge-sm">admin</span><span class="text-sm font-semibold">Admin</span></div>
-        <p class="text-sm opacity-60 leading-relaxed">Full access equivalent to owner. Can manage users, roles, settings, and all content. The first registered user receives this role.</p>
+        <p class="text-sm opacity-60 leading-relaxed">Full access within the workspace. Can manage users, roles, settings, and all content. Cannot delete workspaces (owner-only).</p>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <div class="flex items-center gap-2"><span class="badge badge-info badge-sm">lead</span><span class="text-sm font-semibold">Lead</span></div>
@@ -38,7 +38,7 @@
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <div class="flex items-center gap-2"><span class="badge badge-neutral badge-sm">customer</span><span class="text-sm font-semibold">Customer</span></div>
-        <p class="text-sm opacity-60 leading-relaxed">External user role. Has no access to agile, messaging, or admin features. Restricted to a minimal set of public-facing paths. New self-registered users default to this role.</p>
+        <p class="text-sm opacity-60 leading-relaxed">External user role. Has no access to agile, messaging, or admin features. Restricted to a minimal set of public-facing paths. New self-registered users default to this role. The workspace switcher is not shown to customers.</p>
       </div>
     </div>
   </div>
@@ -100,6 +100,10 @@
             <td class="font-semibold opacity-60">messages</td>
             <td>CRUD</td><td>CRUD</td><td>CRU</td><td>CRU</td><td>CRU</td><td>—</td>
           </tr>
+          <tr>
+            <td class="font-semibold opacity-60">workspaces</td>
+            <td>CRUD</td><td>CRU</td><td>R</td><td>R</td><td>R</td><td>—</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -117,7 +121,7 @@
 // Require a specific permission
 &#123; preHandler: app.requirePermission('agile_milestones', 'create') &#125;</code></pre>
     <p class="text-sm opacity-70 leading-relaxed">
-      If a user lacks the required permission, the API returns <code class="bg-base-300 px-1 rounded text-xs">403 Forbidden</code> before any database access occurs. Permissions are loaded from the database at login time and attached to the session — they are not re-checked on every request.
+      If a user lacks the required permission, the API returns <code class="bg-base-300 px-1 rounded text-xs">403 Forbidden</code> before any database access occurs. On each protected request, <code class="bg-base-300 px-1 rounded text-xs">requirePermission</code> reads the user's role from <code class="bg-base-300 px-1 rounded text-xs">workspace_members</code> for the active workspace, then looks up the role's permissions in the <code class="bg-base-300 px-1 rounded text-xs">roles</code> collection. This means permission changes take effect immediately — no re-login required.
     </p>
   </div>
 

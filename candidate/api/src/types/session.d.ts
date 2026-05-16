@@ -3,5 +3,6 @@ declare module 'fastify' {
     userId?: string;
     username?: string;
     email?: string;
+    workspaceId?: string;
   }
 }

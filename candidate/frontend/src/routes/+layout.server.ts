@@ -19,7 +19,9 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
-  const [unreadCount, chatEnabled, brandName, brandLogo] = await Promise.all([
+  interface WorkspaceEntry { id: string; name: string; slug: string; role: string; }
+
+  const [unreadCount, chatEnabled, brandName, brandLogo, userWorkspaces] = await Promise.all([
     fetch(`${API_URL}/messages/unread-count`, { headers })
       .then(r => r.ok ? r.json() : { count: 0 })
       .then((d: { count: number }) => d.count)
@@ -35,8 +37,15 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
     fetch(`${API_URL}/settings/brand.logo`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then((d: { value?: unknown } | null) => (d?.value as string) || null)
-      .catch(() => null)
+      .catch(() => null),
+    fetch(`${API_URL}/workspaces`, { headers })
+      .then(r => r.ok ? r.json() : [])
+      .catch(() => []) as Promise<WorkspaceEntry[]>,
   ]);
 
-  return { user: locals.user, unreadCount, chatEnabled, appName, brandName, brandLogo };
+  const currentWorkspace = userWorkspaces.find(ws => ws.id === locals.user?.workspaceId)
+    ?? userWorkspaces[0]
+    ?? null;
+
+  return { user: locals.user, unreadCount, chatEnabled, appName, brandName, brandLogo, userWorkspaces, currentWorkspace };
 };

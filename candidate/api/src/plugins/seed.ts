@@ -97,7 +97,7 @@ export default fp(async function seedPlugin(app: any) {
       );
     }
 
-    // ── Users ─────────────────────────────────────────────────────────
+    // ── Users (no role field — role lives in workspace_members) ───────
     const users = db.collection('users');
     for (const u of SEED_USERS) {
       const existing = await users.findOne({ username: u.username });
@@ -109,13 +109,46 @@ export default fp(async function seedPlugin(app: any) {
           passwordHash,
           firstName:   u.firstName,
           lastName:    u.lastName,
-          role:        u.role,
           avatarUrl:   '',
           avatarColor: '',
           createdAt:   now,
           updatedAt:   now,
         });
       }
+    }
+
+    // ── Default workspace ─────────────────────────────────────────────
+    const workspacesColl = db.collection('workspaces');
+    const ownerUser = await users.findOne({ username: 'jnicora' });
+    await workspacesColl.updateOne(
+      { slug: 'default' },
+      {
+        $setOnInsert: { slug: 'default', createdAt: now },
+        $set: {
+          name:        'Default',
+          description: 'Default workspace',
+          logoUrl:     '',
+          ownerId:     ownerUser?._id ?? null,
+          updatedAt:   now,
+        }
+      },
+      { upsert: true }
+    );
+    const defaultWorkspace = await workspacesColl.findOne({ slug: 'default' });
+
+    // ── Workspace members ─────────────────────────────────────────────
+    const membersColl = db.collection('workspace_members');
+    for (const u of SEED_USERS) {
+      const user = await users.findOne({ username: u.username });
+      if (!user || !defaultWorkspace) continue;
+      await membersColl.updateOne(
+        { workspaceId: defaultWorkspace._id, userId: user._id },
+        {
+          $setOnInsert: { workspaceId: defaultWorkspace._id, userId: user._id, createdAt: now },
+          $set:         { role: u.role, updatedAt: now }
+        },
+        { upsert: true }
+      );
     }
 
     // ── Settings ──────────────────────────────────────────────────────
@@ -131,7 +164,7 @@ export default fp(async function seedPlugin(app: any) {
       );
     }
 
-    // ── Teams ─────────────────────────────────────────────────────────
+    // ── Teams (scoped to default workspace) ───────────────────────────
     const allUsers = await db.collection('users')
       .find({ username: { $in: ['jnicora', 'knicora', 'owner', 'admin', 'alex', 'jordan', 'sam', 'riley'] } })
       .toArray();
@@ -151,9 +184,9 @@ export default fp(async function seedPlugin(app: any) {
       },
     ];
     for (const t of SEED_TEAMS) {
-      const existing = await teamsColl.findOne({ name: t.name });
+      const existing = await teamsColl.findOne({ workspaceId: defaultWorkspace?._id, name: t.name });
       if (!existing) {
-        await teamsColl.insertOne({ ...t, createdAt: now, updatedAt: now });
+        await teamsColl.insertOne({ ...t, workspaceId: defaultWorkspace?._id, createdAt: now, updatedAt: now });
       }
     }
   });

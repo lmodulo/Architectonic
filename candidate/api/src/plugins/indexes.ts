@@ -59,8 +59,15 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('events').createIndex({ endDate: 1 });
     await db.collection('events').createIndex({ title: 'text' });
 
+    // workspaces
+    await db.collection('workspaces').createIndex({ slug: 1 }, { unique: true });
+
+    // workspace_members
+    await db.collection('workspace_members').createIndex({ workspaceId: 1, userId: 1 }, { unique: true });
+    await db.collection('workspace_members').createIndex({ userId: 1 });
+
     // teams
-    await db.collection('teams').createIndex({ name: 1 }, { unique: true });
+    await db.collection('teams').createIndex({ workspaceId: 1, name: 1 }, { unique: true });
     await db.collection('teams').createIndex({ members: 1 });
 
     // automation

@@ -11,7 +11,7 @@ const SALT_ROUNDS = 12;
 
 export default async function usersRoutes(app: FastifyInstance) {
 
-  // POST /users/invite — admin invites a new user via email
+  // POST /users/invite — admin invites a new user to the current workspace
   app.post<{ Body: { email: string; role: string; firstName?: string; lastName?: string } }>('/invite', {
     preHandler: app.requirePermission('users', 'create'),
     schema: {
@@ -28,10 +28,11 @@ export default async function usersRoutes(app: FastifyInstance) {
       }
     }
   }, async (req, reply) => {
-    const col = app.mongo.db!.collection(COLLECTION);
+    const db  = app.mongo.db!;
+    const col = db.collection(COLLECTION);
     const { email, role, firstName = '', lastName = '' } = req.body;
 
-    const roleDoc = await app.mongo.db!.collection('roles').findOne({ name: role });
+    const roleDoc = await db.collection('roles').findOne({ name: role });
     if (!roleDoc) return reply.notFound(`Role '${role}' does not exist`);
 
     const conflict = await checkDuplicateUser(col, { email });
@@ -45,7 +46,6 @@ export default async function usersRoutes(app: FastifyInstance) {
       email:              email.toLowerCase(),
       firstName,
       lastName,
-      role,
       status:             'pending',
       inviteToken:        hash,
       inviteTokenExpires: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
@@ -55,6 +55,17 @@ export default async function usersRoutes(app: FastifyInstance) {
       updatedAt:          now
     });
 
+    // Assign role in the current workspace
+    if (req.session.workspaceId) {
+      await db.collection('workspace_members').insertOne({
+        workspaceId: new ObjectId(req.session.workspaceId),
+        userId:      result.insertedId,
+        role,
+        createdAt:   now,
+        updatedAt:   now,
+      });
+    }
+
     const appUrl    = process.env.APP_URL ?? 'http://localhost:3000';
     const inviteUrl = `${appUrl}/accept-invite?token=${rawToken}`;
     const inviter   = req.session.username ?? undefined;
@@ -63,7 +74,7 @@ export default async function usersRoutes(app: FastifyInstance) {
       console.error('[email] Failed to send invite email:', err)
     );
 
-    logAudit(app.mongo.db!, {
+    logAudit(db, {
       userId:     req.session.userId!,
       username:   req.session.username!,
       action:     'user.invite',
@@ -134,43 +145,66 @@ export default async function usersRoutes(app: FastifyInstance) {
       ip:       req.ip
     });
 
+    // Look up workspace membership for the role name
+    const membership = await app.mongo.db!.collection('workspace_members').findOne(
+      { userId: user._id },
+      { projection: { role: 1 } }
+    );
+
     app.bus.fire('auth.user.invite.accepted', {
-      user: { id: user._id.toString(), username: req.body.username, email: user.email, role: user.role }
+      user: { id: user._id.toString(), username: req.body.username, email: user.email, role: membership?.role ?? 'customer' }
     });
 
     reply.code(204).send();
   });
 
-  // GET /users
+  // GET /users — list non-customer members of the current workspace
   app.get('/', {
     preHandler: app.requirePermission('users', 'read'),
-    schema: { summary: 'List all users' }
-  }, async (_req, _reply) => {
-    const users = await app.mongo.db!.collection(COLLECTION)
-      .find({ role: { $ne: 'customer' } }, { projection: { passwordHash: 0 } })
+    schema: { summary: 'List workspace members' }
+  }, async (req) => {
+    const db = app.mongo.db!;
+    if (!req.session.workspaceId) return [];
+
+    const memberships = await db.collection('workspace_members')
+      .find({
+        workspaceId: new ObjectId(req.session.workspaceId),
+        role:        { $ne: 'customer' },
+      })
       .toArray();
-    return users.map(u => ({
-      id:          u._id.toString(),
-      username:    u.username    ?? '',
-      email:       u.email,
-      firstName:   u.firstName   ?? '',
-      lastName:    u.lastName    ?? '',
-      role:        u.role        ?? 'viewer',
-      status:      u.status      ?? 'active',
-      avatarUrl:   u.avatarUrl   ?? '',
-      avatarColor: u.avatarColor ?? '',
-      phone:       u.phone       ?? '',
-      createdAt:   u.createdAt
-    }));
+
+    if (memberships.length === 0) return [];
+
+    const userIds = memberships.map(m => m.userId as ObjectId);
+    const users   = await db.collection(COLLECTION)
+      .find({ _id: { $in: userIds } }, { projection: { passwordHash: 0 } })
+      .toArray();
+
+    return users.map(u => {
+      const m = memberships.find(m => (m.userId as ObjectId).toString() === u._id.toString());
+      return {
+        id:          u._id.toString(),
+        username:    u.username    ?? '',
+        email:       u.email,
+        firstName:   u.firstName   ?? '',
+        lastName:    u.lastName    ?? '',
+        role:        m?.role       ?? 'viewer',
+        status:      u.status      ?? 'active',
+        avatarUrl:   u.avatarUrl   ?? '',
+        avatarColor: u.avatarColor ?? '',
+        phone:       u.phone       ?? '',
+        createdAt:   u.createdAt
+      };
+    });
   });
 
-  // GET /users/:id — single user card data (auth required, no permission gate)
+  // GET /users/:id — single user with their workspace role
   app.get<{ Params: { id: string } }>('/:id', {
     preHandler: app.requireAuth,
     schema: { summary: 'Get a single user with team memberships' }
   }, async (req, reply) => {
     const db = app.mongo.db!;
-    let oid: InstanceType<typeof ObjectId>;
+    let oid: ObjectId;
     try { oid = new ObjectId(req.params.id); }
     catch { return reply.badRequest('Invalid user ID'); }
 
@@ -180,8 +214,18 @@ export default async function usersRoutes(app: FastifyInstance) {
     );
     if (!user) return reply.notFound('User not found');
 
+    // Role from current workspace membership
+    let role = 'viewer';
+    if (req.session.workspaceId) {
+      const membership = await db.collection('workspace_members').findOne(
+        { workspaceId: new ObjectId(req.session.workspaceId), userId: oid },
+        { projection: { role: 1 } }
+      );
+      if (membership) role = membership.role as string;
+    }
+
     const teams = await db.collection('teams')
-      .find({ members: oid })
+      .find({ members: oid, ...(req.session.workspaceId ? { workspaceId: new ObjectId(req.session.workspaceId) } : {}) })
       .project({ name: 1 })
       .toArray();
 
@@ -191,7 +235,7 @@ export default async function usersRoutes(app: FastifyInstance) {
       email:       user.email,
       firstName:   user.firstName   ?? '',
       lastName:    user.lastName    ?? '',
-      role:        user.role        ?? 'viewer',
+      role,
       status:      user.status      ?? 'active',
       avatarUrl:   user.avatarUrl   ?? '',
       avatarColor: user.avatarColor ?? '',
@@ -232,31 +276,41 @@ export default async function usersRoutes(app: FastifyInstance) {
     );
     if (result.matchedCount === 0) return reply.notFound('User not found');
 
-    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'user.update', resourceId: req.params.id, ip: req.ip });
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'user.update', resourceId: req.params.id, ip: req.ip });
 
     return { updated: true };
   });
 
-  // DELETE /users/:id — remove a user
+  // DELETE /users/:id — remove user from the current workspace
   app.delete<{ Params: { id: string } }>('/:id', {
     preHandler: app.requirePermission('users', 'delete'),
-    schema: { summary: 'Delete a user' }
+    schema: { summary: 'Remove a user from the current workspace' }
   }, async (req, reply) => {
-    const result = await app.mongo.db!.collection(COLLECTION).deleteOne(
-      { _id: new ObjectId(req.params.id) }
-    );
-    if (result.deletedCount === 0) return reply.notFound('User not found');
+    const db = app.mongo.db!;
+    if (!req.session.workspaceId) return reply.badRequest('No active workspace');
 
-    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'user.delete', resourceId: req.params.id, ip: req.ip });
+    const result = await db.collection('workspace_members').deleteOne({
+      workspaceId: new ObjectId(req.session.workspaceId),
+      userId:      new ObjectId(req.params.id),
+    });
+    if (result.deletedCount === 0) return reply.notFound('User not found in this workspace');
+
+    // Remove from workspace teams too
+    await db.collection('teams').updateMany(
+      { workspaceId: new ObjectId(req.session.workspaceId) },
+      { $pull: { members: new ObjectId(req.params.id) } as any }
+    );
+
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'user.delete', resourceId: req.params.id, ip: req.ip });
 
     return { deleted: true };
   });
 
-  // PATCH /users/:id/role — assign a role to a user
+  // PATCH /users/:id/role — change a user's role in the current workspace
   app.patch<{ Params: { id: string }; Body: { role: string } }>('/:id/role', {
     preHandler: app.requirePermission('users', 'update'),
     schema: {
-      summary: 'Assign a role to a user',
+      summary: "Change a user's workspace role",
       body: {
         type: 'object',
         required: ['role'],
@@ -272,13 +326,15 @@ export default async function usersRoutes(app: FastifyInstance) {
     const roleDoc = await db.collection('roles').findOne({ name: role });
     if (!roleDoc) return reply.notFound(`Role '${role}' does not exist`);
 
-    const result = await db.collection(COLLECTION).updateOne(
-      { _id: new ObjectId(req.params.id) },
+    if (!req.session.workspaceId) return reply.badRequest('No active workspace');
+
+    const result = await db.collection('workspace_members').updateOne(
+      { workspaceId: new ObjectId(req.session.workspaceId), userId: new ObjectId(req.params.id) },
       { $set: { role, updatedAt: new Date() } }
     );
-    if (result.matchedCount === 0) return reply.notFound('User not found');
+    if (result.matchedCount === 0) return reply.notFound('User not found in this workspace');
 
-    logAudit(app.mongo.db!, { userId: req.session.userId!, username: req.session.username!, action: 'user.role_change', resourceId: req.params.id, meta: { role }, ip: req.ip });
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'user.role_change', resourceId: req.params.id, meta: { role }, ip: req.ip });
 
     return { updated: true, role };
   });

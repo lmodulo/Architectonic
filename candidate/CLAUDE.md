@@ -102,7 +102,8 @@ Rendered after the closing `</div>` of the `h-screen overflow-hidden` shell in `
 ## Features Included in Scaffold
 - **Auth:** Login, logout, session management, profile edit; dark-themed `AuthShell` for all auth pages; `(public)/` route group
 - **Avatar:** Photo upload with `AvatarCropper` (canvas crop + zoom); colour picker fallback; `Avatar` component (initials or photo); `POST/DELETE /auth/avatar`
-- **RBAC:** Roles: owner, admin, lead, contributor, viewer, customer; `requirePermission` preHandler; `hasPermission()` frontend helper; Manage Users + Roles pages
+- **Workspaces:** Multi-tenant isolation; `workspaces` + `workspace_members` collections; session-stored `workspaceId`; `WorkspaceSwitcher` component (hidden for customers and single-workspace users); `/settings/workspaces` (General + Members tabs); `POST /workspaces/:id/switch`
+- **RBAC:** Roles per workspace (stored in `workspace_members`, not on user document): owner, admin, lead, contributor, viewer, customer; `requirePermission` preHandler; `hasPermission()` frontend helper; Manage Users + Roles pages
 - **Messaging:** Full email-style in-app messaging — threads, replies, inbox/sent/archive, unread badge, Tiptap rich-text editor
 - **Dashboard:** Placeholder with charts (pure SVG)
 - **Chat assistant:** Ollama-backed, fixed bottom-right panel

@@ -34,6 +34,7 @@ export default async function eventsRoutes(app: FastifyInstance) {
     const { title } = req.query as { title?: string };
 
     const filter: Record<string, unknown> = {};
+    if (req.session.workspaceId) filter.workspaceId = new ObjectId(req.session.workspaceId);
     if (title?.trim()) filter.title = { $regex: title.trim(), $options: 'i' };
 
     const events = await db.collection(EVENTS)
@@ -66,14 +67,15 @@ export default async function eventsRoutes(app: FastifyInstance) {
     const now   = new Date();
 
     const doc = {
-      title:     (title as string).trim(),
-      content:   (content as string) ?? '',
-      startDate: start,
-      endDate:   end,
-      singleDay: Boolean(singleDay),
-      createdBy: new ObjectId(req.session.userId!),
-      createdAt: now,
-      updatedAt: now,
+      title:       (title as string).trim(),
+      content:     (content as string) ?? '',
+      startDate:   start,
+      endDate:     end,
+      singleDay:   Boolean(singleDay),
+      createdBy:   new ObjectId(req.session.userId!),
+      workspaceId: req.session.workspaceId ? new ObjectId(req.session.workspaceId) : undefined,
+      createdAt:   now,
+      updatedAt:   now,
     };
 
     const result = await db.collection(EVENTS).insertOne(doc);

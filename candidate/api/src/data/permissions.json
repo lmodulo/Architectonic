@@ -1,4 +1,19 @@
 {
+  "owner": {
+    "users":                { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "dashboard":            { "create": false, "read": true,  "update": false, "delete": false },
+    "roles":                { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "teams":                { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "messages":             { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "audit":                { "create": false, "read": true,  "update": false, "delete": false },
+    "settings":             { "create": false, "read": true,  "update": true,  "delete": false },
+    "commerce_products":    { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "commerce_orders":      { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "commerce_categories":  { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "events":               { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "automation":           { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "workspaces":           { "create": true,  "read": true,  "update": true,  "delete": true  }
+  },
   "admin": {
     "users":                { "create": true,  "read": true,  "update": true,  "delete": true  },
     "dashboard":            { "create": false, "read": true,  "update": false, "delete": false },
@@ -11,21 +26,38 @@
     "commerce_orders":      { "create": true,  "read": true,  "update": true,  "delete": true  },
     "commerce_categories":  { "create": true,  "read": true,  "update": true,  "delete": true  },
     "events":               { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "automation":           { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "automation":           { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "workspaces":           { "create": true,  "read": true,  "update": true,  "delete": false }
   },
-  "customer": {
-    "users":               { "create": false, "read": false, "update": false, "delete": false },
-    "dashboard":           { "create": false, "read": false, "update": false, "delete": false },
-    "roles":               { "create": false, "read": false, "update": false, "delete": false },
-    "teams":               { "create": false, "read": false, "update": false, "delete": false },
-    "messages":            { "create": false, "read": false, "update": false, "delete": false },
-    "audit":               { "create": false, "read": false, "update": false, "delete": false },
-    "settings":            { "create": false, "read": false, "update": false, "delete": false },
-    "commerce_products":   { "create": false, "read": true,  "update": false, "delete": false },
-    "commerce_orders":     { "create": true,  "read": true,  "update": false, "delete": false },
-    "commerce_categories": { "create": false, "read": true,  "update": false, "delete": false },
-    "events":              { "create": false, "read": true,  "update": false, "delete": false },
-    "automation":          { "create": false, "read": false, "update": false, "delete": false }
+  "lead": {
+    "users":                { "create": false, "read": true,  "update": false, "delete": false },
+    "dashboard":            { "create": false, "read": true,  "update": false, "delete": false },
+    "roles":                { "create": false, "read": true,  "update": false, "delete": false },
+    "teams":                { "create": false, "read": true,  "update": true,  "delete": false },
+    "messages":             { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "audit":                { "create": false, "read": false, "update": false, "delete": false },
+    "settings":             { "create": false, "read": false, "update": false, "delete": false },
+    "commerce_products":    { "create": false, "read": true,  "update": true,  "delete": false },
+    "commerce_orders":      { "create": false, "read": true,  "update": true,  "delete": false },
+    "commerce_categories":  { "create": false, "read": true,  "update": false, "delete": false },
+    "events":               { "create": true,  "read": true,  "update": true,  "delete": false },
+    "automation":           { "create": false, "read": true,  "update": false, "delete": false },
+    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false }
+  },
+  "contributor": {
+    "users":                { "create": false, "read": true,  "update": false, "delete": false },
+    "dashboard":            { "create": false, "read": true,  "update": false, "delete": false },
+    "roles":                { "create": false, "read": false, "update": false, "delete": false },
+    "teams":                { "create": false, "read": true,  "update": false, "delete": false },
+    "messages":             { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "audit":                { "create": false, "read": false, "update": false, "delete": false },
+    "settings":             { "create": false, "read": false, "update": false, "delete": false },
+    "commerce_products":    { "create": false, "read": true,  "update": false, "delete": false },
+    "commerce_orders":      { "create": false, "read": true,  "update": false, "delete": false },
+    "commerce_categories":  { "create": false, "read": true,  "update": false, "delete": false },
+    "events":               { "create": true,  "read": true,  "update": true,  "delete": false },
+    "automation":           { "create": false, "read": false, "update": false, "delete": false },
+    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false }
   },
   "viewer": {
     "users":                { "create": false, "read": true,  "update": false, "delete": false },
@@ -39,6 +71,22 @@
     "commerce_orders":      { "create": false, "read": true,  "update": false, "delete": false },
     "commerce_categories":  { "create": false, "read": true,  "update": false, "delete": false },
     "events":               { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "automation":           { "create": false, "read": false, "update": false, "delete": false }
+    "automation":           { "create": false, "read": false, "update": false, "delete": false },
+    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false }
+  },
+  "customer": {
+    "users":               { "create": false, "read": false, "update": false, "delete": false },
+    "dashboard":           { "create": false, "read": false, "update": false, "delete": false },
+    "roles":               { "create": false, "read": false, "update": false, "delete": false },
+    "teams":               { "create": false, "read": false, "update": false, "delete": false },
+    "messages":            { "create": false, "read": false, "update": false, "delete": false },
+    "audit":               { "create": false, "read": false, "update": false, "delete": false },
+    "settings":            { "create": false, "read": false, "update": false, "delete": false },
+    "commerce_products":   { "create": false, "read": true,  "update": false, "delete": false },
+    "commerce_orders":     { "create": true,  "read": true,  "update": false, "delete": false },
+    "commerce_categories": { "create": false, "read": true,  "update": false, "delete": false },
+    "events":              { "create": false, "read": true,  "update": false, "delete": false },
+    "automation":          { "create": false, "read": false, "update": false, "delete": false },
+    "workspaces":          { "create": false, "read": false, "update": false, "delete": false }
   }
 }

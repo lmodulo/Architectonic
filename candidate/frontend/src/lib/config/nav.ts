@@ -1,4 +1,4 @@
-import { House, Bell, Mail, Zap } from 'lucide-svelte';
+import { House, Bell, Mail, Zap, Building2 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
 export interface NavItem {
@@ -31,5 +31,6 @@ export const navItems: NavEntry[] = [
   { label: 'Dashboard',     href: '/dashboard',           icon: House },
   { label: 'Messages',      href: '/messages',            icon: Mail,  matchPrefix: true },
   { label: 'Notifications', href: '/notifications',       icon: Bell  },
-  { label: 'Automation',    href: '/settings/automation', icon: Zap,   permission: { resource: 'automation', action: 'read' } },
+  { label: 'Automation',    href: '/settings/automation', icon: Zap,        permission: { resource: 'automation', action: 'read' } },
+  { label: 'Workspace',     href: '/settings/workspaces', icon: Building2,  permission: { resource: 'workspaces', action: 'read' } },
 ];

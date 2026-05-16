@@ -9,12 +9,16 @@ interface TeamBody {
 
 export default async function teamsRoutes(app: FastifyInstance) {
 
-  // GET /teams — list all teams with member count
+  // GET /teams — list all teams in the current workspace
   app.get('/', {
     preHandler: app.requirePermission('teams', 'read'),
-    schema: { summary: 'List all teams' }
-  }, async (_req, _reply) => {
-    const teams = await app.mongo.db!.collection('teams').find({}).sort({ name: 1 }).toArray();
+    schema: { summary: 'List teams in the current workspace' }
+  }, async (req) => {
+    if (!req.session.workspaceId) return [];
+    const teams = await app.mongo.db!.collection('teams')
+      .find({ workspaceId: new ObjectId(req.session.workspaceId) })
+      .sort({ name: 1 })
+      .toArray();
     return teams.map(t => ({
       id:          t._id.toString(),
       name:        t.name,
@@ -24,14 +28,15 @@ export default async function teamsRoutes(app: FastifyInstance) {
     }));
   });
 
-  // GET /teams/mine — teams the current user belongs to (auth only, no permission gate)
+  // GET /teams/mine — teams the current user belongs to in the active workspace
   app.get('/mine', {
     preHandler: app.requireAuth,
-    schema: { summary: 'Get teams for the current user' }
-  }, async (req, _reply) => {
+    schema: { summary: 'Get teams for the current user in the active workspace' }
+  }, async (req) => {
+    if (!req.session.workspaceId) return [];
     const userId = new ObjectId(req.session.userId!);
     const teams  = await app.mongo.db!.collection('teams')
-      .find({ members: userId })
+      .find({ members: userId, workspaceId: new ObjectId(req.session.workspaceId) })
       .sort({ name: 1 })
       .toArray();
     return teams.map(t => ({
@@ -42,7 +47,7 @@ export default async function teamsRoutes(app: FastifyInstance) {
     }));
   });
 
-  // POST /teams — create a team
+  // POST /teams — create a team in the current workspace
   app.post<{ Body: TeamBody }>('/', {
     preHandler: app.requirePermission('teams', 'create'),
     schema: {
@@ -58,15 +63,18 @@ export default async function teamsRoutes(app: FastifyInstance) {
     }
   }, async (req, reply) => {
     const { name, description = '' } = req.body;
-    const col = app.mongo.db!.collection('teams');
+    const db  = app.mongo.db!;
+    const col = db.collection('teams');
+    if (!req.session.workspaceId) return reply.badRequest('No active workspace');
 
-    const existing = await col.findOne({ name });
-    if (existing) return reply.conflict('Team name already exists');
+    const workspaceId = new ObjectId(req.session.workspaceId);
+    const existing    = await col.findOne({ workspaceId, name });
+    if (existing) return reply.conflict('Team name already exists in this workspace');
 
     const now    = new Date();
-    const result = await col.insertOne({ name, description, members: [], createdAt: now, updatedAt: now });
+    const result = await col.insertOne({ name, description, members: [], workspaceId, createdAt: now, updatedAt: now });
 
-    logAudit(app.mongo.db!, {
+    logAudit(db, {
       userId:     req.session.userId!,
       username:   req.session.username!,
       action:     'team.create',
@@ -84,13 +92,14 @@ export default async function teamsRoutes(app: FastifyInstance) {
     preHandler: app.requirePermission('teams', 'read'),
     schema: { summary: 'Get a team by ID with member details' }
   }, async (req, reply) => {
-    const team = await app.mongo.db!.collection('teams').findOne({ _id: new ObjectId(req.params.id) });
+    const db   = app.mongo.db!;
+    const team = await db.collection('teams').findOne({ _id: new ObjectId(req.params.id) });
     if (!team) return reply.notFound('Team not found');
 
     const rawIds: (string | ObjectId)[] = team.members ?? [];
     const memberIds = rawIds.map(id => new ObjectId(id));
     const members   = memberIds.length > 0
-      ? await app.mongo.db!.collection('users')
+      ? await db.collection('users')
           .find(
             { _id: { $in: memberIds } },
             { projection: { passwordHash: 0, resetToken: 0, resetTokenExpires: 0 } }
@@ -132,8 +141,12 @@ export default async function teamsRoutes(app: FastifyInstance) {
     const db  = app.mongo.db!;
     const col = db.collection('teams');
 
-    if (req.body.name) {
-      const conflict = await col.findOne({ name: req.body.name, _id: { $ne: new ObjectId(req.params.id) } });
+    if (req.body.name && req.session.workspaceId) {
+      const conflict = await col.findOne({
+        name:        req.body.name,
+        workspaceId: new ObjectId(req.session.workspaceId),
+        _id:         { $ne: new ObjectId(req.params.id) }
+      });
       if (conflict) return reply.conflict('Team name already exists');
     }
 

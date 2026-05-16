@@ -14,17 +14,17 @@
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">User Management — <code class="text-base font-mono">/user-management</code></h2>
     <p class="text-sm opacity-70 leading-relaxed">
-      Accessible to users with the <code class="bg-base-300 px-1 rounded text-xs">users.read</code> permission. Shows all non-customer users in a table. From here, admins can:
+      Accessible to users with the <code class="bg-base-300 px-1 rounded text-xs">users.read</code> permission. Shows all non-customer members of the <em>current workspace</em>. From here, admins can:
     </p>
     <ul class="space-y-2 text-sm leading-relaxed list-disc list-inside opacity-80">
-      <li><strong>Create users</strong> — add team members directly without requiring them to self-register. New users created this way default to the <code class="bg-base-300 px-1 rounded text-xs">viewer</code> role.</li>
+      <li><strong>Invite users</strong> — send an email invitation to a new or existing user. The invited user is added to the current workspace with the specified role.</li>
       <li><strong>Edit profiles</strong> — update any user's name, username, or email address.</li>
-      <li><strong>Change roles</strong> — promote or demote users by assigning a different role. Role changes take effect on the user's next login.</li>
-      <li><strong>Delete users</strong> — permanently remove a user and their session. Content they created (comments, tasks) remains in the database.</li>
+      <li><strong>Change roles</strong> — promote or demote a user's role within the current workspace. The change updates the <code class="bg-base-300 px-1 rounded text-xs">workspace_members</code> record and takes effect immediately on the next permission check — no re-login required.</li>
+      <li><strong>Remove users</strong> — removes the user from the current workspace (deletes their <code class="bg-base-300 px-1 rounded text-xs">workspace_members</code> record). The user account is not deleted; they may still exist in other workspaces.</li>
     </ul>
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 text-sm">
-      <p class="font-semibold">Note on Role Changes</p>
-      <p class="opacity-70 leading-relaxed mt-1">Permissions are loaded at login time and attached to the session. A user whose role is changed mid-session will continue operating with their old permissions until they log out and back in.</p>
+      <p class="font-semibold">Workspace scope</p>
+      <p class="opacity-70 leading-relaxed mt-1">The user list only shows members of the currently active workspace. Switch workspaces via the sidebar switcher to manage a different workspace's membership.</p>
     </div>
   </div>
 

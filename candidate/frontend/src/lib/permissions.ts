@@ -10,6 +10,7 @@ export interface UserWithPermissions {
   avatarUrl?:   string;
   avatarColor?: string;
   phone?:       string;
+  workspaceId:  string | null;
   permissions:  Record<string, Record<Action, boolean>>;
 }
 

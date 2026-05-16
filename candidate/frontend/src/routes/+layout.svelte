@@ -5,6 +5,7 @@
     Settings, ChevronDown, HelpCircle
   } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
+  import WorkspaceSwitcher from '$lib/components/WorkspaceSwitcher.svelte';
   import { navItems, isNavGroup, isSeparator } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
@@ -115,6 +116,13 @@
           <X class="size-4" />
         </button>
       </div>
+
+      <!-- Workspace switcher (non-customers only) -->
+      {#if data.user?.role !== 'customer'}
+        <div class="border-b border-base-300 px-2 py-2">
+          <WorkspaceSwitcher workspaces={data.userWorkspaces ?? []} current={data.currentWorkspace ?? null} />
+        </div>
+      {/if}
 
       <!-- Nav items -->
       <nav class="flex-1 overflow-y-auto p-3">

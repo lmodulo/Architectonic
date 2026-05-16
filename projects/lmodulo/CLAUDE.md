@@ -101,7 +101,8 @@ Rendered after the closing `</div>` of the `h-screen overflow-hidden` shell in `
 
 ## Features Included in Scaffold
 - **Auth:** Login, logout, session management, profile edit
-- **RBAC:** Roles + permissions, Manage Users page (admin), Roles page
+- **Workspaces:** Multi-tenant isolation; `workspaces` + `workspace_members` collections; session-stored `workspaceId`; `WorkspaceSwitcher` in sidebar; `/settings/workspaces` (General + Members tabs)
+- **RBAC:** Roles per workspace (stored in `workspace_members`): owner, admin, lead, contributor, viewer, customer; `requirePermission` preHandler; `hasPermission()` frontend helper; Manage Users + Roles pages
 - **Messaging:** Full email-style in-app messaging — threads, replies, inbox/sent/archive, unread badge, Tiptap rich-text editor
 - **Dashboard:** Placeholder with charts (pure SVG)
 - **Chat assistant:** Ollama-backed, fixed bottom-right panel
