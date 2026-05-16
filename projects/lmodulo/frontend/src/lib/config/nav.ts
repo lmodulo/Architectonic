@@ -1,5 +1,5 @@
 import {
-  House, Bell, Mail, CalendarRange, Milestone, Handshake,
+  House, CalendarRange, Milestone, Handshake,
   Receipt, LayoutDashboard, CreditCard, Ticket,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
@@ -38,9 +38,6 @@ export const navItems: NavEntry[] = [
   { label: 'Nexus',         href: '/crm',             icon: Handshake,       matchPrefix: true, permission: { resource: 'crm_contacts',      action: 'read' } },
   { label: 'Folio',         href: '/folio',           icon: Receipt,         matchPrefix: true, permission: { resource: 'finance_invoices',   action: 'read' } },
   { label: 'Calendar',      href: '/calendar-events', icon: CalendarRange,   matchPrefix: true },
-  { separator: true },
-  { label: 'Messages',      href: '/messages',        icon: Mail,            matchPrefix: true },
-  { label: 'Notifications', href: '/notifications',   icon: Bell },
 
   // Customer-only items
   { label: 'Client Portal', href: '/client-portal',         icon: LayoutDashboard, customerOnly: true },

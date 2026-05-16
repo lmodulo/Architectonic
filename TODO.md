@@ -1,8 +1,3 @@
-global search (top nav bar. move Messages and Notifications items right aligned icons only with tooltip descriptions)
-standard search result layout. deep/standard links when available
-    free text across all objects
-    *note: will use AI behind the scenes in the future
-
 CI/CD — GitHub Actions → Render; render.yaml already exists
 CSV import for bulk contacts/invoices
 Zoho/QuickBooks connectors

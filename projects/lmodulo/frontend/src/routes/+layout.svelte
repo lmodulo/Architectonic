@@ -2,9 +2,11 @@
   import '../app.css';
   import {
     Menu as MenuIcon, LogOut, X, User, Users,
-    Settings, ChevronRight, ChevronDown, HelpCircle
+    Settings, ChevronRight, ChevronDown, HelpCircle,
+    Mail, Bell
   } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
+  import GlobalSearch from '$lib/components/GlobalSearch.svelte';
   import { navItems, isNavGroup, isSeparator } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { beforeNavigate, afterNavigate } from '$app/navigation';
@@ -121,7 +123,7 @@
     ">
 
       <!-- Brand -->
-      <div class="flex items-center gap-2 px-4 h-16 shrink-0 border-b border-base-300">
+      <div class="flex items-center gap-2 px-4 h-16 shrink-0">
         <a href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'} class="flex items-center gap-2 flex-1 min-w-0 no-underline text-inherit" onclick={closeSidebar}>
           <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
         </a>
@@ -136,7 +138,7 @@
       </div>
 
       <!-- Nav items -->
-      <nav class="flex-1 overflow-y-auto p-3">
+      <nav class="flex-1 overflow-y-auto p-3 border-none">
         <ul class="flex flex-col gap-0.5">
           {#each navItems.filter(entry => {
             if (!data.user) return false;
@@ -185,35 +187,14 @@
             {:else}
               {#if !entry.permission || hasPermission(data.user, entry.permission.resource, entry.permission.action)}
                 {@const Icon = entry.icon}
-                {@const isMessages = entry.href === '/messages'}
-                {@const isNotifications = entry.href === '/notifications'}
-                {@const notifCount = getUnreadCount()}
                 <li>
                   <a
                     href={entry.href}
                     class="flex items-center gap-3 p-3 rounded {(entry.matchPrefix ? page.url.pathname.startsWith(entry.href) : page.url.pathname === entry.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                     onclick={closeSidebar}
                   >
-                    <span class="relative shrink-0">
-                      <Icon class="size-4" />
-                      {#if isMessages && unreadCount > 0}
-                        <span class="bg-error absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      {/if}
-                      {#if isNotifications && notifCount > 0}
-                        <span class="bg-error absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
-                          {notifCount > 99 ? '99+' : notifCount}
-                        </span>
-                      {/if}
-                    </span>
+                    <Icon class="size-4 shrink-0" />
                     <span class="text-sm flex-1">{entry.label}</span>
-                    {#if isMessages && unreadCount > 0}
-                      <span class="badge badge-error badge-xs">{unreadCount > 99 ? '99+' : unreadCount}</span>
-                    {/if}
-                    {#if isNotifications && notifCount > 0}
-                      <span class="badge badge-error badge-xs">{notifCount > 99 ? '99+' : notifCount}</span>
-                    {/if}
                   </a>
                 </li>
               {/if}
@@ -302,19 +283,39 @@
     <!-- Main content column -->
     <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
 
-      <!-- Mobile top bar -->
-      <header class="flex items-center gap-3 px-4 h-14 shrink-0 bg-base-200 border-b border-base-300 lg:hidden">
+      <!-- Top bar (always visible) -->
+      <header class="flex items-center gap-3 px-4 h-16 shrink-0 bg-base-200">
         <button
           type="button"
-          class="btn btn-ghost btn-sm btn-square"
+          class="btn btn-ghost btn-sm btn-square lg:hidden"
           onclick={() => (sidebarOpen = !sidebarOpen)}
           aria-label="Toggle navigation"
         >
           <MenuIcon class="size-5" />
         </button>
-        <a href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'} class="flex items-center gap-2 flex-1 no-underline text-inherit">
-          <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
-        </a>
+        <GlobalSearch />
+        <div class="flex items-center gap-1 ml-auto">
+          <div class="tooltip tooltip-bottom" data-tip="Messages">
+            <a href="/messages" class="btn btn-ghost btn-sm btn-square relative">
+              <Mail class="size-4" />
+              {#if unreadCount > 0}
+                <span class="bg-error absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              {/if}
+            </a>
+          </div>
+          <div class="tooltip tooltip-bottom" data-tip="Notifications">
+            <a href="/notifications" class="btn btn-ghost btn-sm btn-square relative">
+              <Bell class="size-4" />
+              {#if getUnreadCount() > 0}
+                <span class="bg-error absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
+                  {getUnreadCount() > 99 ? '99+' : getUnreadCount()}
+                </span>
+              {/if}
+            </a>
+          </div>
+        </div>
       </header>
 
       <!-- Page content -->
