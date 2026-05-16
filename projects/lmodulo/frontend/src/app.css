@@ -37,6 +37,11 @@ body {
   font-family: var(--font-sans);
 }
 
+.select {
+  padding-inline-end: 2.5rem;
+  min-width: max-content;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
