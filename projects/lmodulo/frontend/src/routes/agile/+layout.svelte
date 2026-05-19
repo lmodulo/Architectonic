@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, ClipboardList, BarChart2, ListChecks } from 'lucide-svelte';
+  import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, ClipboardList, BarChart2, ListChecks, Clock } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
 
@@ -14,6 +14,7 @@
     { href: '/agile/calendar', label: 'Calendar',  icon: CalendarDays  },
     { href: '/agile/reports',   label: 'Reports',   icon: BarChart2     },
     { href: '/agile/my-tasks',  label: 'My Tasks',  icon: ListChecks    },
+    { href: '/agile/time',      label: 'Time',      icon: Clock         },
   ];
 
   const overviewPrefixes = ['/agile/milestones', '/agile/sprints', '/agile/jobs', '/agile/tasks'];

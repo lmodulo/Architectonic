@@ -166,6 +166,13 @@ export default fp(async function seedPlugin(app: any) {
       return dt;
     };
 
+    // ISO date string at day offset (for time_entries.date)
+    const ds = (offsetDays: number): string => {
+      const dt = new Date(now);
+      dt.setDate(dt.getDate() + offsetDays);
+      return dt.toISOString().slice(0, 10);
+    };
+
     // ── Calendar events (refreshed on every startup) ──────────────────
     const calendarEvents = db.collection('calendar_events');
     await calendarEvents.deleteMany({});
@@ -1039,6 +1046,146 @@ export default fp(async function seedPlugin(app: any) {
       { jobId: j6_1, text: 'For the velocity chart, I need to see per-sprint actual vs estimated hours side by side — not just task count. That\'s what the stakeholders will ask about in the Q2 review.', createdBy: joeId,  updatedBy: null, createdAt: d(-2), updatedAt: d(-2) },
       { jobId: j6_1, text: 'Noted — the sprint aggregation endpoint already tracks estimateHours and actualHours at the task level. We\'ll roll those up per sprint for the chart data.', createdBy: alexId, updatedBy: null, createdAt: d(-1), updatedAt: d(-1) },
     ]);
+
+    // ── Time entries ─────────────────────────────────────────────────
+    const timeEntries = db.collection('time_entries');
+    if (!await timeEntries.countDocuments()) {
+      const taskDocs = await tasks.find({
+        title: {
+          $in: [
+            'Sprint schema & sprintNumber auto-counter',
+            'Sprint CRUD with capacity tracking',
+            'Sprint–milestone date constraint enforcement',
+            'Job schema with dependency graph support',
+            'Job CRUD with blocked-by validation',
+            'Task CRUD with effort tracking',
+            'Cascading completion rule enforcement',
+            'Add agile_* keys to permissions.json',
+            'Wire requirePermission to all agile routes',
+            'MilestoneCard component',
+            'Role-aware KPI dashboard',
+            'New Milestone modal + status/priority filters',
+            'Sprint header stats bar',
+            'Job list with inline task expansion',
+            'Task slide-out detail panel',
+            'Code review: sprint UI components',
+            'Kanban column layout by status',
+            'Drag-and-drop cards between columns',
+            'Fix Overview tab active state for child routes',
+          ],
+        },
+      }).toArray();
+      const tid = (title: string) => taskDocs.find(tk => tk.title === title)!._id;
+      const te = (
+        userId: ObjectId,
+        taskId: ObjectId,
+        jobId: ObjectId,
+        sprintId: ObjectId,
+        milestoneId: ObjectId,
+        date: string,
+        durationMinutes: number,
+        billable = true,
+        note = '',
+      ) => ({
+        userId, taskId, jobId, sprintId, milestoneId,
+        date, durationMinutes, billable, note,
+        timerRunning: false,
+        timerStartedAt: null,
+        createdAt: new Date(`${date}T09:00:00.000Z`),
+        updatedAt: new Date(`${date}T09:00:00.000Z`),
+      });
+
+      await timeEntries.insertMany([
+        // ── Sprint 3 — last 2 weeks (d-42 → d-28) ────────────────────
+        // alex: Job schema (j3_3) → Permissions keys (j3_4)
+        te(alexId, tid('Job schema with dependency graph support'), j3_3, s3Id, m2Id, ds(-42), 180),
+        te(alexId, tid('Job schema with dependency graph support'), j3_3, s3Id, m2Id, ds(-41), 120),
+        te(alexId, tid('Job schema with dependency graph support'), j3_3, s3Id, m2Id, ds(-40), 180),
+        te(alexId, tid('Job schema with dependency graph support'), j3_3, s3Id, m2Id, ds(-39), 120),
+        te(alexId, tid('Add agile_* keys to permissions.json'),    j3_4, s3Id, m2Id, ds(-33),  60),
+        te(alexId, tid('Add agile_* keys to permissions.json'),    j3_4, s3Id, m2Id, ds(-32),  60),
+
+        // jordan: Sprint CRUD (j3_2) → Job CRUD (j3_3)
+        te(jordanId, tid('Sprint CRUD with capacity tracking'),  j3_2, s3Id, m2Id, ds(-42), 180),
+        te(jordanId, tid('Sprint CRUD with capacity tracking'),  j3_2, s3Id, m2Id, ds(-40), 180),
+        te(jordanId, tid('Job CRUD with blocked-by validation'), j3_3, s3Id, m2Id, ds(-41), 180),
+        te(jordanId, tid('Job CRUD with blocked-by validation'), j3_3, s3Id, m2Id, ds(-39), 120),
+        te(jordanId, tid('Job CRUD with blocked-by validation'), j3_3, s3Id, m2Id, ds(-38), 180),
+        te(jordanId, tid('Job CRUD with blocked-by validation'), j3_3, s3Id, m2Id, ds(-36), 180),
+        te(jordanId, tid('Job CRUD with blocked-by validation'), j3_3, s3Id, m2Id, ds(-34), 180),
+        te(jordanId, tid('Job CRUD with blocked-by validation'), j3_3, s3Id, m2Id, ds(-33), 120),
+
+        // sam: Sprint constraints (j3_2) → Task CRUD (j3_3)
+        te(samId, tid('Sprint–milestone date constraint enforcement'), j3_2, s3Id, m2Id, ds(-42), 120),
+        te(samId, tid('Sprint–milestone date constraint enforcement'), j3_2, s3Id, m2Id, ds(-40), 120),
+        te(samId, tid('Task CRUD with effort tracking'), j3_3, s3Id, m2Id, ds(-41), 120),
+        te(samId, tid('Task CRUD with effort tracking'), j3_3, s3Id, m2Id, ds(-39), 180),
+        te(samId, tid('Task CRUD with effort tracking'), j3_3, s3Id, m2Id, ds(-37), 180),
+        te(samId, tid('Task CRUD with effort tracking'), j3_3, s3Id, m2Id, ds(-35), 120),
+        te(samId, tid('Task CRUD with effort tracking'), j3_3, s3Id, m2Id, ds(-32), 180),
+        te(samId, tid('Task CRUD with effort tracking'), j3_3, s3Id, m2Id, ds(-30), 120),
+
+        // riley: Sprint schema (j3_2) → Cascading rules (j3_3) → Permissions wiring (j3_4)
+        te(rileyId, tid('Sprint schema & sprintNumber auto-counter'),  j3_2, s3Id, m2Id, ds(-42), 120),
+        te(rileyId, tid('Sprint schema & sprintNumber auto-counter'),  j3_2, s3Id, m2Id, ds(-41), 120),
+        te(rileyId, tid('Cascading completion rule enforcement'),      j3_3, s3Id, m2Id, ds(-40),  60),
+        te(rileyId, tid('Cascading completion rule enforcement'),      j3_3, s3Id, m2Id, ds(-38), 180),
+        te(rileyId, tid('Cascading completion rule enforcement'),      j3_3, s3Id, m2Id, ds(-36), 180),
+        te(rileyId, tid('Cascading completion rule enforcement'),      j3_3, s3Id, m2Id, ds(-34), 180),
+        te(rileyId, tid('Cascading completion rule enforcement'),      j3_3, s3Id, m2Id, ds(-31), 180),
+        te(rileyId, tid('Wire requirePermission to all agile routes'), j3_4, s3Id, m2Id, ds(-32), 120),
+        te(rileyId, tid('Wire requirePermission to all agile routes'), j3_4, s3Id, m2Id, ds(-30), 120),
+        te(rileyId, tid('Wire requirePermission to all agile routes'), j3_4, s3Id, m2Id, ds(-29), 120),
+        te(rileyId, tid('Wire requirePermission to all agile routes'), j3_4, s3Id, m2Id, ds(-28), 120),
+
+        // ── Sprint 4 — full sprint (d-28 → d-1) ──────────────────────
+        // sam: MilestoneCard (j4_1) → KPI dashboard (j4_1) → Sprint header (j4_2) → Slide-out (j4_2)
+        te(samId, tid('MilestoneCard component'),        j4_1, s4Id, m2Id, ds(-28), 180),
+        te(samId, tid('MilestoneCard component'),        j4_1, s4Id, m2Id, ds(-27), 180),
+        te(samId, tid('MilestoneCard component'),        j4_1, s4Id, m2Id, ds(-26), 120),
+        te(samId, tid('Role-aware KPI dashboard'),       j4_1, s4Id, m2Id, ds(-25), 180),
+        te(samId, tid('Role-aware KPI dashboard'),       j4_1, s4Id, m2Id, ds(-24), 180),
+        te(samId, tid('Role-aware KPI dashboard'),       j4_1, s4Id, m2Id, ds(-22), 180),
+        te(samId, tid('Role-aware KPI dashboard'),       j4_1, s4Id, m2Id, ds(-21), 180),
+        te(samId, tid('Sprint header stats bar'),        j4_2, s4Id, m2Id, ds(-18), 180),
+        te(samId, tid('Sprint header stats bar'),        j4_2, s4Id, m2Id, ds(-17),  60),
+        te(samId, tid('Task slide-out detail panel'),    j4_2, s4Id, m2Id, ds(-14), 180),
+        te(samId, tid('Task slide-out detail panel'),    j4_2, s4Id, m2Id, ds(-13), 120),
+        te(samId, tid('Task slide-out detail panel'),    j4_2, s4Id, m2Id, ds(-11), 120),
+        te(samId, tid('Task slide-out detail panel'),    j4_2, s4Id, m2Id, ds(-10),  60),
+        te(samId, tid('Task slide-out detail panel'),    j4_2, s4Id, m2Id, ds( -8),  60),
+
+        // riley: New Milestone modal (j4_1) → Kanban columns (j4_3) → Nav bug (j4_5)
+        te(rileyId, tid('New Milestone modal + status/priority filters'), j4_1, s4Id, m2Id, ds(-26), 180),
+        te(rileyId, tid('New Milestone modal + status/priority filters'), j4_1, s4Id, m2Id, ds(-25), 180),
+        te(rileyId, tid('New Milestone modal + status/priority filters'), j4_1, s4Id, m2Id, ds(-24), 180),
+        te(rileyId, tid('New Milestone modal + status/priority filters'), j4_1, s4Id, m2Id, ds(-22),  60),
+        te(rileyId, tid('New Milestone modal + status/priority filters'), j4_1, s4Id, m2Id, ds(-21), 120),
+        te(rileyId, tid('New Milestone modal + status/priority filters'), j4_1, s4Id, m2Id, ds(-20),  60),
+        te(rileyId, tid('Kanban column layout by status'),                j4_3, s4Id, m2Id, ds(-21), 180),
+        te(rileyId, tid('Kanban column layout by status'),                j4_3, s4Id, m2Id, ds(-20), 180),
+        te(rileyId, tid('Kanban column layout by status'),                j4_3, s4Id, m2Id, ds(-19), 180),
+        te(rileyId, tid('Kanban column layout by status'),                j4_3, s4Id, m2Id, ds(-17), 120),
+        te(rileyId, tid('Kanban column layout by status'),                j4_3, s4Id, m2Id, ds(-16), 120),
+        te(rileyId, tid('Kanban column layout by status'),                j4_3, s4Id, m2Id, ds(-15),  60),
+        te(rileyId, tid('Fix Overview tab active state for child routes'), j4_5, s4Id, m2Id, ds(-5), 60),
+
+        // jordan: Job list (j4_2) → Drag-and-drop spike (j4_3)
+        te(jordanId, tid('Job list with inline task expansion'),   j4_2, s4Id, m2Id, ds(-17), 180),
+        te(jordanId, tid('Job list with inline task expansion'),   j4_2, s4Id, m2Id, ds(-16), 180),
+        te(jordanId, tid('Job list with inline task expansion'),   j4_2, s4Id, m2Id, ds(-15), 180),
+        te(jordanId, tid('Job list with inline task expansion'),   j4_2, s4Id, m2Id, ds(-14), 180),
+        te(jordanId, tid('Job list with inline task expansion'),   j4_2, s4Id, m2Id, ds(-13), 180),
+        te(jordanId, tid('Drag-and-drop cards between columns'),   j4_3, s4Id, m2Id, ds(-20), 180),
+        te(jordanId, tid('Drag-and-drop cards between columns'),   j4_3, s4Id, m2Id, ds(-19), 180),
+        te(jordanId, tid('Drag-and-drop cards between columns'),   j4_3, s4Id, m2Id, ds(-18), 180),
+        te(jordanId, tid('Drag-and-drop cards between columns'),   j4_3, s4Id, m2Id, ds(-17), 180, true, 'Switching to pointer-events — Safari HTML5 drag API incompatible'),
+
+        // alex: Code review (j4_2)
+        te(alexId, tid('Code review: sprint UI components'), j4_2, s4Id, m2Id, ds(-2), 60),
+        te(alexId, tid('Code review: sprint UI components'), j4_2, s4Id, m2Id, ds(-1), 60),
+      ]);
+    }
 
     } // end agile snapshot
 
