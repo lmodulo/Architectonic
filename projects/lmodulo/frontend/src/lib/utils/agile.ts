@@ -101,6 +101,8 @@ export interface AgileMilestone {
   status: string;
   startDate?: string;
   endDate?: string;
+  clientId?: string | null;
+  clientName?: string | null;
   calendarEventIds?: string[];
   attachments?: AgileAttachment[];
   completionPct?: number;

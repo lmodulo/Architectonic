@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
 import { storage } from '../../lib/storage.js';
+import { milestoneRollupPipeline } from '../../lib/agile.js';
 
 const COL = 'agile_milestones';
 
@@ -9,66 +10,16 @@ const VALID_STATUS   = ['Planning', 'Active', 'On Hold', 'Completed', 'Cancelled
 const VALID_PRIORITY = ['Low', 'Medium', 'High', 'Critical'] as const;
 
 function mapDoc(d: Record<string, unknown>) {
-  return { ...d, id: (d._id as ObjectId).toString(), _id: undefined };
+  return {
+    ...d,
+    id:       (d._id as ObjectId).toString(),
+    _id:      undefined,
+    clientId: d.clientId ? (d.clientId as ObjectId).toString() : null,
+  };
 }
 
 function parseOid(id: string, app: FastifyInstance): ObjectId {
   try { return new ObjectId(id); } catch { throw app.httpErrors.badRequest('Invalid ID'); }
-}
-
-// Aggregation pipeline that computes rollup stats from tasks via jobs and sprints
-function rollupPipeline(matchStage: Record<string, unknown>) {
-  return [
-    { $match: matchStage },
-    {
-      $lookup: {
-        from: 'agile_sprints', localField: '_id', foreignField: 'milestoneId', as: 'sprints'
-      }
-    },
-    {
-      $lookup: {
-        from: 'agile_jobs',
-        let: { sprintIds: '$sprints._id' },
-        pipeline: [{ $match: { $expr: { $in: ['$sprintId', '$$sprintIds'] } } }],
-        as: 'jobs'
-      }
-    },
-    {
-      $lookup: {
-        from: 'agile_tasks',
-        let: { jobIds: '$jobs._id' },
-        pipeline: [{ $match: { $expr: { $in: ['$jobId', '$$jobIds'] } } }],
-        as: 'tasks'
-      }
-    },
-    {
-      $addFields: {
-        totalEstimatedHours: { $sum: '$tasks.estimateHours' },
-        totalActualHours:    { $sum: '$tasks.actualHours'   },
-        completionPct: {
-          $cond: [
-            { $gt: [{ $sum: '$tasks.estimateHours' }, 0] },
-            {
-              $multiply: [
-                {
-                  $divide: [
-                    { $sum: { $cond: [{ $eq: ['$tasks.status', 'Done'] }, '$tasks.estimateHours', 0] } },
-                    { $sum: '$tasks.estimateHours' }
-                  ]
-                },
-                100
-              ]
-            },
-            0
-          ]
-        },
-        sprintCount: { $size: '$sprints' },
-        jobCount:    { $size: '$jobs'    },
-        taskCount:   { $size: '$tasks'   },
-      }
-    },
-    { $project: { sprints: 0, jobs: 0, tasks: 0 } }
-  ];
 }
 
 export default async function milestonesRoutes(app: FastifyInstance) {
@@ -76,15 +27,16 @@ export default async function milestonesRoutes(app: FastifyInstance) {
   // GET /agile/milestones — list with rollup stats
   app.get('/', { preHandler: app.requirePermission('agile_milestones', 'read') }, async (req) => {
     const db = app.mongo.db!;
-    const { status, priority, search, limit = '50', skip = '0' } =
+    const { status, priority, search, clientId, limit = '50', skip = '0' } =
       req.query as Record<string, string>;
 
     const match: Record<string, unknown> = {};
     if (status)   match.status   = status;
     if (priority) match.priority = priority;
     if (search?.trim()) match.$text = { $search: search.trim() };
+    if (clientId) match.clientId = parseOid(clientId, app);
 
-    const pipeline = rollupPipeline(match);
+    const pipeline = milestoneRollupPipeline(match);
     const [docs, total] = await Promise.all([
       db.collection(COL).aggregate([
         ...pipeline,
@@ -105,7 +57,7 @@ export default async function milestonesRoutes(app: FastifyInstance) {
     const {
       title, description = '', strategicGoal = '',
       priority = 'Medium', status = 'Planning',
-      startDate, endDate,
+      startDate, endDate, clientId,
     } = req.body as Record<string, unknown>;
 
     if (!title || !(title as string).trim()) throw app.httpErrors.badRequest('Title is required');
@@ -118,6 +70,13 @@ export default async function milestonesRoutes(app: FastifyInstance) {
     const end   = endDate   ? new Date(endDate as string)   : null;
     if (start && end && end < start) throw app.httpErrors.badRequest('endDate must be >= startDate');
 
+    let clientOid: ObjectId | null = null;
+    if (clientId) {
+      clientOid = parseOid(clientId as string, app);
+      const company = await db.collection('crm_companies').findOne({ _id: clientOid }, { projection: { _id: 1 } });
+      if (!company) throw app.httpErrors.badRequest('Client company not found');
+    }
+
     const doc = {
       title:           (title as string).trim(),
       description:     String(description),
@@ -126,6 +85,7 @@ export default async function milestonesRoutes(app: FastifyInstance) {
       status:          String(status),
       startDate:       start,
       endDate:         end,
+      clientId:        clientOid,
       calendarEventIds: [] as ObjectId[],
       createdBy:       new ObjectId(req.session.userId!),
       updatedBy:       null as ObjectId | null,
@@ -150,7 +110,7 @@ export default async function milestonesRoutes(app: FastifyInstance) {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
 
-    const [doc] = await db.collection(COL).aggregate(rollupPipeline({ _id: oid })).toArray();
+    const [doc] = await db.collection(COL).aggregate(milestoneRollupPipeline({ _id: oid })).toArray();
     if (!doc) return reply.notFound('Milestone not found');
     return mapDoc(doc as Record<string, unknown>);
   });
@@ -160,7 +120,7 @@ export default async function milestonesRoutes(app: FastifyInstance) {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
-      title, description, strategicGoal, priority, status, startDate, endDate,
+      title, description, strategicGoal, priority, status, startDate, endDate, clientId,
     } = req.body as Record<string, unknown>;
 
     if (status !== undefined && !VALID_STATUS.includes(status as typeof VALID_STATUS[number]))
@@ -191,6 +151,16 @@ export default async function milestonesRoutes(app: FastifyInstance) {
     if (status        !== undefined) $set.status        = String(status);
     if (startDate     !== undefined) $set.startDate     = new Date(startDate as string);
     if (endDate       !== undefined) $set.endDate       = new Date(endDate as string);
+    if (clientId !== undefined) {
+      if (clientId === null) {
+        $set.clientId = null;
+      } else {
+        const clientOid = parseOid(clientId as string, app);
+        const company = await db.collection('crm_companies').findOne({ _id: clientOid }, { projection: { _id: 1 } });
+        if (!company) throw app.httpErrors.badRequest('Client company not found');
+        $set.clientId = clientOid;
+      }
+    }
 
     // Validate date range after collecting both
     const finalStart = ($set.startDate as Date) ?? (await db.collection(COL).findOne({ _id: oid }))?.startDate;

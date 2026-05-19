@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, Layers, Calendar, Clock, CheckCircle, Trash2 } from 'lucide-svelte';
+  import { Plus, X, Layers, Calendar, Clock, CheckCircle, Trash2, Building2, Pencil } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -76,6 +76,45 @@
     finally { editSaving = false; }
   }
 
+  // ── Client linking ────────────────────────────────────────────────
+  let clientEditing   = $state(false);
+  let clientQuery     = $state('');
+  let clientResults   = $state<{ id: string; name: string }[]>([]);
+  let clientTimer     = $state<ReturnType<typeof setTimeout> | null>(null);
+  let clientSaving    = $state(false);
+
+  function onClientInput() {
+    if (clientTimer) clearTimeout(clientTimer);
+    if (!clientQuery.trim()) { clientResults = []; return; }
+    clientTimer = setTimeout(async () => {
+      const res = await fetch(`/api/crm/companies?search=${encodeURIComponent(clientQuery)}&limit=8`).catch(() => null);
+      if (res?.ok) {
+        const d = await res.json();
+        clientResults = (d.companies ?? []).map((c: any) => ({ id: c.id, name: c.name }));
+      }
+    }, 250);
+  }
+
+  async function linkClient(c: { id: string; name: string } | null) {
+    clientSaving = true;
+    try {
+      const res = await fetch(`/api/agile/milestones/${milestone.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ clientId: c ? c.id : null }),
+      });
+      if (res.ok) {
+        milestone = { ...milestone, clientId: c?.id ?? null, clientName: c?.name ?? null };
+      }
+    } catch { /* silent */ }
+    finally {
+      clientSaving = false;
+      clientEditing = false;
+      clientQuery = '';
+      clientResults = [];
+    }
+  }
+
   // ── Delete milestone ───────────────────────────────────────────────
   let deleteConfirm = $state(false);
   let deleting      = $state(false);
@@ -122,6 +161,42 @@
         <span class="badge text-xs {LEVEL.milestone.badge}">{LEVEL.milestone.label}</span>
         <span class="badge text-xs {PRIORITY_COLOR[milestone.priority] ?? 'badge-ghost'}">{milestone.priority}</span>
         <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'badge-ghost'}">{milestone.status}</span>
+        {#if milestone.clientId}
+          <a href="/crm/companies/{milestone.clientId}" class="badge badge-outline text-xs gap-1 hover:badge-primary transition-colors">
+            <Building2 class="size-3" />{milestone.clientName}
+          </a>
+        {/if}
+        {#if hasPermission(data.user, 'agile_milestones', 'update')}
+          {#if clientEditing}
+            <div class="relative flex items-center gap-1">
+              <input
+                type="text"
+                class="input input-xs w-40"
+                placeholder="Search companies…"
+                bind:value={clientQuery}
+                oninput={onClientInput}
+                autocomplete="off"
+              />
+              <button type="button" class="btn btn-ghost btn-xs" onclick={() => { clientEditing = false; clientQuery = ''; clientResults = []; }}><X class="size-3" /></button>
+              {#if milestone.clientId}
+                <button type="button" class="btn btn-ghost btn-xs text-error" disabled={clientSaving} onclick={() => linkClient(null)}>Unlink</button>
+              {/if}
+              {#if clientResults.length > 0}
+                <ul class="absolute top-8 left-0 z-50 w-56 bg-base-100 border border-base-300 rounded-box shadow-lg overflow-hidden">
+                  {#each clientResults as c (c.id)}
+                    <li>
+                      <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-base-200 transition-colors" onclick={() => linkClient(c)}>{c.name}</button>
+                    </li>
+                  {/each}
+                </ul>
+              {/if}
+            </div>
+          {:else}
+            <button type="button" class="btn btn-ghost btn-xs gap-1" onclick={() => (clientEditing = true)}>
+              <Pencil class="size-3" />{milestone.clientId ? 'Change client' : 'Link client'}
+            </button>
+          {/if}
+        {/if}
       </div>
       <div class="flex items-center gap-2 shrink-0">
         {#if hasPermission(data.user, 'agile_milestones', 'update')}

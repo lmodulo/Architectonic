@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Milestone, Calendar, Layers } from 'lucide-svelte';
+  import { Milestone, Calendar, Layers, Building2 } from 'lucide-svelte';
   import { STATUS_COLOR, PRIORITY_COLOR, fmtDateRange, completionColor } from '$lib/utils/agile';
   import type { AgileMilestone } from '$lib/utils/agile';
 
@@ -31,6 +31,13 @@
   <!-- Goal -->
   {#if milestone.strategicGoal}
     <p class="text-xs opacity-60 line-clamp-2">{milestone.strategicGoal}</p>
+  {/if}
+
+  <!-- Client badge -->
+  {#if milestone.clientName}
+    <div class="flex items-center gap-1 text-xs opacity-60">
+      <Building2 class="size-3" /><span>{milestone.clientName}</span>
+    </div>
   {/if}
 
   <!-- Progress bar -->

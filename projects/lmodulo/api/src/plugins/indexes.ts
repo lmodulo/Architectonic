@@ -63,6 +63,7 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('agile_milestones').createIndex({ status: 1, createdAt: -1 });
     await db.collection('agile_milestones').createIndex({ createdBy: 1 });
     await db.collection('agile_milestones').createIndex({ startDate: 1, endDate: 1 });
+    await db.collection('agile_milestones').createIndex({ clientId: 1 });
     await db.collection('agile_milestones').createIndex({ title: 'text', strategicGoal: 'text' });
 
     // agile_sprints

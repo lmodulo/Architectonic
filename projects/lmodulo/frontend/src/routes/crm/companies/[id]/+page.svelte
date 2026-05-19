@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Pencil, X, Check } from 'lucide-svelte';
+  import { Pencil, X, Check, Milestone } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -8,6 +8,10 @@
     CONTACT_STATUS_COLOR, STAGE_COLOR, fmtCurrency, fmtDate,
     type CrmCompany, type CrmContact, type CrmDeal, type CrmActivity,
   } from '$lib/utils/crm';
+  import {
+    STATUS_COLOR, PRIORITY_COLOR, fmtDateRange, fmtEffort,
+    type AgileMilestone,
+  } from '$lib/utils/agile';
   import Breadcrumb from '$lib/components/crm/Breadcrumb.svelte';
   import HealthScoreBar from '$lib/components/crm/HealthScoreBar.svelte';
   import ActivityItem from '$lib/components/crm/ActivityItem.svelte';
@@ -18,6 +22,13 @@
   let contacts   = $state<CrmContact[]>((data.contacts ?? []) as CrmContact[]);
   let deals      = $state<CrmDeal[]>((data.deals ?? []) as CrmDeal[]);
   let activities = $state<CrmActivity[]>((data.activities ?? []) as CrmActivity[]);
+  let milestones = $state<AgileMilestone[]>((data.milestones ?? []) as AgileMilestone[]);
+
+  const clientEstHours    = $derived(data.clientTotalEstimatedHours ?? 0);
+  const clientActHours    = $derived(data.clientTotalActualHours    ?? 0);
+  const clientBillableMins= $derived(data.clientBillableMinutes     ?? 0);
+
+  let activeTab = $state<'contacts' | 'deals' | 'activities' | 'projects'>('contacts');
 
   let editing   = $state(false);
   let saving    = $state(false);
@@ -152,64 +163,133 @@
     </div>
   {/if}
 
-  <div class="grid lg:grid-cols-2 gap-6">
-    <!-- Contacts list -->
-    <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
-      <h3 class="text-sm font-semibold mb-2">Contacts ({contacts.length})</h3>
-      {#if contacts.length === 0}
-        <p class="text-xs opacity-40">No contacts yet.</p>
-      {:else}
-        {#each contacts as contact (contact.id)}
-          <button
-            type="button"
-            class="w-full text-left flex items-center justify-between gap-2 py-1.5 text-sm border-b border-base-300/50 last:border-0 hover:opacity-80"
-            onclick={() => goto(`/crm/contacts/${contact.id}`)}
-          >
-            <span class="font-medium">{contact.firstName} {contact.lastName}</span>
-            <div class="flex items-center gap-2">
-              <span class="badge badge-xs badge-ghost">{contact.role}</span>
-              <span class="badge badge-xs {CONTACT_STATUS_COLOR[contact.status] ?? 'badge-ghost'}">{contact.status}</span>
-            </div>
-          </button>
-        {/each}
-      {/if}
-    </section>
+  <!-- Tabs -->
+  <div class="space-y-4">
+    <div class="flex gap-1 border-b border-base-200">
+      <button
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'contacts' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
+        onclick={() => activeTab = 'contacts'}
+      >Contacts ({contacts.length})</button>
+      <button
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'deals' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
+        onclick={() => activeTab = 'deals'}
+      >Deals ({deals.length})</button>
+      <button
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'activities' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
+        onclick={() => activeTab = 'activities'}
+      >Activities ({activities.length})</button>
+      <button
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'projects' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
+        onclick={() => activeTab = 'projects'}
+      >Projects ({milestones.length})</button>
+    </div>
 
-    <!-- Deals list -->
-    <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
-      <h3 class="text-sm font-semibold mb-2">Deals ({deals.length})</h3>
-      {#if deals.length === 0}
-        <p class="text-xs opacity-40">No deals yet.</p>
-      {:else}
-        {#each deals as deal (deal.id)}
-          <button
-            type="button"
-            class="w-full text-left flex items-center justify-between gap-2 py-1.5 text-sm border-b border-base-300/50 last:border-0 hover:opacity-80"
-            onclick={() => goto(`/crm/deals/${deal.id}`)}
-          >
-            <span class="font-medium truncate">{deal.title}</span>
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="badge badge-xs {STAGE_COLOR[deal.stage] ?? 'badge-ghost'}">{deal.stage}</span>
-              <span class="text-xs text-success">{fmtCurrency(deal.value)}</span>
-            </div>
-          </button>
-        {/each}
-      {/if}
-    </section>
-  </div>
+    {#if activeTab === 'contacts'}
+      <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
+        {#if contacts.length === 0}
+          <p class="text-xs opacity-40">No contacts yet.</p>
+        {:else}
+          {#each contacts as contact (contact.id)}
+            <button
+              type="button"
+              class="w-full text-left flex items-center justify-between gap-2 py-1.5 text-sm border-b border-base-300/50 last:border-0 hover:opacity-80"
+              onclick={() => goto(`/crm/contacts/${contact.id}`)}
+            >
+              <span class="font-medium">{contact.firstName} {contact.lastName}</span>
+              <div class="flex items-center gap-2">
+                <span class="badge badge-xs badge-ghost">{contact.role}</span>
+                <span class="badge badge-xs {CONTACT_STATUS_COLOR[contact.status] ?? 'badge-ghost'}">{contact.status}</span>
+              </div>
+            </button>
+          {/each}
+        {/if}
+      </section>
 
-  <!-- Activities -->
-  <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-1">
-    <h3 class="text-sm font-semibold mb-2">Activities ({activities.length})</h3>
-    {#if activities.length === 0}
-      <p class="text-xs opacity-40">No activities logged.</p>
-    {:else}
-      {#each activities as activity (activity.id)}
-        <ActivityItem
-          {activity}
-          onComplete={hasPermission(data.user, 'crm_activities', 'update') ? markActivityComplete : undefined}
-        />
-      {/each}
+    {:else if activeTab === 'deals'}
+      <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
+        {#if deals.length === 0}
+          <p class="text-xs opacity-40">No deals yet.</p>
+        {:else}
+          {#each deals as deal (deal.id)}
+            <button
+              type="button"
+              class="w-full text-left flex items-center justify-between gap-2 py-1.5 text-sm border-b border-base-300/50 last:border-0 hover:opacity-80"
+              onclick={() => goto(`/crm/deals/${deal.id}`)}
+            >
+              <span class="font-medium truncate">{deal.title}</span>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="badge badge-xs {STAGE_COLOR[deal.stage] ?? 'badge-ghost'}">{deal.stage}</span>
+                <span class="text-xs text-success">{fmtCurrency(deal.value)}</span>
+              </div>
+            </button>
+          {/each}
+        {/if}
+      </section>
+
+    {:else if activeTab === 'activities'}
+      <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-1">
+        {#if activities.length === 0}
+          <p class="text-xs opacity-40">No activities logged.</p>
+        {:else}
+          {#each activities as activity (activity.id)}
+            <ActivityItem
+              {activity}
+              onComplete={hasPermission(data.user, 'crm_activities', 'update') ? markActivityComplete : undefined}
+            />
+          {/each}
+        {/if}
+      </section>
+
+    {:else if activeTab === 'projects'}
+      <section class="space-y-4">
+        {#if milestones.length > 0}
+          <div class="flex items-center gap-6 text-sm opacity-60 px-1">
+            <span>{milestones.length} milestone{milestones.length !== 1 ? 's' : ''}</span>
+            <span>{fmtEffort(clientEstHours)} estimated</span>
+            <span>{fmtEffort(clientActHours)} actual</span>
+            <span>{Math.round(clientBillableMins / 60 * 10) / 10}h billable</span>
+          </div>
+        {/if}
+        <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+          {#if milestones.length === 0}
+            <div class="p-8 text-center">
+              <Milestone class="size-8 opacity-20 mx-auto mb-2" />
+              <p class="text-sm opacity-40">No milestones linked to this company.</p>
+              <p class="text-xs opacity-30 mt-1">Link a client from the Agile → Milestone detail page.</p>
+            </div>
+          {:else}
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-base-300">
+                  <th class="text-left px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide">Milestone</th>
+                  <th class="text-left px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide">Status</th>
+                  <th class="text-left px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden md:table-cell">Priority</th>
+                  <th class="text-right px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden lg:table-cell">Progress</th>
+                  <th class="text-right px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden lg:table-cell">Est</th>
+                  <th class="text-right px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden lg:table-cell">Actual</th>
+                  <th class="text-right px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden xl:table-cell">Dates</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each milestones as m (m.id)}
+                  <tr
+                    class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
+                    onclick={() => goto(`/agile/milestones/${m.id}`)}
+                  >
+                    <td class="px-4 py-3 font-medium">{m.title}</td>
+                    <td class="px-4 py-3"><span class="badge badge-xs {STATUS_COLOR[m.status] ?? 'badge-ghost'}">{m.status}</span></td>
+                    <td class="px-4 py-3 hidden md:table-cell"><span class="badge badge-xs {PRIORITY_COLOR[m.priority] ?? 'badge-ghost'}">{m.priority}</span></td>
+                    <td class="px-4 py-3 text-right hidden lg:table-cell">{Math.round(m.completionPct ?? 0)}%</td>
+                    <td class="px-4 py-3 text-right hidden lg:table-cell opacity-70">{fmtEffort(m.totalEstimatedHours ?? 0)}</td>
+                    <td class="px-4 py-3 text-right hidden lg:table-cell opacity-70">{fmtEffort(m.totalActualHours ?? 0)}</td>
+                    <td class="px-4 py-3 text-right hidden xl:table-cell opacity-50 text-xs">{fmtDateRange(m.startDate ?? null, m.endDate ?? null)}</td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          {/if}
+        </div>
+      </section>
     {/if}
-  </section>
+  </div>
 </div>

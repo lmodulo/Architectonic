@@ -49,10 +49,43 @@
     title: '', strategicGoal: '', description: '',
     priority: 'Medium', status: 'Planning',
     startDate: '', endDate: '',
+    clientId: '' as string, clientName: '' as string,
   });
 
+  // ── Company typeahead ──────────────────────────────────────────────
+  let clientQuery   = $state('');
+  let clientResults = $state<{ id: string; name: string }[]>([]);
+  let clientTimer   = $state<ReturnType<typeof setTimeout> | null>(null);
+
+  function onClientInput() {
+    if (clientTimer) clearTimeout(clientTimer);
+    if (!clientQuery.trim()) { clientResults = []; return; }
+    clientTimer = setTimeout(async () => {
+      const res = await fetch(`/api/crm/companies?search=${encodeURIComponent(clientQuery)}&limit=8`).catch(() => null);
+      if (res?.ok) {
+        const d = await res.json();
+        clientResults = (d.companies ?? []).map((c: any) => ({ id: c.id, name: c.name }));
+      }
+    }, 250);
+  }
+
+  function selectCompany(c: { id: string; name: string }) {
+    form.clientId   = c.id;
+    form.clientName = c.name;
+    clientQuery     = '';
+    clientResults   = [];
+  }
+
+  function clearClient() {
+    form.clientId   = '';
+    form.clientName = '';
+    clientQuery     = '';
+    clientResults   = [];
+  }
+
   function openModal() {
-    form = { title: '', strategicGoal: '', description: '', priority: 'Medium', status: 'Planning', startDate: '', endDate: '' };
+    form = { title: '', strategicGoal: '', description: '', priority: 'Medium', status: 'Planning', startDate: '', endDate: '', clientId: '', clientName: '' };
+    clientQuery = ''; clientResults = [];
     saveError = '';
     modalOpen = true;
   }
@@ -61,10 +94,13 @@
     if (!form.title.trim()) { saveError = 'Title is required'; return; }
     saving = true; saveError = '';
     try {
+      const body: Record<string, unknown> = { ...form };
+      if (!body.clientId) delete body.clientId;
+      delete body.clientName;
       const res = await fetch('/api/agile/milestones', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(body),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) { saveError = (d as any).message ?? 'Save failed'; return; }
@@ -281,6 +317,40 @@
             <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ms-end">End Date</label>
             <input id="ms-end" type="date" class="input w-full" bind:value={form.endDate} min={form.startDate} />
           </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Client (optional)</label>
+          {#if form.clientId}
+            <div class="flex items-center gap-2">
+              <span class="badge badge-outline text-sm px-3 py-1">{form.clientName}</span>
+              <button type="button" class="btn btn-ghost btn-xs" onclick={clearClient}><X class="size-3" /></button>
+            </div>
+          {:else}
+            <div class="relative">
+              <input
+                type="text"
+                class="input w-full"
+                placeholder="Search companies…"
+                bind:value={clientQuery}
+                oninput={onClientInput}
+                autocomplete="off"
+              />
+              {#if clientResults.length > 0}
+                <ul class="absolute z-50 mt-1 w-full bg-base-100 border border-base-300 rounded-box shadow-lg overflow-hidden">
+                  {#each clientResults as c (c.id)}
+                    <li>
+                      <button
+                        type="button"
+                        class="w-full text-left px-4 py-2 text-sm hover:bg-base-200 transition-colors"
+                        onclick={() => selectCompany(c)}
+                      >{c.name}</button>
+                    </li>
+                  {/each}
+                </ul>
+              {/if}
+            </div>
+          {/if}
         </div>
       </div>
 

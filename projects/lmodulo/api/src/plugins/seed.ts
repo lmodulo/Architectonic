@@ -1611,6 +1611,25 @@ export default fp(async function seedPlugin(app: any) {
 
     } // end CRM snapshot
 
+    // ── Link milestones to CRM clients ───────────────────────────────
+    // Idempotent: updateOne only writes when both sides exist; safe to run every boot.
+    const [coVertexSeed, coTechSeed] = await Promise.all([
+      db.collection('crm_companies').findOne({ name: 'Vertex Systems' }),
+      db.collection('crm_companies').findOne({ name: 'TechFusion Inc' }),
+    ]);
+    if (coVertexSeed) {
+      await db.collection('agile_milestones').updateOne(
+        { title: 'v1.0 – Core Platform', clientId: { $exists: false } },
+        { $set: { clientId: coVertexSeed._id } }
+      );
+    }
+    if (coTechSeed) {
+      await db.collection('agile_milestones').updateOne(
+        { title: 'v1.1 – Agile', clientId: { $exists: false } },
+        { $set: { clientId: coTechSeed._id } }
+      );
+    }
+
     const financeInvColl = db.collection('finance_invoices');
     if (!await financeInvColl.countDocuments()) {
 

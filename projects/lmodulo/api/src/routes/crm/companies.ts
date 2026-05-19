@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
+import { milestoneRollupPipeline } from '../../lib/agile.js';
 
 const COL = 'crm_companies';
 
@@ -227,5 +228,43 @@ export default async function companiesRoutes(app: FastifyInstance) {
     });
 
     reply.status(204);
+  });
+
+  // GET /crm/companies/:id/milestones — linked agile milestones with rolled-up hours
+  app.get('/:id/milestones', { preHandler: app.requirePermission('agile_milestones', 'read') }, async (req, reply) => {
+    const db  = app.mongo.db!;
+    const oid = parseOid((req.params as { id: string }).id, app);
+
+    const company = await db.collection(COL).findOne({ _id: oid }, { projection: { _id: 1 } });
+    if (!company) return reply.notFound('Company not found');
+
+    const pipeline = milestoneRollupPipeline({ clientId: oid });
+    const docs = await db.collection('agile_milestones')
+      .aggregate([...pipeline, { $sort: { createdAt: -1 } }])
+      .toArray();
+
+    const milestones = docs.map(d => ({
+      ...d,
+      id:       (d._id as ObjectId).toString(),
+      _id:      undefined,
+      clientId: d.clientId ? (d.clientId as ObjectId).toString() : null,
+    }));
+
+    // Aggregate billable time_entries minutes for all milestones belonging to this company
+    const milestoneIds = docs.map(d => d._id as ObjectId);
+    const timeRows = milestoneIds.length
+      ? await db.collection('time_entries').aggregate([
+          { $match: { milestoneId: { $in: milestoneIds } } },
+          { $group: { _id: '$billable', totalMinutes: { $sum: '$durationMinutes' } } },
+        ]).toArray()
+      : [];
+
+    const billableMinutes    = (timeRows.find(r => r._id === true)  as any)?.totalMinutes ?? 0;
+    const nonBillableMinutes = (timeRows.find(r => r._id === false) as any)?.totalMinutes ?? 0;
+
+    const totalEstimatedHours = milestones.reduce((s, m) => s + ((m as any).totalEstimatedHours ?? 0), 0);
+    const totalActualHours    = milestones.reduce((s, m) => s + ((m as any).totalActualHours    ?? 0), 0);
+
+    return { milestones, totalEstimatedHours, totalActualHours, billableMinutes, nonBillableMinutes };
   });
 }
