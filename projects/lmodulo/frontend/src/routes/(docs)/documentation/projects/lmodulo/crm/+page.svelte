@@ -41,6 +41,7 @@
           <tr><td class="font-mono text-xs">assignedTo</td><td class="text-xs opacity-60">userId</td><td class="text-sm opacity-70">Team member responsible for this account</td></tr>
           <tr><td class="font-mono text-xs">tags</td><td class="text-xs opacity-60">string[]</td><td class="text-sm opacity-70">Free-form labels</td></tr>
           <tr><td class="font-mono text-xs">healthScore</td><td class="text-xs opacity-60">number 0–100 (computed)</td><td class="text-sm opacity-70">Deal value score (max 70) + activity recency score (max 30)</td></tr>
+          <tr><td class="font-mono text-xs">milestones</td><td class="text-xs opacity-60">via <code class="bg-base-300 px-1 rounded text-xs">GET /:id/milestones</code></td><td class="text-sm opacity-70">Agile milestones linked to this company (see <em>Project Linking</em> below)</td></tr>
         </tbody>
       </table>
     </div>
@@ -159,6 +160,7 @@ healthScore   = round(dealScore + recencyScore)</code></pre>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Detail pages</p>
         <p class="text-sm opacity-60 leading-relaxed">Company, contact, and deal detail pages each show inline editable fields, linked entities, and a scoped activity feed. Breadcrumbs use the level color system: Company → <span class="badge badge-xs badge-primary">primary</span>, Contact → <span class="badge badge-xs badge-secondary">secondary</span>, Deal → <span class="badge badge-xs badge-success">success</span>, Activity → <span class="badge badge-xs badge-accent">accent</span>.</p>
+        <p class="text-sm opacity-60 leading-relaxed mt-1">The company detail page includes a <strong>Projects</strong> tab alongside Contacts, Deals, and Activities. It lists all linked Agile milestones with status, priority, completion %, estimated hours, actual hours, and date range, plus a summary row showing client-level effort and billable time.</p>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Reports</p>
@@ -184,6 +186,7 @@ healthScore   = round(dealScore + recencyScore)</code></pre>
           <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/crm/companies/:id</td><td class="text-xs opacity-60">crm_companies:read</td><td class="text-sm opacity-70">Single company with healthScore, dealCount</td></tr>
           <tr><td class="font-mono text-xs">PATCH</td><td class="font-mono text-xs">/crm/companies/:id</td><td class="text-xs opacity-60">crm_companies:update</td><td class="text-sm opacity-70">Partial update</td></tr>
           <tr><td class="font-mono text-xs">DELETE</td><td class="font-mono text-xs">/crm/companies/:id</td><td class="text-xs opacity-60">crm_companies:delete</td><td class="text-sm opacity-70">Delete company</td></tr>
+          <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/crm/companies/:id/milestones</td><td class="text-xs opacity-60">agile_milestones:read</td><td class="text-sm opacity-70">Linked Agile milestones with rollup: <code class="bg-base-300 px-1 rounded text-xs">totalEstimatedHours</code>, <code class="bg-base-300 px-1 rounded text-xs">totalActualHours</code>, <code class="bg-base-300 px-1 rounded text-xs">billableMinutes</code></td></tr>
           <tr class="border-t border-base-300"><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/crm/deals</td><td class="text-xs opacity-60">crm_deals:read</td><td class="text-sm opacity-70">List; stage, companyId, assignedTo, closingBefore, excludeLost filters</td></tr>
           <tr><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/crm/deals</td><td class="text-xs opacity-60">crm_deals:create</td><td class="text-sm opacity-70">Create deal; auto-sets probability from stage</td></tr>
           <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/crm/deals/:id</td><td class="text-xs opacity-60">crm_deals:read</td><td class="text-sm opacity-70">Single deal with companyName joined</td></tr>
@@ -195,6 +198,40 @@ healthScore   = round(dealScore + recencyScore)</code></pre>
           <tr><td class="font-mono text-xs">DELETE</td><td class="font-mono text-xs">/crm/activities/:id</td><td class="text-xs opacity-60">crm_activities:delete</td><td class="text-sm opacity-70">Delete activity</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Project Linking -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold">Project Linking</h2>
+    <p class="text-sm opacity-70 leading-relaxed">
+      A company can be linked to any number of Agile milestones via the <code class="bg-base-300 px-1 rounded text-xs">clientId</code> field stored on <code class="bg-base-300 px-1 rounded text-xs">agile_milestones</code>. This is a one-way reference — the milestone points to the company, not the other way around — so no schema change is needed on the CRM side.
+    </p>
+    <div class="space-y-3">
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">How to link</p>
+        <p class="text-sm opacity-60 leading-relaxed">Open an Agile milestone detail page and click <strong>Link client</strong>. A typeahead searches companies as you type. Selecting one writes <code class="bg-base-300 px-1 rounded text-xs">clientId</code> to that milestone. The link is also settable at milestone creation time.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Per-client hours rollup</p>
+        <p class="text-sm opacity-60 leading-relaxed">
+          <code class="bg-base-300 px-1 rounded text-xs">GET /crm/companies/:id/milestones</code> returns every milestone where <code class="bg-base-300 px-1 rounded text-xs">clientId</code> matches, with full task-level effort aggregated into the response:
+        </p>
+        <pre class="text-xs opacity-60 leading-relaxed mt-2"><code>&#123;
+  milestones: [&#123; id, title, status, completionPct, totalEstimatedHours, totalActualHours, … &#125;],
+  totalEstimatedHours: number,
+  totalActualHours:    number,
+  billableMinutes:     number,   // from time_entries where billable = true
+  nonBillableMinutes:  number
+&#125;</code></pre>
+        <p class="text-sm opacity-60 leading-relaxed mt-1">The billable breakdown is derived from <code class="bg-base-300 px-1 rounded text-xs">time_entries</code> filtered to those milestones, grouped by the <code class="bg-base-300 px-1 rounded text-xs">billable</code> flag — no additional aggregation step required on the client.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Permission note</p>
+        <p class="text-sm opacity-60 leading-relaxed">
+          <code class="bg-base-300 px-1 rounded text-xs">GET /crm/companies/:id/milestones</code> requires <code class="bg-base-300 px-1 rounded text-xs">agile_milestones:read</code>, not <code class="bg-base-300 px-1 rounded text-xs">crm_companies:read</code>. Users without Agile access will not see the Projects tab. The company detail page suppresses the tab gracefully when the endpoint returns an empty milestones array.
+        </p>
+      </div>
     </div>
   </div>
 

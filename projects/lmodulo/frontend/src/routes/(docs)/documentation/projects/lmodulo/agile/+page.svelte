@@ -35,6 +35,8 @@
           <tr><td class="font-mono text-xs">priority</td><td class="text-xs opacity-60">Low | Medium | High | Critical</td><td class="text-sm opacity-70">Importance relative to other milestones</td></tr>
           <tr><td class="font-mono text-xs">status</td><td class="text-xs opacity-60">Planning | Active | On Hold | Completed | Cancelled</td><td class="text-sm opacity-70">Current lifecycle state</td></tr>
           <tr><td class="font-mono text-xs">startDate / endDate</td><td class="text-xs opacity-60">date</td><td class="text-sm opacity-70">Planned date range</td></tr>
+          <tr><td class="font-mono text-xs">clientId</td><td class="text-xs opacity-60">ObjectId ref (optional)</td><td class="text-sm opacity-70">Linked CRM company — bridges Agile and Nexus; enables per-client hours rollup</td></tr>
+          <tr><td class="font-mono text-xs">clientName</td><td class="text-xs opacity-60">string (computed)</td><td class="text-sm opacity-70">Company name joined from <code class="bg-base-300 px-1 rounded text-xs">crm_companies</code> on every read; not stored</td></tr>
           <tr><td class="font-mono text-xs">completionPct</td><td class="text-xs opacity-60">number (computed)</td><td class="text-sm opacity-70">Rolled up from task completion across all child sprints</td></tr>
         </tbody>
       </table>
@@ -129,6 +131,32 @@
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Job Detail</p>
         <p class="text-sm opacity-60 leading-relaxed">Full job view with task list, dependency graph, comment feed, attachments panel, and effort bar. Access at <code class="bg-base-300 px-1 rounded text-xs">/agile/jobs/:id</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Linking -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold">Client Linking</h2>
+    <p class="text-sm opacity-70 leading-relaxed">
+      Any milestone can be linked to a CRM company via its <code class="bg-base-300 px-1 rounded text-xs">clientId</code> field. This is the bridge between the Agile and Nexus modules — it lets you answer "show all work billed to Acme Corp" or roll up hours per client without duplicating data anywhere.
+    </p>
+    <div class="space-y-3">
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Linking a client</p>
+        <p class="text-sm opacity-60 leading-relaxed">On any milestone detail page, click <strong>Link client</strong> in the badge row. A typeahead searches <code class="bg-base-300 px-1 rounded text-xs">crm_companies</code> as you type. Selecting a company writes <code class="bg-base-300 px-1 rounded text-xs">clientId</code> via a <code class="bg-base-300 px-1 rounded text-xs">PATCH /agile/milestones/:id</code> call. The API validates the ObjectId and confirms the company exists before storing. You can also set a client when creating a new milestone from the Agile overview — the same typeahead appears at the bottom of the form.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Hours rollup</p>
+        <p class="text-sm opacity-60 leading-relaxed">
+          Because <code class="bg-base-300 px-1 rounded text-xs">time_entries</code> already denormalize <code class="bg-base-300 px-1 rounded text-xs">milestoneId</code>, the full chain is queryable without joins beyond the milestone level:
+        </p>
+        <pre class="text-xs opacity-60 leading-relaxed mt-2"><code>time_entries.milestoneId → agile_milestones.clientId → crm_companies</code></pre>
+        <p class="text-sm opacity-60 leading-relaxed mt-1">The endpoint <code class="bg-base-300 px-1 rounded text-xs">GET /crm/companies/:id/milestones</code> returns all linked milestones with <code class="bg-base-300 px-1 rounded text-xs">totalEstimatedHours</code>, <code class="bg-base-300 px-1 rounded text-xs">totalActualHours</code>, and <code class="bg-base-300 px-1 rounded text-xs">billableMinutes</code> (from <code class="bg-base-300 px-1 rounded text-xs">time_entries.billable = true</code>) aggregated across all child tasks.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Unlinking</p>
+        <p class="text-sm opacity-60 leading-relaxed">Click <strong>Change client</strong> on the milestone detail page. To remove the link entirely, click <strong>Unlink</strong> — this sends <code class="bg-base-300 px-1 rounded text-xs">&#123; clientId: null &#125;</code> via PATCH.</p>
       </div>
     </div>
   </div>
