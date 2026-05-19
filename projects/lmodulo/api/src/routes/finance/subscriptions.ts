@@ -23,7 +23,7 @@ function mapSub(doc: Record<string, unknown>) {
 export default async function subscriptionRoutes(app: FastifyInstance) {
 
   // GET /finance/subscriptions
-  app.get('/subscriptions', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req) => {
+  app.get('/', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req) => {
     const db     = app.mongo.db!;
     const userId = req.session.userId!;
     const { status, customerId } = req.query as Record<string, string>;
@@ -49,7 +49,7 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
   });
 
   // POST /finance/subscriptions
-  app.post('/subscriptions', { preHandler: app.requirePermission('finance_subscriptions', 'create') }, async (req, reply) => {
+  app.post('/', { preHandler: app.requirePermission('finance_subscriptions', 'create') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const now = new Date();
     const {
@@ -102,7 +102,7 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
   });
 
   // GET /finance/subscriptions/:id
-  app.get('/subscriptions/:id', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req, reply) => {
+  app.get('/:id', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req, reply) => {
     const db     = app.mongo.db!;
     const oid    = parseOid((req.params as { id: string }).id, app);
     const userId = req.session.userId!;
@@ -119,7 +119,7 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
   });
 
   // PATCH /finance/subscriptions/:id
-  app.patch('/subscriptions/:id', { preHandler: app.requirePermission('finance_subscriptions', 'update') }, async (req, reply) => {
+  app.patch('/:id', { preHandler: app.requirePermission('finance_subscriptions', 'update') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
@@ -160,7 +160,7 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
   });
 
   // DELETE /finance/subscriptions/:id
-  app.delete('/subscriptions/:id', { preHandler: app.requirePermission('finance_subscriptions', 'delete') }, async (req, reply) => {
+  app.delete('/:id', { preHandler: app.requirePermission('finance_subscriptions', 'delete') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
 
