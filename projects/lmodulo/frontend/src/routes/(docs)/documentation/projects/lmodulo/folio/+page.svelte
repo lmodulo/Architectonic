@@ -434,18 +434,18 @@ finance_expenses      ← internal business cost (hosting, software, contractors
     <h2 class="text-xl font-semibold">Permissions</h2>
     <div class="overflow-x-auto">
       <table class="table table-sm w-full">
-        <thead><tr class="bg-base-200"><th>Role</th><th>finance_estimates</th><th>finance_invoices</th><th>finance_payments</th><th>finance_subscriptions</th><th>client_portal</th></tr></thead>
+        <thead><tr class="bg-base-200"><th>Role</th><th>finance_estimates</th><th>finance_invoices</th><th>finance_payments</th><th>finance_subscriptions</th><th>finance_expenses</th><th>client_portal</th></tr></thead>
         <tbody>
-          <tr><td>owner / admin</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td></tr>
-          <tr><td>lead</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
-          <tr><td>contributor</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">—</td></tr>
-          <tr><td>viewer</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
-          <tr><td>customer</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">CR</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">CR</td></tr>
+          <tr><td>owner / admin</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td></tr>
+          <tr><td>lead</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
+          <tr><td>contributor</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
+          <tr><td>viewer</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
+          <tr><td>customer</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">CR</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">CR</td></tr>
         </tbody>
       </table>
     </div>
     <p class="text-sm opacity-70 leading-relaxed">
-      Customers can read their own estimates, invoices, and subscriptions, and initiate payments, but cannot create or modify any billing records. The convert endpoint uses <code class="bg-base-300 px-1 rounded text-xs">finance_invoices:create</code> rather than <code class="bg-base-300 px-1 rounded text-xs">finance_estimates:update</code> — creating an invoice is the privileged act. Route guards in <code class="bg-base-300 px-1 rounded text-xs">hooks.server.ts</code> ensure customers can only reach <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code> and <code class="bg-base-300 px-1 rounded text-xs">/payments</code>.
+      Customers can read their own estimates, invoices, and subscriptions, and initiate payments, but cannot create or modify any billing records. Expenses are internal-only — customers have no access. The convert endpoint uses <code class="bg-base-300 px-1 rounded text-xs">finance_invoices:create</code> rather than <code class="bg-base-300 px-1 rounded text-xs">finance_estimates:update</code> — creating an invoice is the privileged act. Route guards in <code class="bg-base-300 px-1 rounded text-xs">hooks.server.ts</code> ensure customers can only reach <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code> and <code class="bg-base-300 px-1 rounded text-xs">/payments</code>.
     </p>
   </div>
 
