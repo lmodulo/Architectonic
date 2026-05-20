@@ -1,4 +1,4 @@
-# Architectonic
+﻿# Architectonic
 
 SvelteKit + DaisyUI v5 + Fastify + MongoDB, containerized with Docker.
 
@@ -39,6 +39,7 @@ cd api && npm install && cd ..
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+docker compose build api web ; docker compose up -d api web
 ```
 
 - Frontend: http://localhost:3000

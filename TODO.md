@@ -5,10 +5,10 @@ Zero time entry exists. No timesheets, no per-task logging, no billable-hours re
 [x] Project → Client linking
 Agile milestones/sprints are not connected to CRM companies or contacts. You can't answer "show me all work billed to Acme Corp" or roll up hours per client. The two modules are completely siloed.
 
-3. Estimates / Proposals
+[x] Estimates / Proposals
 Finance goes straight to Invoice. There's no quote or proposal stage — no finance_quotes collection, no /folio/estimates route. For web dev engagements you typically need a client-approved estimate before creating an invoice.
 
-4. Expense tracking
+[x] Expense tracking
 Invoices (revenue) exist but there's no expense record — no way to log hosting costs, software subscriptions, contractor payments, or reimbursable client expenses. Without it there's no P&L.
 
 Secondary gaps

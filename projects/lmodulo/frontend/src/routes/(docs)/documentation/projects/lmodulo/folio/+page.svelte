@@ -7,7 +7,7 @@
   <div class="space-y-3">
     <h1 class="text-3xl font-bold">Folio</h1>
     <p class="text-base opacity-70 leading-relaxed">
-      Folio is lmodulo's finance module. Staff create estimates for client approval, convert accepted estimates into invoices, set up recurring billing schedules, and manage subscription plans that auto-generate invoices on a cycle. Customers access their estimates and invoices through a dedicated client portal and pay online. The module lives at <code class="bg-base-300 px-1 rounded text-xs">/folio</code> for staff and <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code> + <code class="bg-base-300 px-1 rounded text-xs">/payments</code> for customers.
+      Folio is lmodulo's finance module. Staff create estimates for client approval, convert accepted estimates into invoices, set up recurring billing schedules, and manage subscription plans that auto-generate invoices on a cycle. Expenses (hosting costs, software, contractor payments, reimbursable items) are tracked in a separate <code class="bg-base-300 px-1 rounded text-xs">finance_expenses</code> collection. The overview dashboard aggregates paid revenue and paid expenses into a P&L summary. Customers access their estimates and invoices through a dedicated client portal and pay online. The module lives at <code class="bg-base-300 px-1 rounded text-xs">/folio</code> for staff and <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code> + <code class="bg-base-300 px-1 rounded text-xs">/payments</code> for customers.
     </p>
   </div>
 
@@ -28,7 +28,11 @@ finance_subscriptions ← named billing plan that auto-generates draft invoices
   └── lineItems[]     ← embedded; copied to each generated invoice
 
 finance_payments      ← one record per Stripe PaymentIntent attempt
-  └── invoiceId       ← references finance_invoices</code></pre>
+  └── invoiceId       ← references finance_invoices
+
+finance_expenses      ← internal business cost (hosting, software, contractors, etc.)
+  └── companyId?      ← optional client link for billable-back expenses
+  └── milestoneId?    ← optional project link</code></pre>
     <p class="text-sm opacity-70 leading-relaxed">
       Line items are embedded in estimates, invoices, and subscriptions. When an estimate is converted to an invoice, the line items, totals, customer, and notes are copied verbatim and a new <code class="bg-base-300 px-1 rounded text-xs">INV-NNNN</code> number is assigned. Auto-generated invoices always start as <code class="bg-base-300 px-1 rounded text-xs">draft</code> so staff can review before sending. A <code class="bg-base-300 px-1 rounded text-xs">finance_payments</code> record is inserted when a Stripe PaymentIntent is initiated.
     </p>
@@ -207,6 +211,54 @@ finance_payments      ← one record per Stripe PaymentIntent attempt
     </div>
   </div>
 
+  <!-- Expense Tracking -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold">Expense Tracking</h2>
+    <p class="text-sm opacity-70 leading-relaxed">
+      Expenses represent money going <em>out</em> of the business. Unlike invoices (revenue), expenses have no line-item structure — each record is a single flat amount with a category, vendor, date, and optional client and project link. They are the expense side of the P&amp;L row shown on the Folio overview.
+    </p>
+
+    <h3 class="text-base font-semibold">Expense lifecycle</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Status</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="font-mono text-xs">draft</td><td class="text-sm opacity-70">Logged but not yet confirmed — useful while gathering receipts or approvals</td></tr>
+          <tr><td class="font-mono text-xs">pending</td><td class="text-sm opacity-70">Confirmed and awaiting payment / reimbursement</td></tr>
+          <tr><td class="font-mono text-xs">paid</td><td class="text-sm opacity-70">Payment settled — counted in P&amp;L totals on the overview</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-2">finance_expenses</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="font-mono text-xs">expenseNumber</td><td class="text-xs opacity-60">string (auto)</td><td class="text-sm opacity-70"><code class="bg-base-300 px-1 rounded text-xs">EXP-0001</code> format, assigned on create</td></tr>
+          <tr><td class="font-mono text-xs">description</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">What was purchased, e.g. "AWS EC2 hosting"</td></tr>
+          <tr><td class="font-mono text-xs">vendor</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">Who was paid, e.g. "Amazon Web Services"</td></tr>
+          <tr><td class="font-mono text-xs">category</td><td class="text-xs opacity-60">hosting | software | contractor | travel | meals | equipment | other</td><td class="text-sm opacity-70">Used for filtering and colour-coded badges in the UI</td></tr>
+          <tr><td class="font-mono text-xs">amount</td><td class="text-xs opacity-60">number</td><td class="text-sm opacity-70">Total cost in major currency units (not cents); must be &gt; 0</td></tr>
+          <tr><td class="font-mono text-xs">currency</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">ISO 4217, default <code class="bg-base-300 px-1 rounded text-xs">USD</code></td></tr>
+          <tr><td class="font-mono text-xs">expenseDate</td><td class="text-xs opacity-60">date</td><td class="text-sm opacity-70">When the expense was incurred (defaults to today in the create form)</td></tr>
+          <tr><td class="font-mono text-xs">status</td><td class="text-xs opacity-60">draft | pending | paid</td><td class="text-sm opacity-70">Lifecycle state — only <code class="bg-base-300 px-1 rounded text-xs">paid</code> expenses are counted in P&amp;L</td></tr>
+          <tr><td class="font-mono text-xs">companyId</td><td class="text-xs opacity-60">ObjectId ref?</td><td class="text-sm opacity-70">Optional link to a <code class="bg-base-300 px-1 rounded text-xs">crm_companies</code> record (e.g. for reimbursable client expenses)</td></tr>
+          <tr><td class="font-mono text-xs">milestoneId</td><td class="text-xs opacity-60">ObjectId ref?</td><td class="text-sm opacity-70">Optional link to an <code class="bg-base-300 px-1 rounded text-xs">agile_milestones</code> record (project-level cost tracking)</td></tr>
+          <tr><td class="font-mono text-xs">billable</td><td class="text-xs opacity-60">boolean</td><td class="text-sm opacity-70">Marks the expense as billable back to the linked client — informational only</td></tr>
+          <tr><td class="font-mono text-xs">notes</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">Free-form internal memo</td></tr>
+          <tr><td class="font-mono text-xs">receiptUrl</td><td class="text-xs opacity-60">string?</td><td class="text-sm opacity-70">Optional URL to a receipt document or image</td></tr>
+          <tr><td class="font-mono text-xs">createdBy</td><td class="text-xs opacity-60">userId</td><td class="text-sm opacity-70">Staff member who logged the expense</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4 text-sm space-y-1">
+      <p class="font-semibold">P&amp;L on the overview</p>
+      <p class="opacity-60 leading-relaxed">The Folio dashboard (<code class="bg-base-300 px-1 rounded text-xs">/folio</code>) fetches up to 500 <code class="bg-base-300 px-1 rounded text-xs">paid</code> expenses server-side alongside invoices and derives three summary figures: <strong>Revenue</strong> (sum of paid invoices), <strong>Expenses</strong> (sum of paid expenses), <strong>Net</strong> (revenue − expenses). Net is green when positive and red when negative.</p>
+    </div>
+  </div>
+
   <!-- Scheduler -->
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">Background Scheduler</h2>
@@ -233,12 +285,12 @@ finance_payments      ← one record per Stripe PaymentIntent attempt
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">Staff Views</h2>
     <p class="text-sm opacity-70 leading-relaxed">
-      A persistent nav bar (Overview · Invoices · Estimates · Subscriptions) wraps all Folio pages. The Estimates tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_estimates:read</code>; the Subscriptions tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_subscriptions:read</code>. All Folio pages require at minimum <code class="bg-base-300 px-1 rounded text-xs">finance_invoices:read</code>.
+      A persistent nav bar (Overview · Invoices · Estimates · Subscriptions · Expenses) wraps all Folio pages. The Estimates tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_estimates:read</code>; the Subscriptions tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_subscriptions:read</code>; the Expenses tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_expenses:read</code>. All Folio pages require at minimum <code class="bg-base-300 px-1 rounded text-xs">finance_invoices:read</code>.
     </p>
     <div class="space-y-3">
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Dashboard <code class="bg-base-300 px-1 rounded text-xs">/folio</code></p>
-        <p class="text-sm opacity-60 leading-relaxed">Summary cards (total clients, total paid, outstanding balance, overdue count) followed by a client table showing invoice counts and aggregated totals per customer.</p>
+        <p class="text-sm opacity-60 leading-relaxed">Summary cards (total clients, total paid, outstanding balance, overdue count) followed by a P&amp;L row (Revenue / Expenses / Net) and a client table showing invoice counts and aggregated totals per customer.</p>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">All Invoices <code class="bg-base-300 px-1 rounded text-xs">/folio/invoices</code></p>
@@ -275,6 +327,14 @@ finance_payments      ← one record per Stripe PaymentIntent attempt
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Subscription Detail <code class="bg-base-300 px-1 rounded text-xs">/folio/subscriptions/[id]</code></p>
         <p class="text-sm opacity-60 leading-relaxed">Full view: line items + per-cycle total, metadata (cycle, start/end, next billing, due offset), notes. Actions: <strong>Edit</strong> (all fields including line items), <strong>Pause / Resume</strong>, <strong>Cancel</strong>. A "Generated Invoices" table below the meta card lists every invoice produced by this subscription, linking to each invoice detail page.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">All Expenses <code class="bg-base-300 px-1 rounded text-xs">/folio/expenses</code></p>
+        <p class="text-sm opacity-60 leading-relaxed">Paginated, sortable table of all expenses. Filter bar: status (All / Draft / Pending / Paid) and category dropdowns. Columns: number, vendor, description, category badge, date, amount, status badge. Billable expenses show an additional <strong>billable</strong> badge. "New Expense" button requires <code class="bg-base-300 px-1 rounded text-xs">finance_expenses:create</code>.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Expense Detail <code class="bg-base-300 px-1 rounded text-xs">/folio/expenses/[id]</code></p>
+        <p class="text-sm opacity-60 leading-relaxed">Full view with all fields displayed. Edit mode (requires <code class="bg-base-300 px-1 rounded text-xs">finance_expenses:update</code>) exposes all fields inline. <strong>Delete</strong> requires <code class="bg-base-300 px-1 rounded text-xs">finance_expenses:delete</code> and navigates back to the list on success. If a receipt URL is set, a "View receipt ↗" link is shown.</p>
       </div>
     </div>
   </div>
@@ -357,6 +417,11 @@ finance_payments      ← one record per Stripe PaymentIntent attempt
           <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-xs opacity-60">finance_subscriptions:read</td><td class="text-sm opacity-70">Single subscription; scope-checked for customers</td></tr>
           <tr><td class="font-mono text-xs">PATCH</td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-xs opacity-60">finance_subscriptions:update</td><td class="text-sm opacity-70">Partial update; send <code class="bg-base-300 px-1 rounded text-xs">&#123;"status":"paused"&#125;</code> to pause, <code class="bg-base-300 px-1 rounded text-xs">"active"</code> to resume, <code class="bg-base-300 px-1 rounded text-xs">"cancelled"</code> to cancel</td></tr>
           <tr><td class="font-mono text-xs">DELETE</td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-xs opacity-60">finance_subscriptions:delete</td><td class="text-sm opacity-70">Delete subscription (does not delete generated invoices)</td></tr>
+          <tr class="border-t border-base-300"><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/expenses</td><td class="text-xs opacity-60">finance_expenses:read</td><td class="text-sm opacity-70">List expenses. Query: <code class="bg-base-300 px-1 rounded text-xs">status</code>, <code class="bg-base-300 px-1 rounded text-xs">category</code>, <code class="bg-base-300 px-1 rounded text-xs">companyId</code>, <code class="bg-base-300 px-1 rounded text-xs">milestoneId</code>, <code class="bg-base-300 px-1 rounded text-xs">dateFrom</code>, <code class="bg-base-300 px-1 rounded text-xs">dateTo</code>, <code class="bg-base-300 px-1 rounded text-xs">limit</code>, <code class="bg-base-300 px-1 rounded text-xs">skip</code>, <code class="bg-base-300 px-1 rounded text-xs">sort</code>, <code class="bg-base-300 px-1 rounded text-xs">sortDir</code></td></tr>
+          <tr><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/finance/expenses</td><td class="text-xs opacity-60">finance_expenses:create</td><td class="text-sm opacity-70">Create expense; auto-assigns <code class="bg-base-300 px-1 rounded text-xs">EXP-NNNN</code> number; returns 201 + the new document</td></tr>
+          <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-xs opacity-60">finance_expenses:read</td><td class="text-sm opacity-70">Single expense document</td></tr>
+          <tr><td class="font-mono text-xs">PATCH</td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-xs opacity-60">finance_expenses:update</td><td class="text-sm opacity-70">Partial update; any subset of the writable fields; returns <code class="bg-base-300 px-1 rounded text-xs">&#123;"updated":true&#125;</code></td></tr>
+          <tr><td class="font-mono text-xs">DELETE</td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-xs opacity-60">finance_expenses:delete</td><td class="text-sm opacity-70">Delete expense; returns 204</td></tr>
           <tr class="border-t border-base-300"><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/customers</td><td class="text-xs opacity-60">users:read</td><td class="text-sm opacity-70">List users with <code class="bg-base-300 px-1 rounded text-xs">role: 'customer'</code> with company name joined; used to populate customer selectors</td></tr>
           <tr class="border-t border-base-300"><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/crm/contacts/:id/convert-to-client</td><td class="text-xs opacity-60">crm_contacts:update</td><td class="text-sm opacity-70">Converts CRM contact to customer; sends password-set email + welcome message</td></tr>
         </tbody>

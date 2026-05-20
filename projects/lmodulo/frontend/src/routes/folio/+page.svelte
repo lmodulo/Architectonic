@@ -25,8 +25,9 @@
 
   type LineItem = { description: string; quantity: number; unitPrice: number };
 
-  const customers = data.customers as Customer[];
-  const invoices  = data.invoices  as Invoice[];
+  const customers    = data.customers    as Customer[];
+  const invoices     = data.invoices     as Invoice[];
+  const expensesPaid = data.expensesPaid as number;
 
   function customerStats(customerId: string) {
     const invs    = invoices.filter(i => i.customerId === customerId);
@@ -126,6 +127,23 @@
     <div class="card bg-base-200 border border-base-300 rounded-box p-4">
       <p class="text-xs opacity-50 uppercase tracking-wide">Overdue</p>
       <p class="text-2xl font-bold mt-1 {overdueCount > 0 ? 'text-error' : ''}">{overdueCount}</p>
+    </div>
+  </div>
+
+  <!-- P&L row -->
+  <div class="grid grid-cols-3 gap-4">
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+      <p class="text-xs opacity-50 uppercase tracking-wide">Revenue (paid)</p>
+      <p class="text-xl font-bold mt-1 text-success">{fmtCurrency(totalPaid)}</p>
+    </div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+      <p class="text-xs opacity-50 uppercase tracking-wide">Expenses (paid)</p>
+      <p class="text-xl font-bold mt-1 text-error">{fmtCurrency(expensesPaid)}</p>
+    </div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+      <p class="text-xs opacity-50 uppercase tracking-wide">Net</p>
+      {@const net = totalPaid - expensesPaid}
+      <p class="text-xl font-bold mt-1 {net >= 0 ? 'text-success' : 'text-error'}">{fmtCurrency(net)}</p>
     </div>
   </div>
 
