@@ -31,7 +31,7 @@
     }
   });
 
-  const BASE = '/documentation/projects/lmodulo';
+  const BASE = '/documentation';
 
   const sections = [
     { label: 'Overview',           href: BASE,                        icon: BookOpen,    exact: true },

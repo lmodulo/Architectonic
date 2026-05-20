@@ -78,12 +78,12 @@
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">Where to Start</h2>
     <ul class="space-y-2 text-sm">
-      <li><a href="/documentation/projects/lmodulo/getting-started" class="link link-primary">Getting Started</a> — spin up the full stack in under five minutes with Docker Compose.</li>
-      <li><a href="/documentation/projects/lmodulo/architecture" class="link link-primary">Architecture</a> — understand how the frontend, API, database, and storage services connect.</li>
-      <li><a href="/documentation/projects/lmodulo/rbac" class="link link-primary">Roles & Permissions</a> — learn how the six built-in roles map to resources and actions.</li>
-      <li><a href="/documentation/projects/lmodulo/api" class="link link-primary">API Reference</a> — explore every endpoint with its expected inputs, outputs, and auth requirements.</li>
-      <li><a href="/documentation/projects/lmodulo/agile" class="link link-primary">Agile Module</a> — deep-dive into milestones, sprints, jobs, and tasks.</li>
-      <li><a href="/documentation/projects/lmodulo/folio" class="link link-primary">Folio</a> — manage invoices, collect Stripe payments, and onboard CRM contacts as billing clients.</li>
+      <li><a href="/documentation/getting-started" class="link link-primary">Getting Started</a> — spin up the full stack in under five minutes with Docker Compose.</li>
+      <li><a href="/documentation/architecture" class="link link-primary">Architecture</a> — understand how the frontend, API, database, and storage services connect.</li>
+      <li><a href="/documentation/rbac" class="link link-primary">Roles & Permissions</a> — learn how the six built-in roles map to resources and actions.</li>
+      <li><a href="/documentation/api" class="link link-primary">API Reference</a> — explore every endpoint with its expected inputs, outputs, and auth requirements.</li>
+      <li><a href="/documentation/agile" class="link link-primary">Agile Module</a> — deep-dive into milestones, sprints, jobs, and tasks.</li>
+      <li><a href="/documentation/folio" class="link link-primary">Folio</a> — manage invoices, collect Stripe payments, and onboard CRM contacts as billing clients.</li>
     </ul>
   </div>
 

@@ -257,7 +257,7 @@
               {/if}
               <div class="border-t border-base-300/50 my-1"></div>
               <a
-                href="/documentation/projects/lmodulo"
+                href="/documentation"
                 class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname.startsWith('/documentation') ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >

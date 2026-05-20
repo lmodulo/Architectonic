@@ -45,6 +45,7 @@
     .filter(i => i.status === 'sent' || i.status === 'overdue')
     .reduce((s, i) => s + (i.total ?? 0), 0);
   const totalPaid    = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.total ?? 0), 0);
+  const net          = totalPaid - expensesPaid;
   const overdueCount = invoices.filter(i => i.status === 'overdue').length;
 
   // Modal
@@ -142,7 +143,6 @@
     </div>
     <div class="card bg-base-200 border border-base-300 rounded-box p-4">
       <p class="text-xs opacity-50 uppercase tracking-wide">Net</p>
-      {@const net = totalPaid - expensesPaid}
       <p class="text-xl font-bold mt-1 {net >= 0 ? 'text-success' : 'text-error'}">{fmtCurrency(net)}</p>
     </div>
   </div>
