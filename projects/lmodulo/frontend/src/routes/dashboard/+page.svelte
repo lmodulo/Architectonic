@@ -2,6 +2,7 @@
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import type { AgileMilestone, AgileSprint, AgileTask } from '$lib/utils/agile';
+  import ActivityVolumeChart from '$lib/components/crm/ActivityVolumeChart.svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -122,7 +123,9 @@
     const days = (new Date(d.expectedCloseDate).getTime() - today.getTime()) / 86400000;
     return days >= 0 && days <= 30;
   }).length);
-  const wonDeals = $derived(crmDeals.filter((d: any) => d.stage === 'Closed Won').length);
+  const wonDeals    = $derived(crmDeals.filter((d: any) => d.stage === 'Closed Won').length);
+  const closedDeals = $derived(crmDeals.filter((d: any) => ['Closed Won', 'Closed Lost'].includes(d.stage)));
+  const winRate     = $derived(closedDeals.length > 0 ? Math.round(wonDeals / closedDeals.length * 100) : null);
 
   const dealStageData = $derived(() => {
     const counts: Record<string, number> = {};
@@ -143,6 +146,7 @@
   // ══════════════════════════════════════════════════════════════════════
   const folioInvoices  = $derived((data.folioInvoices  ?? []) as any[]);
   const folioCustomers = $derived((data.folioCustomers ?? []) as any[]);
+  const folioExpenses  = $derived((data.folioExpenses  ?? []) as any[]);
 
   const INV_COLORS: Record<string, string> = {
     draft:   'var(--color-base-content)',
@@ -155,6 +159,9 @@
   const totalPaid        = $derived(folioInvoices.filter((i: any) => i.status === 'paid').reduce((s: number, i: any) => s + (i.total ?? 0), 0));
   const totalOutstanding = $derived(folioInvoices.filter((i: any) => ['sent', 'overdue'].includes(i.status)).reduce((s: number, i: any) => s + (i.total ?? 0), 0));
   const overdueInvCount  = $derived(folioInvoices.filter((i: any) => i.status === 'overdue').length);
+  const totalExpenses    = $derived(folioExpenses.reduce((s: number, e: any) => s + (e.amount ?? 0), 0));
+  const netProfit        = $derived(totalPaid - totalExpenses);
+  const collectionRate   = $derived(totalBilled > 0 ? Math.round(totalPaid / totalBilled * 100) : 0);
 
   const invStatusCounts = $derived(() => {
     const counts: Record<string, number> = {};
@@ -332,6 +339,7 @@
           {#each sprintBars as sprint}
             {@const pct = Math.round(sprint.completionPct ?? 0)}
             {@const done = sprint.status === 'Completed'}
+            {@const vel = sprint.velocity ?? null}
             <div class="flex items-center gap-2.5">
               <span class="text-[11px] opacity-50 w-[4.5rem] shrink-0 truncate">Sprint {sprint.sprintNumber}</span>
               <div class="relative flex-1 h-2 rounded-full bg-base-300 overflow-hidden">
@@ -341,6 +349,9 @@
                 ></div>
               </div>
               <span class="text-[11px] font-semibold w-7 text-right opacity-60">{pct}%</span>
+              {#if vel !== null}
+                <span class="text-[10px] opacity-30 w-8 text-right shrink-0">v{vel}</span>
+              {/if}
             </div>
           {/each}
         </div>
@@ -385,9 +396,9 @@
         <p class="text-xs opacity-40 mt-0.5">{companiesTotal} compan{companiesTotal !== 1 ? 'ies' : 'y'}</p>
       </div>
       <div class="bg-base-200 border border-base-300 rounded-box p-4">
-        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Won Deals</p>
-        <p class="text-2xl font-bold mt-1 text-success">{wonDeals}</p>
-        <p class="text-xs opacity-40 mt-0.5">closed won</p>
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Win Rate</p>
+        <p class="text-2xl font-bold mt-1 {winRate !== null ? (winRate >= 50 ? 'text-success' : winRate < 25 ? 'text-error' : '') : ''}">{winRate !== null ? `${winRate}%` : '—'}</p>
+        <p class="text-xs opacity-40 mt-0.5">{wonDeals} won · {closedDeals.length - wonDeals} lost</p>
       </div>
     </div>
 
@@ -420,27 +431,11 @@
       </div>
       {/if}
 
-      <!-- Recent activities -->
+      <!-- Activity volume by type -->
       {#if crmActivities.length > 0}
-      <div class="bg-base-200 border border-base-300 rounded-box overflow-hidden">
-        <div class="px-5 py-3 border-b border-base-300">
-          <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Recent Activities</p>
-        </div>
-        <ul class="divide-y divide-base-300">
-          {#each crmActivities as act}
-            <li class="flex items-start gap-3 px-5 py-3">
-              <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-secondary/10 text-secondary shrink-0 mt-0.5">{act.type ?? '—'}</span>
-              <div class="flex-1 min-w-0">
-                <p class="text-xs font-medium truncate">{act.title ?? 'Untitled'}</p>
-                <p class="text-[10px] opacity-40 mt-0.5">
-                  {act.scheduledAt
-                    ? new Date(act.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                    : 'No date'}
-                </p>
-              </div>
-            </li>
-          {/each}
-        </ul>
+      <div class="bg-base-200 border border-base-300 rounded-box p-5">
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-3">Activity Volume</p>
+        <ActivityVolumeChart activities={crmActivities} />
       </div>
       {/if}
 
@@ -463,26 +458,31 @@
     </div>
 
     <!-- KPI strip -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       <div class="bg-base-200 border border-base-300 rounded-box p-4">
-        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Total Billed</p>
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Revenue</p>
         <p class="text-2xl font-bold mt-1">{fmtCurrency(totalBilled)}</p>
         <p class="text-xs opacity-40 mt-0.5">{folioInvoices.length} invoice{folioInvoices.length !== 1 ? 's' : ''}</p>
       </div>
       <div class="bg-base-200 border border-base-300 rounded-box p-4">
-        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Paid</p>
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Collected</p>
         <p class="text-2xl font-bold mt-1 text-success">{fmtCurrency(totalPaid)}</p>
-        <p class="text-xs opacity-40 mt-0.5">{folioInvoices.filter((i: any) => i.status === 'paid').length} invoices</p>
+        <p class="text-xs opacity-40 mt-0.5">{collectionRate}% rate</p>
       </div>
       <div class="bg-base-200 border border-base-300 rounded-box p-4">
         <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Outstanding</p>
         <p class="text-2xl font-bold mt-1 {totalOutstanding > 0 ? 'text-warning' : ''}">{fmtCurrency(totalOutstanding)}</p>
-        <p class="text-xs opacity-40 mt-0.5">{folioInvoices.filter((i: any) => i.status === 'sent').length} sent</p>
+        <p class="text-xs opacity-40 mt-0.5">{overdueInvCount > 0 ? `${overdueInvCount} overdue` : 'all current'}</p>
       </div>
       <div class="bg-base-200 border border-base-300 rounded-box p-4">
-        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Overdue</p>
-        <p class="text-2xl font-bold mt-1 {overdueInvCount > 0 ? 'text-error' : ''}">{overdueInvCount}</p>
-        <p class="text-xs opacity-40 mt-0.5">{folioCustomers.length} client{folioCustomers.length !== 1 ? 's' : ''}</p>
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Expenses</p>
+        <p class="text-2xl font-bold mt-1">{fmtCurrency(totalExpenses)}</p>
+        <p class="text-xs opacity-40 mt-0.5">{folioExpenses.length} item{folioExpenses.length !== 1 ? 's' : ''}</p>
+      </div>
+      <div class="bg-base-200 border border-base-300 rounded-box p-4">
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Net</p>
+        <p class="text-2xl font-bold mt-1 {netProfit >= 0 ? 'text-success' : 'text-error'}">{netProfit < 0 ? '-' : ''}{fmtCurrency(Math.abs(netProfit))}</p>
+        <p class="text-xs opacity-40 mt-0.5">{netProfit >= 0 ? 'profit' : 'loss'}</p>
       </div>
     </div>
 
