@@ -17,6 +17,7 @@
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
   import UserCard from '$lib/components/UserCard.svelte';
   import { connect, disconnect, getUnreadCount } from '$lib/stores/notifications.svelte';
+  import { closeCard } from '$lib/stores/userCard.svelte';
   import { brand } from '$lib/config/logo';
   import { APP_THEME } from '$lib/config/theme';
   import type { Snippet } from 'svelte';
@@ -84,7 +85,7 @@
   <title>{data.appName ?? 'Application'} — {brand.description}</title>
 </svelte:head>
 
-{#if data.user && page.url.pathname !== '/' && !page.url.pathname.startsWith('/documentation/')}
+{#if data.user && page.url.pathname !== '/' && !page.url.pathname.startsWith('/documentation')}
 
   {#if navigating.to !== null}
     <div data-theme={APP_THEME} class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
@@ -117,8 +118,8 @@
     <aside class="
       fixed inset-y-0 left-0 z-30 w-64 flex flex-col
       bg-base-200 border-r border-base-300
-      transition-transform duration-200
-      lg:static lg:translate-x-0
+      transition-transform duration-200 rounded-b-xl
+      lg:static lg:translate-x-0 lg:mx-2 lg:mb-2
       {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
     ">
 
@@ -284,7 +285,7 @@
     <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
 
       <!-- Top bar (always visible) -->
-      <header class="flex items-center gap-3 px-4 h-16 shrink-0 bg-base-200">
+      <header class="flex items-center gap-3 px-4 h-16 shrink-0 bg-base-200 rounded-b-xl">
         <button
           type="button"
           class="btn btn-ghost btn-sm btn-square lg:hidden"
@@ -319,7 +320,7 @@
       </header>
 
       <!-- Page content -->
-      <main bind:this={mainEl} class="flex-1 overflow-auto">
+      <main bind:this={mainEl} class="flex-1 overflow-auto" onscroll={closeCard}>
         <div class="container mx-auto p-6 max-w-5xl">
           {@render children()}
         </div>

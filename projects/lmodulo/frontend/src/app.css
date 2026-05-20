@@ -37,6 +37,12 @@ body {
   font-family: var(--font-sans);
 }
 
+.tab-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-scroll::-webkit-scrollbar { display: none; }
+
 .select {
   padding-inline-end: 2.5rem;
   min-width: max-content;

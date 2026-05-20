@@ -3,6 +3,7 @@
   import { LayoutGrid, Users, Building2, TrendingUp, CalendarDays, BarChart2 } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
+  import { dragScroll } from '$lib/actions/dragScroll';
 
   let { data, children }: { data: LayoutData; children: any } = $props();
 
@@ -39,7 +40,7 @@
   </div>
 
   {#if hasPermission(data.user, 'crm_contacts', 'read')}
-    <nav class="flex gap-1 border-b border-base-300 -mb-2">
+    <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-2">
       {#each navLinks as link}
         <a
           href={link.href}

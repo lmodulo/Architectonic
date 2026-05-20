@@ -5,6 +5,7 @@
   import { markRead, setRecentNotifications } from '$lib/stores/notifications.svelte';
   import type { AppNotification } from '$lib/stores/notifications.svelte';
   import type { PageData } from './$types';
+  import { dragScroll } from '$lib/actions/dragScroll';
 
   let { data }: { data: PageData } = $props();
 
@@ -80,7 +81,7 @@
   </div>
 
   <!-- Filter tabs -->
-  <div class="flex gap-1 border-b border-base-300">
+  <div use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300">
     {#each ['all', 'unread'] as f}
       <button
         type="button"

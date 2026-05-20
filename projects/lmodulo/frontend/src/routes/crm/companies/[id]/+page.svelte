@@ -3,6 +3,7 @@
   import { Pencil, X, Check, Milestone } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
+  import { dragScroll } from '$lib/actions/dragScroll';
   import {
     COMPANY_TYPES, COMPANY_INDUSTRIES, COMPANY_SIZES, CRM_LEVEL,
     CONTACT_STATUS_COLOR, STAGE_COLOR, fmtCurrency, fmtDate,
@@ -165,7 +166,7 @@
 
   <!-- Tabs -->
   <div class="space-y-4">
-    <div class="flex gap-1 border-b border-base-200">
+    <div use:dragScroll class="tab-scroll flex gap-1 border-b border-base-200">
       <button
         class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'contacts' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
         onclick={() => activeTab = 'contacts'}

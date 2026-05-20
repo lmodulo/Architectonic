@@ -3,6 +3,7 @@
   import { LayoutGrid, FileText, RefreshCw, ClipboardList, Receipt, BarChart2 } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
+  import { dragScroll } from '$lib/actions/dragScroll';
 
   let { data, children }: { data: LayoutData; children: any } = $props();
 
@@ -30,7 +31,7 @@
 
   <!-- Sub-navigation -->
   {#if hasPermission(data.user, 'finance_invoices', 'read')}
-    <nav class="flex gap-1 border-b border-base-300 -mb-2">
+    <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-2">
       {#each navLinks as link}
         {#if !link.permission || hasPermission(data.user, link.permission, 'read')}
           <a

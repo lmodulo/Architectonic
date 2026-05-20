@@ -5,6 +5,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
+  import { dragScroll } from '$lib/actions/dragScroll';
   import Avatar from '$lib/components/Avatar.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import type { PageData } from './$types';
@@ -329,7 +330,7 @@
   {/if}
 
   <!-- Tabs -->
-  <div class="flex gap-1 border-b border-base-300">
+  <div use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300">
     {#if data.canReadUsers}
       <button type="button"
         class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'users' ? 'bg-primary text-primary-content rounded-t' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50 rounded-t'}"
