@@ -28,6 +28,7 @@
     "finance_subscriptions":  { "create": true,  "read": true,  "update": true,  "delete": true  },
     "finance_estimates":      { "create": true,  "read": true,  "update": true,  "delete": true  },
     "finance_expenses":       { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "finance_reports":        { "create": false, "read": true,  "update": false, "delete": false },
     "client_portal":          { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "admin": {
@@ -59,6 +60,7 @@
     "finance_subscriptions":  { "create": true,  "read": true,  "update": true,  "delete": true  },
     "finance_estimates":      { "create": true,  "read": true,  "update": true,  "delete": true  },
     "finance_expenses":       { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "finance_reports":        { "create": false, "read": true,  "update": false, "delete": false },
     "client_portal":          { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "lead": {
@@ -90,6 +92,7 @@
     "finance_subscriptions":  { "create": false, "read": true,  "update": false, "delete": false },
     "finance_estimates":      { "create": false, "read": true,  "update": false, "delete": false },
     "finance_expenses":       { "create": false, "read": true,  "update": false, "delete": false },
+    "finance_reports":        { "create": false, "read": true,  "update": false, "delete": false },
     "client_portal":          { "create": false, "read": false, "update": false, "delete": false }
   },
   "contributor": {
@@ -121,6 +124,7 @@
     "finance_subscriptions":  { "create": false, "read": false, "update": false, "delete": false },
     "finance_estimates":      { "create": false, "read": true,  "update": false, "delete": false },
     "finance_expenses":       { "create": false, "read": true,  "update": false, "delete": false },
+    "finance_reports":        { "create": false, "read": false, "update": false, "delete": false },
     "client_portal":          { "create": false, "read": false, "update": false, "delete": false }
   },
   "customer": {
@@ -149,6 +153,7 @@
     "finance_subscriptions":  { "create": false, "read": true,  "update": false, "delete": false },
     "finance_estimates":      { "create": false, "read": true,  "update": false, "delete": false },
     "finance_expenses":       { "create": false, "read": false, "update": false, "delete": false },
+    "finance_reports":        { "create": false, "read": false, "update": false, "delete": false },
     "client_portal":          { "create": true,  "read": true,  "update": false, "delete": false }
   },
   "viewer": {
@@ -180,6 +185,7 @@
     "finance_subscriptions":  { "create": false, "read": true,  "update": false, "delete": false },
     "finance_estimates":      { "create": false, "read": true,  "update": false, "delete": false },
     "finance_expenses":       { "create": false, "read": true,  "update": false, "delete": false },
+    "finance_reports":        { "create": false, "read": true,  "update": false, "delete": false },
     "client_portal":          { "create": false, "read": false, "update": false, "delete": false }
   }
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { LayoutGrid, FileText, RefreshCw, ClipboardList, Receipt } from 'lucide-svelte';
+  import { LayoutGrid, FileText, RefreshCw, ClipboardList, Receipt, BarChart2 } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
 
@@ -12,6 +12,7 @@
     { href: '/folio/estimates',     label: 'Estimates',     icon: ClipboardList, permission: 'finance_estimates' },
     { href: '/folio/subscriptions', label: 'Subscriptions', icon: RefreshCw,     permission: 'finance_subscriptions' },
     { href: '/folio/expenses',      label: 'Expenses',      icon: Receipt,       permission: 'finance_expenses' },
+    { href: '/folio/reports',       label: 'Reports',       icon: BarChart2,      permission: 'finance_reports' },
   ];
 
   const isActive = (href: string) =>

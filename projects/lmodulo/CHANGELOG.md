@@ -8,6 +8,18 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-05-20 (seed data — finance features)
+
+### Added
+- **Seed data for `finance_expenses`** — 8 documents covering all 7 categories (`hosting`, `software`, `contractor`, `travel`, `meals`, `equipment`, `other`), all 3 statuses (`paid`/`pending`/`draft`), and a mix of billable (Vertex Systems, TechFusion) vs. internal expenses.
+- **Seed data for `finance_estimates`** — 5 documents covering all 5 statuses: `sent` (EST-0001 Vertex Q3 enhancements), `draft` (EST-0002 TechFusion API integration), `accepted` (EST-0003 TechFusion data migration), `declined` (EST-0004 Vertex onboarding), `expired` (EST-0005 Vertex analytics full scope). EST-0003 is pre-linked to a seeded draft invoice **INV-0009** via `invoiceId`, making the estimate-to-invoice conversion flow testable from seed state.
+- **Seed data for `finance_subscriptions`** — 2 active subscriptions: Vertex Monthly Retainer ($6,000/mo, 40h included, rollover capped at 20h, overage $150/h) and TechFusion Monthly Retainer ($3,000/mo, 20h included, no rollover, overage $125/h).
+- **Seed data for `finance_retainer_periods`** — 5 documents (3 for Vertex, 2 for TechFusion). Closed periods carry `hoursUsed` and reference existing invoice `_id`s; open (current) periods leave `hoursUsed: 0` / `hoursUsedAt: null` so the API computes live usage from `time_entries`. Vertex P3 carries 5 rolled-over hours (`hoursIncluded: 45`).
+
+All additions are inside the existing `if (!invoiceCount)` idempotency guard in `api/src/plugins/seed.ts`.
+
+---
+
 ## 2026-05-09 (teams in agile tracker)
 
 ### Added

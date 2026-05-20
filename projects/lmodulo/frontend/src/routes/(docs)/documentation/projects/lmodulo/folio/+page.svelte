@@ -7,7 +7,7 @@
   <div class="space-y-3">
     <h1 class="text-3xl font-bold">Folio</h1>
     <p class="text-base opacity-70 leading-relaxed">
-      Folio is lmodulo's finance module. Staff create estimates for client approval, convert accepted estimates into invoices, set up recurring billing schedules, and manage subscription plans that auto-generate invoices on a cycle. Expenses (hosting costs, software, contractor payments, reimbursable items) are tracked in a separate <code class="bg-base-300 px-1 rounded text-xs">finance_expenses</code> collection. The overview dashboard aggregates paid revenue and paid expenses into a P&L summary. Customers access their estimates and invoices through a dedicated client portal and pay online. The module lives at <code class="bg-base-300 px-1 rounded text-xs">/folio</code> for staff and <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code> + <code class="bg-base-300 px-1 rounded text-xs">/payments</code> for customers.
+      Folio is lmodulo's finance module. Staff create estimates for client approval, convert accepted estimates into invoices, set up recurring billing schedules, and manage subscription plans that auto-generate invoices on a cycle. Expenses (hosting costs, software, contractor payments, reimbursable items) are tracked in a separate <code class="bg-base-300 px-1 rounded text-xs">finance_expenses</code> collection. The Reports page provides a full P&amp;L view — revenue vs. expenses over any date range, expense breakdown by category, tax-period summary, and CSV/print export. Customers access their estimates and invoices through a dedicated client portal and pay online. The module lives at <code class="bg-base-300 px-1 rounded text-xs">/folio</code> for staff and <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code> + <code class="bg-base-300 px-1 rounded text-xs">/payments</code> for customers.
     </p>
   </div>
 
@@ -307,8 +307,8 @@ finance_expenses      ← internal business cost (hosting, software, contractors
     </div>
 
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 text-sm space-y-1">
-      <p class="font-semibold">P&amp;L on the overview</p>
-      <p class="opacity-60 leading-relaxed">The Folio dashboard (<code class="bg-base-300 px-1 rounded text-xs">/folio</code>) fetches up to 500 <code class="bg-base-300 px-1 rounded text-xs">paid</code> expenses server-side alongside invoices and derives three summary figures: <strong>Revenue</strong> (sum of paid invoices), <strong>Expenses</strong> (sum of paid expenses), <strong>Net</strong> (revenue − expenses). Net is green when positive and red when negative.</p>
+      <p class="font-semibold">P&amp;L on the overview vs. Reports</p>
+      <p class="opacity-60 leading-relaxed">The Folio dashboard (<code class="bg-base-300 px-1 rounded text-xs">/folio</code>) fetches up to 500 <code class="bg-base-300 px-1 rounded text-xs">paid</code> expenses server-side alongside invoices and derives three summary figures: <strong>Revenue</strong> (sum of paid invoices), <strong>Expenses</strong> (sum of paid expenses), <strong>Net</strong> (revenue − expenses). This is a snapshot of all time. For a date-ranged breakdown with charts, category analysis, and tax-period summary use the <strong>Reports</strong> tab (<code class="bg-base-300 px-1 rounded text-xs">/folio/reports</code>), which queries the <code class="bg-base-300 px-1 rounded text-xs">GET /finance/reports</code> endpoint with MongoDB aggregations rather than fetching raw documents client-side.</p>
     </div>
   </div>
 
@@ -338,7 +338,7 @@ finance_expenses      ← internal business cost (hosting, software, contractors
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">Staff Views</h2>
     <p class="text-sm opacity-70 leading-relaxed">
-      A persistent nav bar (Overview · Invoices · Estimates · Subscriptions · Expenses) wraps all Folio pages. The Estimates tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_estimates:read</code>; the Subscriptions tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_subscriptions:read</code>; the Expenses tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_expenses:read</code>. All Folio pages require at minimum <code class="bg-base-300 px-1 rounded text-xs">finance_invoices:read</code>.
+      A persistent nav bar (Overview · Invoices · Estimates · Subscriptions · Expenses · Reports) wraps all Folio pages. The Estimates tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_estimates:read</code>; the Subscriptions tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_subscriptions:read</code>; the Expenses tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_expenses:read</code>; the Reports tab requires <code class="bg-base-300 px-1 rounded text-xs">finance_reports:read</code>. All Folio pages require at minimum <code class="bg-base-300 px-1 rounded text-xs">finance_invoices:read</code>.
     </p>
     <div class="space-y-3">
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
@@ -388,6 +388,26 @@ finance_expenses      ← internal business cost (hosting, software, contractors
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Expense Detail <code class="bg-base-300 px-1 rounded text-xs">/folio/expenses/[id]</code></p>
         <p class="text-sm opacity-60 leading-relaxed">Full view with all fields displayed. Edit mode (requires <code class="bg-base-300 px-1 rounded text-xs">finance_expenses:update</code>) exposes all fields inline. <strong>Delete</strong> requires <code class="bg-base-300 px-1 rounded text-xs">finance_expenses:delete</code> and navigates back to the list on success. If a receipt URL is set, a "View receipt ↗" link is shown.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Reports <code class="bg-base-300 px-1 rounded text-xs">/folio/reports</code></p>
+        <p class="text-sm opacity-60 leading-relaxed">
+          Date-ranged P&amp;L report requiring <code class="bg-base-300 px-1 rounded text-xs">finance_reports:read</code>. Filter bar selects <strong>From / To</strong> dates and <strong>Group by</strong> (Month / Quarter / Year); applying the filter updates URL params and reloads server-side. Sections:
+        </p>
+        <ul class="text-sm opacity-60 leading-relaxed list-disc list-inside space-y-0.5 mt-1">
+          <li><strong>Summary cards</strong> — Revenue, Expenses, Net Profit (colour-coded), Profit Margin %, Tax Collected</li>
+          <li><strong>Revenue vs Expenses chart</strong> — grouped bar chart (pure SVG); success bars for revenue, error bars for expenses; abbreviated Y-axis ($K/$M)</li>
+          <li><strong>Expenses by Category chart</strong> — SVG donut with legend; only shown when there are paid expenses in the range</li>
+          <li><strong>Period Detail table</strong> — one row per period with revenue, expenses, net, and tax collected; totals in the footer</li>
+          <li><strong>Tax Period Summary table</strong> — collapses periods into quarters showing effective tax rate; only shown when any tax was collected</li>
+          <li><strong>Outstanding note</strong> — total of sent + overdue invoices shown below the tables (not included in revenue figures)</li>
+        </ul>
+        <p class="text-sm opacity-60 leading-relaxed mt-1">
+          <strong>Export:</strong> "Download CSV" builds the file client-side from loaded data (<code class="bg-base-300 px-1 rounded text-xs">Blob + URL.createObjectURL</code>) — no round-trip to the API. "Print / PDF" calls <code class="bg-base-300 px-1 rounded text-xs">window.print()</code>; the filter bar and export buttons are hidden via <code class="bg-base-300 px-1 rounded text-xs">@media print</code>. Both buttons require <code class="bg-base-300 px-1 rounded text-xs">finance_reports:read</code>.
+        </p>
+        <p class="text-sm opacity-60 leading-relaxed mt-1">
+          <strong>Data source:</strong> Revenue = paid invoices (<code class="bg-base-300 px-1 rounded text-xs">status: 'paid'</code>, grouped by <code class="bg-base-300 px-1 rounded text-xs">paidAt</code>). Expenses = paid expenses (<code class="bg-base-300 px-1 rounded text-xs">status: 'paid'</code>, grouped by <code class="bg-base-300 px-1 rounded text-xs">expenseDate</code>). Periods with no activity appear as zero-value rows so the chart never has gaps.
+        </p>
       </div>
     </div>
   </div>
@@ -507,6 +527,7 @@ finance_expenses      ← internal business cost (hosting, software, contractors
           <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-xs opacity-60">finance_expenses:read</td><td class="text-sm opacity-70">Single expense document</td></tr>
           <tr><td class="font-mono text-xs">PATCH</td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-xs opacity-60">finance_expenses:update</td><td class="text-sm opacity-70">Partial update; any subset of the writable fields; returns <code class="bg-base-300 px-1 rounded text-xs">&#123;"updated":true&#125;</code></td></tr>
           <tr><td class="font-mono text-xs">DELETE</td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-xs opacity-60">finance_expenses:delete</td><td class="text-sm opacity-70">Delete expense; returns 204</td></tr>
+          <tr class="border-t border-base-300"><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/reports</td><td class="text-xs opacity-60">finance_reports:read</td><td class="text-sm opacity-70">P&amp;L aggregation. Query: <code class="bg-base-300 px-1 rounded text-xs">from</code> (ISO date), <code class="bg-base-300 px-1 rounded text-xs">to</code> (ISO date), <code class="bg-base-300 px-1 rounded text-xs">groupBy</code> (month | quarter | year). Returns <code class="bg-base-300 px-1 rounded text-xs">summary</code>, <code class="bg-base-300 px-1 rounded text-xs">periods[]</code>, and <code class="bg-base-300 px-1 rounded text-xs">expensesByCategory[]</code>. All periods in the range are included (zero-padded).</td></tr>
           <tr class="border-t border-base-300"><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/customers</td><td class="text-xs opacity-60">users:read</td><td class="text-sm opacity-70">List users with <code class="bg-base-300 px-1 rounded text-xs">role: 'customer'</code> with company name joined; used to populate customer selectors</td></tr>
           <tr class="border-t border-base-300"><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/crm/contacts/:id/convert-to-client</td><td class="text-xs opacity-60">crm_contacts:update</td><td class="text-sm opacity-70">Converts CRM contact to customer; sends password-set email + welcome message</td></tr>
         </tbody>
@@ -519,13 +540,13 @@ finance_expenses      ← internal business cost (hosting, software, contractors
     <h2 class="text-xl font-semibold">Permissions</h2>
     <div class="overflow-x-auto">
       <table class="table table-sm w-full">
-        <thead><tr class="bg-base-200"><th>Role</th><th>finance_estimates</th><th>finance_invoices</th><th>finance_payments</th><th>finance_subscriptions</th><th>finance_expenses</th><th>client_portal</th></tr></thead>
+        <thead><tr class="bg-base-200"><th>Role</th><th>finance_estimates</th><th>finance_invoices</th><th>finance_payments</th><th>finance_subscriptions</th><th>finance_expenses</th><th>finance_reports</th><th>client_portal</th></tr></thead>
         <tbody>
-          <tr><td>owner / admin</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td></tr>
-          <tr><td>lead</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
-          <tr><td>contributor</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
-          <tr><td>viewer</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
-          <tr><td>customer</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">CR</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">CR</td></tr>
+          <tr><td>owner / admin</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">CRUD</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">CRUD</td></tr>
+          <tr><td>lead</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
+          <tr><td>contributor</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">—</td></tr>
+          <tr><td>viewer</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">R</td><td class="text-xs opacity-70">—</td></tr>
+          <tr><td>customer</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">CR</td><td class="text-xs opacity-70">R (own)</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">—</td><td class="text-xs opacity-70">CR</td></tr>
         </tbody>
       </table>
     </div>
