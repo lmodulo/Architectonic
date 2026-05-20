@@ -12,13 +12,13 @@ Finance goes straight to Invoice. There's no quote or proposal stage — no fina
 Invoices (revenue) exist but there's no expense record — no way to log hosting costs, software subscriptions, contractor payments, or reimbursable client expenses. Without it there's no P&L.
 
 Secondary gaps
-5. Retainer / hours-balance tracking
+[x] Retainer / hours-balance tracking
 Subscriptions exist but they're flat-rate billing, not hours-consumed-against-retainer. A typical dev retainer model (20 hrs/mo, hours roll over or don't) has no data model here.
 
-6. Client portal scope
+[x] Client portal scope
 The client portal only surfaces support tickets. Clients can't view project status, approve deliverables, download invoices, or sign off on estimates — all common web-dev workflow needs.
 
-7. Financial summary / P&L report
+[x] Financial summary / P&L report
 The finance module tracks invoices and subscriptions but there's no revenue vs. expense dashboard, no tax-period summary, and no export (PDF/CSV) for an accountant.
 
 

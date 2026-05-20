@@ -1,6 +1,7 @@
 import {
   House, CalendarRange, Milestone, Handshake,
   Receipt, LayoutDashboard, CreditCard, Ticket,
+  FolderKanban, FileText, ClipboardList,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
@@ -40,7 +41,10 @@ export const navItems: NavEntry[] = [
   { label: 'Calendar',      href: '/calendar-events', icon: CalendarRange,   matchPrefix: true },
 
   // Customer-only items
-  { label: 'Client Portal', href: '/client-portal',         icon: LayoutDashboard, customerOnly: true },
-  { label: 'Tickets',       href: '/client-portal/tickets', icon: Ticket,          customerOnly: true, matchPrefix: true },
-  { label: 'Payments',      href: '/payments',              icon: CreditCard,      customerOnly: true },
+  { label: 'Client Portal', href: '/client-portal',           icon: LayoutDashboard, customerOnly: true },
+  { label: 'Projects',      href: '/client-portal/projects',  icon: FolderKanban,    customerOnly: true, matchPrefix: true },
+  { label: 'Invoices',      href: '/client-portal/invoices',  icon: FileText,        customerOnly: true, matchPrefix: true },
+  { label: 'Estimates',     href: '/client-portal/estimates', icon: ClipboardList,   customerOnly: true, matchPrefix: true },
+  { label: 'Tickets',       href: '/client-portal/tickets',   icon: Ticket,          customerOnly: true, matchPrefix: true },
+  { label: 'Payments',      href: '/payments',                icon: CreditCard,      customerOnly: true },
 ];

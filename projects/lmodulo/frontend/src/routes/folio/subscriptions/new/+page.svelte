@@ -24,6 +24,11 @@
     endDate:           '',
     dueDateOffsetDays: '',
     notes:             '',
+    retainerEnabled:   false,
+    retainerHours:     '',
+    rolloverEnabled:   false,
+    rolloverCap:       '',
+    overageRate:       '',
   });
 
   const selectedCustomer = $derived(customers.find(c => c.id === form.customerId));
@@ -67,6 +72,11 @@
           endDate:           form.endDate || undefined,
           dueDateOffsetDays: form.dueDateOffsetDays ? Number(form.dueDateOffsetDays) : undefined,
           notes:             form.notes,
+          retainerEnabled:   form.retainerEnabled,
+          retainerHours:     form.retainerHours ? Number(form.retainerHours) : undefined,
+          rolloverEnabled:   form.rolloverEnabled,
+          rolloverCap:       form.rolloverCap ? Number(form.rolloverCap) : undefined,
+          overageRate:       form.overageRate ? Number(form.overageRate) : undefined,
         }),
       });
       const d = await res.json().catch(() => ({}));
@@ -171,6 +181,36 @@
       <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sub-notes">Notes</label>
       <textarea id="sub-notes" class="textarea w-full" rows="2" placeholder="Optional notes…" bind:value={form.notes}></textarea>
     </div>
+  </div>
+
+  <!-- Retainer settings -->
+  <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
+    <div class="flex items-center gap-3">
+      <input id="sub-retainer" type="checkbox" class="checkbox checkbox-sm" bind:checked={form.retainerEnabled} />
+      <label class="text-sm font-semibold cursor-pointer" for="sub-retainer">Retainer subscription (track hours balance)</label>
+    </div>
+    {#if form.retainerEnabled}
+      <div class="grid grid-cols-2 gap-4 pl-7">
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sub-ret-hours">Hours per period *</label>
+          <input id="sub-ret-hours" type="number" class="input w-full" min="0.5" step="0.5" placeholder="e.g. 20" bind:value={form.retainerHours} />
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sub-ret-overage">Overage rate ($/hr)</label>
+          <input id="sub-ret-overage" type="number" class="input w-full" min="0" step="0.01" placeholder="blank = no auto-billing" bind:value={form.overageRate} />
+        </div>
+        <div class="col-span-2 flex items-center gap-3">
+          <input id="sub-rollover" type="checkbox" class="checkbox checkbox-sm" bind:checked={form.rolloverEnabled} />
+          <label class="text-sm cursor-pointer" for="sub-rollover">Roll over unused hours</label>
+        </div>
+        {#if form.rolloverEnabled}
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="sub-rollover-cap">Max rollover hours</label>
+            <input id="sub-rollover-cap" type="number" class="input w-full" min="0" step="0.5" placeholder="blank = unlimited" bind:value={form.rolloverCap} />
+          </div>
+        {/if}
+      </div>
+    {/if}
   </div>
 
   <div class="flex gap-3 justify-end">

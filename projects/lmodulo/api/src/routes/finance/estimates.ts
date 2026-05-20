@@ -212,6 +212,56 @@ export default async function estimatesRoutes(app: FastifyInstance) {
     reply.status(204);
   });
 
+  // POST /finance/estimates/:id/accept — customer signs off (sent → accepted)
+  app.post('/estimates/:id/accept', { preHandler: app.requirePermission('finance_estimates', 'read') }, async (req, reply) => {
+    const db     = app.mongo.db!;
+    const oid    = parseOid((req.params as { id: string }).id, app);
+    const userId = req.session.userId!;
+
+    const doc = await db.collection(EST_COL).findOne({ _id: oid });
+    if (!doc) return reply.notFound('Estimate not found');
+
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (user?.role === 'customer' && doc.customerId?.toString() !== userId) {
+      return reply.forbidden('Access denied');
+    }
+    if (doc.status !== 'sent') return reply.badRequest('Only sent estimates can be accepted');
+
+    await db.collection(EST_COL).updateOne({ _id: oid }, { $set: { status: 'accepted', updatedAt: new Date() } });
+
+    logAudit(db, {
+      userId, username: req.session.username!,
+      action: 'finance_estimate.accept', resourceId: oid.toString(), ip: req.ip,
+    });
+
+    return { updated: true };
+  });
+
+  // POST /finance/estimates/:id/decline — customer declines (sent → declined)
+  app.post('/estimates/:id/decline', { preHandler: app.requirePermission('finance_estimates', 'read') }, async (req, reply) => {
+    const db     = app.mongo.db!;
+    const oid    = parseOid((req.params as { id: string }).id, app);
+    const userId = req.session.userId!;
+
+    const doc = await db.collection(EST_COL).findOne({ _id: oid });
+    if (!doc) return reply.notFound('Estimate not found');
+
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (user?.role === 'customer' && doc.customerId?.toString() !== userId) {
+      return reply.forbidden('Access denied');
+    }
+    if (doc.status !== 'sent') return reply.badRequest('Only sent estimates can be declined');
+
+    await db.collection(EST_COL).updateOne({ _id: oid }, { $set: { status: 'declined', updatedAt: new Date() } });
+
+    logAudit(db, {
+      userId, username: req.session.username!,
+      action: 'finance_estimate.decline', resourceId: oid.toString(), ip: req.ip,
+    });
+
+    return { updated: true };
+  });
+
   // POST /finance/estimates/:id/convert — convert accepted estimate to a new draft invoice
   app.post('/estimates/:id/convert', { preHandler: app.requirePermission('finance_invoices', 'create') }, async (req, reply) => {
     const db  = app.mongo.db!;

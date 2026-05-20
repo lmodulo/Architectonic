@@ -26,5 +26,21 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
   const invoices     = invoicesRes.status === 'fulfilled' && invoicesRes.value.ok
     ? (await invoicesRes.value.json()).invoices ?? [] : [];
 
-  return { user: locals.user, subscription, customers, invoices };
+  let retainerPeriod  = null;
+  let retainerHistory: unknown[] = [];
+
+  if (subscription.retainerEnabled) {
+    const [currentRes, historyRes] = await Promise.allSettled([
+      fetch(`${API_URL}/finance/subscriptions/${params.id}/retainer-current`, { headers }),
+      fetch(`${API_URL}/finance/subscriptions/${params.id}/retainer-history`, { headers }),
+    ]);
+    if (currentRes.status === 'fulfilled' && currentRes.value.ok) {
+      retainerPeriod = await currentRes.value.json();
+    }
+    if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
+      retainerHistory = (await historyRes.value.json()).periods ?? [];
+    }
+  }
+
+  return { user: locals.user, subscription, customers, invoices, retainerPeriod, retainerHistory };
 };

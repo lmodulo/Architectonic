@@ -4,8 +4,36 @@ import { ObjectId } from '@fastify/mongodb';
 import { calcNextDate } from '../lib/recurringDates.js';
 import { sendInvoiceOverdueEmail } from '../lib/email.js';
 
-const INV_COL = 'finance_invoices';
-const SUB_COL = 'finance_subscriptions';
+const INV_COL    = 'finance_invoices';
+const SUB_COL    = 'finance_subscriptions';
+const PERIOD_COL = 'finance_retainer_periods';
+
+async function computeRetainerHoursUsed(db: Db, companyId: ObjectId, periodStart: Date, periodEnd: Date): Promise<number> {
+  const result = await db.collection('time_entries').aggregate([
+    {
+      $match: {
+        billable: true,
+        date: {
+          $gte: periodStart.toISOString().substring(0, 10),
+          $lte: periodEnd.toISOString().substring(0, 10),
+        },
+      },
+    },
+    {
+      $lookup: {
+        from:         'agile_milestones',
+        localField:   'milestoneId',
+        foreignField: '_id',
+        as:           '_milestone',
+      },
+    },
+    { $unwind: { path: '$_milestone', preserveNullAndEmpty: false } },
+    { $match: { '_milestone.clientId': companyId } },
+    { $group: { _id: null, total: { $sum: '$durationMinutes' } } },
+  ]).toArray();
+
+  return result.length > 0 ? (result[0].total as number) / 60 : 0;
+}
 
 async function nextInvoiceNumber(db: Db): Promise<string> {
   const lastInv = await db.collection(INV_COL)
@@ -63,16 +91,78 @@ async function processSubscriptions(db: Db, now: Date) {
       ? new Date(now.getTime() + (sub.dueDateOffsetDays as number) * 86400000)
       : null;
 
-    const items  = (sub.lineItems ?? []) as Array<{ amount: number }>;
+    const lineItems = [...((sub.lineItems ?? []) as Array<{ description: string; quantity: number; unitPrice: number; amount: number }>)];
+
+    // Handle retainer period close + overage billing
+    if (sub.retainerEnabled && sub.companyId) {
+      const openPeriod = await db.collection(PERIOD_COL).findOne({
+        subscriptionId: sub._id,
+        status: 'open',
+      });
+
+      if (openPeriod) {
+        const hoursUsed = await computeRetainerHoursUsed(
+          db,
+          sub.companyId as ObjectId,
+          openPeriod.periodStart as Date,
+          openPeriod.periodEnd as Date,
+        );
+
+        const hoursIncluded = openPeriod.hoursIncluded as number;
+        const hoursOver     = Math.max(0, hoursUsed - hoursIncluded);
+
+        if (sub.overageRate != null && hoursOver > 0) {
+          const overageAmount = Math.round(hoursOver * (sub.overageRate as number) * 100) / 100;
+          lineItems.push({
+            description: `Overage: ${hoursOver.toFixed(2)} hrs @ $${(sub.overageRate as number).toFixed(2)}/hr`,
+            quantity:    1,
+            unitPrice:   overageAmount,
+            amount:      overageAmount,
+          });
+        }
+
+        // Close the period — update after invoice is inserted so we have its ID
+        const retainerClose = { hoursUsed, status: 'closed', updatedAt: now };
+        await db.collection(PERIOD_COL).updateOne({ _id: openPeriod._id }, { $set: retainerClose });
+
+        // Open next period with rollover
+        const nextStart   = calcNextDate(openPeriod.periodEnd as Date, sub.billingCycle as string);
+        const nextEnd     = new Date(calcNextDate(nextStart, sub.billingCycle as string));
+        nextEnd.setDate(nextEnd.getDate() - 1);
+
+        const hoursUnused  = Math.max(0, hoursIncluded - hoursUsed);
+        const rolloverCap  = sub.rolloverCap != null ? (sub.rolloverCap as number) : Infinity;
+        const rolledOver   = sub.rolloverEnabled ? Math.min(hoursUnused, rolloverCap) : 0;
+        const hoursBase    = (sub.retainerHours as number) ?? 0;
+
+        await db.collection(PERIOD_COL).insertOne({
+          subscriptionId:  sub._id,
+          companyId:       sub.companyId,
+          periodStart:     nextStart,
+          periodEnd:       nextEnd,
+          hoursBase,
+          hoursRolledOver: rolledOver,
+          hoursIncluded:   hoursBase + rolledOver,
+          hoursUsed:       0,
+          hoursUsedAt:     now,
+          status:          'open',
+          invoiceId:       null,
+          createdAt:       now,
+          updatedAt:       now,
+        });
+      }
+    }
+
+    const items     = lineItems as Array<{ amount: number }>;
     const subtotal  = items.reduce((s, i) => s + i.amount, 0);
     const taxAmount = subtotal * ((sub.taxRate as number) / 100);
 
-    await db.collection(INV_COL).insertOne({
+    const invResult = await db.collection(INV_COL).insertOne({
       invoiceNumber,
       customerId:     sub.customerId,
       companyId:      sub.companyId ?? null,
       subscriptionId: sub._id,
-      lineItems:      sub.lineItems,
+      lineItems,
       subtotal,
       taxRate:        sub.taxRate,
       taxAmount,
@@ -85,6 +175,14 @@ async function processSubscriptions(db: Db, now: Date) {
       createdAt:      now,
       updatedAt:      now,
     });
+
+    // Store invoiceId on the closed period
+    if (sub.retainerEnabled) {
+      await db.collection(PERIOD_COL).updateOne(
+        { subscriptionId: sub._id, status: 'closed', invoiceId: null },
+        { $set: { invoiceId: invResult.insertedId, updatedAt: now } },
+      );
+    }
 
     const nextBillingDate = calcNextDate(now, sub.billingCycle as string);
     const $set: Record<string, unknown> = { nextBillingDate, updatedAt: now };

@@ -3,6 +3,8 @@
   import { hasPermission } from '$lib/permissions';
   import { Pencil, X, Check, Trash2, Plus } from 'lucide-svelte';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
+  import RetainerBalance from '$lib/components/RetainerBalance.svelte';
+  import type { RetainerPeriod } from '$lib/components/RetainerBalance.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -21,6 +23,11 @@
     dueDateOffsetDays?: number;
     status:          string;
     notes?:          string;
+    retainerEnabled?:  boolean;
+    retainerHours?:    number | null;
+    rolloverEnabled?:  boolean;
+    rolloverCap?:      number | null;
+    overageRate?:      number | null;
   };
 
   type Customer = { id: string; firstName: string; lastName: string; companyName?: string };
@@ -29,6 +36,9 @@
   let sub       = $state<Subscription>(data.subscription as Subscription);
   const customers = data.customers as Customer[];
   const invoices  = $derived(data.invoices as Invoice[]);
+
+  const retainerPeriod  = $derived(data.retainerPeriod as RetainerPeriod | null);
+  const retainerHistory = $derived((data.retainerHistory as RetainerPeriod[]) ?? []);
 
   let saving    = $state(false);
   let saveError = $state('');
@@ -41,6 +51,11 @@
     endDate:           sub.endDate ? sub.endDate.substring(0, 10) : '',
     dueDateOffsetDays: sub.dueDateOffsetDays?.toString() ?? '',
     notes:             sub.notes ?? '',
+    retainerEnabled:   sub.retainerEnabled ?? false,
+    retainerHours:     sub.retainerHours?.toString() ?? '',
+    rolloverEnabled:   sub.rolloverEnabled ?? false,
+    rolloverCap:       sub.rolloverCap?.toString() ?? '',
+    overageRate:       sub.overageRate?.toString() ?? '',
   });
   let editLines = $state(sub.lineItems.map(i => ({ ...i })));
 
@@ -103,6 +118,11 @@
       dueDateOffsetDays: editForm.dueDateOffsetDays ? Number(editForm.dueDateOffsetDays) : null,
       notes:             editForm.notes,
       lineItems:         validLines,
+      retainerEnabled:   editForm.retainerEnabled,
+      retainerHours:     editForm.retainerHours ? Number(editForm.retainerHours) : null,
+      rolloverEnabled:   editForm.rolloverEnabled,
+      rolloverCap:       editForm.rolloverCap ? Number(editForm.rolloverCap) : null,
+      overageRate:       editForm.overageRate ? Number(editForm.overageRate) : null,
     });
     if (ok) editing = false;
   }
@@ -133,7 +153,7 @@
       <div class="flex items-center gap-2 shrink-0">
         <span class="badge {STATUS_CLASS[sub.status] ?? 'badge-ghost'}">{sub.status}</span>
         {#if hasPermission(data.user, 'finance_subscriptions', 'update') && !editing}
-          <button class="btn btn-ghost btn-sm" onclick={() => { editForm = { name: sub.name, taxRate: sub.taxRate, currency: sub.currency, billingCycle: sub.billingCycle, endDate: sub.endDate ? sub.endDate.substring(0, 10) : '', dueDateOffsetDays: sub.dueDateOffsetDays?.toString() ?? '', notes: sub.notes ?? '' }; editLines = sub.lineItems.map(i => ({ ...i })); editing = true; }}>
+          <button class="btn btn-ghost btn-sm" onclick={() => { editForm = { name: sub.name, taxRate: sub.taxRate, currency: sub.currency, billingCycle: sub.billingCycle, endDate: sub.endDate ? sub.endDate.substring(0, 10) : '', dueDateOffsetDays: sub.dueDateOffsetDays?.toString() ?? '', notes: sub.notes ?? '', retainerEnabled: sub.retainerEnabled ?? false, retainerHours: sub.retainerHours?.toString() ?? '', rolloverEnabled: sub.rolloverEnabled ?? false, rolloverCap: sub.rolloverCap?.toString() ?? '', overageRate: sub.overageRate?.toString() ?? '' }; editLines = sub.lineItems.map(i => ({ ...i })); editing = true; }}>
             <Pencil class="size-4" /> Edit
           </button>
           {#if sub.status === 'active'}
@@ -206,6 +226,37 @@
         <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Notes</label>
         <textarea class="textarea w-full" rows="2" bind:value={editForm.notes}></textarea>
       </div>
+
+      <!-- Retainer -->
+      <div class="space-y-3 border-t border-base-300 pt-3">
+        <div class="flex items-center gap-3">
+          <input id="edit-retainer" type="checkbox" class="checkbox checkbox-sm" bind:checked={editForm.retainerEnabled} />
+          <label class="text-sm font-medium cursor-pointer" for="edit-retainer">Retainer subscription</label>
+        </div>
+        {#if editForm.retainerEnabled}
+          <div class="grid grid-cols-2 gap-3 pl-7">
+            <div class="space-y-1">
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Hours per period</label>
+              <input type="number" class="input input-sm w-full" min="0.5" step="0.5" placeholder="e.g. 20" bind:value={editForm.retainerHours} />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Overage rate ($/hr)</label>
+              <input type="number" class="input input-sm w-full" min="0" step="0.01" placeholder="blank = none" bind:value={editForm.overageRate} />
+            </div>
+            <div class="col-span-2 flex items-center gap-3">
+              <input id="edit-rollover" type="checkbox" class="checkbox checkbox-sm" bind:checked={editForm.rolloverEnabled} />
+              <label class="text-sm cursor-pointer" for="edit-rollover">Roll over unused hours</label>
+            </div>
+            {#if editForm.rolloverEnabled}
+              <div class="space-y-1">
+                <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Max rollover hrs</label>
+                <input type="number" class="input input-sm w-full" min="0" step="0.5" placeholder="blank = unlimited" bind:value={editForm.rolloverCap} />
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+
       <div class="flex gap-2 justify-end">
         <button class="btn btn-ghost btn-sm" onclick={() => (editing = false)}><X class="size-4" /> Cancel</button>
         <button class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}><Check class="size-4" /> {saving ? 'Saving…' : 'Save'}</button>
@@ -250,6 +301,20 @@
       </div>
     {/if}
   </div>
+
+  <!-- Retainer balance -->
+  {#if sub.retainerEnabled && retainerPeriod}
+    <RetainerBalance
+      period={retainerPeriod}
+      history={retainerHistory}
+      subscription={{
+        rolloverEnabled: sub.rolloverEnabled ?? false,
+        rolloverCap:     sub.rolloverCap ?? null,
+        overageRate:     sub.overageRate ?? null,
+        currency:        sub.currency,
+      }}
+    />
+  {/if}
 
   <!-- Generated invoices -->
   {#if invoices.length > 0}

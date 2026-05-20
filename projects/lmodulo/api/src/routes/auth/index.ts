@@ -318,6 +318,7 @@ export default async function authRoutes(app: FastifyInstance) {
       avatarUrl:   user.avatarUrl   ?? '',
       avatarColor: user.avatarColor ?? '',
       phone:       user.phone       ?? '',
+      companyId:   user.companyId   ? user.companyId.toString() : null,
       permissions
     };
   });

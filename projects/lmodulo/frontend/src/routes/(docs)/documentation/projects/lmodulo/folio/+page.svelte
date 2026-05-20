@@ -26,6 +26,14 @@ finance_invoices      ← one-off, recurring template, or auto-generated invoice
 
 finance_subscriptions ← named billing plan that auto-generates draft invoices
   └── lineItems[]     ← embedded; copied to each generated invoice
+  └── retainer?       ← optional: retainerEnabled, retainerHours, rolloverEnabled, rolloverCap, overageRate
+
+finance_retainer_periods ← one per subscription per billing cycle (only when retainerEnabled)
+  └── subscriptionId  ← parent subscription
+  └── companyId       ← denormalized; used to join time entries via milestones
+  └── hoursIncluded   ← hoursBase + hoursRolledOver
+  └── hoursUsed       ← cached aggregate from billable time_entries (refreshed on read)
+  └── status          ← open | closed
 
 finance_payments      ← one record per Stripe PaymentIntent attempt
   └── invoiceId       ← references finance_invoices
@@ -47,8 +55,8 @@ finance_expenses      ← internal business cost (hosting, software, contractors
         <tbody>
           <tr><td class="font-mono text-xs">draft</td><td class="text-sm opacity-70">Created internally — not yet shared with the client</td></tr>
           <tr><td class="font-mono text-xs">sent</td><td class="text-sm opacity-70">Staff clicked "Send to client" — client can view it in the portal</td></tr>
-          <tr><td class="font-mono text-xs">accepted</td><td class="text-sm opacity-70">Client approved. Set automatically when "Convert to Invoice" is clicked.</td></tr>
-          <tr><td class="font-mono text-xs">declined</td><td class="text-sm opacity-70">Client declined; cannot be converted to an invoice</td></tr>
+          <tr><td class="font-mono text-xs">accepted</td><td class="text-sm opacity-70">Client approved. Set when the customer clicks <strong>Accept</strong> in the client portal, or automatically when staff click "Convert to Invoice".</td></tr>
+          <tr><td class="font-mono text-xs">declined</td><td class="text-sm opacity-70">Client declined via the portal; cannot be converted to an invoice</td></tr>
           <tr><td class="font-mono text-xs">expired</td><td class="text-sm opacity-70">Past the <code class="bg-base-300 px-1 rounded text-xs">validUntil</code> date; cannot be converted</td></tr>
         </tbody>
       </table>
@@ -190,8 +198,53 @@ finance_expenses      ← internal business cost (hosting, software, contractors
           <tr><td class="font-mono text-xs">dueDateOffsetDays</td><td class="text-xs opacity-60">number?</td><td class="text-sm opacity-70">Days after billing date to set <code class="bg-base-300 px-1 rounded text-xs">dueDate</code> on generated invoices</td></tr>
           <tr><td class="font-mono text-xs">status</td><td class="text-xs opacity-60">active | paused | cancelled</td><td class="text-sm opacity-70">Controls scheduler behaviour</td></tr>
           <tr><td class="font-mono text-xs">notes</td><td class="text-xs opacity-60">string?</td><td class="text-sm opacity-70">Internal memo</td></tr>
+          <tr class="border-t border-base-300"><td class="font-mono text-xs">retainerEnabled</td><td class="text-xs opacity-60">boolean</td><td class="text-sm opacity-70">When <code class="bg-base-300 px-1 rounded text-xs">true</code>, the subscription tracks an hours balance each cycle</td></tr>
+          <tr><td class="font-mono text-xs">retainerHours</td><td class="text-xs opacity-60">number?</td><td class="text-sm opacity-70">Hours included per billing cycle, e.g. <code class="bg-base-300 px-1 rounded text-xs">20</code> for a 20 hrs/mo retainer</td></tr>
+          <tr><td class="font-mono text-xs">rolloverEnabled</td><td class="text-xs opacity-60">boolean</td><td class="text-sm opacity-70">Whether unused hours carry forward into the next period</td></tr>
+          <tr><td class="font-mono text-xs">rolloverCap</td><td class="text-xs opacity-60">number?</td><td class="text-sm opacity-70">Max hours that can roll over; <code class="bg-base-300 px-1 rounded text-xs">null</code> = unlimited</td></tr>
+          <tr><td class="font-mono text-xs">overageRate</td><td class="text-xs opacity-60">number?</td><td class="text-sm opacity-70">$/hr charged for hours consumed over the retainer; <code class="bg-base-300 px-1 rounded text-xs">null</code> = no auto-billing of overage</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Retainer subscriptions -->
+    <h3 class="text-base font-semibold mt-4">Retainer subscriptions &amp; hours balance</h3>
+    <p class="text-sm opacity-70 leading-relaxed">
+      When <code class="bg-base-300 px-1 rounded text-xs">retainerEnabled</code> is <code class="bg-base-300 px-1 rounded text-xs">true</code> on a subscription (and the subscription is linked to a company via <code class="bg-base-300 px-1 rounded text-xs">companyId</code>), the system tracks a hours balance in <code class="bg-base-300 px-1 rounded text-xs">finance_retainer_periods</code>. One period document is created immediately when the subscription is created. Each billing cycle close creates the next period.
+    </p>
+    <p class="text-sm opacity-70 leading-relaxed">
+      <strong>Hours source:</strong> <code class="bg-base-300 px-1 rounded text-xs">hoursUsed</code> is derived from <code class="bg-base-300 px-1 rounded text-xs">time_entries</code> where <code class="bg-base-300 px-1 rounded text-xs">billable = true</code> and the entry's milestone's <code class="bg-base-300 px-1 rounded text-xs">clientId</code> matches <code class="bg-base-300 px-1 rounded text-xs">companyId</code> on the period, within the period's date window. It is cached on the period document and refreshed whenever <code class="bg-base-300 px-1 rounded text-xs">GET /finance/subscriptions/:id/retainer-current</code> is called.
+    </p>
+
+    <h3 class="text-base font-semibold mt-2">finance_retainer_periods</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="font-mono text-xs">subscriptionId</td><td class="text-xs opacity-60">ObjectId ref</td><td class="text-sm opacity-70">Parent subscription</td></tr>
+          <tr><td class="font-mono text-xs">companyId</td><td class="text-xs opacity-60">ObjectId ref</td><td class="text-sm opacity-70">Denormalized from the subscription; used to scope time entry aggregation</td></tr>
+          <tr><td class="font-mono text-xs">periodStart</td><td class="text-xs opacity-60">date</td><td class="text-sm opacity-70">First day of the billing cycle</td></tr>
+          <tr><td class="font-mono text-xs">periodEnd</td><td class="text-xs opacity-60">date</td><td class="text-sm opacity-70">Last day of the billing cycle (day before the next <code class="bg-base-300 px-1 rounded text-xs">nextBillingDate</code>)</td></tr>
+          <tr><td class="font-mono text-xs">hoursBase</td><td class="text-xs opacity-60">number</td><td class="text-sm opacity-70">The subscription's <code class="bg-base-300 px-1 rounded text-xs">retainerHours</code> at the time the period was created</td></tr>
+          <tr><td class="font-mono text-xs">hoursRolledOver</td><td class="text-xs opacity-60">number</td><td class="text-sm opacity-70">Unused hours carried forward from the previous period; 0 if rollover is off</td></tr>
+          <tr><td class="font-mono text-xs">hoursIncluded</td><td class="text-xs opacity-60">number</td><td class="text-sm opacity-70"><code class="bg-base-300 px-1 rounded text-xs">hoursBase + hoursRolledOver</code> — total hours the client has available this cycle</td></tr>
+          <tr><td class="font-mono text-xs">hoursUsed</td><td class="text-xs opacity-60">number</td><td class="text-sm opacity-70">Cached aggregate of billable minutes from <code class="bg-base-300 px-1 rounded text-xs">time_entries</code> ÷ 60; refreshed on read</td></tr>
+          <tr><td class="font-mono text-xs">hoursUsedAt</td><td class="text-xs opacity-60">date</td><td class="text-sm opacity-70">When <code class="bg-base-300 px-1 rounded text-xs">hoursUsed</code> was last recomputed</td></tr>
+          <tr><td class="font-mono text-xs">status</td><td class="text-xs opacity-60">open | closed</td><td class="text-sm opacity-70"><code class="bg-base-300 px-1 rounded text-xs">open</code> = current cycle; <code class="bg-base-300 px-1 rounded text-xs">closed</code> = archived when the next invoice fires</td></tr>
+          <tr><td class="font-mono text-xs">invoiceId</td><td class="text-xs opacity-60">ObjectId ref?</td><td class="text-sm opacity-70">The invoice generated when this period was closed (set by the scheduler)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4 text-sm space-y-2 mt-2">
+      <p class="font-semibold">Billing cycle close (scheduler)</p>
+      <ul class="space-y-1 opacity-70 leading-relaxed list-disc list-inside">
+        <li>Final <code class="bg-base-300 px-1 rounded text-xs">hoursUsed</code> is computed for the open period</li>
+        <li>If <code class="bg-base-300 px-1 rounded text-xs">overageRate</code> is set and <code class="bg-base-300 px-1 rounded text-xs">hoursUsed &gt; hoursIncluded</code>, an overage line item (<code class="bg-base-300 px-1 rounded text-xs">X hrs @ $Y/hr</code>) is appended to the auto-generated invoice before it is inserted</li>
+        <li>The period is closed (<code class="bg-base-300 px-1 rounded text-xs">status: 'closed'</code>) and its <code class="bg-base-300 px-1 rounded text-xs">invoiceId</code> is set</li>
+        <li>Rollover is computed: <code class="bg-base-300 px-1 rounded text-xs">min(unusedHours, rolloverCap)</code> — or 0 if <code class="bg-base-300 px-1 rounded text-xs">rolloverEnabled</code> is false</li>
+        <li>A new <code class="bg-base-300 px-1 rounded text-xs">open</code> period is created for the next cycle with <code class="bg-base-300 px-1 rounded text-xs">hoursRolledOver</code> set accordingly</li>
+      </ul>
     </div>
 
     <h3 class="text-base font-semibold mt-2">finance_payments</h3>
@@ -272,7 +325,7 @@ finance_expenses      ← internal business cost (hosting, software, contractors
       </div>
       <div>
         <p class="font-semibold mb-1">processSubscriptions</p>
-        <p class="opacity-70 leading-relaxed">Queries <code class="bg-base-300 px-1 rounded text-xs">&#123; status: 'active', nextBillingDate: &#123; $lte: now &#125; &#125;</code>. For each subscription: generates a <code class="bg-base-300 px-1 rounded text-xs">draft</code> invoice with <code class="bg-base-300 px-1 rounded text-xs">subscriptionId</code> set, then advances <code class="bg-base-300 px-1 rounded text-xs">nextBillingDate</code>. If the new date exceeds <code class="bg-base-300 px-1 rounded text-xs">endDate</code>, sets <code class="bg-base-300 px-1 rounded text-xs">status = 'cancelled'</code>.</p>
+        <p class="opacity-70 leading-relaxed">Queries <code class="bg-base-300 px-1 rounded text-xs">&#123; status: 'active', nextBillingDate: &#123; $lte: now &#125; &#125;</code>. For each subscription: generates a <code class="bg-base-300 px-1 rounded text-xs">draft</code> invoice with <code class="bg-base-300 px-1 rounded text-xs">subscriptionId</code> set, then advances <code class="bg-base-300 px-1 rounded text-xs">nextBillingDate</code>. If the new date exceeds <code class="bg-base-300 px-1 rounded text-xs">endDate</code>, sets <code class="bg-base-300 px-1 rounded text-xs">status = 'cancelled'</code>. For retainer subscriptions, an additional step runs first: the open <code class="bg-base-300 px-1 rounded text-xs">finance_retainer_periods</code> document is closed (with final <code class="bg-base-300 px-1 rounded text-xs">hoursUsed</code>), an overage line item is added to the invoice if applicable, and a new open period is created with rolled-over hours.</p>
       </div>
     </div>
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 text-sm space-y-1">
@@ -322,11 +375,11 @@ finance_expenses      ← internal business cost (hosting, software, contractors
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Create Subscription <code class="bg-base-300 px-1 rounded text-xs">/folio/subscriptions/new</code></p>
-        <p class="text-sm opacity-60 leading-relaxed">Name, customer selector, dynamic line items, tax rate, currency, billing cycle, start date, optional end date, and optional due-date offset in days.</p>
+        <p class="text-sm opacity-60 leading-relaxed">Name, customer selector, dynamic line items, tax rate, currency, billing cycle, start date, optional end date, and optional due-date offset in days. A collapsible <strong>Retainer</strong> section lets you enable hours-balance tracking: set hours per period, optional overage rate ($/hr), and whether unused hours roll over (with an optional cap).</p>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Subscription Detail <code class="bg-base-300 px-1 rounded text-xs">/folio/subscriptions/[id]</code></p>
-        <p class="text-sm opacity-60 leading-relaxed">Full view: line items + per-cycle total, metadata (cycle, start/end, next billing, due offset), notes. Actions: <strong>Edit</strong> (all fields including line items), <strong>Pause / Resume</strong>, <strong>Cancel</strong>. A "Generated Invoices" table below the meta card lists every invoice produced by this subscription, linking to each invoice detail page.</p>
+        <p class="text-sm opacity-60 leading-relaxed">Full view: line items + per-cycle total, metadata (cycle, start/end, next billing, due offset), notes. Actions: <strong>Edit</strong> (all fields including retainer settings), <strong>Pause / Resume</strong>, <strong>Cancel</strong>. When <code class="bg-base-300 px-1 rounded text-xs">retainerEnabled</code> is true, a <strong>Retainer Balance</strong> card is shown between the meta block and invoices: a progress bar (hours used vs. included), remaining/overage hrs in colour, potential rollover, and a history table of closed periods. A "Generated Invoices" table below lists every invoice produced by this subscription.</p>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">All Expenses <code class="bg-base-300 px-1 rounded text-xs">/folio/expenses</code></p>
@@ -343,12 +396,40 @@ finance_expenses      ← internal business cost (hosting, software, contractors
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">Client Portal &amp; Payments</h2>
     <p class="text-sm opacity-70 leading-relaxed">
-      Users with the <code class="bg-base-300 px-1 rounded text-xs">customer</code> role land on the client portal after login and see only these two routes.
+      Users with the <code class="bg-base-300 px-1 rounded text-xs">customer</code> role land on the client portal after login. All portal routes are under <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code> and are enforced by the <code class="bg-base-300 px-1 rounded text-xs">CUSTOMER_ALLOWED_PATHS</code> guard in <code class="bg-base-300 px-1 rounded text-xs">hooks.server.ts</code>.
     </p>
+
+    <h3 class="text-base font-semibold">Company bridge — <code class="bg-base-300 px-1 rounded text-xs">companyId</code> on the user</h3>
+    <p class="text-sm opacity-70 leading-relaxed">
+      Agile milestones link to a CRM company via <code class="bg-base-300 px-1 rounded text-xs">clientId</code>, but the logged-in session is a <code class="bg-base-300 px-1 rounded text-xs">user</code>. Customer users carry an optional <code class="bg-base-300 px-1 rounded text-xs">companyId</code> field (stored on the user document, returned by <code class="bg-base-300 px-1 rounded text-xs">GET /auth/me</code>) that bridges them to their company. When a customer queries <code class="bg-base-300 px-1 rounded text-xs">GET /agile/milestones</code>, the API auto-injects <code class="bg-base-300 px-1 rounded text-xs">&#123; clientId: user.companyId &#125;</code> as a match filter — no <code class="bg-base-300 px-1 rounded text-xs">clientId</code> query param needed. If <code class="bg-base-300 px-1 rounded text-xs">companyId</code> is not set on the user, the endpoint returns an empty list. Staff can set <code class="bg-base-300 px-1 rounded text-xs">companyId</code> on a customer user via the user management form or directly in MongoDB.
+    </p>
+
     <div class="space-y-3">
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Client Portal <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code></p>
         <p class="text-sm opacity-60 leading-relaxed">Compose new messages to staff using the rich-text editor; view all in-app threads the customer participates in.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Projects <code class="bg-base-300 px-1 rounded text-xs">/client-portal/projects</code></p>
+        <p class="text-sm opacity-60 leading-relaxed">
+          Lists all <code class="bg-base-300 px-1 rounded text-xs">agile_milestones</code> linked to the customer's company (<code class="bg-base-300 px-1 rounded text-xs">user.companyId</code>). Each card shows title, status/priority badges, date range, sprint and task counts, and a completion progress bar. If the milestone has file attachments, they are listed as download links under a <strong>Deliverables</strong> heading. Read-only — no create or edit actions for customers.
+        </p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Invoices <code class="bg-base-300 px-1 rounded text-xs">/client-portal/invoices</code></p>
+        <p class="text-sm opacity-60 leading-relaxed">
+          Paginated, status-filtered table of all invoices where <code class="bg-base-300 px-1 rounded text-xs">customerId === user.id</code>. Columns: invoice number, first line item (with overflow count), due date, total, status badge. Clicking a row navigates to the detail page. The detail page (<code class="bg-base-300 px-1 rounded text-xs">/client-portal/invoices/[id]</code>) renders a full invoice layout — line items, tax breakdown, totals, due date, paid-on date — with a browser <strong>Print / Save as PDF</strong> button. The server load guard returns 403 if the invoice does not belong to the logged-in customer.
+        </p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Estimates <code class="bg-base-300 px-1 rounded text-xs">/client-portal/estimates</code></p>
+        <p class="text-sm opacity-60 leading-relaxed">
+          Paginated, status-filtered table of all estimates where <code class="bg-base-300 px-1 rounded text-xs">customerId === user.id</code>. Estimates in <code class="bg-base-300 px-1 rounded text-xs">sent</code> status show <strong>Accept</strong> and <strong>Decline</strong> buttons inline. Clicking either POSTs to <code class="bg-base-300 px-1 rounded text-xs">POST /finance/estimates/:id/accept</code> (or <code class="bg-base-300 px-1 rounded text-xs">/decline</code>) which transitions the estimate to <code class="bg-base-300 px-1 rounded text-xs">accepted</code> or <code class="bg-base-300 px-1 rounded text-xs">declined</code>. Both endpoints enforce: the estimate must be in <code class="bg-base-300 px-1 rounded text-xs">sent</code> status, and customers may only act on their own estimates.
+        </p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Support Tickets <code class="bg-base-300 px-1 rounded text-xs">/client-portal/tickets</code></p>
+        <p class="text-sm opacity-60 leading-relaxed">Submit and track support requests. Each ticket maps to an <code class="bg-base-300 px-1 rounded text-xs">agile_jobs</code> record in a special "Support" sprint. Customers see progress percentage (derived from linked <code class="bg-base-300 px-1 rounded text-xs">agile_tasks</code>) and can upload file attachments.</p>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
         <p class="text-sm font-semibold">Payments <code class="bg-base-300 px-1 rounded text-xs">/payments</code></p>
@@ -405,6 +486,8 @@ finance_expenses      ← internal business cost (hosting, software, contractors
           <tr><td class="font-mono text-xs">PATCH</td><td class="font-mono text-xs">/finance/estimates/:id</td><td class="text-xs opacity-60">finance_estimates:update</td><td class="text-sm opacity-70">Partial update: title, status, validUntil, notes, currency, lineItems, taxRate, customerId, companyId</td></tr>
           <tr><td class="font-mono text-xs">DELETE</td><td class="font-mono text-xs">/finance/estimates/:id</td><td class="text-xs opacity-60">finance_estimates:delete</td><td class="text-sm opacity-70">Delete estimate</td></tr>
           <tr><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/finance/estimates/:id/convert</td><td class="text-xs opacity-60">finance_invoices:create</td><td class="text-sm opacity-70">Converts estimate to a draft invoice; sets <code class="bg-base-300 px-1 rounded text-xs">estimate.invoiceId</code>; returns <code class="bg-base-300 px-1 rounded text-xs">&#123;"invoiceId":"..."&#125;</code>. 409 if already converted; 400 if declined/expired.</td></tr>
+          <tr><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/finance/estimates/:id/accept</td><td class="text-xs opacity-60">finance_estimates:read</td><td class="text-sm opacity-70">Customer sign-off: transitions <code class="bg-base-300 px-1 rounded text-xs">sent → accepted</code>. 400 if not in <code class="bg-base-300 px-1 rounded text-xs">sent</code> status. Customers may only act on their own estimates.</td></tr>
+          <tr><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/finance/estimates/:id/decline</td><td class="text-xs opacity-60">finance_estimates:read</td><td class="text-sm opacity-70">Customer sign-off: transitions <code class="bg-base-300 px-1 rounded text-xs">sent → declined</code>. 400 if not in <code class="bg-base-300 px-1 rounded text-xs">sent</code> status. Customers may only act on their own estimates.</td></tr>
           <tr class="border-t border-base-300"><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/invoices</td><td class="text-xs opacity-60">requireAuth</td><td class="text-sm opacity-70">List invoices; customers auto-scoped. Query: <code class="bg-base-300 px-1 rounded text-xs">status</code>, <code class="bg-base-300 px-1 rounded text-xs">subscriptionId</code>, <code class="bg-base-300 px-1 rounded text-xs">limit</code>, <code class="bg-base-300 px-1 rounded text-xs">skip</code>, <code class="bg-base-300 px-1 rounded text-xs">sort</code>, <code class="bg-base-300 px-1 rounded text-xs">sortDir</code></td></tr>
           <tr><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/finance/invoices</td><td class="text-xs opacity-60">finance_invoices:create</td><td class="text-sm opacity-70">Create invoice; optional <code class="bg-base-300 px-1 rounded text-xs">recurrence</code> body field makes it a recurring template</td></tr>
           <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/invoices/:id</td><td class="text-xs opacity-60">requireAuth</td><td class="text-sm opacity-70">Single invoice; scope-checked for customers</td></tr>
@@ -415,8 +498,10 @@ finance_expenses      ← internal business cost (hosting, software, contractors
           <tr class="border-t border-base-300"><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/subscriptions</td><td class="text-xs opacity-60">finance_subscriptions:read</td><td class="text-sm opacity-70">List subscriptions; customers auto-scoped. Query: <code class="bg-base-300 px-1 rounded text-xs">status</code>, <code class="bg-base-300 px-1 rounded text-xs">customerId</code></td></tr>
           <tr><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/finance/subscriptions</td><td class="text-xs opacity-60">finance_subscriptions:create</td><td class="text-sm opacity-70">Create subscription; <code class="bg-base-300 px-1 rounded text-xs">nextBillingDate</code> computed from <code class="bg-base-300 px-1 rounded text-xs">startDate + billingCycle</code></td></tr>
           <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-xs opacity-60">finance_subscriptions:read</td><td class="text-sm opacity-70">Single subscription; scope-checked for customers</td></tr>
-          <tr><td class="font-mono text-xs">PATCH</td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-xs opacity-60">finance_subscriptions:update</td><td class="text-sm opacity-70">Partial update; send <code class="bg-base-300 px-1 rounded text-xs">&#123;"status":"paused"&#125;</code> to pause, <code class="bg-base-300 px-1 rounded text-xs">"active"</code> to resume, <code class="bg-base-300 px-1 rounded text-xs">"cancelled"</code> to cancel</td></tr>
+          <tr><td class="font-mono text-xs">PATCH</td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-xs opacity-60">finance_subscriptions:update</td><td class="text-sm opacity-70">Partial update; send <code class="bg-base-300 px-1 rounded text-xs">&#123;"status":"paused"&#125;</code> to pause, <code class="bg-base-300 px-1 rounded text-xs">"active"</code> to resume, <code class="bg-base-300 px-1 rounded text-xs">"cancelled"</code> to cancel. Also accepts retainer fields: <code class="bg-base-300 px-1 rounded text-xs">retainerEnabled</code>, <code class="bg-base-300 px-1 rounded text-xs">retainerHours</code>, <code class="bg-base-300 px-1 rounded text-xs">rolloverEnabled</code>, <code class="bg-base-300 px-1 rounded text-xs">rolloverCap</code>, <code class="bg-base-300 px-1 rounded text-xs">overageRate</code></td></tr>
           <tr><td class="font-mono text-xs">DELETE</td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-xs opacity-60">finance_subscriptions:delete</td><td class="text-sm opacity-70">Delete subscription (does not delete generated invoices)</td></tr>
+          <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/subscriptions/:id/retainer-current</td><td class="text-xs opacity-60">finance_subscriptions:read</td><td class="text-sm opacity-70">Returns the open <code class="bg-base-300 px-1 rounded text-xs">finance_retainer_periods</code> doc; recomputes and caches <code class="bg-base-300 px-1 rounded text-xs">hoursUsed</code> from time entries on every call. 404 if no open period.</td></tr>
+          <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/subscriptions/:id/retainer-history</td><td class="text-xs opacity-60">finance_subscriptions:read</td><td class="text-sm opacity-70">Returns all periods (open + closed) sorted by <code class="bg-base-300 px-1 rounded text-xs">periodStart desc</code>, up to 36 records.</td></tr>
           <tr class="border-t border-base-300"><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/expenses</td><td class="text-xs opacity-60">finance_expenses:read</td><td class="text-sm opacity-70">List expenses. Query: <code class="bg-base-300 px-1 rounded text-xs">status</code>, <code class="bg-base-300 px-1 rounded text-xs">category</code>, <code class="bg-base-300 px-1 rounded text-xs">companyId</code>, <code class="bg-base-300 px-1 rounded text-xs">milestoneId</code>, <code class="bg-base-300 px-1 rounded text-xs">dateFrom</code>, <code class="bg-base-300 px-1 rounded text-xs">dateTo</code>, <code class="bg-base-300 px-1 rounded text-xs">limit</code>, <code class="bg-base-300 px-1 rounded text-xs">skip</code>, <code class="bg-base-300 px-1 rounded text-xs">sort</code>, <code class="bg-base-300 px-1 rounded text-xs">sortDir</code></td></tr>
           <tr><td class="font-mono text-xs">POST</td><td class="font-mono text-xs">/finance/expenses</td><td class="text-xs opacity-60">finance_expenses:create</td><td class="text-sm opacity-70">Create expense; auto-assigns <code class="bg-base-300 px-1 rounded text-xs">EXP-NNNN</code> number; returns 201 + the new document</td></tr>
           <tr><td class="font-mono text-xs">GET</td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-xs opacity-60">finance_expenses:read</td><td class="text-sm opacity-70">Single expense document</td></tr>
@@ -445,7 +530,7 @@ finance_expenses      ← internal business cost (hosting, software, contractors
       </table>
     </div>
     <p class="text-sm opacity-70 leading-relaxed">
-      Customers can read their own estimates, invoices, and subscriptions, and initiate payments, but cannot create or modify any billing records. Expenses are internal-only — customers have no access. The convert endpoint uses <code class="bg-base-300 px-1 rounded text-xs">finance_invoices:create</code> rather than <code class="bg-base-300 px-1 rounded text-xs">finance_estimates:update</code> — creating an invoice is the privileged act. Route guards in <code class="bg-base-300 px-1 rounded text-xs">hooks.server.ts</code> ensure customers can only reach <code class="bg-base-300 px-1 rounded text-xs">/client-portal</code> and <code class="bg-base-300 px-1 rounded text-xs">/payments</code>.
+      Customers can read their own estimates, invoices, and subscriptions, and initiate payments, but cannot create or modify any billing records. Expenses are internal-only — customers have no access. The accept/decline endpoints use <code class="bg-base-300 px-1 rounded text-xs">finance_estimates:read</code> (not <code class="bg-base-300 px-1 rounded text-xs">update</code>) since no field editing occurs — just a scoped status transition. The convert endpoint uses <code class="bg-base-300 px-1 rounded text-xs">finance_invoices:create</code> — creating an invoice is the privileged act. Customers also have <code class="bg-base-300 px-1 rounded text-xs">agile_milestones:read</code>, which is filtered server-side to their company's milestones only. Route guards in <code class="bg-base-300 px-1 rounded text-xs">hooks.server.ts</code> restrict customers to <code class="bg-base-300 px-1 rounded text-xs">/client-portal/*</code> and <code class="bg-base-300 px-1 rounded text-xs">/payments</code>.
     </p>
   </div>
 

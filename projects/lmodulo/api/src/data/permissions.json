@@ -135,7 +135,7 @@
     "commerce_orders":    { "create": true,  "read": true,  "update": false, "delete": false },
     "commerce_categories":{ "create": false, "read": true,  "update": false, "delete": false },
     "events":             { "create": false, "read": true,  "update": false, "delete": false },
-    "agile_milestones":   { "create": false, "read": false, "update": false, "delete": false },
+    "agile_milestones":   { "create": false, "read": true,  "update": false, "delete": false },
     "agile_sprints":      { "create": false, "read": false, "update": false, "delete": false },
     "agile_jobs":         { "create": false, "read": false, "update": false, "delete": false },
     "agile_tasks":        { "create": false, "read": false, "update": false, "delete": false },

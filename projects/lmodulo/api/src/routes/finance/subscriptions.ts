@@ -1,9 +1,38 @@
 import type { FastifyInstance } from 'fastify';
+import type { Db } from 'mongodb';
 import { ObjectId } from '@fastify/mongodb';
 import { calcNextDate } from '../../lib/recurringDates.js';
 import { logAudit } from '../../lib/audit.js';
 
-const SUB_COL = 'finance_subscriptions';
+const SUB_COL     = 'finance_subscriptions';
+const PERIOD_COL  = 'finance_retainer_periods';
+
+async function computeHoursUsed(db: Db, companyId: ObjectId, periodStart: Date, periodEnd: Date): Promise<number> {
+  const result = await db.collection('time_entries').aggregate([
+    {
+      $match: {
+        billable: true,
+        date: {
+          $gte: periodStart.toISOString().substring(0, 10),
+          $lte: periodEnd.toISOString().substring(0, 10),
+        },
+      },
+    },
+    {
+      $lookup: {
+        from:         'agile_milestones',
+        localField:   'milestoneId',
+        foreignField: '_id',
+        as:           '_milestone',
+      },
+    },
+    { $unwind: { path: '$_milestone', preserveNullAndEmpty: false } },
+    { $match: { '_milestone.clientId': companyId } },
+    { $group: { _id: null, total: { $sum: '$durationMinutes' } } },
+  ]).toArray();
+
+  return result.length > 0 ? (result[0].total as number) / 60 : 0;
+}
 
 function parseOid(id: string, app: FastifyInstance): ObjectId {
   try { return new ObjectId(id); } catch { throw app.httpErrors.badRequest('Invalid ID'); }
@@ -55,6 +84,8 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
     const {
       name, customerId, companyId, lineItems = [], taxRate = 0, currency = 'USD',
       billingCycle, startDate, endDate, dueDateOffsetDays, notes = '',
+      retainerEnabled = false, retainerHours = null, rolloverEnabled = false,
+      rolloverCap = null, overageRate = null,
     } = req.body as Record<string, unknown>;
 
     if (!name)         throw app.httpErrors.badRequest('name is required');
@@ -62,7 +93,8 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
     if (!billingCycle) throw app.httpErrors.badRequest('billingCycle is required');
     if (!startDate)    throw app.httpErrors.badRequest('startDate is required');
 
-    const start = new Date(startDate as string);
+    const start      = new Date(startDate as string);
+    const companyOid = companyId ? parseOid(companyId as string, app) : null;
     const items = (lineItems as Array<{ description: string; quantity: number; unitPrice: number }>).map(i => ({
       description: i.description,
       quantity:    Number(i.quantity),
@@ -73,7 +105,7 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
     const doc = {
       name:              String(name),
       customerId:        parseOid(customerId as string, app),
-      companyId:         companyId ? parseOid(companyId as string, app) : null,
+      companyId:         companyOid,
       lineItems:         items,
       taxRate:           Number(taxRate),
       currency:          String(currency),
@@ -84,12 +116,37 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
       dueDateOffsetDays: dueDateOffsetDays != null ? Number(dueDateOffsetDays) : null,
       status:            'active' as const,
       notes:             String(notes),
+      retainerEnabled:   Boolean(retainerEnabled),
+      retainerHours:     retainerHours != null ? Number(retainerHours) : null,
+      rolloverEnabled:   Boolean(rolloverEnabled),
+      rolloverCap:       rolloverCap != null ? Number(rolloverCap) : null,
+      overageRate:       overageRate != null ? Number(overageRate) : null,
       createdBy:         new ObjectId(req.session.userId!),
       createdAt:         now,
       updatedAt:         now,
     };
 
     const result = await db.collection(SUB_COL).insertOne(doc);
+
+    if (doc.retainerEnabled && doc.retainerHours != null && companyOid) {
+      const periodEnd = new Date(calcNextDate(start, String(billingCycle)));
+      periodEnd.setDate(periodEnd.getDate() - 1);
+      await db.collection(PERIOD_COL).insertOne({
+        subscriptionId: result.insertedId,
+        companyId:      companyOid,
+        periodStart:    start,
+        periodEnd,
+        hoursBase:      doc.retainerHours,
+        hoursRolledOver: 0,
+        hoursIncluded:  doc.retainerHours,
+        hoursUsed:      0,
+        hoursUsedAt:    now,
+        status:         'open',
+        invoiceId:      null,
+        createdAt:      now,
+        updatedAt:      now,
+      });
+    }
 
     logAudit(db, {
       userId: req.session.userId!, username: req.session.username!,
@@ -125,6 +182,7 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
     const {
       name, lineItems, taxRate, currency, billingCycle,
       endDate, dueDateOffsetDays, notes, status,
+      retainerEnabled, retainerHours, rolloverEnabled, rolloverCap, overageRate,
     } = req.body as Record<string, unknown>;
 
     const $set: Record<string, unknown> = { updatedAt: new Date() };
@@ -137,6 +195,11 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
     if (notes             !== undefined) $set.notes             = String(notes);
     if (status            !== undefined) $set.status            = String(status);
     if (taxRate           !== undefined) $set.taxRate           = Number(taxRate);
+    if (retainerEnabled   !== undefined) $set.retainerEnabled   = Boolean(retainerEnabled);
+    if (retainerHours     !== undefined) $set.retainerHours     = retainerHours != null ? Number(retainerHours) : null;
+    if (rolloverEnabled   !== undefined) $set.rolloverEnabled   = Boolean(rolloverEnabled);
+    if (rolloverCap       !== undefined) $set.rolloverCap       = rolloverCap != null ? Number(rolloverCap) : null;
+    if (overageRate       !== undefined) $set.overageRate       = overageRate != null ? Number(overageRate) : null;
 
     if (lineItems !== undefined) {
       $set.lineItems = (lineItems as Array<{ description: string; quantity: number; unitPrice: number }>).map(i => ({
@@ -173,5 +236,60 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
     });
 
     reply.status(204);
+  });
+
+  // GET /finance/subscriptions/:id/retainer-current
+  app.get('/:id/retainer-current', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req, reply) => {
+    const db  = app.mongo.db!;
+    const oid = parseOid((req.params as { id: string }).id, app);
+    const now = new Date();
+
+    const period = await db.collection(PERIOD_COL).findOne({ subscriptionId: oid, status: 'open' });
+    if (!period) return reply.notFound('No open retainer period');
+
+    const hoursUsed = await computeHoursUsed(
+      db,
+      period.companyId as ObjectId,
+      period.periodStart as Date,
+      period.periodEnd as Date,
+    );
+
+    await db.collection(PERIOD_COL).updateOne(
+      { _id: period._id },
+      { $set: { hoursUsed, hoursUsedAt: now, updatedAt: now } },
+    );
+
+    return {
+      ...period,
+      id:             period._id.toString(),
+      _id:            undefined,
+      subscriptionId: oid.toString(),
+      companyId:      (period.companyId as ObjectId).toString(),
+      invoiceId:      period.invoiceId ? (period.invoiceId as ObjectId).toString() : null,
+      hoursUsed,
+    };
+  });
+
+  // GET /finance/subscriptions/:id/retainer-history
+  app.get('/:id/retainer-history', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req, reply) => {
+    const db  = app.mongo.db!;
+    const oid = parseOid((req.params as { id: string }).id, app);
+
+    const periods = await db.collection(PERIOD_COL)
+      .find({ subscriptionId: oid })
+      .sort({ periodStart: -1 })
+      .limit(36)
+      .toArray();
+
+    return {
+      periods: periods.map(p => ({
+        ...p,
+        id:             p._id.toString(),
+        _id:            undefined,
+        subscriptionId: oid.toString(),
+        companyId:      (p.companyId as ObjectId).toString(),
+        invoiceId:      p.invoiceId ? (p.invoiceId as ObjectId).toString() : null,
+      })),
+    };
   });
 }

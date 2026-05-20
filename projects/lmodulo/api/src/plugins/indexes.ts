@@ -156,6 +156,11 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('finance_subscriptions').createIndex({ companyId: 1 });
     await db.collection('finance_subscriptions').createIndex({ createdAt: -1 });
 
+    // finance_retainer_periods
+    await db.collection('finance_retainer_periods').createIndex({ subscriptionId: 1, status: 1 });
+    await db.collection('finance_retainer_periods').createIndex({ subscriptionId: 1, periodStart: -1 });
+    await db.collection('finance_retainer_periods').createIndex({ companyId: 1, status: 1 });
+
     // finance_estimates
     await db.collection('finance_estimates').createIndex({ customerId: 1, status: 1 });
     await db.collection('finance_estimates').createIndex({ companyId: 1 });

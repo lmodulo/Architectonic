@@ -26,7 +26,8 @@ export default async function milestonesRoutes(app: FastifyInstance) {
 
   // GET /agile/milestones — list with rollup stats
   app.get('/', { preHandler: app.requirePermission('agile_milestones', 'read') }, async (req) => {
-    const db = app.mongo.db!;
+    const db     = app.mongo.db!;
+    const userId = req.session.userId!;
     const { status, priority, search, clientId, limit = '50', skip = '0' } =
       req.query as Record<string, string>;
 
@@ -35,6 +36,12 @@ export default async function milestonesRoutes(app: FastifyInstance) {
     if (priority) match.priority = priority;
     if (search?.trim()) match.$text = { $search: search.trim() };
     if (clientId) match.clientId = parseOid(clientId, app);
+
+    const caller = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (caller?.role === 'customer') {
+      if (!caller.companyId) return { milestones: [], total: 0, skip: 0, limit: Number(limit) };
+      match.clientId = caller.companyId;
+    }
 
     const pipeline = milestoneRollupPipeline(match);
     const [docs, total] = await Promise.all([
