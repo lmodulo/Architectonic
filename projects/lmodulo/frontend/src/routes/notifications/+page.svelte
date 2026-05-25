@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
+  import { Bell } from 'lucide-svelte';
   import NotificationItem from '$lib/components/notifications/NotificationItem.svelte';
   import { markRead, setRecentNotifications } from '$lib/stores/notifications.svelte';
   import type { AppNotification } from '$lib/stores/notifications.svelte';
