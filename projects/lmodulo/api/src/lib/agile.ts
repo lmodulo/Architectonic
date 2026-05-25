@@ -44,7 +44,7 @@ export function milestoneRollupPipeline(matchStage: Record<string, unknown>) {
               $multiply: [
                 {
                   $divide: [
-                    { $sum: { $cond: [{ $eq: ['$_tasks.status', 'Done'] }, '$_tasks.estimateHours', 0] } },
+                    { $sum: { $map: { input: '$_tasks', as: 't', in: { $cond: [{ $eq: ['$$t.status', 'Done'] }, '$$t.estimateHours', 0] } } } },
                     { $sum: '$_tasks.estimateHours' },
                   ],
                 },
