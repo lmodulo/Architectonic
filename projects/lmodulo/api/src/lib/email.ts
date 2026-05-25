@@ -261,6 +261,62 @@ export async function sendCalendarNewEventEmail(to: string, opts: {
   });
 }
 
+// ── Contracts ─────────────────────────────────────────────────────────────────
+
+export async function sendContractSigningEmail(to: string, opts: {
+  signerName:    string;
+  contractTitle: string;
+  signingUrl:    string;
+  expiryDays:    number;
+}): Promise<void> {
+  const appName = process.env.APP_NAME ?? 'Us';
+  await sendMail({
+    to,
+    subject: `Please sign: ${opts.contractTitle}`,
+    html: layout({
+      heading: `Signature requested: ${opts.contractTitle}`,
+      body:    `<p>Hi ${opts.signerName},</p>
+                <p>${appName} has sent you a document for your electronic signature.</p>
+                <p>Please review and sign at your earliest convenience. This link expires in ${opts.expiryDays} days.</p>`,
+      cta:  { label: 'Review & Sign', url: opts.signingUrl },
+      note: 'If you were not expecting this request, please contact the sender directly.',
+    }),
+    text: [
+      `Signature requested: ${opts.contractTitle}`,
+      '',
+      `Hi ${opts.signerName},`,
+      '',
+      `${appName} has sent you a document for your electronic signature.`,
+      `Review and sign here (expires in ${opts.expiryDays} days):`,
+      '',
+      opts.signingUrl,
+      '',
+      'If you were not expecting this, contact the sender directly.',
+    ].join('\n'),
+  });
+}
+
+export async function sendContractSignedEmail(to: string, opts: {
+  signerName:    string;
+  contractTitle: string;
+  contractUrl:   string;
+  fullyExecuted: boolean;
+}): Promise<void> {
+  const heading = opts.fullyExecuted
+    ? `${opts.contractTitle} — Fully Executed`
+    : `${opts.signerName} signed ${opts.contractTitle}`;
+  const body = opts.fullyExecuted
+    ? `<p>All parties have signed <strong>${opts.contractTitle}</strong>. The contract is now fully executed.</p>`
+    : `<p><strong>${opts.signerName}</strong> has signed <strong>${opts.contractTitle}</strong>.</p>
+       <p>Awaiting remaining signatures before the contract is fully executed.</p>`;
+  await sendMail({
+    to,
+    subject: heading,
+    html: layout({ heading, body, cta: { label: 'View Contract', url: opts.contractUrl } }),
+    text: `${heading}\n\nView: ${opts.contractUrl}`,
+  });
+}
+
 export async function sendCalendarReminderEmail(to: string, opts: {
   title:   string;
   dateStr: string;

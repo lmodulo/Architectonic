@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { LayoutGrid, Users, Building2, TrendingUp, CalendarDays, BarChart2 } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
@@ -20,11 +20,11 @@
 
   const isActive = (href: string) =>
     href === '/crm'
-      ? $page.url.pathname === '/crm' || overviewPrefixes.some(p => $page.url.pathname.startsWith(p))
-      : $page.url.pathname.startsWith(href);
+      ? page.url.pathname === '/crm' || overviewPrefixes.some(p => page.url.pathname.startsWith(p))
+      : page.url.pathname.startsWith(href);
 
   const levelActiveClass = $derived.by(() => {
-    const p = $page.url.pathname;
+    const p = page.url.pathname;
     if (p.startsWith('/crm/activities')) return 'bg-accent text-accent-content';
     if (p.startsWith('/crm/deals'))      return 'bg-success text-success-content';
     if (p.startsWith('/crm/contacts/'))  return 'bg-secondary text-secondary-content';

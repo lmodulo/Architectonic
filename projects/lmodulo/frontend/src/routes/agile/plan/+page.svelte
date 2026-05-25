@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { Plus, X, ArrowRight, ArrowLeft, ExternalLink } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';

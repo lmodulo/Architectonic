@@ -1,5 +1,7 @@
 # Architectonic — Project Reference
 
+> **Before writing any frontend code:** Read `README.md` (repo root) — the Style Guide section is the authority for all UI patterns, tokens, and component structure.
+
 ## Purpose
 Full-stack SvelteKit + Fastify application scaffold. The `candidate/` directory IS the scaffold — clone it to start a new project.
 

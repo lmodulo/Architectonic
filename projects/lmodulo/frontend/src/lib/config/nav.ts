@@ -1,7 +1,7 @@
 import {
   House, CalendarRange, Milestone, Handshake,
   Receipt, LayoutDashboard, CreditCard, Ticket,
-  FolderKanban, FileText, ClipboardList,
+  FolderKanban, FileText, ClipboardList, FileSignature,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
 
@@ -38,6 +38,7 @@ export const navItems: NavEntry[] = [
   { label: 'Agile', href: '/agile',           icon: Milestone,       matchPrefix: true, permission: { resource: 'agile_milestones', action: 'read' } },
   { label: 'Nexus',         href: '/crm',             icon: Handshake,       matchPrefix: true, permission: { resource: 'crm_contacts',      action: 'read' } },
   { label: 'Folio',         href: '/folio',           icon: Receipt,         matchPrefix: true, permission: { resource: 'finance_invoices',   action: 'read' } },
+  { label: 'Contracts',     href: '/contracts',       icon: FileSignature,   matchPrefix: true, permission: { resource: 'contracts',          action: 'read' } },
   { label: 'Calendar',      href: '/calendar-events', icon: CalendarRange,   matchPrefix: true },
 
   // Customer-only items

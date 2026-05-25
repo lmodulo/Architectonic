@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invalidateAll, goto } from '$app/navigation';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { ClipboardList, ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-svelte';
   import type { PageData } from './$types';
 
@@ -67,7 +67,7 @@
   }
 
   function setStatus(s: string) {
-    const u = new URL($page.url);
+    const u = new URL(page.url);
     if (s) u.searchParams.set('status', s);
     else   u.searchParams.delete('status');
     u.searchParams.delete('skip');
@@ -75,7 +75,7 @@
   }
 
   function goPage(delta: number) {
-    const u   = new URL($page.url);
+    const u   = new URL(page.url);
     const cur = Number(u.searchParams.get('skip') ?? 0);
     u.searchParams.set('skip', String(Math.max(0, cur + delta * PAGE_SIZE)));
     goto(u.toString());
