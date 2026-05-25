@@ -140,14 +140,18 @@
   <!-- Brand header -->
   {#if data.state === 'pending'}
     {@const brand = (data as any).brand}
-    <header class="bg-base-100 border-b border-base-300 px-6 py-4">
-      <div class="max-w-3xl mx-auto flex items-center gap-3">
+    <header style="background-color:#371840;" class="px-6 py-12">
+      <div class="max-w-3xl mx-auto flex flex-col items-center gap-2">
         {#if brand?.logo}
-          <img src={brand.logo} alt={brand.name || 'Logo'} class="h-8 object-contain" />
+          <img src={brand.logo} alt={brand.name || 'Logo'} style="height:48px;width:auto;max-width:240px;" />
         {:else if brand?.name}
-          <span class="font-semibold text-lg">{brand.name}</span>
+          <span style="font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;font-size:1.5rem;font-weight:300;letter-spacing:0.3em;color:#ffffff;text-transform:uppercase;">
+            {brand.name}
+          </span>
         {/if}
-        <span class="text-base-content/40 text-sm ml-auto">Secure Document Signing</span>
+        <span style="color:rgba(255,255,255,0.35);font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;margin-top:4px;">
+          Secure Document Signing
+        </span>
       </div>
     </header>
   {/if}

@@ -17,6 +17,7 @@ import authPlugin     from './plugins/auth.js';
 import seedPlugin     from './plugins/seed.js';
 import schedulerPlugin from './plugins/scheduler.js';
 import { dispatch }  from './lib/notifications/dispatch.js';
+import { initEmailBrand } from './lib/email.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -61,6 +62,7 @@ await app.register(sessionPlugin); // Must come after mongodb (shares MONGO_URI)
 await app.register(ensureIndexes);   // Creates user/roles indexes on first boot
 await app.register(authPlugin);      // Decorates requireAuth + requirePermission
 await app.register(seedPlugin);      // Upserts default roles on every boot
+await initEmailBrand(app.mongo.db);  // Cache brand settings for email templates
 await app.register(schedulerPlugin); // Recurring invoice + subscription billing runner
 
 // WebSocket support — must register before autoload so WS routes work

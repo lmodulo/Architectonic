@@ -1,0 +1,103 @@
+<script lang="ts">
+  let {
+    brandName = '',
+    brandLogo = '',
+    title     = '',
+    children,
+    footer,
+  }: {
+    brandName?: string;
+    brandLogo?: string;
+    title?:     string;
+    children?:  import('svelte').Snippet;
+    footer?:    import('svelte').Snippet;
+  } = $props();
+</script>
+
+<svelte:head>
+  {#if title}<title>{title}</title>{/if}
+</svelte:head>
+
+<!-- Screen wrapper — A4-ish card on a neutral background -->
+<div class="min-h-screen bg-[#f0f0f0] flex flex-col items-center py-8 px-4 no-print:py-8">
+
+  <!-- Print button (screen only) -->
+  <div class="no-print w-full max-w-[794px] flex justify-end mb-3">
+    <button
+      type="button"
+      onclick={() => window.print()}
+      class="btn btn-sm btn-ghost gap-2 text-base-content/60 hover:text-base-content"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print / Save as PDF
+    </button>
+  </div>
+
+  <!-- Document card -->
+  <div class="w-full max-w-[794px] bg-white shadow-md rounded-sm overflow-hidden">
+
+    <!-- Brand header -->
+    <header style="background-color:#371840;" class="px-10 py-12 flex flex-col items-center gap-2">
+      {#if brandLogo}
+        <img src={brandLogo} alt={brandName || 'Logo'} style="height:48px;width:auto;max-width:240px;" />
+      {:else if brandName}
+        <span style="font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;font-size:1.5rem;font-weight:300;letter-spacing:0.3em;color:#ffffff;text-transform:uppercase;">
+          {brandName}
+        </span>
+      {/if}
+    </header>
+
+    <!-- Document content -->
+    <main class="px-10 py-10">
+      {@render children?.()}
+    </main>
+
+    <!-- Footer -->
+    <footer class="px-10 py-6 border-t border-gray-100 text-center text-xs text-gray-400">
+      {#if footer}
+        {@render footer()}
+      {:else if brandName}
+        {brandName}
+      {/if}
+    </footer>
+
+  </div>
+</div>
+
+<style>
+  @media print {
+    @page {
+      size: A4;
+      margin: 15mm 15mm 15mm 15mm;
+    }
+
+    :global(body),
+    :global(html) {
+      background: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    /* Hide screen-only elements */
+    :global(.no-print) {
+      display: none !important;
+    }
+
+    /* Remove card styling for print */
+    div[style*="background-color:#f0f0f0"],
+    .bg-\[#f0f0f0\] {
+      background: white !important;
+      padding: 0 !important;
+    }
+
+    .shadow-md,
+    .shadow-sm,
+    .shadow {
+      box-shadow: none !important;
+    }
+
+    .rounded-sm {
+      border-radius: 0 !important;
+    }
+  }
+</style>

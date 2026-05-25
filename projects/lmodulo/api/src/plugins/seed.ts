@@ -14,14 +14,14 @@ const perms = JSON.parse(
 const DEFAULT_SETTINGS = [
   {
     key: 'brand.name',
-    value: 'ARCHITECTONIC',
+    value: 'L Modulo',
     type: 'string',
     label: 'Brand Name',
     description: 'Text shown in the app header (mutually exclusive with Brand Logo)'
   },
   {
     key: 'brand.logo',
-    value: '',
+    value: '/logo.svg',
     type: 'string',
     label: 'Brand Logo',
     description: 'Logo image URL shown in the header (managed via the logo upload UI; mutually exclusive with Brand Name)'
