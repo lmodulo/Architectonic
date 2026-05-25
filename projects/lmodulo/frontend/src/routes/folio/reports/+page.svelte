@@ -3,6 +3,7 @@
   import { hasPermission } from '$lib/permissions';
   import PLBarChart      from '$lib/components/folio/PLBarChart.svelte';
   import ExpensePieChart from '$lib/components/folio/ExpensePieChart.svelte';
+  import { BarChart2 } from 'lucide-svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -152,6 +153,7 @@
 
   {#if report.periods.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center">
+      <BarChart2 class="size-8 opacity-20 mx-auto mb-2" />
       <p class="text-sm opacity-40">No paid invoices or expenses in this date range.</p>
     </div>
   {:else}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { Plus, X, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, Activity } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -114,6 +114,7 @@
 
   {#if activities.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center opacity-50">
+      <Activity class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No activities yet.{#if hasPermission(data.user, 'crm_activities', 'create')} Log one to get started.{/if}</p>
     </div>
   {:else}

@@ -403,7 +403,7 @@
 
   <!-- Task Kanban Board -->
   <section class="space-y-3">
-    <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
       <h2 class="text-base font-semibold">Task Board</h2>
       <div class="flex items-center gap-2 flex-wrap">
         <!-- Assignee avatars -->

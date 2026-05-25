@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Plus, X, Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { Plus, X, Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, Users } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -127,6 +127,7 @@
 
   {#if contacts.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center opacity-50">
+      <Users class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No contacts yet.{#if hasPermission(data.user, 'crm_contacts', 'create')} Add one to get started.{/if}</p>
     </div>
   {:else}

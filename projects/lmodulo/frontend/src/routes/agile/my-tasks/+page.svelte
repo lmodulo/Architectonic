@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { AlertTriangle, Clock } from 'lucide-svelte';
+  import { AlertTriangle, Clock, ClipboardList, SearchX } from 'lucide-svelte';
   import { STATUS_COLOR, fmtDate, fmtEffort } from '$lib/utils/agile';
   import type { PageData } from './$types';
 
@@ -120,10 +120,12 @@
   <!-- Task list -->
   {#if tasks.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-12 text-center opacity-50">
+      <ClipboardList class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No tasks assigned to you.</p>
     </div>
   {:else if filtered.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center opacity-50">
+      <SearchX class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No tasks match the current filter.</p>
     </div>
   {:else}

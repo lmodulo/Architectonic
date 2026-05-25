@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
-  import { Plus, Building2, DollarSign } from 'lucide-svelte';
+  import { Plus, Building2, DollarSign, FileSignature } from 'lucide-svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -74,6 +74,7 @@
   <!-- Table -->
   {#if data.contracts.length === 0}
     <div class="text-center py-16 text-base-content/50">
+      <FileSignature class="size-8 opacity-20 mx-auto mb-2" />
       <p class="text-sm">No contracts found.</p>
       {#if hasPermission(data.user, 'contracts', 'create')}
         <a href="/contracts/new" class="btn btn-primary btn-sm mt-4">Create your first contract</a>

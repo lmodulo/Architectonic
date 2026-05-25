@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GripVertical, Clock, AlertCircle } from 'lucide-svelte';
+  import { GripVertical, Clock, AlertCircle, Copy } from 'lucide-svelte';
   import { STATUS_COLOR, PRIORITY_COLOR, fmtEffort, fmtDate } from '$lib/utils/agile';
   import type { AgileTask } from '$lib/utils/agile';
 
@@ -64,4 +64,12 @@
       <span class="{isOverdue ? 'text-error opacity-100' : ''}">Due {fmtDate(task.dueDate)}</span>
     {/if}
   </div>
+
+  {#if task.jobId}
+    <button
+      class="flex items-center gap-1 font-mono text-[10px] opacity-30 hover:opacity-60 transition-opacity cursor-copy w-fit"
+      onclick={e => { e.stopPropagation(); navigator.clipboard.writeText(task.jobId); }}
+      title="Copy job ID"
+    >{task.jobId} <Copy class="size-2.5 shrink-0" /></button>
+  {/if}
 </div>
