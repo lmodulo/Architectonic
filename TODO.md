@@ -1,4 +1,3 @@
-add upload files to client portal
 
 CI/CD — GitHub Actions → Render; render.yaml already exists
 CSV import for bulk contacts/invoices

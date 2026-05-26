@@ -213,8 +213,8 @@
       </label>
     </div>
     <footer class="flex justify-end gap-2 px-5 pb-4 pt-3 border-t border-base-300 shrink-0">
-      <button class="btn btn-ghost" onclick={() => showNew = false}>Cancel</button>
-      <button class="btn btn-primary" onclick={createTemplate} disabled={creating}>
+      <button class="btn btn-ghost btn-sm" onclick={() => showNew = false}>Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick={createTemplate} disabled={creating}>
         {creating ? 'Creating…' : 'Create Template'}
       </button>
     </footer>

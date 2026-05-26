@@ -6,6 +6,7 @@ import {
   sendContractSigningEmail,
   sendContractSignedEmail,
 } from '../../lib/email.js';
+import contractTemplateRoutes from './templates.js';
 
 const COL         = 'contracts';
 const SIGNERS_COL = 'contract_signers';
@@ -434,4 +435,6 @@ export default async function contractRoutes(app: FastifyInstance) {
 
     return { ok: true };
   });
+
+  await app.register(contractTemplateRoutes, { prefix: '/templates' });
 }
