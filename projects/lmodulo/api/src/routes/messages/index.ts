@@ -44,7 +44,7 @@ interface ThreadSummary {
 export default async function messagesRoutes(app: FastifyInstance) {
 
   // ── GET /messages — inbox ────────────────────────────────────────────────
-  app.get<{ Querystring: { limit?: string; before?: string } }>('/', { preHandler: app.requireAuth, schema: { summary: 'Inbox — undeleted threads where user is a recipient', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
+  app.get<{ Querystring: { limit?: string; before?: string } }>('/', { preHandler: app.requirePermission('messages', 'read'), schema: { summary: 'Inbox — undeleted threads where user is a recipient', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -99,7 +99,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/unread-count ───────────────────────────────────────────
-  app.get('/unread-count', { preHandler: app.requireAuth, schema: { summary: 'Count of unread messages for the authenticated user' } }, async (req) => {
+  app.get('/unread-count', { preHandler: app.requirePermission('messages', 'read'), schema: { summary: 'Count of unread messages for the authenticated user' } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -113,7 +113,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/sent ───────────────────────────────────────────────────
-  app.get<{ Querystring: { limit?: string; before?: string } }>('/sent', { preHandler: app.requireAuth, schema: { summary: 'Sent threads — threads where user is the sender', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
+  app.get<{ Querystring: { limit?: string; before?: string } }>('/sent', { preHandler: app.requirePermission('messages', 'read'), schema: { summary: 'Sent threads — threads where user is the sender', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -140,7 +140,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/archived ───────────────────────────────────────────────
-  app.get<{ Querystring: { limit?: string; before?: string } }>('/archived', { preHandler: app.requireAuth, schema: { summary: 'Archived threads for the authenticated user', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
+  app.get<{ Querystring: { limit?: string; before?: string } }>('/archived', { preHandler: app.requirePermission('messages', 'read'), schema: { summary: 'Archived threads for the authenticated user', querystring: { type: 'object', properties: { limit: { type: 'string' }, before: { type: 'string' } } } } }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -174,7 +174,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/:threadId — full thread ────────────────────────────────
-  app.get<{ Params: { threadId: string } }>('/:threadId', { preHandler: app.requireAuth, schema: { summary: 'Get full thread; marks all messages as read' } }, async (req, reply) => {
+  app.get<{ Params: { threadId: string } }>('/:threadId', { preHandler: app.requirePermission('messages', 'read'), schema: { summary: 'Get full thread; marks all messages as read' } }, async (req, reply) => {
     const db       = app.mongo.db!;
     const userId   = new ObjectId(req.session.userId!);
     let   threadId: ObjectId;
@@ -234,7 +234,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
 
   // ── POST /messages — compose new thread ──────────────────────────────────
   app.post<{ Body: { to: string[]; cc?: string[]; subject: string; body: string } }>('/', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('messages', 'create'),
     schema: {
       summary: 'Compose a new message thread',
       body: {
@@ -279,7 +279,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
 
   // ── POST /messages/:threadId/reply ───────────────────────────────────────
   app.post<{ Params: { threadId: string }; Body: { body: string } }>('/:threadId/reply', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('messages', 'create'),
     schema: {
       summary: 'Reply to a thread',
       body: {
@@ -330,7 +330,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── POST /messages/:messageId/attachments ───────────────────────────────
-  app.post<{ Params: { messageId: string } }>('/:messageId/attachments', { preHandler: app.requireAuth }, async (req, reply) => {
+  app.post<{ Params: { messageId: string } }>('/:messageId/attachments', { preHandler: app.requirePermission('messages', 'create') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const uid = new ObjectId(req.session.userId!);
     let msgId: ObjectId;
@@ -374,7 +374,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── DELETE /messages/:messageId/attachments/:filename ────────────────────
-  app.delete<{ Params: { messageId: string; filename: string } }>('/:messageId/attachments/:filename', { preHandler: app.requireAuth }, async (req, reply) => {
+  app.delete<{ Params: { messageId: string; filename: string } }>('/:messageId/attachments/:filename', { preHandler: app.requirePermission('messages', 'delete') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const uid = new ObjectId(req.session.userId!);
     let msgId: ObjectId;
@@ -400,7 +400,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
   });
 
   // ── GET /messages/staff-recipients ─────────────────────────────────────
-  app.get('/staff-recipients', { preHandler: app.requireAuth, schema: { summary: 'Returns all users with role owner or admin' } }, async () => {
+  app.get('/staff-recipients', { preHandler: app.requirePermission('messages', 'read'), schema: { summary: 'Returns all users with role owner or admin' } }, async () => {
     const db    = app.mongo.db!;
     const staff = await db.collection('users')
       .find({ role: { $in: ['owner', 'admin'] } }, { projection: { _id: 1, firstName: 1, lastName: 1, username: 1 } })
@@ -413,7 +413,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
     Params: { threadId: string };
     Body: { read?: boolean; archived?: boolean; deleted?: boolean }
   }>('/:threadId/state', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('messages', 'update'),
     schema: {
       summary: 'Update read/archived/deleted state for a thread',
       body: {

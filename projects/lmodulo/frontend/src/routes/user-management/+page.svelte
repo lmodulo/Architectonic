@@ -142,8 +142,8 @@
 
   // ─── Roles tab ───────────────────────────────────────────────────────────────
 
-  const ACTIONS   = ['create', 'read', 'update', 'delete'] as const;
-  const RESOURCES = ['dashboard', 'users', 'roles', 'teams'] as const;
+  const ACTIONS  = ['create', 'read', 'update', 'delete'] as const;
+  const resources = $derived(Object.keys(data.roles[0]?.permissions ?? {}));
 
   let openRoles = $state<Set<string>>(new Set([data.roles[0]?.name]));
 
@@ -467,7 +467,7 @@
                 {#each ACTIONS as action}
                   <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wide text-center">{action[0].toUpperCase()}</div>
                 {/each}
-                {#each RESOURCES as resource}
+                {#each resources as resource}
                   <div class="flex items-center text-sm capitalize font-medium">{resource}</div>
                   {#each ACTIONS as action}
                     <div class="flex items-center justify-center">

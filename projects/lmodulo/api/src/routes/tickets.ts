@@ -18,7 +18,7 @@ function mapDoc(d: Record<string, unknown>) {
 export default async function ticketsRoutes(app: FastifyInstance) {
 
   // GET /tickets — list support tickets (customers see their own; staff see all)
-  app.get('/', { preHandler: app.requireAuth }, async (req) => {
+  app.get('/', { preHandler: app.requirePermission('support_tickets', 'read') }, async (req) => {
     const db     = app.mongo.db!;
     const userId = new ObjectId(req.session.userId!);
 
@@ -70,7 +70,7 @@ export default async function ticketsRoutes(app: FastifyInstance) {
   });
 
   // POST /tickets — create a support ticket (stored as an agile job)
-  app.post('/', { preHandler: app.requireAuth }, async (req, reply) => {
+  app.post('/', { preHandler: app.requirePermission('support_tickets', 'create') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const now = new Date();
     const { title, description = '' } = req.body as Record<string, unknown>;
@@ -124,7 +124,7 @@ export default async function ticketsRoutes(app: FastifyInstance) {
   });
 
   // POST /tickets/:id/attachments — upload a file to a ticket
-  app.post('/:id/attachments', { preHandler: app.requireAuth }, async (req, reply) => {
+  app.post('/:id/attachments', { preHandler: app.requirePermission('support_tickets', 'update') }, async (req, reply) => {
     const db     = app.mongo.db!;
     const oid    = parseOid((req.params as { id: string }).id, app);
     const userId = new ObjectId(req.session.userId!);
@@ -173,7 +173,7 @@ export default async function ticketsRoutes(app: FastifyInstance) {
   });
 
   // DELETE /tickets/:id/attachments/:filename
-  app.delete('/:id/attachments/:filename', { preHandler: app.requireAuth }, async (req, reply) => {
+  app.delete('/:id/attachments/:filename', { preHandler: app.requirePermission('support_tickets', 'update') }, async (req, reply) => {
     const db       = app.mongo.db!;
     const oid      = parseOid((req.params as { id: string; filename: string }).id, app);
     const filename = (req.params as { id: string; filename: string }).filename;
