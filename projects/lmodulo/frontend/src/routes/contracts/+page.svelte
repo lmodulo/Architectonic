@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
-  import { Plus, Building2, DollarSign, FileSignature } from 'lucide-svelte';
+  import { Plus, Building2, DollarSign, FileSignature, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -42,6 +42,30 @@
     if (v == null) return '—';
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(v);
   }
+
+  let sortField = $state('updatedAt');
+  let sortDir   = $state<'asc' | 'desc'>('desc');
+
+  function toggleSort(field: string) {
+    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortField = field; sortDir = 'asc'; }
+  }
+
+  const sorted = $derived.by(() => {
+    return [...data.contracts].sort((a: any, b: any) => {
+      let av: any, bv: any;
+      if      (sortField === 'title')     { av = a.title ?? '';        bv = b.title ?? ''; }
+      else if (sortField === 'type')      { av = a.type ?? '';         bv = b.type ?? ''; }
+      else if (sortField === 'company')   { av = a.companyName ?? '';  bv = b.companyName ?? ''; }
+      else if (sortField === 'value')     { av = a.value ?? 0;         bv = b.value ?? 0; }
+      else if (sortField === 'updatedAt') { av = a.updatedAt ?? '';    bv = b.updatedAt ?? ''; }
+      else if (sortField === 'status')    { av = a.status ?? '';       bv = b.status ?? ''; }
+      else return 0;
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  });
 
   function setFilter(value: string) {
     const params = new URLSearchParams(page.url.searchParams);
@@ -85,16 +109,28 @@
       <table class="table table-sm w-full">
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Type</th>
-            <th class="hidden sm:table-cell">Company</th>
-            <th class="hidden md:table-cell">Value</th>
-            <th class="hidden lg:table-cell">Updated</th>
-            <th>Status</th>
+            {#snippet sortTh(label: string, field: string, cls = '')}
+              <th class={cls}>
+                <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
+                  {label}
+                  {#if sortField === field}
+                    {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                  {:else}
+                    <ChevronsUpDown class="size-3 opacity-30" />
+                  {/if}
+                </button>
+              </th>
+            {/snippet}
+            {@render sortTh('Title', 'title')}
+            {@render sortTh('Type', 'type')}
+            {@render sortTh('Company', 'company', 'hidden sm:table-cell')}
+            {@render sortTh('Value', 'value', 'hidden md:table-cell')}
+            {@render sortTh('Updated', 'updatedAt', 'hidden lg:table-cell')}
+            {@render sortTh('Status', 'status')}
           </tr>
         </thead>
         <tbody>
-          {#each data.contracts as c}
+          {#each sorted as c}
             <tr
               class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
               onclick={() => goto(`/contracts/${c.id}`)}

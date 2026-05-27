@@ -34,7 +34,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--body);
 }
 
 .tab-scroll {
@@ -49,11 +49,12 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
+  font-family: var(--display);
 }
 
 thead tr {
   background: var(--color-neutral);
+  color: var(--color-neutral-content);
 }
 
 /*
@@ -68,18 +69,18 @@ thead tr {
    ─────────────────────────────────────────────────────────────────────── */
 [data-theme] {
   color-scheme: dark;
-  --color-base-100: oklch(15.5% 0 0);
-  --color-base-200: oklch(11.5% 0 0);
-  --color-base-300: oklch(0% 0.007 17.911);
-  --color-base-content: oklch(86% 0 0);
+  --color-base-100: oklch(15% 0.021 309);
+  --color-base-200: oklch(11% 0.016 309);
+  --color-base-300: oklch(7% 0.011 309);
+  --color-base-content: oklch(86% 0.010 309);
   --color-primary: #371840;
   --color-primary-content: oklch(100% 0 0);
   --color-secondary: #5E246E;
   --color-secondary-content: oklch(86% 0 0);
   --color-accent: #BE7ABF;
   --color-accent-content: oklch(14.125% 0.023 185.713);
-  --color-neutral: oklch(43.2% 0.215 87.4);
-  --color-neutral-content: oklch(94.2% 0 0);
+  --color-neutral: oklch(72.5% 0.183 46.4);
+  --color-neutral-content: oklch(15% 0.015 46);
   --color-info: oklch(72.06% 0.191 231.6);
   --color-info-content: oklch(0% 0 0);
   --color-success: oklch(64.8% 0.15 160);
@@ -96,7 +97,8 @@ thead tr {
   --border: 1px;
   --depth: 1;
   --noise: 1;
-  --font-sans:    'DM Sans', sans-serif;
-  --font-heading: 'Outfit', sans-serif;
+  --display: 'Cormorant Garamond', 'EB Garamond', Garamond, serif;
+  --body:    'Fraunces', 'Cormorant Garamond', Georgia, serif;
+  --mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
 

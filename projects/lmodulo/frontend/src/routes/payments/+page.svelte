@@ -2,7 +2,7 @@
   import { env } from '$env/dynamic/public';
   import { onMount } from 'svelte';
   import { invalidateAll } from '$app/navigation';
-  import { CreditCard, FileText, CheckCircle, AlertCircle, Clock, Circle } from 'lucide-svelte';
+  import { CreditCard, FileText, CheckCircle, AlertCircle, Clock, Circle, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -22,6 +22,27 @@
   };
 
   let invoices      = $state<Invoice[]>(data.invoices as Invoice[]);
+  let sortField     = $state('dueDate');
+  let sortDir       = $state<'asc' | 'desc'>('asc');
+
+  function toggleSort(field: string) {
+    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortField = field; sortDir = 'asc'; }
+  }
+
+  const sortedInvoices = $derived.by(() => {
+    return [...invoices].sort((a, b) => {
+      let av: any, bv: any;
+      if      (sortField === 'invoiceNumber') { av = a.invoiceNumber ?? ''; bv = b.invoiceNumber ?? ''; }
+      else if (sortField === 'dueDate')       { av = a.dueDate ?? '';       bv = b.dueDate ?? ''; }
+      else if (sortField === 'total')         { av = a.total ?? 0;          bv = b.total ?? 0; }
+      else if (sortField === 'status')        { av = a.status ?? '';        bv = b.status ?? ''; }
+      else return 0;
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  });
   let activeTab     = $state<'invoices' | 'pay'>('invoices');
   let selectedInv   = $state<Invoice | null>(null);
   let clientSecret  = $state('');
@@ -165,16 +186,37 @@
         <table class="table table-sm">
           <thead>
             <tr class="bg-base-300/30">
-              <th>Invoice</th>
+              {#snippet sortTh(label: string, field: string, cls = '')}
+                <th class={cls}>
+                  <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
+                    {label}
+                    {#if sortField === field}
+                      {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                    {:else}
+                      <ChevronsUpDown class="size-3 opacity-30" />
+                    {/if}
+                  </button>
+                </th>
+              {/snippet}
+              {@render sortTh('Invoice', 'invoiceNumber')}
               <th>Description</th>
-              <th>Due Date</th>
-              <th class="text-right">Total</th>
-              <th>Status</th>
+              {@render sortTh('Due Date', 'dueDate')}
+              <th class="text-right">
+                <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity ml-auto" onclick={() => toggleSort('total')}>
+                  Total
+                  {#if sortField === 'total'}
+                    {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                  {:else}
+                    <ChevronsUpDown class="size-3 opacity-30" />
+                  {/if}
+                </button>
+              </th>
+              {@render sortTh('Status', 'status')}
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {#each invoices as inv (inv.id)}
+            {#each sortedInvoices as inv (inv.id)}
               {@const StatusIcon = STATUS_ICON[inv.status] ?? Circle}
               <tr
                 class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
