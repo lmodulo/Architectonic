@@ -176,5 +176,23 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('finance_expenses').createIndex({ companyId: 1 });
     await db.collection('finance_expenses').createIndex({ milestoneId: 1 });
     await db.collection('finance_expenses').createIndex({ createdAt: -1 });
+
+    // contracts
+    await db.collection('contracts').createIndex({ companyId: 1, status: 1 });
+    await db.collection('contracts').createIndex({ dealId: 1 }, { sparse: true });
+    await db.collection('contracts').createIndex({ estimateId: 1 }, { sparse: true });
+    await db.collection('contracts').createIndex({ status: 1, expiryDate: 1 });
+    await db.collection('contracts').createIndex({ createdBy: 1, createdAt: -1 });
+    await db.collection('contracts').createIndex({ createdAt: -1 });
+
+    // contract_templates
+    await db.collection('contract_templates').createIndex({ type: 1 });
+    await db.collection('contract_templates').createIndex({ isDefault: 1 });
+
+    // contract_signers
+    await db.collection('contract_signers').createIndex({ contractId: 1, status: 1 });
+    await db.collection('contract_signers').createIndex({ token: 1 }, { unique: true });
+    await db.collection('contract_signers').createIndex({ email: 1, status: 1 });
+    await db.collection('contract_signers').createIndex({ tokenExpiresAt: 1 });
   });
 }

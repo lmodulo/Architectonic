@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-svelte';
+  import { Plus, X, AlertCircle, CheckCircle, Clock, TrendingUp, Flag } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -243,6 +243,7 @@
 
     {#if visible.length === 0}
       <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center opacity-50">
+        <Flag class="size-8 opacity-40 mx-auto mb-2" />
         <p class="text-sm">No milestones yet.{#if hasPermission(data.user, 'agile_milestones', 'create')} Create one to get started.{/if}</p>
       </div>
     {:else}

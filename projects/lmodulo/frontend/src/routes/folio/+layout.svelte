@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { LayoutGrid, FileText, RefreshCw, ClipboardList, Receipt, BarChart2 } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
@@ -18,8 +18,8 @@
 
   const isActive = (href: string) =>
     href === '/folio'
-      ? $page.url.pathname === '/folio'
-      : $page.url.pathname.startsWith(href);
+      ? page.url.pathname === '/folio'
+      : page.url.pathname.startsWith(href);
 </script>
 
 <div class="flex flex-col gap-6">

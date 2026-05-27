@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import GanttChart from '$lib/components/agile/GanttChart.svelte';
+  import { BarChart2 } from 'lucide-svelte';
   import type { AgileMilestone, AgileSprint } from '$lib/utils/agile';
 
   let { data }: { data: PageData } = $props();
@@ -19,7 +20,10 @@
 
   <div class="card bg-base-200 border border-base-300 rounded-box p-4">
     {#if milestones.length === 0}
-      <p class="text-sm opacity-40 text-center py-12">No milestones with dates to display.</p>
+      <div class="py-12 text-center">
+        <BarChart2 class="size-8 opacity-20 mx-auto mb-2" />
+        <p class="text-sm opacity-40">No milestones with dates to display.</p>
+      </div>
     {:else}
       <GanttChart {milestones} {sprints} />
     {/if}

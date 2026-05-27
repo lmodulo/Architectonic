@@ -34,6 +34,10 @@
       <p class="text-sm opacity-60 leading-relaxed">Invoice management and client billing. Staff create and send invoices with dynamic line items; customers pay online via Stripe. Includes a client portal and CRM-linked client conversion flow.</p>
     </div>
     <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
+      <p class="text-sm font-semibold">Contracts</p>
+      <p class="text-sm opacity-60 leading-relaxed">Native e-signatures and contract management. MSA, SOW, and NDA templates with IP ownership, maintenance, and late-payment clauses built in. Token-based signing links with canvas signature capture — no third-party service required.</p>
+    </div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
       <p class="text-sm font-semibold">AI Assistant</p>
       <p class="text-sm opacity-60 leading-relaxed">An Ollama-powered chat panel available to all authenticated users. Connects to your local model server — no API keys required.</p>
     </div>
@@ -84,6 +88,7 @@
       <li><a href="/documentation/api" class="link link-primary">API Reference</a> — explore every endpoint with its expected inputs, outputs, and auth requirements.</li>
       <li><a href="/documentation/agile" class="link link-primary">Agile Module</a> — deep-dive into milestones, sprints, jobs, and tasks.</li>
       <li><a href="/documentation/folio" class="link link-primary">Folio</a> — manage invoices, collect Stripe payments, and onboard CRM contacts as billing clients.</li>
+      <li><a href="/documentation/contracts" class="link link-primary">Contracts</a> — create MSA/SOW/NDA contracts, send for e-signature, and track execution without any paid third-party service.</li>
     </ul>
   </div>
 

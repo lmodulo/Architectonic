@@ -136,7 +136,108 @@ arch.js                         # Project scaffold CLI (see below)
 
 ## Style Guide
 
-Established UI patterns for the scaffold. Follow these exactly when adding new pages or components.
+Authoritative UI patterns for the scaffold. Follow these exactly when adding new pages or components. The live codebase is the source of truth — if you see a conflict between this guide and the running code, the running code wins and this guide needs updating.
+
+### Design Tokens
+
+```
+Fonts:     DM Sans (body) · Outfit (headings h1–h6, via app.css global rule)
+
+Base palette — all DaisyUI themes are overridden to a dark-first scale:
+  base-100  oklch(15.5%)  ← page / shell background  (lightest)
+  base-200  oklch(11.5%)  ← card / panel background   (mid — darker than base-100)
+  base-300  oklch(0%)     ← border / deepest surface  (darkest)
+  base-content oklch(86%) ← default text
+
+Brand:
+  primary   #371840  (deep purple)
+  secondary #5E246E  (lighter purple)
+  accent    #BE7ABF  (lavender)
+```
+
+> Cards use `bg-base-200` — they recede into the page rather than floating above it. This is intentional. Do not use `bg-base-100` for cards.
+
+---
+
+### Page Container
+
+The main layout already applies this wrapper — do not re-apply it inside route pages:
+
+```svelte
+<div class="container mx-auto p-6 max-w-5xl">
+```
+
+Documentation routes use `p-8 max-w-4xl` intentionally (optimised for long-form reading).
+
+---
+
+### Page Header
+
+Every route page with a title uses this exact structure:
+
+```svelte
+<div>
+  <h1 class="text-2xl font-bold leading-none">{title}</h1>
+  <p class="text-xs opacity-50 mt-0.5">{subtitle}</p>
+</div>
+```
+
+---
+
+### Module Page Layout
+
+Feature modules (Agile, CRM, Folio, Contracts, …) follow this shell:
+
+```svelte
+<div class="flex flex-col gap-6">
+  <div>
+    <h1 class="text-2xl font-bold leading-none">Module Name</h1>
+    <p class="text-xs opacity-50 mt-0.5">Section A · Section B · Section C</p>
+  </div>
+
+  <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-2">
+    {#each navLinks as link}
+      <a href={link.href} class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+        {isActive(link.href) ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}">
+        <svelte:component this={link.icon} class="size-4" />
+        {link.label}
+      </a>
+    {/each}
+  </nav>
+
+  {@render children()}
+</div>
+```
+
+`tab-scroll` (defined in `app.css`) hides the horizontal scrollbar on mobile.
+
+---
+
+### Typography Scale
+
+| Level | Classes |
+|-------|---------|
+| Page title | `text-2xl font-bold leading-none` |
+| Page tagline | `text-xs opacity-50 mt-0.5` |
+| Section heading | `text-sm font-semibold` |
+| Body | `text-sm` or `text-base` (default) |
+| Secondary / meta | `text-xs opacity-50` |
+| Micro label | `text-[10px] font-semibold uppercase tracking-widest opacity-40` |
+
+---
+
+### Section Heading with Accent Bar
+
+Used in dashboard-style grouped sections:
+
+```svelte
+<div class="flex items-center gap-2">
+  <span class="w-0.5 h-4 rounded-full bg-primary"></span>
+  <h2 class="text-sm font-semibold">Section Title</h2>
+</div>
+```
+
+---
 
 ### Buttons
 
@@ -148,36 +249,43 @@ Established UI patterns for the scaffold. Follow these exactly when adding new p
 | Compact (in tables, toolbars) | add `btn-sm` |
 | Icon-only | `btn btn-ghost btn-square btn-sm` |
 
-### Page Header
-
-Every route page that has a title uses this structure — do not inline it differently:
-
-```svelte
-<div>
-  <h1 class="text-2xl font-bold">{title}</h1>
-  <p class="text-sm opacity-60">{subtitle}</p>
-</div>
-```
+---
 
 ### Cards
 
 ```svelte
-<div class="card bg-base-100 border border-base-200">
-  <div class="p-6 space-y-4">
-    <!-- content -->
-  </div>
+<div class="bg-base-200 border border-base-300 rounded-box p-4">
+  <!-- content -->
 </div>
 ```
 
-Padding goes on the inner `div`, not on `.card` itself.
+For sections that need more internal breathing room use `p-6 space-y-4`.
+
+---
+
+### KPI Cards
+
+```svelte
+<div class="bg-base-200 border border-base-300 rounded-box p-4">
+  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Label</p>
+  <p class="text-2xl font-bold mt-1">Value</p>
+  <p class="text-xs opacity-40 mt-0.5">Subtitle</p>
+</div>
+```
+
+---
 
 ### Tables
 
-Every `<tbody>` row must use the alternating-row class string:
+`app.css` sets `thead tr { background: var(--color-neutral) }` globally — no extra class needed on `<thead>`.
+
+Every `<tbody>` row:
 
 ```svelte
 <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
 ```
+
+---
 
 ### Modals
 
@@ -186,8 +294,8 @@ Custom fixed overlay — do not use DaisyUI `.modal`:
 ```svelte
 {#if open}
   <div transition:fade class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-    <div transition:scale class="card bg-base-100 border border-base-200 w-full max-w-md shadow-xl">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-200">
+    <div transition:scale class="bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="font-semibold">{title}</h2>
         <button class="btn btn-ghost btn-square btn-sm" onclick={() => open = false}>
           <X class="size-4" />
@@ -206,6 +314,8 @@ Custom fixed overlay — do not use DaisyUI `.modal`:
 {/if}
 ```
 
+---
+
 ### Badges
 
 | Use | Classes |
@@ -213,6 +323,8 @@ Custom fixed overlay — do not use DaisyUI `.modal`:
 | Status label | `badge badge-{color}` |
 | Status outline | `badge badge-{color} badge-outline` |
 | Compact unread dot | `min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-white bg-error` |
+
+---
 
 ### Search Input
 
@@ -223,10 +335,12 @@ Custom fixed overlay — do not use DaisyUI `.modal`:
 </label>
 ```
 
+---
+
 ### Tabs
 
 ```svelte
-<div class="flex gap-1 border-b border-base-200">
+<div class="tab-scroll flex gap-1 border-b border-base-300 -mb-2">
   <button
     class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
       {active === 'tab' ? 'border-primary text-primary' : 'border-transparent hover:text-base-content'}"
@@ -235,9 +349,15 @@ Custom fixed overlay — do not use DaisyUI `.modal`:
 </div>
 ```
 
+---
+
 ### Muted / Secondary Text
 
-Use `text-sm opacity-60` for subtitles, hints, and secondary info. Do not use `text-base-content/60` or `text-gray-*`.
+- `text-xs opacity-50` — taglines, hints, secondary info
+- `opacity-40` — micro labels (paired with `uppercase tracking-widest`)
+- Never use `text-base-content/60` or `text-gray-*`
+
+---
 
 ### Icon Sizing
 
@@ -247,6 +367,8 @@ Use `text-sm opacity-60` for subtitles, hints, and secondary info. Do not use `t
 | Toolbar, card headers | `size-5` |
 | Large decorative / empty states | `size-8` or `size-10` |
 
+---
+
 ### Collapse Chevron
 
 Always use `ChevronDown` with a CSS rotation — never swap between two icon components:
@@ -255,12 +377,58 @@ Always use `ChevronDown` with a CSS rotation — never swap between two icon com
 <ChevronDown class="size-4 transition-transform {open ? 'rotate-180' : ''}" />
 ```
 
+---
+
 ### Error / Alert Messages
 
 ```svelte
 {#if error}
   <div role="alert" class="alert alert-error text-sm">{error}</div>
 {/if}
+```
+
+---
+
+### Svelte 5 Code Patterns
+
+```
+$state()       local reactive state
+$derived()     computed values — no side-effects
+$effect()      DOM-dependent side-effects
+$props()       component props
+```
+
+Import the current route from `$app/state`, not `$app/stores`:
+
+```ts
+import { page } from '$app/state';
+// use page.url.pathname directly — no $ prefix
+```
+
+---
+
+### Permission-Gated UI
+
+```svelte
+{#if hasPermission(data.user, 'resource', 'action')}
+  <!-- admin/privileged content -->
+{/if}
+```
+
+```ts
+import { hasPermission } from '$lib/permissions';
+```
+
+---
+
+### Charts
+
+Pure SVG + JS math — no charting library. Reference theme colors via CSS variables:
+
+```svelte
+fill="var(--color-primary)"
+fill="var(--color-success)"
+fill="var(--color-error)"
 ```
 
 ## Module System

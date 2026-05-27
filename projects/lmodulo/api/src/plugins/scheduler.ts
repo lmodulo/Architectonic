@@ -27,7 +27,7 @@ async function computeRetainerHoursUsed(db: Db, companyId: ObjectId, periodStart
         as:           '_milestone',
       },
     },
-    { $unwind: { path: '$_milestone', preserveNullAndEmpty: false } },
+    { $unwind: { path: '$_milestone', preserveNullAndEmptyArrays: false } },
     { $match: { '_milestone.clientId': companyId } },
     { $group: { _id: null, total: { $sum: '$durationMinutes' } } },
   ]).toArray();

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { Plus, RefreshCw } from 'lucide-svelte';
+  import { Plus, RefreshCw, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
 
@@ -54,6 +54,30 @@
     return subtotal + taxAmount;
   }
 
+  let sortField = $state('nextBillingDate');
+  let sortDir   = $state<'asc' | 'desc'>('asc');
+
+  function toggleSort(field: string) {
+    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortField = field; sortDir = 'asc'; }
+  }
+
+  const sorted = $derived.by(() => {
+    return [...subscriptions].sort((a: any, b: any) => {
+      let av: any, bv: any;
+      if      (sortField === 'name')            { av = a.name ?? '';              bv = b.name ?? ''; }
+      else if (sortField === 'customer')        { av = customerName(a.customerId); bv = customerName(b.customerId); }
+      else if (sortField === 'billingCycle')    { av = a.billingCycle ?? '';       bv = b.billingCycle ?? ''; }
+      else if (sortField === 'nextBillingDate') { av = a.nextBillingDate ?? '';    bv = b.nextBillingDate ?? ''; }
+      else if (sortField === 'total')           { av = subTotal(a);               bv = subTotal(b); }
+      else if (sortField === 'status')          { av = a.status ?? '';            bv = b.status ?? ''; }
+      else return 0;
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  });
+
   function applyFilter(status: string) {
     const url = new URL(page.url);
     if (status) url.searchParams.set('status', status);
@@ -101,16 +125,37 @@
       <table class="table table-sm">
         <thead>
           <tr class="bg-base-300/30">
-            <th>Name</th>
-            <th>Customer</th>
-            <th>Billing Cycle</th>
-            <th>Next Billing</th>
-            <th class="text-right">Total</th>
-            <th>Status</th>
+            {#snippet sortTh(label: string, field: string, cls = '')}
+              <th class={cls}>
+                <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
+                  {label}
+                  {#if sortField === field}
+                    {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                  {:else}
+                    <ChevronsUpDown class="size-3 opacity-30" />
+                  {/if}
+                </button>
+              </th>
+            {/snippet}
+            {@render sortTh('Name', 'name')}
+            {@render sortTh('Customer', 'customer')}
+            {@render sortTh('Billing Cycle', 'billingCycle')}
+            {@render sortTh('Next Billing', 'nextBillingDate')}
+            <th class="text-right">
+              <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity ml-auto" onclick={() => toggleSort('total')}>
+                Total
+                {#if sortField === 'total'}
+                  {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                {:else}
+                  <ChevronsUpDown class="size-3 opacity-30" />
+                {/if}
+              </button>
+            </th>
+            {@render sortTh('Status', 'status')}
           </tr>
         </thead>
         <tbody>
-          {#each subscriptions as sub (sub.id)}
+          {#each sorted as sub (sub.id)}
             <tr
               class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
               onclick={() => goto(`/folio/subscriptions/${sub.id}`)}

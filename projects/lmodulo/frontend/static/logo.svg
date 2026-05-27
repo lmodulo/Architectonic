@@ -1,3 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-  <path d="M2 6l10-4 10 4v12l-10 4L2 18V6zm2 1.5v9l8 3.2 8-3.2v-9l-8-3.2-8 3.2zM12 4.8L5.6 7.3 12 9.8l6.4-2.5L12 4.8zM6 9.2v7.2l5.5 2.2V11.4L6 9.2zm7.5 9.4 5.5-2.2V9.2l-5.5 2.2v7.2z"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 800 120"
+     preserveAspectRatio="xMidYMid meet"
+     role="img"
+     aria-label="L MODULO">
+  <defs>
+    <style type="text/css"><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&display=swap');
+      .lm-wordmark {
+        font-family: 'Cormorant Garamond', 'EB Garamond', 'Adobe Garamond Pro', Garamond, 'Times New Roman', serif;
+        font-weight: 300;
+        font-size: 64px;
+        font-style: normal;
+        letter-spacing: 0.3em;
+        fill: #ffffff;
+        text-rendering: geometricPrecision;
+      }
+    ]]></style>
+  </defs>
+  <text x="50%" y="50%"
+        text-anchor="middle"
+        dominant-baseline="central"
+        class="lm-wordmark">L MODULO</text>
 </svg>

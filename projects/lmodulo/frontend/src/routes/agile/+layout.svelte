@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, ClipboardList, BarChart2, ListChecks, Clock } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
@@ -22,11 +22,11 @@
 
   const isActive = (href: string) =>
     href === '/agile'
-      ? $page.url.pathname === '/agile' || overviewPrefixes.some(p => $page.url.pathname.startsWith(p))
-      : $page.url.pathname.startsWith(href);
+      ? page.url.pathname === '/agile' || overviewPrefixes.some(p => page.url.pathname.startsWith(p))
+      : page.url.pathname.startsWith(href);
 
   const levelActiveClass = $derived.by(() => {
-    const p = $page.url.pathname;
+    const p = page.url.pathname;
     if (p.startsWith('/agile/tasks'))      return 'bg-accent text-accent-content';
     if (p.startsWith('/agile/jobs'))       return 'bg-success text-success-content';
     if (p.startsWith('/agile/sprints'))    return 'bg-secondary text-secondary-content';

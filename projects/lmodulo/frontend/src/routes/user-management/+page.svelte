@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
@@ -52,6 +52,13 @@
   let users = $state([...data.users]);
   let query = $state('');
   let currentPage = $state(1);
+  let sortField = $state('createdAt');
+  let sortDir   = $state<'asc' | 'desc'>('desc');
+
+  function toggleSort(field: string) {
+    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortField = field; sortDir = 'asc'; }
+  }
 
   const filtered = $derived(
     query.trim()
@@ -65,9 +72,23 @@
       : users
   );
 
-  const pageUsers = $derived(filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+  const sortedFiltered = $derived.by(() => {
+    return [...filtered].sort((a: any, b: any) => {
+      let av: any, bv: any;
+      if      (sortField === 'name')      { av = `${a.firstName ?? ''} ${a.lastName ?? ''}`.trim() || a.username; bv = `${b.firstName ?? ''} ${b.lastName ?? ''}`.trim() || b.username; }
+      else if (sortField === 'email')     { av = a.email ?? '';     bv = b.email ?? ''; }
+      else if (sortField === 'role')      { av = a.role ?? '';      bv = b.role ?? ''; }
+      else if (sortField === 'createdAt') { av = a.createdAt ?? ''; bv = b.createdAt ?? ''; }
+      else return 0;
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  });
 
-  $effect(() => { query; currentPage = 1; });
+  const pageUsers = $derived(sortedFiltered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+
+  $effect(() => { query; sortField; sortDir; currentPage = 1; });
 
   let newUserOpen = $state(false);
   let newForm     = $state({ firstName: '', lastName: '', email: '', role: 'viewer' });
@@ -367,10 +388,22 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-base-300">
-              <th class="text-left px-4 py-3 font-semibold text-base-content/50">Name</th>
-              <th class="text-left px-4 py-3 font-semibold text-base-content/50">Email</th>
-              <th class="text-left px-4 py-3 font-semibold text-base-content/50">Role</th>
-              <th class="text-left px-4 py-3 font-semibold text-base-content/50">Joined</th>
+              {#snippet sortTh(label: string, field: string)}
+                <th class="text-left px-4 py-3 font-semibold text-base-content/50">
+                  <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
+                    {label}
+                    {#if sortField === field}
+                      {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                    {:else}
+                      <ChevronsUpDown class="size-3 opacity-30" />
+                    {/if}
+                  </button>
+                </th>
+              {/snippet}
+              {@render sortTh('Name', 'name')}
+              {@render sortTh('Email', 'email')}
+              {@render sortTh('Role', 'role')}
+              {@render sortTh('Joined', 'createdAt')}
               <th class="px-4 py-3"></th>
             </tr>
           </thead>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { ChevronLeft, ChevronRight, Plus, Search, LayoutList, Calendar as CalIcon } from 'lucide-svelte';
+  import { ChevronLeft, ChevronRight, Plus, Search, LayoutList, Calendar as CalIcon, SearchX } from 'lucide-svelte';
   import type { PageData } from './$types';
   import EventCard          from '$lib/components/EventCard.svelte';
   import EventCalendarGrid  from '$lib/components/EventCalendarGrid.svelte';
@@ -398,6 +398,7 @@
       <!-- Events grouped by month -->
       {#if groups.length === 0}
         <div class="card bg-base-200 border border-base-300 p-10 text-center space-y-2 rounded-box">
+          <CalIcon class="size-8 opacity-20 mx-auto mb-2" />
           <p class="text-lg font-semibold opacity-50">No upcoming events scheduled.</p>
           <p class="text-sm opacity-40">Check back soon.</p>
         </div>
@@ -469,6 +470,7 @@
       {#if manageView === 'list'}
         {#if filtered.length === 0}
           <div class="card bg-base-200 border border-base-300 p-10 text-center rounded-box">
+            <SearchX class="size-8 opacity-20 mx-auto mb-2" />
             <p class="opacity-50">No events match your filters.</p>
           </div>
         {:else}

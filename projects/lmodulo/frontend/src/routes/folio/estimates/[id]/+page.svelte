@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
-  import { Send, CheckCircle, XCircle, Pencil, X, Check, Trash2 } from 'lucide-svelte';
+  import { Send, CheckCircle, XCircle, Pencil, X, Check, Trash2, Printer } from 'lucide-svelte';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import type { PageData } from './$types';
 
@@ -169,6 +169,9 @@
         <span class="badge {STATUS_CLASS[estimate.status] ?? 'badge-ghost'}">{estimate.status}</span>
       </div>
       <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+        <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/print/estimate/${estimate.id}`, '_blank')} title="Print / Save as PDF">
+          <Printer class="size-4" />
+        </button>
         {#if hasPermission(data.user, 'finance_estimates', 'update') && !editing}
           <button class="btn btn-ghost btn-sm" onclick={() => { editForm = { ...estimate }; editing = true; }}>
             <Pencil class="size-4" /> Edit

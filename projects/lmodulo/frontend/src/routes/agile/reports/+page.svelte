@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { STATUS_COLOR, fmtEffort } from '$lib/utils/agile';
+  import { GitBranch } from 'lucide-svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -139,6 +140,7 @@
     </div>
   {:else if sprints.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-12 text-center opacity-40">
+      <GitBranch class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No sprints in this milestone yet.</p>
     </div>
   {:else}
