@@ -110,7 +110,7 @@ export default async function notificationsRoutes(app: FastifyInstance) {
 
   // ── GET /notifications — paginated list ──────────────────────────────────
   app.get<{ Querystring: { page?: string; filter?: string } }>('/', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('notifications', 'read'),
     schema: { summary: 'List notifications for the authenticated user' },
   }, async (req) => {
     const db     = app.mongo.db!;
@@ -147,7 +147,7 @@ export default async function notificationsRoutes(app: FastifyInstance) {
 
   // ── GET /notifications/unread-count ──────────────────────────────────────
   app.get('/unread-count', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('notifications', 'read'),
     schema: { summary: 'Count of unread notifications for the authenticated user' },
   }, async (req) => {
     const db     = app.mongo.db!;
@@ -158,7 +158,7 @@ export default async function notificationsRoutes(app: FastifyInstance) {
 
   // ── GET /notifications/recent — last 10 for bell dropdown ────────────────
   app.get('/recent', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('notifications', 'read'),
     schema: { summary: 'Most recent 10 notifications for the bell dropdown' },
   }, async (req) => {
     const db     = app.mongo.db!;
@@ -181,7 +181,7 @@ export default async function notificationsRoutes(app: FastifyInstance) {
 
   // ── PUT /notifications/:id/read — mark one read ───────────────────────────
   app.put<{ Params: { id: string } }>('/:id/read', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('notifications', 'update'),
     schema: { summary: 'Mark a single notification as read' },
   }, async (req, reply) => {
     const db     = app.mongo.db!;
@@ -207,7 +207,7 @@ export default async function notificationsRoutes(app: FastifyInstance) {
 
   // ── PUT /notifications/read-all — mark all read ───────────────────────────
   app.put('/read-all', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('notifications', 'update'),
     schema: { summary: 'Mark all notifications as read' },
   }, async (req) => {
     const db     = app.mongo.db!;
@@ -229,7 +229,7 @@ export default async function notificationsRoutes(app: FastifyInstance) {
 
   // ── GET /notifications/preferences ───────────────────────────────────────
   app.get('/preferences', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('notifications', 'read'),
     schema: { summary: 'Get notification preferences for the authenticated user' },
   }, async (req) => {
     const db     = app.mongo.db!;
@@ -250,7 +250,7 @@ export default async function notificationsRoutes(app: FastifyInstance) {
       quiet?: { enabled?: boolean; start?: string; end?: string; timezone?: string };
     }
   }>('/preferences', {
-    preHandler: app.requireAuth,
+    preHandler: app.requirePermission('notifications', 'update'),
     schema: {
       summary: 'Update notification preferences',
       body: {

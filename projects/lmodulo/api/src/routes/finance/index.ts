@@ -41,7 +41,7 @@ function mapInvoice(doc: Record<string, unknown>) {
 export default async function financeRoutes(app: FastifyInstance) {
 
   // GET /finance/invoices
-  app.get('/invoices', { preHandler: app.requireAuth }, async (req) => {
+  app.get('/invoices', { preHandler: app.requirePermission('finance_invoices', 'read') }, async (req) => {
     const db     = app.mongo.db!;
     const userId = req.session.userId!;
 
