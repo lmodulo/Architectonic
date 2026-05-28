@@ -46,7 +46,7 @@
     <a href="/client-portal/invoices" class="btn btn-sm btn-ghost gap-1">
       <ArrowLeft class="w-4 h-4" /> Back
     </a>
-    <button class="btn btn-sm btn-ghost gap-1" onclick={() => window.open(`/print/invoice/${inv.id}`, '_blank')}>
+    <button class="btn btn-sm btn-ghost gap-1" onclick={() => window.open(`/invoice/${inv.id}`, '_blank')}>
       <Printer class="w-4 h-4" /> Print / Save as PDF
     </button>
   </div>

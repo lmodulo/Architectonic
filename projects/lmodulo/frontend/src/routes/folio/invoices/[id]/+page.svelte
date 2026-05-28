@@ -133,7 +133,7 @@
         <span class="badge {STATUS_CLASS[invoice.status] ?? 'badge-ghost'}">{invoice.status}</span>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/print/invoice/${invoice.id}`, '_blank')} title="Print / Save as PDF">
+        <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/invoice/${invoice.id}`, '_blank')} title="Print / Save as PDF">
           <Printer class="size-4" />
         </button>
         {#if hasPermission(data.user, 'finance_invoices', 'update') && !editing}

@@ -21,9 +21,15 @@ export default async function searchRoutes(app: FastifyInstance) {
         .find({ title: { $regex: term, $options: 'i' } }, { projection: { title: 1, status: 1, milestoneId: 1 } })
         .limit(5).toArray(),
 
-      db.collection('agile_jobs')
-        .find({ $text: { $search: term } }, { projection: { title: 1, status: 1, jobNumber: 1 } })
-        .limit(5).toArray(),
+      (() => {
+        const numMatch = term.match(/^(?:JOB-)?(\d+)$/i);
+        const jobQuery = numMatch
+          ? { jobNumber: parseInt(numMatch[1]) }
+          : { $text: { $search: term } };
+        return db.collection('agile_jobs')
+          .find(jobQuery, { projection: { title: 1, status: 1, jobNumber: 1 } })
+          .limit(5).toArray();
+      })(),
 
       db.collection('agile_tasks')
         .find({ title: { $regex: term, $options: 'i' } }, { projection: { title: 1, status: 1, priority: 1 } })
