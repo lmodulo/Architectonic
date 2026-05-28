@@ -134,6 +134,7 @@ export interface AgileSprint {
 
 export interface AgileJob {
   id: string;
+  jobNumber: number;
   sprintId: string;
   title: string;
   description?: string;
@@ -154,6 +155,7 @@ export interface AgileJob {
 export interface AgileTask {
   id: string;
   jobId: string;
+  jobNumber?: number;
   title: string;
   description?: string;
   assignedTo?: string;

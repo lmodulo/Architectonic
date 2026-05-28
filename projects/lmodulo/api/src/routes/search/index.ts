@@ -22,7 +22,7 @@ export default async function searchRoutes(app: FastifyInstance) {
         .limit(5).toArray(),
 
       db.collection('agile_jobs')
-        .find({ $text: { $search: term } }, { projection: { title: 1, status: 1 } })
+        .find({ $text: { $search: term } }, { projection: { title: 1, status: 1, jobNumber: 1 } })
         .limit(5).toArray(),
 
       db.collection('agile_tasks')
@@ -45,7 +45,7 @@ export default async function searchRoutes(app: FastifyInstance) {
     return reply.send({
       milestones: milestones.map(d => ({ _id: d._id.toString(), title: d.title as string, status: d.status as string })),
       sprints:    sprints.map(d => ({ _id: d._id.toString(), title: d.title as string, status: d.status as string })),
-      jobs:       jobs.map(d => ({ _id: d._id.toString(), title: d.title as string, status: d.status as string })),
+      jobs:       jobs.map(d => ({ _id: d.jobNumber ? `JOB-${d.jobNumber}` : d._id.toString(), title: d.title as string, status: d.status as string })),
       tasks:      tasks.map(d => ({ _id: d._id.toString(), title: d.title as string, status: d.status as string })),
       contacts:   contacts.map(d => ({ _id: d._id.toString(), title: `${d.firstName} ${d.lastName}`, status: d.status as string })),
       companies:  companies.map(d => ({ _id: d._id.toString(), title: d.name as string, status: d.type as string })),

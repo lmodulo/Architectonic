@@ -26,6 +26,7 @@
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
   let sidebarOpen = $state(false);
+  let sidebarExpanded = $state(false);
   let logoutForm: HTMLFormElement = $state()!;
   let unreadCount = $state(data.unreadCount ?? 0);
   let openGroups = $state<Record<string, boolean>>({});
@@ -79,6 +80,9 @@
   function closeSidebar() {
     sidebarOpen = false;
   }
+
+  function onAsideMouseEnter() { sidebarExpanded = true; }
+  function onAsideMouseLeave() { sidebarExpanded = false; }
 </script>
 
 <svelte:head>
@@ -115,18 +119,36 @@
     {/if}
 
     <!-- Sidebar -->
-    <aside class="
-      fixed inset-y-0 left-0 z-30 w-64 flex flex-col
-      bg-base-200 border-r border-base-300
-      transition-transform duration-200 rounded-b-xl
-      lg:static lg:translate-x-0 lg:mx-2 lg:mb-2
-      {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-    ">
+    <aside
+      class="
+        fixed inset-y-0 left-0 z-30 flex flex-col overflow-hidden
+        bg-base-200 border-r border-base-300
+        transition-[width,transform] duration-200 ease-in-out rounded-br-xl
+        lg:static lg:translate-x-0 lg:mr-2 lg:mb-2
+        {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        {sidebarExpanded ? 'w-64' : 'w-64 lg:w-[67px]'}
+      "
+      onmouseenter={onAsideMouseEnter}
+      onmouseleave={onAsideMouseLeave}
+    >
 
       <!-- Brand -->
-      <div class="flex items-center gap-2 px-4 h-16 shrink-0">
-        <a href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'} class="flex items-center gap-2 flex-1 min-w-0 no-underline text-inherit" onclick={closeSidebar}>
+      <div class="relative flex items-center gap-2 px-4 h-16 shrink-0">
+        <a
+          href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'}
+          class="flex items-center gap-2 flex-1 min-w-0 no-underline text-inherit transition-opacity duration-150 {sidebarExpanded ? 'opacity-100' : 'lg:opacity-0 lg:pointer-events-none'}"
+          onclick={closeSidebar}
+        >
           <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
+        </a>
+        <a
+          href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'}
+          class="hidden lg:flex absolute inset-0 items-center justify-center no-underline transition-opacity duration-150 {sidebarExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}"
+          onclick={closeSidebar}
+          aria-hidden="true"
+          tabindex={sidebarExpanded ? -1 : 0}
+        >
+          <span style="font-family: var(--display);" class="text-4xl font-bold text-accent select-none">%</span>
         </a>
         <button
           type="button"
@@ -160,14 +182,14 @@
                   onclick={() => toggleGroup(entry.label)}
                 >
                   <GroupIcon class="size-4 shrink-0" />
-                  <span class="flex-1 text-left">{entry.label}</span>
+                  <span class="flex-1 text-left whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label}</span>
                   {#if isOpen}
-                    <ChevronDown class="size-3 opacity-40" />
+                    <ChevronDown class="size-3 opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}" />
                   {:else}
-                    <ChevronRight class="size-3 opacity-40" />
+                    <ChevronRight class="size-3 opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}" />
                   {/if}
                 </button>
-                <div class="nav-subnav" class:nav-subnav-open={isOpen}>
+                <div class="nav-subnav" class:nav-subnav-open={isOpen && (sidebarOpen || sidebarExpanded)}>
                   <div class="nav-subnav-inner">
                     {#each entry.children as child}
                       {#if !child.permission || hasPermission(data.user, child.permission.resource, child.permission.action)}
@@ -195,7 +217,7 @@
                     onclick={closeSidebar}
                   >
                     <Icon class="size-4 shrink-0" />
-                    <span class="text-sm flex-1">{entry.label}</span>
+                    <span class="text-sm flex-1 whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label}</span>
                   </a>
                 </li>
               {/if}
@@ -215,7 +237,7 @@
             onclick={() => (profileOpen = !profileOpen)}
           >
             <Avatar user={data.user} size="sm" />
-            <div class="flex-1 min-w-0 text-left">
+            <div class="flex-1 min-w-0 text-left overflow-hidden transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">
               <p class="text-sm font-medium truncate leading-tight">
                 {data.user.firstName && data.user.lastName
                   ? `${data.user.firstName} ${data.user.lastName}`
@@ -223,10 +245,10 @@
               </p>
               <p class="text-xs opacity-50 truncate leading-tight">{data.user.username}</p>
             </div>
-            <ChevronDown class="size-3 opacity-40 transition-transform duration-200 {profileOpen ? 'rotate-180' : ''}" />
+            <ChevronDown class="size-3 opacity-40 transition-[transform,opacity] duration-200 {profileOpen ? 'rotate-180' : ''} {sidebarExpanded ? '' : 'lg:opacity-0'}" />
           </button>
 
-          <div class="nav-subnav" class:nav-subnav-open={profileOpen}>
+          <div class="nav-subnav" class:nav-subnav-open={profileOpen && (sidebarOpen || sidebarExpanded)}>
             <div class="nav-subnav-inner pt-1">
               <a
                 href="/profile"
@@ -285,7 +307,7 @@
     <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
 
       <!-- Top bar (always visible) -->
-      <header class="flex items-center gap-3 px-4 h-16 shrink-0 bg-base-200 rounded-b-xl">
+      <header class="flex items-center gap-3 px-4 h-16 shrink-0 bg-base-200 rounded-br-xl">
         <button
           type="button"
           class="btn btn-ghost btn-sm btn-square lg:hidden"

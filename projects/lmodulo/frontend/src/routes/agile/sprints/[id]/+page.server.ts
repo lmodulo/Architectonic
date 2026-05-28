@@ -27,9 +27,12 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
   // Fetch tasks for all jobs
   let tasks: unknown[] = [];
   if (jobs.length > 0) {
+    const jobMap = new Map(jobs.map((j: any) => [j.id, j.jobNumber as number]));
     const tRes = await fetch(`${API_URL}/agile/tasks?limit=500`, { headers });
     const tData = tRes.ok ? await tRes.json() : {};
-    tasks = (tData.tasks ?? []).filter((t: any) => jobs.some((j: any) => j.id === t.jobId));
+    tasks = (tData.tasks ?? [])
+      .filter((t: any) => jobMap.has(t.jobId))
+      .map((t: any) => ({ ...t, jobNumber: jobMap.get(t.jobId) }));
   }
 
   // Fetch parent milestone for breadcrumb

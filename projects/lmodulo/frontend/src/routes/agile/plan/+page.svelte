@@ -70,7 +70,7 @@
     if (!sprintId || moving) return;
     moving = job.id ?? '';
     try {
-      const res = await fetch(`/api/agile/jobs/${job.id}`, {
+      const res = await fetch(`/api/agile/jobs/JOB-${job.jobNumber}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ sprintId }),
@@ -88,7 +88,7 @@
     if (!dest) return;
     moving = job.id ?? '';
     try {
-      const res = await fetch(`/api/agile/jobs/${job.id}`, {
+      const res = await fetch(`/api/agile/jobs/JOB-${job.jobNumber}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ sprintId: dest.id }),
@@ -235,7 +235,7 @@
                     {/if}
                   </div>
                   <div class="flex items-center gap-1 shrink-0">
-                    <a href="/agile/jobs/{job.id}" class="btn btn-ghost btn-xs btn-square opacity-50 hover:opacity-100" title="Open job">
+                    <a href="/agile/jobs/JOB-{job.jobNumber}" class="btn btn-ghost btn-xs btn-square opacity-50 hover:opacity-100" title="Open job">
                       <ExternalLink class="size-3" />
                     </a>
                     {#if hasPermission(data.user, 'agile_jobs', 'update')}
@@ -301,7 +301,7 @@
                       <div class="space-y-0.5">
                         <div class="flex items-center gap-1.5">
                           <span class="badge text-[10px] {CATEGORY_COLOR[job.category] ?? 'badge-ghost'}">{job.category}</span>
-                          <a href="/agile/jobs/{job.id}" class="font-medium text-sm hover:text-primary hover:underline truncate max-w-[200px]">{job.title}</a>
+                          <a href="/agile/jobs/JOB-{job.jobNumber}" class="font-medium text-sm hover:text-primary hover:underline truncate max-w-[200px]">{job.title}</a>
                         </div>
                         {#if pct > 0}
                           <div class="flex items-center gap-1.5">

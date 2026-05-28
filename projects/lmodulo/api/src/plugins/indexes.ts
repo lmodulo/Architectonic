@@ -76,6 +76,10 @@ export default async function ensureIndexes(app: FastifyInstance) {
     await db.collection('agile_jobs').createIndex({ sprintId: 1, category: 1 });
     await db.collection('agile_jobs').createIndex({ dependencyIds: 1 });
     await db.collection('agile_jobs').createIndex({ title: 'text' });
+    await db.collection('agile_jobs').createIndex({ jobNumber: 1 }, { unique: true, sparse: true });
+
+    // agile_counters
+    await db.collection('agile_counters').createIndex({ type: 1 }, { unique: true });
 
     // agile_tasks
     await db.collection('agile_tasks').createIndex({ jobId: 1, status: 1 });

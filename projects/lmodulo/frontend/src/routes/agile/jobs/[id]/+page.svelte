@@ -58,7 +58,7 @@
     if (!jobEditForm.title.trim()) { jobEditError = 'Title is required'; return; }
     jobEditSaving = true; jobEditError = '';
     try {
-      const res = await fetch(`/api/agile/jobs/${job.id}`, {
+      const res = await fetch(`/api/agile/jobs/JOB-${job.jobNumber}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(jobEditForm),
@@ -79,7 +79,7 @@
   async function deleteJob() {
     deleting = true; deleteError = '';
     try {
-      const res = await fetch(`/api/agile/jobs/${job.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/agile/jobs/JOB-${job.jobNumber}`, { method: 'DELETE' });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         deleteError = (d as any).message ?? 'Delete failed';
@@ -273,9 +273,9 @@
       <button
         type="button"
         class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
-        onclick={() => navigator.clipboard.writeText(job.id ?? '')}
+        onclick={() => navigator.clipboard.writeText(`JOB-${job.jobNumber}`)}
         title="Copy job ID"
-      >{job.id} <Copy class="size-2.5 shrink-0" /></button>
+      >JOB-{job.jobNumber} <Copy class="size-2.5 shrink-0" /></button>
     </div>
 
     <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
@@ -334,8 +334,8 @@
     <div class="card bg-base-200 border border-base-300 rounded-box p-4">
       <AttachmentPanel
         bind:attachments={jobAttachments}
-        uploadUrl="/api/agile/jobs/{job.id}/attachments"
-        deleteUrlFn={(fn) => `/api/agile/jobs/${job.id}/attachments/${encodeURIComponent(fn)}`}
+        uploadUrl="/api/agile/jobs/JOB-{job.jobNumber}/attachments"
+        deleteUrlFn={(fn) => `/api/agile/jobs/JOB-${job.jobNumber}/attachments/${encodeURIComponent(fn)}`}
         canDelete={hasPermission(data.user, 'agile_jobs', 'update')}
       />
     </div>

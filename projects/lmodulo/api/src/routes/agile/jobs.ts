@@ -9,11 +9,33 @@ const VALID_STATUS   = ['Backlog', 'In Progress', 'Blocked', 'Review', 'Done', '
 const VALID_CATEGORY = ['Feature', 'Bug', 'Tech Debt', 'Research'] as const;
 
 function mapDoc(d: Record<string, unknown>) {
-  return { ...d, id: (d._id as ObjectId).toString(), _id: undefined };
+  return { ...d, id: (d._id as ObjectId).toString(), jobNumber: d.jobNumber as number | undefined, _id: undefined };
 }
 
 function parseOid(id: string, app: FastifyInstance): ObjectId {
   try { return new ObjectId(id); } catch { throw app.httpErrors.badRequest('Invalid ID'); }
+}
+
+async function resolveJobId(param: string, app: FastifyInstance): Promise<ObjectId> {
+  const m = param.match(/^JOB-(\d+)$/i);
+  if (m) {
+    const doc = await app.mongo.db!.collection(COL).findOne(
+      { jobNumber: parseInt(m[1]) },
+      { projection: { _id: 1 } }
+    );
+    if (!doc) throw app.httpErrors.notFound('Job not found');
+    return doc._id as ObjectId;
+  }
+  return parseOid(param, app);
+}
+
+async function nextJobNumber(app: FastifyInstance): Promise<number> {
+  const doc = await app.mongo.db!.collection('agile_counters').findOneAndUpdate(
+    { type: 'job' },
+    { $inc: { seq: 1 } },
+    { upsert: true, returnDocument: 'after' }
+  );
+  return doc!.seq as number;
 }
 
 function rollupPipeline(matchStage: Record<string, unknown>) {
@@ -122,8 +144,10 @@ export default async function jobsRoutes(app: FastifyInstance) {
       throw app.httpErrors.badRequest('Job end is after sprint end');
 
     const depOids = (dependencyIds as string[]).map(id => parseOid(id, app));
+    const jobNumber = await nextJobNumber(app);
 
     const doc = {
+      jobNumber,
       sprintId:         sprintOid,
       title:            (title as string).trim(),
       description:      String(description),
@@ -155,7 +179,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
   // GET /agile/jobs/:id
   app.get('/:id', { preHandler: app.requirePermission('agile_jobs', 'read') }, async (req, reply) => {
     const db  = app.mongo.db!;
-    const oid = parseOid((req.params as { id: string }).id, app);
+    const oid = await resolveJobId((req.params as { id: string }).id, app);
     const [doc] = await db.collection(COL).aggregate(rollupPipeline({ _id: oid })).toArray();
     if (!doc) return reply.notFound('Job not found');
     return mapDoc(doc as Record<string, unknown>);
@@ -164,7 +188,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
   // GET /agile/jobs/:id/dependencies — resolved dependency objects
   app.get('/:id/dependencies', { preHandler: app.requirePermission('agile_jobs', 'read') }, async (req, reply) => {
     const db  = app.mongo.db!;
-    const oid = parseOid((req.params as { id: string }).id, app);
+    const oid = await resolveJobId((req.params as { id: string }).id, app);
     const job = await db.collection(COL).findOne({ _id: oid });
     if (!job) return reply.notFound('Job not found');
 
@@ -178,7 +202,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
   // PATCH /agile/jobs/:id
   app.patch('/:id', { preHandler: app.requirePermission('agile_jobs', 'update') }, async (req, reply) => {
     const db  = app.mongo.db!;
-    const oid = parseOid((req.params as { id: string }).id, app);
+    const oid = await resolveJobId((req.params as { id: string }).id, app);
     const {
       title, description, category, blocked, dependencyIds,
       status, startDate, endDate, teamId, sprintId,
@@ -265,7 +289,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
           type: 'agile_job.status_changed',
           title: 'Job status updated',
           body: `${preJob.title}: ${preJob.status} → ${status}`,
-          link: `/agile/jobs/${oid.toString()}`,
+          link: `/agile/jobs/JOB-${preJob.jobNumber}`,
           source: { collection: COL, documentId: oid },
           groupKey: `job-status-${oid.toString()}`,
         });
@@ -278,7 +302,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
   // DELETE /agile/jobs/:id
   app.delete('/:id', { preHandler: app.requirePermission('agile_jobs', 'delete') }, async (req, reply) => {
     const db  = app.mongo.db!;
-    const oid = parseOid((req.params as { id: string }).id, app);
+    const oid = await resolveJobId((req.params as { id: string }).id, app);
 
     const taskCount = await db.collection('agile_tasks').countDocuments({ jobId: oid });
     if (taskCount > 0) throw app.httpErrors.conflict('Cannot delete job with existing tasks');
@@ -297,7 +321,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
   // POST /agile/jobs/:id/calendar-events
   app.post('/:id/calendar-events', { preHandler: app.requirePermission('agile_jobs', 'update') }, async (req, reply) => {
     const db  = app.mongo.db!;
-    const oid = parseOid((req.params as { id: string }).id, app);
+    const oid = await resolveJobId((req.params as { id: string }).id, app);
     const { calendarEventId } = req.body as { calendarEventId?: string };
     if (!calendarEventId) throw app.httpErrors.badRequest('calendarEventId is required');
     const ceOid = parseOid(calendarEventId, app);
@@ -318,7 +342,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
   // DELETE /agile/jobs/:id/calendar-events/:eventId
   app.delete('/:id/calendar-events/:eventId', { preHandler: app.requirePermission('agile_jobs', 'update') }, async (req, reply) => {
     const db      = app.mongo.db!;
-    const oid     = parseOid((req.params as { id: string; eventId: string }).id, app);
+    const oid     = await resolveJobId((req.params as { id: string; eventId: string }).id, app);
     const eventId = parseOid((req.params as { id: string; eventId: string }).eventId, app);
     const result  = await db.collection(COL).updateOne(
       { _id: oid },
@@ -331,7 +355,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
   // POST /agile/jobs/:id/attachments — upload (replaces if same name)
   app.post('/:id/attachments', { preHandler: app.requirePermission('agile_jobs', 'update') }, async (req, reply) => {
     const db  = app.mongo.db!;
-    const oid = parseOid((req.params as { id: string }).id, app);
+    const oid = await resolveJobId((req.params as { id: string }).id, app);
 
     const doc = await db.collection(COL).findOne({ _id: oid });
     if (!doc) throw app.httpErrors.notFound('Job not found');
@@ -375,7 +399,7 @@ export default async function jobsRoutes(app: FastifyInstance) {
   // DELETE /agile/jobs/:id/attachments/:filename
   app.delete('/:id/attachments/:filename', { preHandler: app.requirePermission('agile_jobs', 'update') }, async (req, reply) => {
     const db       = app.mongo.db!;
-    const oid      = parseOid((req.params as { id: string; filename: string }).id, app);
+    const oid      = await resolveJobId((req.params as { id: string; filename: string }).id, app);
     const filename = (req.params as { id: string; filename: string }).filename;
 
     const doc = await db.collection(COL).findOne({ _id: oid });

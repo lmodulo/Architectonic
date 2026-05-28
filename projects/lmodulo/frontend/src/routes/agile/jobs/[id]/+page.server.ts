@@ -9,20 +9,20 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
-  const [jobRes, tasksRes, sprintJobsRes] = await Promise.all([
-    fetch(`${API_URL}/agile/jobs/${params.id}`, { headers }),
-    fetch(`${API_URL}/agile/tasks?jobId=${params.id}&limit=200`, { headers }),
-    fetch(`${API_URL}/agile/jobs/${params.id}/dependencies`, { headers }),
-  ]);
-
+  const jobRes = await fetch(`${API_URL}/agile/jobs/${params.id}`, { headers });
   if (!jobRes.ok) {
     const d = await jobRes.json().catch(() => ({}));
     throw error(jobRes.status, (d as { message?: string }).message ?? 'Not found');
   }
+  const job = await jobRes.json();
 
-  const job   = await jobRes.json();
-  const tasks = tasksRes.ok    ? (await tasksRes.json()).tasks    ?? [] : [];
-  const deps  = sprintJobsRes.ok ? await sprintJobsRes.json()           : [];
+  const [tasksRes, depsRes] = await Promise.all([
+    fetch(`${API_URL}/agile/tasks?jobId=${job.id}&limit=200`, { headers }),
+    fetch(`${API_URL}/agile/jobs/${params.id}/dependencies`, { headers }),
+  ]);
+
+  const tasks = tasksRes.ok ? (await tasksRes.json()).tasks ?? [] : [];
+  const deps  = depsRes.ok  ? await depsRes.json()               : [];
 
   // Fetch sprint jobs + users in parallel
   const [sameSprintRes, usersRes] = await Promise.all([

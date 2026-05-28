@@ -682,7 +682,7 @@ export default fp(async function seedPlugin(app: any) {
     await jobs.insertMany([
       // ── Sprint 1 — Foundation ─────────────────────────────────────
       {
-        _id: j1_1, sprintId: s1Id, teamId: backendTeamId,
+        _id: j1_1, jobNumber: 1, sprintId: s1Id, teamId: backendTeamId,
         title: 'Auth system',
         description: 'Session-cookie auth: login, logout, /me endpoint, and bcrypt password hashing.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [],
@@ -691,7 +691,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-100), updatedAt: d(-91),
       },
       {
-        _id: j1_2, sprintId: s1Id, teamId: backendTeamId,
+        _id: j1_2, jobNumber: 2, sprintId: s1Id, teamId: backendTeamId,
         title: 'MongoDB setup & base indexes',
         description: 'Docker volume, Fastify MongoDB plugin, and base collection indexes.',
         category: 'Tech Debt', status: 'Done', blocked: false, dependencyIds: [],
@@ -700,7 +700,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-100), updatedAt: d(-88),
       },
       {
-        _id: j1_3, sprintId: s1Id, teamId: backendTeamId,
+        _id: j1_3, jobNumber: 3, sprintId: s1Id, teamId: backendTeamId,
         title: 'Fastify API scaffold',
         description: 'Plugin registration pattern, route file convention, health check, and error handling.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [j1_2],
@@ -710,7 +710,7 @@ export default fp(async function seedPlugin(app: any) {
       },
       // ── Sprint 2 — Core Features ──────────────────────────────────
       {
-        _id: j2_1, sprintId: s2Id, teamId: backendTeamId,
+        _id: j2_1, jobNumber: 4, sprintId: s2Id, teamId: backendTeamId,
         title: 'User management CRUD',
         description: 'Paginated user list, create/edit/delete endpoints, and Manage Users frontend page.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [],
@@ -719,7 +719,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-85), updatedAt: d(-70),
       },
       {
-        _id: j2_2, sprintId: s2Id, teamId: backendTeamId,
+        _id: j2_2, jobNumber: 5, sprintId: s2Id, teamId: backendTeamId,
         title: 'Role-based permissions',
         description: 'Permissions data model, requirePermission Fastify preHandler, and Roles management UI.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [j2_1],
@@ -728,7 +728,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-81), updatedAt: d(-63),
       },
       {
-        _id: j2_3, sprintId: s2Id, teamId: backendTeamId,
+        _id: j2_3, jobNumber: 6, sprintId: s2Id, teamId: backendTeamId,
         title: 'Settings module',
         description: 'Settings CRUD API with upsert and admin settings page with live preview.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [],
@@ -737,7 +737,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-76), updatedAt: d(-63),
       },
       {
-        _id: j2_4, sprintId: s2Id, teamId: backendTeamId,
+        _id: j2_4, jobNumber: 7, sprintId: s2Id, teamId: backendTeamId,
         title: 'Fix: session token expiry race condition',
         description: 'Users occasionally logged out immediately after login on slow connections.',
         category: 'Bug', status: 'Done', blocked: false, dependencyIds: [],
@@ -747,7 +747,7 @@ export default fp(async function seedPlugin(app: any) {
       },
       // ── Sprint 3 — Data Layer ─────────────────────────────────────
       {
-        _id: j3_1, sprintId: s3Id, teamId: backendTeamId,
+        _id: j3_1, jobNumber: 8, sprintId: s3Id, teamId: backendTeamId,
         title: 'Milestone CRUD API',
         description: 'Schema validation, aggregation pipeline for rollup fields (completionPct, sprintCount), CRUD routes.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [],
@@ -756,7 +756,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-50), updatedAt: d(-38),
       },
       {
-        _id: j3_2, sprintId: s3Id, teamId: backendTeamId,
+        _id: j3_2, jobNumber: 9, sprintId: s3Id, teamId: backendTeamId,
         title: 'Sprint CRUD API',
         description: 'sprintNumber auto-counter per milestone, capacity tracking, and date-range constraints.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [j3_1],
@@ -765,7 +765,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-46), updatedAt: d(-35),
       },
       {
-        _id: j3_3, sprintId: s3Id, teamId: backendTeamId,
+        _id: j3_3, jobNumber: 10, sprintId: s3Id, teamId: backendTeamId,
         title: 'Jobs & Tasks API',
         description: 'Job dependency graph, task effort tracking, cascading completion rules, blocked-by validation.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [j3_2],
@@ -774,7 +774,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-43), updatedAt: d(-28),
       },
       {
-        _id: j3_4, sprintId: s3Id, teamId: backendTeamId,
+        _id: j3_4, jobNumber: 11, sprintId: s3Id, teamId: backendTeamId,
         title: 'Permissions: agile resources',
         description: 'Add agile_* resource keys to permissions.json and wire requirePermission to all agile routes.',
         category: 'Tech Debt', status: 'Done', blocked: false, dependencyIds: [j3_3],
@@ -784,7 +784,7 @@ export default fp(async function seedPlugin(app: any) {
       },
       // ── Sprint 4 — UI Layer ───────────────────────────────────────
       {
-        _id: j4_1, sprintId: s4Id, teamId: frontendTeamId,
+        _id: j4_1, jobNumber: 12, sprintId: s4Id, teamId: frontendTeamId,
         title: 'Overview & Milestones UI',
         description: 'MilestoneCard component, role-aware KPI dashboard, New Milestone modal, and status/priority filters.',
         category: 'Feature', status: 'Done', blocked: false, dependencyIds: [],
@@ -793,7 +793,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-29), updatedAt: d(-14),
       },
       {
-        _id: j4_2, sprintId: s4Id, teamId: frontendTeamId,
+        _id: j4_2, jobNumber: 13, sprintId: s4Id, teamId: frontendTeamId,
         title: 'Sprint detail page',
         description: 'Sprint header with stats, job list with inline task expansion, and task slide-out detail panel.',
         category: 'Feature', status: 'Review', blocked: false, dependencyIds: [j4_1],
@@ -802,7 +802,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-19), updatedAt: d(-2),
       },
       {
-        _id: j4_3, sprintId: s4Id, teamId: frontendTeamId,
+        _id: j4_3, jobNumber: 14, sprintId: s4Id, teamId: frontendTeamId,
         title: 'Board view (Kanban)',
         description: 'Kanban columns per task status with drag-and-drop between columns and filter toolbar.',
         category: 'Feature', status: 'In Progress', blocked: true, dependencyIds: [j4_1],
@@ -811,7 +811,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-21), updatedAt: d(-3),
       },
       {
-        _id: j4_4, sprintId: s4Id, teamId: frontendTeamId,
+        _id: j4_4, jobNumber: 15, sprintId: s4Id, teamId: frontendTeamId,
         title: 'Timeline view (Gantt)',
         description: 'SVG Gantt chart showing milestone/sprint/job lanes with date zoom and today marker.',
         category: 'Feature', status: 'Backlog', blocked: false, dependencyIds: [j4_1],
@@ -820,7 +820,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-14), updatedAt: d(-14),
       },
       {
-        _id: j4_5, sprintId: s4Id, teamId: frontendTeamId,
+        _id: j4_5, jobNumber: 16, sprintId: s4Id, teamId: frontendTeamId,
         title: 'Fix: agile tab active state for child routes',
         description: 'Overview tab was not highlighting when navigating to /agile/milestones or /agile/sprints.',
         category: 'Bug', status: 'Done', blocked: false, dependencyIds: [],
@@ -830,7 +830,7 @@ export default fp(async function seedPlugin(app: any) {
       },
       // ── Sprint 5 — Polish & Release ───────────────────────────────
       {
-        _id: j5_1, sprintId: s5Id, teamId: frontendTeamId,
+        _id: j5_1, jobNumber: 17, sprintId: s5Id, teamId: frontendTeamId,
         title: 'E2E test coverage',
         description: 'Playwright setup, auth flow tests, and agile CRUD happy-path tests.',
         category: 'Research', status: 'Backlog', blocked: false, dependencyIds: [],
@@ -839,7 +839,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-10), updatedAt: d(-10),
       },
       {
-        _id: j5_2, sprintId: s5Id, teamId: backendTeamId,
+        _id: j5_2, jobNumber: 18, sprintId: s5Id, teamId: backendTeamId,
         title: 'Performance audit',
         description: 'MongoDB explain-plan review for aggregation queries and frontend bundle size reduction.',
         category: 'Tech Debt', status: 'Backlog', blocked: false, dependencyIds: [],
@@ -848,7 +848,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-10), updatedAt: d(-10),
       },
       {
-        _id: j5_3, sprintId: s5Id, teamId: frontendTeamId,
+        _id: j5_3, jobNumber: 19, sprintId: s5Id, teamId: frontendTeamId,
         title: 'Release documentation',
         description: 'API endpoint reference and Docker deployment guide for the v1.1 release.',
         category: 'Feature', status: 'Backlog', blocked: false, dependencyIds: [],
@@ -857,7 +857,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-7), updatedAt: d(-7),
       },
       {
-        _id: j5_4, sprintId: s5Id, teamId: frontendTeamId,
+        _id: j5_4, jobNumber: 20, sprintId: s5Id, teamId: frontendTeamId,
         title: 'Set up TechFusion pilot environment',
         description: 'Configure a clean demo instance with representative data for the v1.1 prospect walkthrough. Coordinate with sales on which views to highlight.',
         category: 'Feature', status: 'Backlog', blocked: false, dependencyIds: [],
@@ -867,7 +867,7 @@ export default fp(async function seedPlugin(app: any) {
       },
       // ── Sprint 6 — Analytics Foundation ──────────────────────────
       {
-        _id: j6_1, sprintId: s6Id, teamId: backendTeamId,
+        _id: j6_1, jobNumber: 21, sprintId: s6Id, teamId: backendTeamId,
         title: 'Velocity dashboard',
         description: 'Per-sprint velocity SVG chart using historical sprint actual hours.',
         category: 'Feature', status: 'Backlog', blocked: false, dependencyIds: [],
@@ -876,7 +876,7 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-2), updatedAt: d(-2),
       },
       {
-        _id: j6_2, sprintId: s6Id, teamId: backendTeamId,
+        _id: j6_2, jobNumber: 22, sprintId: s6Id, teamId: backendTeamId,
         title: 'Burndown charts',
         description: 'Sprint burndown SVG with ideal vs actual lines and lightweight polling.',
         category: 'Feature', status: 'Backlog', blocked: false, dependencyIds: [],
@@ -885,6 +885,13 @@ export default fp(async function seedPlugin(app: any) {
         createdAt: d(-2), updatedAt: d(-2),
       },
     ]);
+
+    // Seed job counter to the highest seeded jobNumber
+    await db.collection('agile_counters').updateOne(
+      { type: 'job' },
+      { $max: { seq: 22 } },
+      { upsert: true }
+    );
 
     // ── Tasks ─────────────────────────────────────────────────────────
     const t = (

@@ -107,7 +107,7 @@
         deleteConfirm = false;
         return;
       }
-      goto(task.jobId ? `/agile/jobs/${task.jobId}` : '/agile');
+      goto(job?.jobNumber ? `/agile/jobs/JOB-${job.jobNumber}` : '/agile');
     } catch { deleteError = 'Network error'; deleteConfirm = false; }
     finally { deleting = false; }
   }
@@ -124,7 +124,7 @@
         { label: 'Agile', href: '/agile' },
         { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
         { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job?.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.badge },
-        { label: job?.title ?? 'Job', href: task.jobId ? `/agile/jobs/${task.jobId}` : undefined, colorClass: LEVEL.job.badge },
+        { label: job?.title ?? 'Job', href: job?.jobNumber ? `/agile/jobs/JOB-${job.jobNumber}` : undefined, colorClass: LEVEL.job.badge },
         { label: task.title, colorClass: LEVEL.task.badge },
       ]} />
     </div>
@@ -229,7 +229,7 @@
         <button
           type="button"
           class="text-sm font-medium text-primary hover:underline text-left truncate w-full"
-          onclick={() => goto(`/agile/jobs/${job.id}`)}
+          onclick={() => goto(`/agile/jobs/JOB-${job.jobNumber}`)}
         >{job.title}</button>
       </div>
     {/if}

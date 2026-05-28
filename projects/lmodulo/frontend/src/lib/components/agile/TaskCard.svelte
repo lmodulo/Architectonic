@@ -65,11 +65,12 @@
     {/if}
   </div>
 
-  {#if task.jobId}
+  {#if task.jobNumber}
+    {@const jobName = `JOB-${task.jobNumber}`}
     <button
       class="flex items-center gap-1 font-mono text-[10px] opacity-30 hover:opacity-60 transition-opacity cursor-copy w-fit"
-      onclick={e => { e.stopPropagation(); navigator.clipboard.writeText(task.jobId); }}
-      title="Copy job ID"
-    >{task.jobId} <Copy class="size-2.5 shrink-0" /></button>
+      onclick={e => { e.stopPropagation(); navigator.clipboard.writeText(jobName); }}
+      title="Copy job name"
+    >{jobName} <Copy class="size-2.5 shrink-0" /></button>
   {/if}
 </div>
