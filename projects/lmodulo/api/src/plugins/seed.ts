@@ -2088,6 +2088,309 @@ export default fp(async function seedPlugin(app: any) {
 
     } // end finance snapshot
 
+    // ── Finance supplemental seed (separate guards) ────────────────────
+    // Seeds expenses, estimates, and subscriptions independently so they
+    // work even when the invoice collection already existed from a prior boot.
+    {
+      const [coVertexFin, coTechFin] = await Promise.all([
+        db.collection('crm_companies').findOne({ name: 'Vertex Systems' }),
+        db.collection('crm_companies').findOne({ name: 'TechFusion Inc' }),
+      ]);
+      const cvUserFin = await users.findOne({ email: 'client@vertexsystems.io' });
+      const ctUserFin = await users.findOne({ email: 'client@techfusion.io' });
+
+      if (coVertexFin && coTechFin && cvUserFin && ctUserFin) {
+        const cvId        = cvUserFin._id   as ObjectId;
+        const ctId        = ctUserFin._id   as ObjectId;
+        const finCoVertex = coVertexFin._id as ObjectId;
+        const finCoTech   = coTechFin._id   as ObjectId;
+
+        // ── Expenses ───────────────────────────────────────────────────
+        if (!await db.collection('finance_expenses').countDocuments()) {
+          const expNum = (n: number) => `EXP-${String(n).padStart(4, '0')}`;
+          await db.collection('finance_expenses').insertMany([
+            {
+              expenseNumber: expNum(1),
+              description: 'Digital Ocean monthly hosting — production + staging droplets',
+              vendor: 'DigitalOcean', category: 'hosting',
+              amount: 420, currency: 'USD',
+              expenseDate: d(-60), status: 'paid',
+              billable: false, companyId: null, milestoneId: null,
+              notes: 'Covers two Droplets (prod/staging) and managed MongoDB cluster for Q1.',
+              receiptUrl: null,
+              createdBy: joeId, createdAt: d(-60), updatedAt: d(-60),
+            },
+            {
+              expenseNumber: expNum(2),
+              description: 'GitHub Copilot Business — 5 team seats',
+              vendor: 'GitHub', category: 'software',
+              amount: 190, currency: 'USD',
+              expenseDate: d(-45), status: 'paid',
+              billable: false, companyId: null, milestoneId: null,
+              notes: '5 seats × $19/mo. Approved at Sprint 3 kickoff.',
+              receiptUrl: null,
+              createdBy: kyleId, createdAt: d(-45), updatedAt: d(-45),
+            },
+            {
+              expenseNumber: expNum(3),
+              description: 'Branding contractor — logo & brand asset suite',
+              vendor: 'Studio Lark', category: 'contractor',
+              amount: 2400, currency: 'USD',
+              expenseDate: d(-80), status: 'paid',
+              billable: true, companyId: finCoVertex, milestoneId: null,
+              notes: 'Full brand identity package billed back to Vertex Systems (Enterprise License). Included SVG logo, favicon, and brand guide.',
+              receiptUrl: null,
+              createdBy: alexId, createdAt: d(-80), updatedAt: d(-80),
+            },
+            {
+              expenseNumber: expNum(4),
+              description: 'AWS credits — TechFusion demo environment',
+              vendor: 'Amazon Web Services', category: 'hosting',
+              amount: 340, currency: 'USD',
+              expenseDate: d(-20), status: 'paid',
+              billable: true, companyId: finCoTech, milestoneId: null,
+              notes: 'Isolated AWS environment provisioned for TechFusion Q2 Pilot demo (Sprint 4 walkthrough). Billable to TechFusion.',
+              receiptUrl: null,
+              createdBy: alexId, createdAt: d(-20), updatedAt: d(-20),
+            },
+            {
+              expenseNumber: expNum(5),
+              description: 'ProductCon — flights & hotel',
+              vendor: 'Delta / Marriott', category: 'travel',
+              amount: 1850, currency: 'USD',
+              expenseDate: d(-70), status: 'paid',
+              billable: false, companyId: null, milestoneId: null,
+              notes: 'Attended ProductCon where BluePeak Agency contact (Carmen Reyes) was sourced. Round-trip flight + 2 nights.',
+              receiptUrl: null,
+              createdBy: joeId, createdAt: d(-70), updatedAt: d(-70),
+            },
+            {
+              expenseNumber: expNum(6),
+              description: 'Client dinner — Vertex Systems kickoff',
+              vendor: 'Nobu', category: 'meals',
+              amount: 310, currency: 'USD',
+              expenseDate: d(-50), status: 'paid',
+              billable: true, companyId: finCoVertex, milestoneId: null,
+              notes: 'Kickoff dinner with Marcus Webb and Priya Sharma following contract signature. Billed back to Vertex enterprise account.',
+              receiptUrl: null,
+              createdBy: joeId, createdAt: d(-50), updatedAt: d(-50),
+            },
+            {
+              expenseNumber: expNum(7),
+              description: 'MacBook Pro 14" — Riley onboarding',
+              vendor: 'Apple', category: 'equipment',
+              amount: 2499, currency: 'USD',
+              expenseDate: d(-15), status: 'pending',
+              billable: false, companyId: null, milestoneId: null,
+              notes: 'Hardware for new contributor (Riley). Awaiting finance approval before reimbursement.',
+              receiptUrl: null,
+              createdBy: kyleId, createdAt: d(-15), updatedAt: d(-15),
+            },
+            {
+              expenseNumber: expNum(8),
+              description: 'Q2 office supplies — paper, printer cartridges, whiteboard markers',
+              vendor: 'Staples', category: 'other',
+              amount: 85, currency: 'USD',
+              expenseDate: d(-5), status: 'draft',
+              billable: false, companyId: null, milestoneId: null,
+              notes: '',
+              receiptUrl: null,
+              createdBy: samId, createdAt: d(-5), updatedAt: d(-5),
+            },
+          ]);
+        }
+
+        // ── Estimates ──────────────────────────────────────────────────
+        if (!await db.collection('finance_estimates').countDocuments()) {
+          const est1Id = new ObjectId(); const est2Id = new ObjectId();
+          const est3Id = new ObjectId(); const est4Id = new ObjectId();
+          const est5Id = new ObjectId();
+
+          const existingInv9 = await financeInvColl.findOne({ invoiceNumber: 'INV-0009' });
+          const inv9Id = (existingInv9?._id as ObjectId | undefined) ?? new ObjectId();
+
+          const estNum = (n: number) => `EST-${String(n).padStart(4, '0')}`;
+
+          const estDoc = (
+            id: ObjectId, estimateNumber: string,
+            title: string, customerId: ObjectId, companyId: ObjectId,
+            items: Array<{ desc: string; qty: number; price: number }>,
+            taxRate: number, status: string,
+            daysOffset: number, validUntilOffset: number | null,
+            notes: string, invoiceId: ObjectId | null = null,
+          ) => {
+            const lineItems = items.map(i => ({
+              description: i.desc, quantity: i.qty, unitPrice: i.price,
+              amount: i.qty * i.price,
+            }));
+            const subtotal  = lineItems.reduce((s, i) => s + i.amount, 0);
+            const taxAmount = subtotal * (taxRate / 100);
+            const total     = subtotal + taxAmount;
+            return {
+              _id: id, estimateNumber, title,
+              customerId, companyId, lineItems,
+              subtotal, taxRate, taxAmount, total,
+              currency: 'USD', status,
+              validUntil: validUntilOffset !== null ? d(validUntilOffset) : null,
+              notes, invoiceId,
+              createdBy: adminId,
+              createdAt: d(daysOffset), updatedAt: d(daysOffset),
+            };
+          };
+
+          await db.collection('finance_estimates').insertMany([
+            estDoc(est1Id, estNum(1), 'Q3 Platform Enhancements', cvId, finCoVertex, [
+              { desc: 'v2.0 Reporting & Analytics — Scoping & Architecture',   qty: 20, price: 175 },
+              { desc: 'Velocity & Burndown Dashboards — Build & Test',         qty: 32, price: 175 },
+              { desc: 'Export Infrastructure — CSV/PDF report generation',     qty: 8,  price: 175 },
+              { desc: 'QA & Stakeholder Review Sessions',                      qty: 4,  price: 150 },
+            ], 8, 'sent', -18, 30,
+            'Scoped for Vertex Systems Q3 roadmap under the v2.0 Reporting & Analytics milestone. Covers sprint velocity dashboards and CSV/PDF export infrastructure. Valid for 30 days. Primary contact: Marcus Webb.'),
+
+            estDoc(est2Id, estNum(2), 'API Integration Package', ctId, finCoTech, [
+              { desc: 'REST API Custom Endpoint Development (12 endpoints)',    qty: 24, price: 150 },
+              { desc: 'Webhook Configuration & Testing',                       qty: 8,  price: 150 },
+              { desc: 'API Documentation & Postman Collection',                qty: 4,  price: 125 },
+              { desc: 'Integration QA — Kwame Asante review sessions (3×2h)', qty: 6,  price: 150 },
+            ], 5, 'draft', -5, 45,
+            "Draft scoped for TechFusion's integration requirements (Kwame Asante's team). Pending Kwame's review of the Postman mock collection before sending."),
+
+            estDoc(est3Id, estNum(3), 'Data Migration Sprint', ctId, finCoTech, [
+              { desc: 'Notion/Jira Export Processing & Schema Mapping',  qty: 16, price: 150 },
+              { desc: 'Data Validation & Import Pipeline Build',          qty: 12, price: 150 },
+              { desc: 'Stakeholder Walkthrough & Sign-off Session',       qty: 2,  price: 150 },
+            ], 5, 'accepted', -35, 0,
+            'Accepted by Dana Kowalski. Covers full data migration from Notion/Jira for TechFusion Q2 Pilot. Converted to invoice INV-0009.', inv9Id),
+
+            estDoc(est4Id, estNum(4), 'Starter Onboarding Pack', cvId, finCoVertex, [
+              { desc: 'Onboarding Workshop (4h facilitated session)',  qty: 1, price: 1200 },
+              { desc: 'Custom Getting Started Guide — Vertex Edition', qty: 1, price: 800  },
+              { desc: 'Admin Training Session (2h)',                   qty: 1, price: 400  },
+              { desc: 'Video Walkthrough Recording & Editing',         qty: 1, price: 600  },
+            ], 8, 'declined', -55, -5,
+            'Declined by Marcus Webb — Vertex opted to handle onboarding internally using the standard docs. Scope reduced at contract review.'),
+
+            estDoc(est5Id, estNum(5), 'v2.0 Analytics Module — Full Scope', cvId, finCoVertex, [
+              { desc: 'Analytics Architecture & Data Modelling',           qty: 24, price: 175 },
+              { desc: 'Velocity, Burndown & Throughput Dashboards',        qty: 40, price: 175 },
+              { desc: 'Custom Reporting Engine — Filters, Groups, Export', qty: 32, price: 175 },
+              { desc: 'Enterprise Dashboard Configuration & Training',     qty: 8,  price: 150 },
+            ], 8, 'expired', -75, -10,
+            'Expired — valid until passed without signature. Superseded by EST-0001 (reduced Q3 scope). Originally scoped at Vertex Q2 planning session.'),
+          ]);
+
+          if (!existingInv9) {
+            await financeInvColl.insertOne({
+              _id: inv9Id,
+              invoiceNumber: 'INV-0009',
+              customerId: ctId, companyId: finCoTech,
+              estimateId: est3Id,
+              lineItems: [
+                { description: 'Notion/Jira Export Processing & Schema Mapping',  quantity: 16, unitPrice: 150, amount: 2400 },
+                { description: 'Data Validation & Import Pipeline Build',          quantity: 12, unitPrice: 150, amount: 1800 },
+                { description: 'Stakeholder Walkthrough & Sign-off Session',       quantity: 2,  unitPrice: 150, amount: 300  },
+              ],
+              subtotal: 4500, taxRate: 5, taxAmount: 225, total: 4725,
+              currency: 'USD', status: 'draft',
+              notes: 'Converted from EST-0003 (Data Migration Sprint). Awaiting final hour log confirmation from Kwame Asante before sending.',
+              dueDate: d(20),
+              createdBy: adminId, createdAt: d(-35), updatedAt: d(-35),
+            });
+          }
+        }
+
+        // ── Subscriptions ──────────────────────────────────────────────
+        if (!await db.collection('finance_subscriptions').countDocuments()) {
+          const sub1Id = new ObjectId();
+          const sub2Id = new ObjectId();
+
+          await db.collection('finance_subscriptions').insertMany([
+            {
+              _id: sub1Id,
+              name: 'Vertex Monthly Retainer',
+              customerId: cvId, companyId: finCoVertex,
+              lineItems: [
+                { description: 'Monthly Platform Retainer — Enterprise (40h included)', quantity: 1, unitPrice: 6000, amount: 6000 },
+              ],
+              taxRate: 8, currency: 'USD',
+              billingCycle: 'monthly',
+              startDate: d(-90), nextBillingDate: d(1), endDate: null,
+              dueDateOffsetDays: 14,
+              status: 'active',
+              notes: 'Enterprise retainer for Vertex Systems. Includes 40 billable hours/month; unused hours roll over (capped at 20h). Overage billed at $150/h.',
+              retainerEnabled: true, retainerHours: 40,
+              rolloverEnabled: true, rolloverCap: 20, overageRate: 150,
+              createdBy: adminId, createdAt: d(-90), updatedAt: d(-1),
+            },
+            {
+              _id: sub2Id,
+              name: 'TechFusion Monthly Retainer',
+              customerId: ctId, companyId: finCoTech,
+              lineItems: [
+                { description: 'Monthly Retainer — Team Plan Pilot (20h included)', quantity: 1, unitPrice: 3000, amount: 3000 },
+              ],
+              taxRate: 5, currency: 'USD',
+              billingCycle: 'monthly',
+              startDate: d(-60), nextBillingDate: d(1), endDate: null,
+              dueDateOffsetDays: 14,
+              status: 'active',
+              notes: 'Team Plan retainer for TechFusion Q2 Pilot. 20 billable hours/month; no rollover. Overage billed at $125/h.',
+              retainerEnabled: true, retainerHours: 20,
+              rolloverEnabled: false, rolloverCap: null, overageRate: 125,
+              createdBy: adminId, createdAt: d(-60), updatedAt: d(-1),
+            },
+          ]);
+
+          const rp1Id = new ObjectId(); const rp2Id = new ObjectId();
+          const rp3Id = new ObjectId(); const rp4Id = new ObjectId();
+          const rp5Id = new ObjectId();
+
+          const inv1Doc = await financeInvColl.findOne({ invoiceNumber: 'INV-0001' });
+          const inv2Doc = await financeInvColl.findOne({ invoiceNumber: 'INV-0002' });
+          const inv7Doc = await financeInvColl.findOne({ invoiceNumber: 'INV-0007' });
+
+          await db.collection('finance_retainer_periods').insertMany([
+            {
+              _id: rp1Id, subscriptionId: sub1Id, companyId: finCoVertex,
+              periodStart: d(-90), periodEnd: d(-61),
+              hoursBase: 40, hoursRolledOver: 0, hoursIncluded: 40, hoursUsed: 42,
+              hoursUsedAt: d(-62), status: 'closed', invoiceId: inv1Doc?._id ?? null,
+              createdAt: d(-90), updatedAt: d(-62),
+            },
+            {
+              _id: rp2Id, subscriptionId: sub1Id, companyId: finCoVertex,
+              periodStart: d(-60), periodEnd: d(-31),
+              hoursBase: 40, hoursRolledOver: 0, hoursIncluded: 40, hoursUsed: 35,
+              hoursUsedAt: d(-32), status: 'closed', invoiceId: inv2Doc?._id ?? null,
+              createdAt: d(-60), updatedAt: d(-32),
+            },
+            {
+              _id: rp3Id, subscriptionId: sub1Id, companyId: finCoVertex,
+              periodStart: d(-30), periodEnd: d(-1),
+              hoursBase: 40, hoursRolledOver: 5, hoursIncluded: 45, hoursUsed: 0,
+              hoursUsedAt: null, status: 'open', invoiceId: null,
+              createdAt: d(-30), updatedAt: d(-30),
+            },
+            {
+              _id: rp4Id, subscriptionId: sub2Id, companyId: finCoTech,
+              periodStart: d(-60), periodEnd: d(-31),
+              hoursBase: 20, hoursRolledOver: 0, hoursIncluded: 20, hoursUsed: 18,
+              hoursUsedAt: d(-32), status: 'closed', invoiceId: inv7Doc?._id ?? null,
+              createdAt: d(-60), updatedAt: d(-32),
+            },
+            {
+              _id: rp5Id, subscriptionId: sub2Id, companyId: finCoTech,
+              periodStart: d(-30), periodEnd: d(-1),
+              hoursBase: 20, hoursRolledOver: 0, hoursIncluded: 20, hoursUsed: 0,
+              hoursUsedAt: null, status: 'open', invoiceId: null,
+              createdAt: d(-30), updatedAt: d(-30),
+            },
+          ]);
+        }
+
+      }
+    }
+
     // ── Contract templates ─────────────────────────────────────────────
     const contractTemplates = db.collection('contract_templates');
     if (!await contractTemplates.countDocuments()) {
