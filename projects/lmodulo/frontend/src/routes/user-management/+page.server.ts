@@ -18,14 +18,18 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
   try {
     const canInvite = hasPermission(locals.user, 'users', 'create');
     const [usersRes, rolesRes, teamsRes] = await Promise.all([
-      canReadUsers ? fetch(`${API_URL}/users`, { headers }) : Promise.resolve(null),
+      canReadUsers ? fetch(`${API_URL}/users?limit=20&skip=0`, { headers }) : Promise.resolve(null),
       (canReadRoles || canInvite) ? fetch(`${API_URL}/roles`, { headers }) : Promise.resolve(null),
-      canReadTeams ? fetch(`${API_URL}/teams`, { headers }) : Promise.resolve(null),
+      canReadTeams ? fetch(`${API_URL}/teams?limit=20&skip=0`, { headers }) : Promise.resolve(null),
     ]);
+    const usersData = usersRes?.ok  ? await usersRes.json()  : { users: [], total: 0 };
+    const teamsData = teamsRes?.ok  ? await teamsRes.json()  : { teams: [], total: 0 };
     return {
-      users:         usersRes?.ok  ? await usersRes.json()  : [],
-      roles:         rolesRes?.ok  ? await rolesRes.json()  : [],
-      teams:         teamsRes?.ok  ? await teamsRes.json()  : [],
+      users:         usersData.users  ?? [],
+      usersTotal:    usersData.total  ?? 0,
+      roles:         rolesRes?.ok ? await rolesRes.json() : [],
+      teams:         teamsData.teams  ?? [],
+      teamsTotal:    teamsData.total  ?? 0,
       canReadUsers,
       canReadRoles,
       canReadTeams,
@@ -40,7 +44,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
     };
   } catch {
     return {
-      users: [], roles: [], teams: [],
+      users: [], usersTotal: 0, roles: [], teams: [], teamsTotal: 0,
       canReadUsers, canReadRoles, canReadTeams,
       canCreate: false, canUpdate: false, canDelete: false, canAssign: false,
       canCreateTeam: false, canUpdateTeam: false, canDeleteTeam: false,

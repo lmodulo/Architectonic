@@ -1,13 +1,14 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
   import { dragScroll } from '$lib/actions/dragScroll';
   import Avatar from '$lib/components/Avatar.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -32,63 +33,40 @@
 
   const PAGE_SIZE = 20;
 
-  // ─── Pagination helper ────────────────────────────────────────────────────────
-
-  function paginationPages(total: number, pageSize: number, cur: number) {
-    const last = Math.ceil(total / pageSize);
-    const pages: Array<{ type: 'page'; value: number } | { type: 'ellipsis'; index: number }> = [];
-    for (let i = 1; i <= last; i++) {
-      if (i === 1 || i === last || Math.abs(i - cur) <= 1) {
-        pages.push({ type: 'page', value: i });
-      } else if (pages[pages.length - 1]?.type === 'page') {
-        pages.push({ type: 'ellipsis', index: pages.length });
-      }
-    }
-    return pages;
-  }
-
   // ─── Users tab ───────────────────────────────────────────────────────────────
 
-  let users = $state([...data.users]);
-  let query = $state('');
+  let users       = $state<User[]>([...data.users]);
+  let usersTotal  = $state(data.usersTotal ?? 0);
+  let query       = $state('');
   let currentPage = $state(1);
-  let sortField = $state('createdAt');
-  let sortDir   = $state<'asc' | 'desc'>('desc');
+  let sortField   = $state('createdAt');
+  let sortDir     = $state<'asc' | 'desc'>('desc');
 
   function toggleSort(field: string) {
     if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
     else { sortField = field; sortDir = 'asc'; }
+    currentPage = 1;
+    doSearchUsers();
   }
 
-  const filtered = $derived(
-    query.trim()
-      ? users.filter((u) => {
-          const q = query.toLowerCase();
-          return u.username?.toLowerCase().includes(q)
-            || u.email?.toLowerCase().includes(q)
-            || u.firstName?.toLowerCase().includes(q)
-            || u.lastName?.toLowerCase().includes(q);
-        })
-      : users
-  );
+  async function doSearchUsers() {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set('search', query.trim());
+    params.set('sort',    sortField);
+    params.set('sortDir', sortDir);
+    params.set('limit',   String(PAGE_SIZE));
+    params.set('skip',    String((currentPage - 1) * PAGE_SIZE));
+    const res = await fetch(`/api/users?${params}`);
+    if (res.ok) { const d = await res.json(); users = d.users ?? []; usersTotal = d.total ?? 0; }
+  }
 
-  const sortedFiltered = $derived.by(() => {
-    return [...filtered].sort((a: any, b: any) => {
-      let av: any, bv: any;
-      if      (sortField === 'name')      { av = `${a.firstName ?? ''} ${a.lastName ?? ''}`.trim() || a.username; bv = `${b.firstName ?? ''} ${b.lastName ?? ''}`.trim() || b.username; }
-      else if (sortField === 'email')     { av = a.email ?? '';     bv = b.email ?? ''; }
-      else if (sortField === 'role')      { av = a.role ?? '';      bv = b.role ?? ''; }
-      else if (sortField === 'createdAt') { av = a.createdAt ?? ''; bv = b.createdAt ?? ''; }
-      else return 0;
-      if (av < bv) return sortDir === 'asc' ? -1 : 1;
-      if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-  });
+  function gotoUsersPage(n: number) { currentPage = n; doSearchUsers(); }
 
-  const pageUsers = $derived(sortedFiltered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
-
-  $effect(() => { query; sortField; sortDir; currentPage = 1; });
+  let usersSearchTimer: ReturnType<typeof setTimeout>;
+  function onUsersQueryInput() {
+    clearTimeout(usersSearchTimer);
+    usersSearchTimer = setTimeout(() => { currentPage = 1; doSearchUsers(); }, 300);
+  }
 
   let newUserOpen = $state(false);
   let newForm     = $state({ firstName: '', lastName: '', email: '', role: 'viewer' });
@@ -174,7 +152,8 @@
     openRoles = next;
   }
 
-  let roleUsers = $state([...data.users]);
+  let roleUsers      = $state<User[]>([...data.users]);
+  let roleUsersTotal = $state(data.usersTotal ?? 0);
 
   async function assignRole(userId: string, role: string) {
     const res = await fetch(`/api/users/${userId}/role`, {
@@ -189,35 +168,46 @@
   let userQuery = $state('');
   let rolesPage = $state(1);
 
-  const filteredRoleUsers = $derived(
-    userQuery.trim()
-      ? roleUsers.filter((u) => {
-          const q = userQuery.toLowerCase();
-          return u.username?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
-            || u.firstName?.toLowerCase().includes(q) || u.lastName?.toLowerCase().includes(q);
-        })
-      : roleUsers
-  );
+  async function doSearchRoleUsers() {
+    const params = new URLSearchParams();
+    if (userQuery.trim()) params.set('search', userQuery.trim());
+    params.set('limit', String(PAGE_SIZE));
+    params.set('skip',  String((rolesPage - 1) * PAGE_SIZE));
+    const res = await fetch(`/api/users?${params}`);
+    if (res.ok) { const d = await res.json(); roleUsers = d.users ?? []; roleUsersTotal = d.total ?? 0; }
+  }
 
-  const pageRoleUsers = $derived(filteredRoleUsers.slice((rolesPage - 1) * PAGE_SIZE, rolesPage * PAGE_SIZE));
-  $effect(() => { userQuery; rolesPage = 1; });
+  function gotoRolesPage(n: number) { rolesPage = n; doSearchRoleUsers(); }
+
+  let rolesSearchTimer: ReturnType<typeof setTimeout>;
+  function onRolesQueryInput() {
+    clearTimeout(rolesSearchTimer);
+    rolesSearchTimer = setTimeout(() => { rolesPage = 1; doSearchRoleUsers(); }, 300);
+  }
 
   // ─── Teams tab ───────────────────────────────────────────────────────────────
 
-  let teams = $state([...data.teams]);
-  let teamQuery = $state('');
-  let teamsPage = $state(1);
+  let teams      = $state<TeamSummary[]>([...data.teams]);
+  let teamsTotal = $state(data.teamsTotal ?? 0);
+  let teamQuery  = $state('');
+  let teamsPage  = $state(1);
 
-  const filteredTeams = $derived(
-    teamQuery.trim()
-      ? teams.filter(t => {
-          const q = teamQuery.toLowerCase();
-          return t.name?.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q);
-        })
-      : teams
-  );
-  const pageTeams = $derived(filteredTeams.slice((teamsPage - 1) * PAGE_SIZE, teamsPage * PAGE_SIZE));
-  $effect(() => { teamQuery; teamsPage = 1; });
+  async function doSearchTeams() {
+    const params = new URLSearchParams();
+    if (teamQuery.trim()) params.set('search', teamQuery.trim());
+    params.set('limit', String(PAGE_SIZE));
+    params.set('skip',  String((teamsPage - 1) * PAGE_SIZE));
+    const res = await fetch(`/api/teams?${params}`);
+    if (res.ok) { const d = await res.json(); teams = d.teams ?? []; teamsTotal = d.total ?? 0; }
+  }
+
+  function gotoTeamsPage(n: number) { teamsPage = n; doSearchTeams(); }
+
+  let teamsSearchTimer: ReturnType<typeof setTimeout>;
+  function onTeamsQueryInput() {
+    clearTimeout(teamsSearchTimer);
+    teamsSearchTimer = setTimeout(() => { teamsPage = 1; doSearchTeams(); }, 300);
+  }
 
   let expandedTeamId = $state<string | null>(null);
   let teamDetails    = $state(new Map<string, TeamDetail>());
@@ -249,7 +239,7 @@
         method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(newTeamForm)
       });
       if (!res.ok) { const b = await res.json().catch(() => ({})); newTeamError = b.message ?? 'Create failed'; return; }
-      teams = [await res.json(), ...teams];
+      teamsPage = 1; await doSearchTeams();
       newTeamOpen = false;
     } catch { newTeamError = 'Network error'; }
     finally { creatingTeam = false; }
@@ -292,12 +282,12 @@
     if (!deleteTeam) return;
     deletingTeam = true; deleteTeamError = '';
     try {
-      const res = await fetch(`/api/teams/${deleteTeam.id}`, { method: 'DELETE' });
+      const id  = deleteTeam.id;
+      const res = await fetch(`/api/teams/${id}`, { method: 'DELETE' });
       if (!res.ok && res.status !== 204) { const b = await res.json().catch(() => ({})); deleteTeamError = b.message ?? 'Delete failed'; return; }
-      const id = deleteTeam.id;
-      teams = teams.filter(t => t.id !== id);
       if (expandedTeamId === id) expandedTeamId = null;
       deleteTeam = null;
+      await doSearchTeams();
     } catch { deleteTeamError = 'Network error'; }
     finally { deletingTeam = false; }
   }
@@ -306,6 +296,14 @@
   let selectedUserId  = $state('');
   let addingMember    = $state(false);
   let addMemberError  = $state('');
+  let pickerUsers     = $state<User[]>([]);
+  let pickerLoaded    = $state(false);
+
+  async function loadPickerUsers() {
+    if (pickerLoaded) return;
+    const res = await fetch('/api/users?limit=200&skip=0');
+    if (res.ok) { const d = await res.json(); pickerUsers = d.users ?? []; pickerLoaded = true; }
+  }
 
   async function addMember(teamId: string, userId: string) {
     addingMember = true; addMemberError = '';
@@ -375,7 +373,7 @@
       <div class="flex items-center gap-3">
         <label class="input flex items-center gap-2 flex-1">
           <Search class="size-4 shrink-0 opacity-50" />
-          <input type="search" placeholder="Search by name or email…" class="grow" bind:value={query} autocomplete="off" />
+          <input type="search" placeholder="Search by name or email…" class="grow" bind:value={query} oninput={onUsersQueryInput} autocomplete="off" />
         </label>
         {#if hasPermission(data.user, 'users', 'create')}
           <button type="button" class="btn btn-primary shrink-0" onclick={openNewUser}>
@@ -408,7 +406,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each pageUsers as user}
+            {#each users as user}
               <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
                 <td class="px-4 py-3">
                   <div class="flex items-center gap-3">
@@ -452,24 +450,7 @@
           </tbody>
         </table>
 
-        <div class="flex items-center justify-between px-4 py-2 border-t border-base-300">
-          <span class="text-base-content/50 text-xs">
-            {filtered.length === 0 ? 'No users' : `${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filtered.length)} of ${filtered.length}`}
-          </span>
-          <div class="join">
-            <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => (currentPage = 1)}><ChevronFirst class="size-3" /></button>
-            <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => (currentPage -= 1)}><ChevronLeft class="size-3" /></button>
-            {#each paginationPages(filtered.length, PAGE_SIZE, currentPage) as p}
-              {#if p.type === 'page'}
-                <button class="join-item btn btn-xs {p.value === currentPage ? 'btn-active' : ''}" onclick={() => (currentPage = p.value)}>{p.value}</button>
-              {:else}
-                <span class="join-item btn btn-xs btn-disabled">…</span>
-              {/if}
-            {/each}
-            <button class="join-item btn btn-xs" disabled={currentPage * PAGE_SIZE >= filtered.length} onclick={() => (currentPage += 1)}><ChevronRight class="size-3" /></button>
-            <button class="join-item btn btn-xs" disabled={currentPage * PAGE_SIZE >= filtered.length} onclick={() => (currentPage = Math.ceil(filtered.length / PAGE_SIZE))}><ChevronLast class="size-3" /></button>
-          </div>
-        </div>
+        <Pagination total={usersTotal} pageSize={PAGE_SIZE} {currentPage} onPage={gotoUsersPage} class="px-4 py-2 border-t border-base-300" />
       </div>
     </div>
   {/if}
@@ -524,7 +505,7 @@
           <h2 class="text-lg font-semibold">User Assignments</h2>
           <label class="input flex items-center gap-2">
             <Search class="size-4 shrink-0 opacity-50" />
-            <input type="search" placeholder="Search by name or email…" class="grow" bind:value={userQuery} />
+            <input type="search" placeholder="Search by name or email…" class="grow" bind:value={userQuery} oninput={onRolesQueryInput} />
           </label>
           <div class="card bg-base-200 overflow-hidden">
             <table class="w-full text-sm">
@@ -536,7 +517,7 @@
                 </tr>
               </thead>
               <tbody>
-                {#each pageRoleUsers as user}
+                {#each roleUsers as user}
                   <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035]">
                     <td class="px-4 py-3">
                       {#if user.firstName || user.lastName}
@@ -559,24 +540,7 @@
                 {/each}
               </tbody>
             </table>
-            <div class="flex items-center justify-between px-4 py-2 border-t border-base-300">
-              <span class="text-base-content/50 text-xs">
-                {filteredRoleUsers.length === 0 ? 'No users' : `${(rolesPage-1)*PAGE_SIZE+1}–${Math.min(rolesPage*PAGE_SIZE,filteredRoleUsers.length)} of ${filteredRoleUsers.length}`}
-              </span>
-              <div class="join">
-                <button class="join-item btn btn-xs" disabled={rolesPage === 1} onclick={() => (rolesPage = 1)}><ChevronFirst class="size-3" /></button>
-                <button class="join-item btn btn-xs" disabled={rolesPage === 1} onclick={() => (rolesPage -= 1)}><ChevronLeft class="size-3" /></button>
-                {#each paginationPages(filteredRoleUsers.length, PAGE_SIZE, rolesPage) as p}
-                  {#if p.type === 'page'}
-                    <button class="join-item btn btn-xs {p.value === rolesPage ? 'btn-active' : ''}" onclick={() => (rolesPage = p.value)}>{p.value}</button>
-                  {:else}
-                    <span class="join-item btn btn-xs btn-disabled">…</span>
-                  {/if}
-                {/each}
-                <button class="join-item btn btn-xs" disabled={rolesPage * PAGE_SIZE >= filteredRoleUsers.length} onclick={() => (rolesPage += 1)}><ChevronRight class="size-3" /></button>
-                <button class="join-item btn btn-xs" disabled={rolesPage * PAGE_SIZE >= filteredRoleUsers.length} onclick={() => (rolesPage = Math.ceil(filteredRoleUsers.length / PAGE_SIZE))}><ChevronLast class="size-3" /></button>
-              </div>
-            </div>
+            <Pagination total={roleUsersTotal} pageSize={PAGE_SIZE} currentPage={rolesPage} onPage={gotoRolesPage} class="px-4 py-2 border-t border-base-300" />
           </div>
         </div>
       {/if}
@@ -589,7 +553,7 @@
       <div class="flex items-center gap-3">
         <label class="input flex items-center gap-2 flex-1">
           <Search class="size-4 shrink-0 opacity-50" />
-          <input type="search" placeholder="Search teams…" class="grow" bind:value={teamQuery} />
+          <input type="search" placeholder="Search teams…" class="grow" bind:value={teamQuery} oninput={onTeamsQueryInput} />
         </label>
         {#if data.canCreateTeam}
           <button type="button" class="btn btn-primary shrink-0"
@@ -600,7 +564,7 @@
       </div>
 
       <div class="card bg-base-200 divide-y divide-base-300 overflow-hidden">
-        {#each pageTeams as team}
+        {#each teams as team}
           {@const expanded = expandedTeamId === team.id}
           {@const detail = teamDetails.get(team.id)}
           <div>
@@ -669,7 +633,7 @@
                         <div class="flex items-center gap-2">
                           <select class="select select-sm flex-1" bind:value={selectedUserId}>
                             <option value="">Select a user…</option>
-                            {#each data.users.filter(u => !detail.members.some(m => m.id === u.id)) as u}
+                            {#each pickerUsers.filter(u => !detail.members.some(m => m.id === u.id)) as u}
                               <option value={u.id}>{[u.firstName, u.lastName].filter(Boolean).join(' ') || u.username} ({u.email})</option>
                             {/each}
                           </select>
@@ -687,7 +651,7 @@
                       </div>
                     {:else}
                       <button type="button" class="btn btn-ghost btn-sm"
-                        onclick={() => { addMemberTeamId = team.id; selectedUserId = ''; addMemberError = ''; }}>
+                        onclick={() => { addMemberTeamId = team.id; selectedUserId = ''; addMemberError = ''; loadPickerUsers(); }}>
                         <UserPlus class="size-4" /> Add Member
                       </button>
                     {/if}
@@ -701,24 +665,7 @@
         {/each}
       </div>
 
-      <div class="flex items-center justify-between">
-        <span class="text-base-content/50 text-xs">
-          {filteredTeams.length === 0 ? 'No teams' : `${(teamsPage-1)*PAGE_SIZE+1}–${Math.min(teamsPage*PAGE_SIZE,filteredTeams.length)} of ${filteredTeams.length}`}
-        </span>
-        <div class="join">
-          <button class="join-item btn btn-xs" disabled={teamsPage === 1} onclick={() => (teamsPage = 1)}><ChevronFirst class="size-3" /></button>
-          <button class="join-item btn btn-xs" disabled={teamsPage === 1} onclick={() => (teamsPage -= 1)}><ChevronLeft class="size-3" /></button>
-          {#each paginationPages(filteredTeams.length, PAGE_SIZE, teamsPage) as p}
-            {#if p.type === 'page'}
-              <button class="join-item btn btn-xs {p.value === teamsPage ? 'btn-active' : ''}" onclick={() => (teamsPage = p.value)}>{p.value}</button>
-            {:else}
-              <span class="join-item btn btn-xs btn-disabled">…</span>
-            {/if}
-          {/each}
-          <button class="join-item btn btn-xs" disabled={teamsPage * PAGE_SIZE >= filteredTeams.length} onclick={() => (teamsPage += 1)}><ChevronRight class="size-3" /></button>
-          <button class="join-item btn btn-xs" disabled={teamsPage * PAGE_SIZE >= filteredTeams.length} onclick={() => (teamsPage = Math.ceil(filteredTeams.length / PAGE_SIZE))}><ChevronLast class="size-3" /></button>
-        </div>
-      </div>
+      <Pagination total={teamsTotal} pageSize={PAGE_SIZE} currentPage={teamsPage} onPage={gotoTeamsPage} />
     </div>
   {/if}
 </div>

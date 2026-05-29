@@ -4,17 +4,18 @@ import type { RequestHandler } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
-export const GET: RequestHandler = async ({ cookies }) => {
+export const GET: RequestHandler = async ({ url, cookies }) => {
   const sessionCookie = cookies.get('session');
+  const params = url.searchParams.toString();
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/teams`, {
+    res = await fetch(`${API_URL}/teams${params ? `?${params}` : ''}`, {
       headers: sessionCookie ? { cookie: `session=${sessionCookie}` } : {}
     });
   } catch {
     throw error(503, 'Cannot reach the API server');
   }
-  const data = await res.json().catch(() => ([]));
+  const data = await res.json().catch(() => ({ teams: [], total: 0 }));
   if (!res.ok) throw error(res.status, (data as { message?: string }).message ?? 'Fetch failed');
   return json(data);
 };

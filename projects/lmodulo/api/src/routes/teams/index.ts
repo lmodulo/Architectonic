@@ -9,19 +9,50 @@ interface TeamBody {
 
 export default async function teamsRoutes(app: FastifyInstance) {
 
-  // GET /teams — list all teams with member count
-  app.get('/', {
+  // GET /teams — list teams with member count (paginated)
+  app.get<{ Querystring: { skip?: string; limit?: string; search?: string } }>('/', {
     preHandler: app.requirePermission('teams', 'read'),
-    schema: { summary: 'List all teams' }
-  }, async (_req, _reply) => {
-    const teams = await app.mongo.db!.collection('teams').find({}).sort({ name: 1 }).toArray();
-    return teams.map(t => ({
-      id:          t._id.toString(),
-      name:        t.name,
-      description: t.description ?? '',
-      memberCount: (t.members ?? []).length,
-      createdAt:   t.createdAt
-    }));
+    schema: {
+      summary: 'List teams (paginated)',
+      querystring: {
+        type: 'object',
+        properties: {
+          skip:   { type: 'string' },
+          limit:  { type: 'string' },
+          search: { type: 'string' }
+        }
+      }
+    }
+  }, async (req, _reply) => {
+    const { skip = '0', limit = '20', search = '' } = req.query;
+    const col = app.mongo.db!.collection('teams');
+
+    const filter: Record<string, unknown> = {};
+    if (search.trim()) {
+      const re = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [{ name: re }, { description: re }];
+    }
+
+    const total = await col.countDocuments(filter);
+    const teams = await col
+      .find(filter)
+      .sort({ name: 1 })
+      .skip(Number(skip))
+      .limit(Number(limit))
+      .toArray();
+
+    return {
+      teams: teams.map(t => ({
+        id:          t._id.toString(),
+        name:        t.name,
+        description: t.description ?? '',
+        memberCount: (t.members ?? []).length,
+        createdAt:   t.createdAt
+      })),
+      total,
+      skip: Number(skip),
+      limit: Number(limit)
+    };
   });
 
   // GET /teams/mine — teams the current user belongs to (auth only, no permission gate)

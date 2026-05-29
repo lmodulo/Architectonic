@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Plus, X, Search, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, Users } from 'lucide-svelte';
+  import { Plus, X, Search, Users } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -9,6 +9,7 @@
   } from '$lib/utils/crm';
   import ContactCard from '$lib/components/crm/ContactCard.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import Pagination from '$lib/components/Pagination.svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -23,23 +24,6 @@
   // Pagination
   const PAGE_SIZE = 20;
   let currentPage = $state(1);
-  const totalPages = $derived(Math.max(1, Math.ceil(total / PAGE_SIZE)));
-  const startItem  = $derived((currentPage - 1) * PAGE_SIZE + 1);
-  const endItem    = $derived(Math.min(currentPage * PAGE_SIZE, total));
-
-  function paginationPages(tot: number, cur: number) {
-    const last = Math.max(1, Math.ceil(tot / PAGE_SIZE));
-    const pages: Array<{ type: 'page'; value: number } | { type: 'ellipsis'; index: number }> = [];
-    for (let i = 1; i <= last; i++) {
-      if (i === 1 || i === last || Math.abs(i - cur) <= 1) {
-        pages.push({ type: 'page', value: i });
-      } else if (pages[pages.length - 1]?.type === 'page') {
-        pages.push({ type: 'ellipsis', index: pages.length });
-      }
-    }
-    return pages;
-  }
-  const pages = $derived(paginationPages(total, currentPage));
 
   let searchTimer: ReturnType<typeof setTimeout>;
   async function doSearch() {
@@ -136,24 +120,7 @@
         <ContactCard {contact} onclick={() => goto(`/crm/contacts/${contact.id}`)} />
       {/each}
     </div>
-    {#if totalPages > 1}
-      <div class="flex items-center justify-between mt-2">
-        <span class="text-xs opacity-50">{startItem}–{endItem} of {total}</span>
-        <div class="join">
-          <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => gotoPage(1)}><ChevronFirst class="size-3" /></button>
-          <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => gotoPage(currentPage - 1)}><ChevronLeft class="size-3" /></button>
-          {#each pages as p}
-            {#if p.type === 'ellipsis'}
-              <button class="join-item btn btn-xs btn-disabled">…</button>
-            {:else}
-              <button class="join-item btn btn-xs {p.value === currentPage ? 'btn-active' : ''}" onclick={() => gotoPage(p.value)}>{p.value}</button>
-            {/if}
-          {/each}
-          <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => gotoPage(currentPage + 1)}><ChevronRight class="size-3" /></button>
-          <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => gotoPage(totalPages)}><ChevronLast class="size-3" /></button>
-        </div>
-      </div>
-    {/if}
+    <Pagination {total} pageSize={PAGE_SIZE} {currentPage} onPage={gotoPage} class="mt-2" />
   {/if}
 </div>
 

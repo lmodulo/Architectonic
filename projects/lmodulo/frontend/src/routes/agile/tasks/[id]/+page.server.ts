@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
   ]);
 
   const job   = jobRes?.ok   ? await jobRes.json() : null;
-  const users = usersRes?.ok ? await usersRes.json() : [];
+  const users = usersRes?.ok ? (await usersRes.json()).users ?? [] : [];
 
   // Fetch parent sprint then milestone for breadcrumb
   const sprint = job?.sprintId

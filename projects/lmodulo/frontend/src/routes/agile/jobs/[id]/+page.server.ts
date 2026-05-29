@@ -32,7 +32,7 @@ export const load: PageServerLoad = async ({ locals, cookies, params }) => {
     fetch(`${API_URL}/users`, { headers }).catch(() => null),
   ]);
   const sprintJobs = sameSprintRes?.ok ? (await sameSprintRes.json()).jobs ?? [] : [];
-  const users      = usersRes?.ok ? await usersRes.json() : [];
+  const users      = usersRes?.ok ? (await usersRes.json()).users ?? [] : [];
 
   // Fetch parent sprint then milestone for breadcrumb
   const sprint = job.sprintId

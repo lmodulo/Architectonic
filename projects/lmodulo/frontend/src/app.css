@@ -41,7 +41,7 @@ body {
   overflow-x: auto;
   scrollbar-width: none;
 }
-nav .tab-scroll {
+nav.tab-scroll {
   border-bottom-width: 4px;
 }
 .tab-scroll::-webkit-scrollbar { display: none; }

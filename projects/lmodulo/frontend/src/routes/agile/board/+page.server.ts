@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 
   const rawTasks   = tasksRes.ok      ? (await tasksRes.json()).tasks          ?? [] : [];
   const milestones = milestonesRes.ok ? (await milestonesRes.json()).milestones ?? [] : [];
-  const users      = usersRes?.ok     ? await usersRes.json()                       : [];
+  const users      = usersRes?.ok     ? (await usersRes.json()).users ?? []          : [];
   const jobs       = jobsRes.ok       ? (await jobsRes.json()).jobs             ?? [] : [];
 
   const jobMap = new Map(jobs.map((j: any) => [j.id, j.jobNumber as number]));

@@ -133,26 +133,67 @@ export default async function usersRoutes(app: FastifyInstance) {
   });
 
   // GET /users
-  app.get('/', {
+  app.get<{ Querystring: { skip?: string; limit?: string; search?: string; sort?: string; sortDir?: string } }>('/', {
     preHandler: app.requirePermission('users', 'read'),
-    schema: { summary: 'List all users' }
-  }, async (_req, _reply) => {
-    const users = await app.mongo.db!.collection(COLLECTION)
-      .find({ role: { $ne: 'customer' } }, { projection: { passwordHash: 0 } })
+    schema: {
+      summary: 'List users (paginated)',
+      querystring: {
+        type: 'object',
+        properties: {
+          skip:    { type: 'string' },
+          limit:   { type: 'string' },
+          search:  { type: 'string' },
+          sort:    { type: 'string' },
+          sortDir: { type: 'string' }
+        }
+      }
+    }
+  }, async (req, _reply) => {
+    const { skip = '0', limit = '20', search = '', sort = 'createdAt', sortDir = 'desc' } = req.query;
+    const col = app.mongo.db!.collection(COLLECTION);
+
+    const filter: Record<string, unknown> = { role: { $ne: 'customer' } };
+    if (search.trim()) {
+      const re = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [{ username: re }, { email: re }, { firstName: re }, { lastName: re }];
+    }
+
+    const sortObj: Record<string, 1 | -1> = {};
+    if (sort === 'name') {
+      sortObj.firstName = sortDir === 'asc' ? 1 : -1;
+      sortObj.lastName  = sortDir === 'asc' ? 1 : -1;
+    } else if (['email', 'role', 'createdAt'].includes(sort)) {
+      sortObj[sort] = sortDir === 'asc' ? 1 : -1;
+    } else {
+      sortObj.createdAt = -1;
+    }
+
+    const total = await col.countDocuments(filter);
+    const users = await col
+      .find(filter, { projection: { passwordHash: 0 } })
+      .sort(sortObj)
+      .skip(Number(skip))
+      .limit(Number(limit))
       .toArray();
-    return users.map(u => ({
-      id:          u._id.toString(),
-      username:    u.username    ?? '',
-      email:       u.email,
-      firstName:   u.firstName   ?? '',
-      lastName:    u.lastName    ?? '',
-      role:        u.role        ?? 'viewer',
-      status:      u.status      ?? 'active',
-      avatarUrl:   u.avatarUrl   ?? '',
-      avatarColor: u.avatarColor ?? '',
-      phone:       u.phone       ?? '',
-      createdAt:   u.createdAt
-    }));
+
+    return {
+      users: users.map(u => ({
+        id:          u._id.toString(),
+        username:    u.username    ?? '',
+        email:       u.email,
+        firstName:   u.firstName   ?? '',
+        lastName:    u.lastName    ?? '',
+        role:        u.role        ?? 'viewer',
+        status:      u.status      ?? 'active',
+        avatarUrl:   u.avatarUrl   ?? '',
+        avatarColor: u.avatarColor ?? '',
+        phone:       u.phone       ?? '',
+        createdAt:   u.createdAt
+      })),
+      total,
+      skip: Number(skip),
+      limit: Number(limit)
+    };
   });
 
   // GET /users/:id — single user card data (auth required, no permission gate)

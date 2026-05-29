@@ -60,8 +60,8 @@ export const load: PageServerLoad = async ({ url, locals, cookies }) => {
 
   let users: { id: string; username: string; firstName: string; lastName: string }[] = [];
   if (usersRes?.ok) {
-    const raw = await usersRes.json().catch(() => []);
-    users = (Array.isArray(raw) ? raw : []).map((u: Record<string, unknown>) => ({
+    const raw = await usersRes.json().catch(() => ({}));
+    users = ((raw.users ?? []) as Record<string, unknown>[]).map((u) => ({
       id:        String(u.id ?? u._id ?? ''),
       username:  String(u.username ?? ''),
       firstName: String(u.firstName ?? ''),

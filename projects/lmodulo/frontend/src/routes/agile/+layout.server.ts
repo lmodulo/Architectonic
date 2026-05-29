@@ -11,7 +11,7 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
   let teams: { id: string; name: string }[] = [];
   try {
     const res = await fetch(`${API_URL}/teams`, { headers });
-    if (res.ok) teams = await res.json();
+    if (res.ok) teams = (await res.json()).teams ?? [];
   } catch { /* non-fatal */ }
   return { user: locals.user, teams };
 };
