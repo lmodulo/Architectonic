@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname  = join(__filename, '..');
 
 const COLLECTION  = 'users';
-const SALT_ROUNDS = 12;
+const SALT_ROUNDS = process.env.NODE_ENV === 'test' ? 1 : 12;
 
 interface RegisterBody      { username: string; email: string; password: string; firstName?: string; lastName?: string }
 interface LoginBody         { email: string; password: string }

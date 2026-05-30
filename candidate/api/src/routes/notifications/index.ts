@@ -293,9 +293,21 @@ export default async function notificationsRoutes(app: FastifyInstance) {
       if (req.body.quiet.timezone  !== undefined) set['quiet.timezone']  = req.body.quiet.timezone;
     }
 
+    // Build $setOnInsert using only default fields that are not already in $set
+    // (MongoDB throws code 40 if the same field path appears in both operators)
+    const setOnInsert: Record<string, unknown> = { createdAt: new Date(), userId };
+    if (!('muted' in set)) setOnInsert.muted = DEFAULT_PREFS.muted;
+    if (!('channels.websocket' in set) && !('channels.email' in set)) {
+      setOnInsert.channels = DEFAULT_PREFS.channels;
+    }
+    if (!('quiet.enabled' in set) && !('quiet.start' in set) &&
+        !('quiet.end' in set) && !('quiet.timezone' in set)) {
+      setOnInsert.quiet = DEFAULT_PREFS.quiet;
+    }
+
     await db.collection(PREFS).updateOne(
       { userId },
-      { $set: set, $setOnInsert: { createdAt: new Date(), ...DEFAULT_PREFS, userId } },
+      { $set: set, $setOnInsert: setOnInsert },
       { upsert: true }
     );
 

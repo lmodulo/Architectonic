@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc || true",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
@@ -15,24 +20,27 @@
     "@fastify/cors": "^10.0.0",
     "@fastify/mongodb": "^9.0.0",
     "@fastify/multipart": "^9.0.0",
+    "@fastify/rate-limit": "^10.3.0",
     "@fastify/sensible": "^6.0.0",
     "@fastify/session": "^11.0.0",
     "@fastify/static": "^8.0.0",
     "@fastify/swagger": "^9.7.0",
+    "@fastify/websocket": "^11.0.0",
     "bcryptjs": "^2.4.3",
     "connect-mongo": "^5.1.0",
     "fastify": "^5.0.0",
     "nanoid": "^5.0.0",
-    "nodemailer": "^8.0.2",
-    "@fastify/rate-limit": "^9.0.0",
-    "@fastify/websocket": "^11.0.0"
+    "nodemailer": "^8.0.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.0.0",
     "@types/nodemailer": "^7.0.11",
+    "@vitest/coverage-v8": "^4.1.7",
+    "mongodb-memory-server": "^11.2.0",
     "pino-pretty": "^13.0.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.7"
   }
 }
