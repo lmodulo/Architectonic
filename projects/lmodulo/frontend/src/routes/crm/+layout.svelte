@@ -33,7 +33,7 @@
   });
 </script>
 
-<div class="flex flex-col gap-6">
+<div data-no-anim class="flex flex-col gap-6">
   <div>
     <h1 class="text-2xl font-bold leading-none">Nexus</h1>
     <p class="text-xs opacity-50 mt-0.5">Companies · Contacts · Deals · Activities</p>
@@ -56,5 +56,9 @@
     </nav>
   {/if}
 
-  {@render children()}
+  {#key page.url.pathname}
+    <div class="page-content">
+      {@render children()}
+    </div>
+  {/key}
 </div>

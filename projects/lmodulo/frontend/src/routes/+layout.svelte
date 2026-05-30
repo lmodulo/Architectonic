@@ -31,6 +31,17 @@
   let unreadCount = $state(data.unreadCount ?? 0);
   let openGroups = $state<Record<string, boolean>>({});
   let profileOpen = $state(false);
+  let showOverlay = $state(false);
+  let overlayTimer: ReturnType<typeof setTimeout> | null = null;
+
+  $effect(() => {
+    if (navigating.to !== null) {
+      overlayTimer = setTimeout(() => { showOverlay = true; }, 500);
+    } else {
+      if (overlayTimer !== null) { clearTimeout(overlayTimer); overlayTimer = null; }
+      showOverlay = false;
+    }
+  });
 
   $effect(() => {
     const pathname = page.url.pathname;
@@ -91,7 +102,7 @@
 
 {#if data.user && page.url.pathname !== '/' && !page.url.pathname.startsWith('/documentation') && !page.data.isPrint}
 
-  {#if navigating.to !== null}
+  {#if showOverlay}
     <div data-theme={APP_THEME} class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
       <div class="card bg-base-200 shadow-xl px-6 py-4 flex items-center gap-3">
         <svg class="size-5 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -343,9 +354,11 @@
 
       <!-- Page content -->
       <main bind:this={mainEl} class="flex-1 overflow-auto" onscroll={closeCard}>
-        <div class="container mx-auto p-6 max-w-5xl">
-          {@render children()}
-        </div>
+        {#key page.url.pathname}
+          <div class="container mx-auto p-6 max-w-5xl page-content">
+            {@render children()}
+          </div>
+        {/key}
       </main>
     </div>
 
@@ -362,6 +375,23 @@
 {/if}
 
 <style>
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+
+  :global(.page-content > *) { animation: page-in 280ms ease backwards; }
+  :global(.page-content > [data-no-anim]) { animation: none; }
+  :global(.page-content > *:nth-child(2)) { animation-delay:  40ms; }
+  :global(.page-content > *:nth-child(3)) { animation-delay:  80ms; }
+  :global(.page-content > *:nth-child(4)) { animation-delay: 120ms; }
+  :global(.page-content > *:nth-child(5)) { animation-delay: 160ms; }
+  :global(.page-content > *:nth-child(6)) { animation-delay: 200ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.page-content > *) { animation: none; }
+  }
+
   .nav-subnav {
     display: grid;
     grid-template-rows: 0fr;
