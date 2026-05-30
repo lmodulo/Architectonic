@@ -36,35 +36,35 @@ export const CRM_LEVEL = {
 } as const;
 
 export const STAGE_COLOR: Record<string, string> = {
-  'Discovery':   'badge-primary badge-soft',
-  'Proposal':    'badge-secondary badge-soft',
-  'Negotiation': 'badge-warning badge-soft',
-  'Contract':    'badge-success badge-soft',
+  'Discovery':   'badge-primary badge-outline',
+  'Proposal':    'badge-secondary badge-outline',
+  'Negotiation': 'badge-warning badge-outline',
+  'Contract':    'badge-success badge-outline',
   'Closed Won':  'badge-success',
   'Closed Lost': 'badge-ghost',
 };
 
 export const CONTACT_STATUS_COLOR: Record<string, string> = {
-  'Prospect': 'badge-primary badge-soft',
-  'Active':   'badge-success badge-soft',
+  'Prospect': 'badge-primary badge-outline',
+  'Active':   'badge-success badge-outline',
   'Churned':  'badge-ghost',
-  'Partner':  'badge-secondary badge-soft',
+  'Partner':  'badge-secondary badge-outline',
 };
 
 export const COMPANY_TYPE_COLOR: Record<string, string> = {
-  'Prospect': 'badge-primary badge-soft',
-  'Customer': 'badge-success badge-soft',
-  'Partner':  'badge-secondary badge-soft',
+  'Prospect': 'badge-primary badge-outline',
+  'Customer': 'badge-success badge-outline',
+  'Partner':  'badge-secondary badge-outline',
   'Vendor':   'badge-ghost',
 };
 
 export const ACTIVITY_TYPE_COLOR: Record<string, string> = {
-  'Call':    'badge-primary badge-soft',
-  'Email':   'badge-secondary badge-soft',
-  'Meeting': 'badge-success badge-soft',
-  'Demo':    'badge-warning badge-soft',
+  'Call':    'badge-primary badge-outline',
+  'Email':   'badge-secondary badge-outline',
+  'Meeting': 'badge-success badge-outline',
+  'Demo':    'badge-warning badge-outline',
   'Note':    'badge-ghost',
-  'Task':    'badge-accent badge-soft',
+  'Task':    'badge-accent badge-outline',
 };
 
 export function fmtCurrency(value: number, currency = 'USD'): string {

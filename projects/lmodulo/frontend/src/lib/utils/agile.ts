@@ -8,31 +8,31 @@ export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
 export type JobCategory = 'Feature' | 'Bug' | 'Tech Debt' | 'Research';
 
 export const STATUS_COLOR: Record<string, string> = {
-  Planning:    'badge-primary badge-soft',
-  Active:      'badge-success badge-soft',
-  'On Hold':   'badge-warning badge-soft',
+  Planning:    'badge-primary badge-outline',
+  Active:      'badge-success badge-outline',
+  'On Hold':   'badge-warning badge-outline',
   Completed:   'badge-success',
   Cancelled:   'badge-ghost',
-  Review:      'badge-secondary badge-soft',
+  Review:      'badge-secondary badge-outline',
   Backlog:     'badge-ghost',
-  Ready:       'badge-primary badge-soft',
-  'In Progress': 'badge-success badge-soft',
-  Blocked:     'badge-error badge-soft',
+  Ready:       'badge-primary badge-outline',
+  'In Progress': 'badge-success badge-outline',
+  Blocked:     'badge-error badge-outline',
   Done:        'badge-success',
 };
 
 export const PRIORITY_COLOR: Record<string, string> = {
   Low:      'badge-ghost',
-  Medium:   'badge-primary badge-soft',
-  High:     'badge-warning badge-soft',
-  Critical: 'badge-error badge-soft',
+  Medium:   'badge-primary badge-outline',
+  High:     'badge-warning badge-outline',
+  Critical: 'badge-error badge-outline',
 };
 
 export const CATEGORY_COLOR: Record<string, string> = {
-  Feature:    'badge-primary badge-soft',
-  Bug:        'badge-error badge-soft',
-  'Tech Debt':'badge-warning badge-soft',
-  Research:   'badge-secondary badge-soft',
+  Feature:    'badge-primary badge-outline',
+  Bug:        'badge-error badge-outline',
+  'Tech Debt':'badge-warning badge-outline',
+  Research:   'badge-secondary badge-outline',
 };
 
 export function fmtEffort(hours: number): string {

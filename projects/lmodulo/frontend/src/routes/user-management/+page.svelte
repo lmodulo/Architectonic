@@ -427,7 +427,7 @@
                   </div>
                 </td>
                 <td class="px-4 py-3 text-base-content/40">{user.email}</td>
-                <td class="px-4 py-3"><span class="badge badge-primary badge-soft text-xs">{user.role ?? 'viewer'}</span></td>
+                <td class="px-4 py-3"><span class="badge badge-primary badge-outline text-xs">{user.role ?? 'viewer'}</span></td>
                 <td class="px-4 py-3 text-base-content/50">{new Date(user.createdAt).toLocaleDateString()}</td>
                 <td class="px-4 py-3">
                   <div class="flex items-center justify-end gap-1">

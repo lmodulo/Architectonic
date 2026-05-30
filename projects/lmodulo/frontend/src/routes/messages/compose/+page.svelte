@@ -121,7 +121,7 @@
     <label class="text-xs font-medium opacity-60 uppercase tracking-wide">To</label>
     <div class="flex flex-wrap gap-1.5 items-center border border-base-300 rounded px-2 py-1.5 min-h-[2.5rem]">
       {#each toIds as id}
-        <span class="badge badge-primary badge-soft text-xs flex items-center gap-1">
+        <span class="badge badge-primary badge-outline text-xs flex items-center gap-1">
           {recipientName(id)}
           <button type="button" onclick={() => removeRecipient(id)} class="opacity-60 hover:opacity-100">
             <X class="size-3" />

@@ -186,7 +186,7 @@
         </div>
         <div class="flex items-center justify-between">
           <span class="opacity-50">Status</span>
-          <span class="badge badge-sm badge-secondary badge-soft">{contact.status}</span>
+          <span class="badge badge-sm badge-secondary badge-outline">{contact.status}</span>
         </div>
         <div class="flex items-center justify-between">
           <span class="opacity-50">Source</span>

@@ -102,10 +102,10 @@ export function groupByMonth(events: CalendarEvent[]): MonthGroup[] {
 }
 
 const TYPE_PRESETS: Record<string, string> = {
-  upcoming_event: 'badge-primary badge-soft',
-  announcement:   'badge-warning badge-soft',
-  deadline:       'badge-error badge-soft',
-  project_scope:  'badge-secondary badge-soft',
+  upcoming_event: 'badge-primary badge-outline',
+  announcement:   'badge-warning badge-outline',
+  deadline:       'badge-error badge-outline',
+  project_scope:  'badge-secondary badge-outline',
 };
 
 const TYPE_PILL_CLASSES: Record<string, string> = {

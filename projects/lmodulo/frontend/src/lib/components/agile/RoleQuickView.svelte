@@ -21,10 +21,10 @@
   const roleLabel = $derived(ROLE_LABELS[user?.role ?? ''] ?? user?.role ?? 'Unknown');
 
   const ROLE_BADGE: Record<string, string> = {
-    owner: 'badge-error badge-soft',
-    admin: 'badge-primary badge-soft',
-    lead:  'badge-warning badge-soft',
-    contributor: 'badge-success badge-soft',
+    owner: 'badge-error badge-outline',
+    admin: 'badge-primary badge-outline',
+    lead:  'badge-warning badge-outline',
+    contributor: 'badge-success badge-outline',
     viewer: 'badge-ghost',
     customer: 'badge-ghost',
   };

@@ -359,7 +359,7 @@
                   <span class="flex items-center gap-1">
                     {job.title}
                     {#if job.blocked}
-                      <span class="badge badge-error badge-soft text-[9px]">Blocked</span>
+                      <span class="badge badge-error badge-outline text-[9px]">Blocked</span>
                     {/if}
                   </span>
                   <span class="font-mono text-[10px] opacity-30 select-all">JOB-{job.jobNumber}</span>

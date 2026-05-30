@@ -1,6 +1,20 @@
 @import "tailwindcss";
+
+/* ── Active theme ─────────────────────────────────────────────────────────────
+   Change APP_THEME in src/lib/config/theme.ts to switch.
+   Built-in options: light · dark · cupcake · bumblebee · emerald · corporate ·
+     synthwave · retro · cyberpunk · valentine · halloween · garden · forest ·
+     aqua · lofi · pastel · fantasy · wireframe · black · luxury · dracula ·
+     cmyk · autumn · business · acid · lemonade · night · coffee · winter ·
+     dim · nord · sunset
+   Custom options:  lmodulo  (defined below — copy it to build your own)
+   ─────────────────────────────────────────────────────────────────────────── */
 @plugin "daisyui" {
-  themes: light, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro, cyberpunk, valentine, halloween, garden, forest, aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk, autumn, business, acid, lemonade, night, coffee, winter, dim, nord, sunset;
+  themes: light, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro,
+          cyberpunk, valentine, halloween, garden, forest, aqua, lofi, pastel,
+          fantasy, wireframe, black, luxury, dracula, cmyk, autumn, business,
+          acid, lemonade, night, coffee, winter, dim, nord, sunset,
+          lmodulo;
 }
 
 /* ── svelte-select theme ─────────────────────────────────────────────────── */
@@ -33,8 +47,19 @@
 /* Force class-based dark mode — overrides Tailwind v4's default @media query */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ── Font defaults (built-in DaisyUI themes don't set --display/--body) ─────── */
+:root {
+  --display: ui-serif, Georgia, serif;
+  --body:    ui-sans-serif, system-ui, sans-serif;
+  --mono:    ui-monospace, SFMono-Regular, monospace;
+}
+
 body {
   font-family: var(--body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--display);
 }
 
 .tab-scroll {
@@ -51,10 +76,6 @@ nav.tab-scroll {
   min-width: max-content;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--display);
-}
-
 thead tr {
   background: var(--color-neutral);
   color: var(--color-neutral-content);
@@ -66,42 +87,44 @@ thead tr {
 }
 */
 
-/* ── Theme overrides ──────────────────────────────────────────────────────
-   Applied to every DaisyUI theme — sets the brand palette and fonts.
-   Full variable list: https://daisyui.com/docs/themes/
-   ─────────────────────────────────────────────────────────────────────── */
-[data-theme] {
-  color-scheme: dark;
-  --color-base-100: oklch(15% 0.021 309);
-  --color-base-200: oklch(11% 0.016 309);
-  --color-base-300: oklch(7% 0.011 309);
-  --color-base-content: oklch(86% 0.010 309);
-  --color-primary: #371840;
-  --color-primary-content: oklch(100% 0 0);
-  --color-secondary: #5E246E;
-  --color-secondary-content: oklch(86% 0 0);
-  --color-accent: #BE7ABF;
-  --color-accent-content: oklch(14.125% 0.023 185.713);
-  --color-neutral: oklch(72.5% 0.183 46.4);
-  --color-neutral-content: oklch(15% 0.015 46);
-  --color-info: oklch(72.06% 0.191 231.6);
-  --color-info-content: oklch(0% 0 0);
-  --color-success: oklch(64.8% 0.15 160);
-  --color-success-content: oklch(0% 0 0);
-  --color-warning: oklch(84.71% 0.199 83.87);
-  --color-warning-content: oklch(0% 0 0);
-  --color-error: oklch(71.76% 0.221 22.18);
-  --color-error-content: oklch(0% 0 0);
+/* ── Custom theme: lmodulo ────────────────────────────────────────────────────
+   To use: set APP_THEME = 'lmodulo' in src/lib/config/theme.ts
+   To create a new custom theme: duplicate this block, rename the selector,
+   and add the new name to the @plugin "daisyui" themes list above.
+   Full variable reference: https://daisyui.com/docs/themes/
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme="lmodulo"] {
+  name: "light";
+  default: false;
+  prefersdark: false;
+  color-scheme: "dark";
+  --color-base-100: oklch(14% 0 0);
+  --color-base-200: oklch(20% 0 0);
+  --color-base-300: oklch(26% 0 0);
+  --color-base-content: oklch(97% 0 0);
+  --color-primary: oklch(29% 0.149 302.717);
+  --color-primary-content: oklch(97% 0.013 17.38);
+  --color-secondary: oklch(64% 0.222 41.116);
+  --color-secondary-content: oklch(97% 0.014 308.299);
+  --color-accent: oklch(60% 0.25 292.717);
+  --color-accent-content: oklch(98% 0.026 102.212);
+  --color-neutral: oklch(43% 0 0);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(74% 0.16 232.661);
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: oklch(76% 0.177 163.223);
+  --color-success-content: oklch(26% 0.051 172.552);
+  --color-warning: oklch(82% 0.189 84.429);
+  --color-warning-content: oklch(27% 0.077 45.635);
+  --color-error: oklch(63% 0.237 25.331);
+  --color-error-content: oklch(28% 0.109 3.907);
   --radius-selector: 1rem;
-  --radius-field: 2rem;
+  --radius-field: 0.5rem;
   --radius-box: 1rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
   --depth: 1;
   --noise: 1;
-  --display: 'Cormorant Garamond', 'EB Garamond', Garamond, serif;
-  --body:    'Fraunces', 'Cormorant Garamond', Georgia, serif;
-  --mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
 

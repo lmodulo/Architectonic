@@ -17,8 +17,8 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
     });
     if (res.ok) {
       const raw = await res.json();
-      allUsers = (raw as Array<{ id: string; username: string; firstName?: string; lastName?: string }>)
-        .filter(u => u.id !== locals.user!.id);
+      allUsers = (raw.users ?? [] as Array<{ id: string; username: string; firstName?: string; lastName?: string }>)
+        .filter((u: { id: string }) => u.id !== locals.user!.id);
     }
   } catch { /* non-fatal */ }
 
