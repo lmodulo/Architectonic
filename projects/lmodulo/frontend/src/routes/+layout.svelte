@@ -159,7 +159,10 @@
           aria-hidden="true"
           tabindex={sidebarExpanded ? -1 : 0}
         >
-          <span style="font-family: var(--display);" class="text-4xl font-bold text-accent select-none">%</span>
+          <span
+            style="font-family: var(--display); background: radial-gradient(circle, color-mix(in oklch, var(--color-accent) 30%, transparent) 0%, transparent 70%);"
+            class="text-4xl font-bold text-accent select-none w-12 h-12 flex items-center justify-center rounded-full"
+          >%</span>
         </a>
         <button
           type="button"
