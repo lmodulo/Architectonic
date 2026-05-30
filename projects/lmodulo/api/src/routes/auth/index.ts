@@ -32,6 +32,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
   // POST /auth/register
   app.post<{ Body: RegisterBody }>('/register', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
     schema: {
       summary: 'Register a new user account',
       body: {
@@ -89,6 +90,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
   // POST /auth/login
   app.post<{ Body: LoginBody }>('/login', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
     schema: {
       summary: 'Authenticate and create a session',
       body: {
@@ -189,6 +191,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
   // POST /auth/forgot-password
   app.post<{ Body: ForgotPasswordBody }>('/forgot-password', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
     schema: {
       summary: 'Request a password reset email',
       body: {
@@ -222,6 +225,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
   // POST /auth/reset-password
   app.post<{ Body: ResetPasswordBody }>('/reset-password', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
     schema: {
       summary: 'Set a new password using a reset token',
       body: {
@@ -259,6 +263,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
   // POST /auth/set-password — set password using a welcome/invite token (48h expiry)
   app.post<{ Body: SetPasswordBody }>('/set-password', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
     schema: {
       summary: 'Set account password using an invite token',
       body: {

@@ -15,7 +15,8 @@ import sessionPlugin    from './plugins/session.js';
 import ensureIndexes    from './plugins/indexes.js';
 import authPlugin       from './plugins/auth.js';
 import seedPlugin       from './plugins/seed.js';
-import automationPlugin from './plugins/automation.js';
+import automationPlugin  from './plugins/automation.js';
+import rateLimitPlugin   from './plugins/rateLimitPlugin.js';
 import { dispatch }     from './lib/notifications/dispatch.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -62,6 +63,7 @@ await app.register(ensureIndexes);    // Creates indexes on first boot
 await app.register(authPlugin);       // Decorates requireAuth + requirePermission
 await app.register(seedPlugin);       // Upserts default roles on every boot
 await app.register(automationPlugin); // Decorates app.bus; loads rules on onReady
+await app.register(rateLimitPlugin);  // IP-based rate limits; per-route config on auth endpoints
 
 // WebSocket support — must register before autoload so WS routes work
 await app.register(websocket);

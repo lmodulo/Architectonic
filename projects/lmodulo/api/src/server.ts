@@ -15,7 +15,8 @@ import sessionPlugin   from './plugins/session.js';
 import ensureIndexes  from './plugins/indexes.js';
 import authPlugin     from './plugins/auth.js';
 import seedPlugin     from './plugins/seed.js';
-import schedulerPlugin from './plugins/scheduler.js';
+import schedulerPlugin  from './plugins/scheduler.js';
+import rateLimitPlugin  from './plugins/rateLimitPlugin.js';
 import { dispatch }  from './lib/notifications/dispatch.js';
 import { initEmailBrand } from './lib/email.js';
 
@@ -64,6 +65,7 @@ await app.register(authPlugin);      // Decorates requireAuth + requirePermissio
 await app.register(seedPlugin);      // Upserts default roles on every boot
 await initEmailBrand(app.mongo.db);  // Cache brand settings for email templates
 await app.register(schedulerPlugin); // Recurring invoice + subscription billing runner
+await app.register(rateLimitPlugin); // IP-based rate limits; per-route config on auth endpoints
 
 // WebSocket support — must register before autoload so WS routes work
 await app.register(websocket);
