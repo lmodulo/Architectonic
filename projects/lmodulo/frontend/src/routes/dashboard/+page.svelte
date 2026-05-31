@@ -2,28 +2,47 @@
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import type { AgileMilestone, AgileSprint, AgileTask } from '$lib/utils/agile';
+  import type { DateRange } from '$lib/utils/dashboard';
   import ActivityVolumeChart from '$lib/components/crm/ActivityVolumeChart.svelte';
+  import DateRangeFilter from '$lib/components/DateRangeFilter.svelte';
   import { fmtCurrency, donutSegs, funnelPolygons } from '$lib/utils/dashboard';
 
   let { data }: { data: PageData } = $props();
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
+  // ── DATE RANGE HELPERS ─────────────────────────────────────────────────────
+  function inRange(v: string | null | undefined, r: DateRange): boolean {
+    if (!v) return true;
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return true;
+    return (!r.from || d >= r.from) && (!r.to || d <= r.to);
+  }
+
   // ══════════════════════════════════════════════════════════════════════
   // AGILE
   // ══════════════════════════════════════════════════════════════════════
+  let agileRange = $state<DateRange>({ from: null, to: null });
+
   const milestones = $derived((data.milestones ?? []) as AgileMilestone[]);
   const sprints    = $derived((data.sprints    ?? []) as AgileSprint[]);
-  const tasks      = $derived((data.agileTasks ?? []) as AgileTask[]);
-  const myTasks    = $derived(tasks.filter(t => t.assignedTo === data.user?.id));
 
-  const agileRole      = $derived(data.user?.role ?? '');
-  const isPriv         = $derived(['owner', 'admin', 'lead'].includes(agileRole));
-  const doneCount      = $derived(tasks.filter(t => t.status === 'Done').length);
-  const blockedCount   = $derived(tasks.filter(t => t.status === 'Blocked').length);
-  const agileOverdue   = $derived(tasks.filter(t => t.dueDate && new Date(t.dueDate) < today && t.status !== 'Done').length);
-  const donePct        = $derived(tasks.length ? Math.round(doneCount / tasks.length * 100) : 0);
-  const activeSprints  = $derived(sprints.filter(s => s.status === 'Active').length);
+  const tasks = $derived(
+    (agileRange.from || agileRange.to)
+      ? ((data.agileTasks ?? []) as AgileTask[]).filter(t =>
+          t.dueDate ? inRange(t.dueDate, agileRange) : false
+        )
+      : (data.agileTasks ?? []) as AgileTask[]
+  );
+  const myTasks = $derived(tasks.filter(t => t.assignedTo === data.user?.id));
+
+  const agileRole    = $derived(data.user?.role ?? '');
+  const isPriv       = $derived(['owner', 'admin', 'lead'].includes(agileRole));
+  const doneCount    = $derived(tasks.filter(t => t.status === 'Done').length);
+  const blockedCount = $derived(tasks.filter(t => t.status === 'Blocked').length);
+  const agileOverdue = $derived(tasks.filter(t => t.dueDate && new Date(t.dueDate) < today && t.status !== 'Done').length);
+  const donePct      = $derived(tasks.length ? Math.round(doneCount / tasks.length * 100) : 0);
+  const activeSprints = $derived(sprints.filter(s => s.status === 'Active').length);
 
   const TASK_COLORS: Record<string, string> = {
     'Backlog':     'var(--color-base-content)',
@@ -59,13 +78,23 @@
   // ══════════════════════════════════════════════════════════════════════
   // NEXUS (CRM)
   // ══════════════════════════════════════════════════════════════════════
-  const crmDeals      = $derived((data.crmDeals ?? []) as any[]);
-  const crmActivities = $derived((data.crmActivities ?? []) as any[]);
-  const contactsTotal = $derived(data.crmContactsTotal  ?? 0);
-  const companiesTotal= $derived(data.crmCompaniesTotal ?? 0);
+  let nexusRange = $state<DateRange>({ from: null, to: null });
 
-  const DEAL_STAGES    = ['Discovery', 'Proposal', 'Negotiation', 'Contract', 'Closed Won', 'Closed Lost'];
-  const FUNNEL_COLORS  = [
+  const crmDeals = $derived(
+    (nexusRange.from || nexusRange.to)
+      ? ((data.crmDeals ?? []) as any[]).filter(d => inRange(d.createdAt, nexusRange))
+      : (data.crmDeals ?? []) as any[]
+  );
+  const crmActivities = $derived(
+    (nexusRange.from || nexusRange.to)
+      ? ((data.crmActivities ?? []) as any[]).filter(a => inRange(a.createdAt, nexusRange))
+      : (data.crmActivities ?? []) as any[]
+  );
+  const contactsTotal  = $derived(data.crmContactsTotal  ?? 0);
+  const companiesTotal = $derived(data.crmCompaniesTotal ?? 0);
+
+  const DEAL_STAGES   = ['Discovery', 'Proposal', 'Negotiation', 'Contract', 'Closed Won', 'Closed Lost'];
+  const FUNNEL_COLORS = [
     'var(--color-primary)', 'var(--color-secondary)', 'var(--color-accent)',
     'var(--color-info)', 'var(--color-success)', 'var(--color-error)',
   ];
@@ -98,9 +127,19 @@
   // ══════════════════════════════════════════════════════════════════════
   // FOLIO
   // ══════════════════════════════════════════════════════════════════════
-  const folioInvoices  = $derived((data.folioInvoices  ?? []) as any[]);
+  let folioRange = $state<DateRange>({ from: null, to: null });
+
+  const folioInvoices = $derived(
+    (folioRange.from || folioRange.to)
+      ? ((data.folioInvoices ?? []) as any[]).filter(i => inRange(i.issueDate ?? i.createdAt, folioRange))
+      : (data.folioInvoices ?? []) as any[]
+  );
+  const folioExpenses = $derived(
+    (folioRange.from || folioRange.to)
+      ? ((data.folioExpenses ?? []) as any[]).filter(e => inRange(e.date ?? e.createdAt, folioRange))
+      : (data.folioExpenses ?? []) as any[]
+  );
   const folioCustomers = $derived((data.folioCustomers ?? []) as any[]);
-  const folioExpenses  = $derived((data.folioExpenses  ?? []) as any[]);
 
   const INV_COLORS: Record<string, string> = {
     draft:   'var(--color-base-content)',
@@ -145,6 +184,85 @@
   });
 
   // ══════════════════════════════════════════════════════════════════════
+  // CONTRACTS
+  // ══════════════════════════════════════════════════════════════════════
+  let contractsRange = $state<DateRange>({ from: null, to: null });
+
+  const CONTRACT_STATUS_COLORS: Record<string, string> = {
+    draft:             'var(--color-base-content)',
+    pending_signature: 'var(--color-warning)',
+    signed:            'var(--color-success)',
+    active:            'var(--color-info)',
+    voided:            'var(--color-error)',
+  };
+
+  const CONTRACT_STATUS_LABELS: Record<string, string> = {
+    draft:             'Draft',
+    pending_signature: 'Pending',
+    signed:            'Signed',
+    active:            'Active',
+    voided:            'Voided',
+  };
+
+  const contracts = $derived(
+    (contractsRange.from || contractsRange.to)
+      ? ((data.contracts ?? []) as any[]).filter(c => inRange(c.createdAt, contractsRange))
+      : (data.contracts ?? []) as any[]
+  );
+
+  const activeContractCount = $derived(
+    contracts.filter(c => ['signed', 'active'].includes(c.status)).length
+  );
+  const contractTotalValue = $derived(
+    contracts
+      .filter(c => !['voided', 'draft'].includes(c.status))
+      .reduce((s: number, c: any) => s + (c.value ?? 0), 0)
+  );
+  const pendingSignatureCount = $derived(
+    contracts.filter(c => c.status === 'pending_signature').length
+  );
+  const expiringSoonCount = $derived(
+    contracts.filter(c => {
+      if (!c.expiryDate) return false;
+      if (!['signed', 'active', 'pending_signature'].includes(c.status)) return false;
+      const exp = new Date(c.expiryDate);
+      const soon = new Date(today.getTime() + 30 * 86400000);
+      return exp >= today && exp <= soon;
+    }).length
+  );
+
+  const contractStatusCounts = $derived(() => {
+    const counts: Record<string, number> = {};
+    for (const c of contracts) counts[c.status] = (counts[c.status] ?? 0) + 1;
+    return Object.entries(counts).filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, value]) => ({ label, value }));
+  });
+
+  const contractSegs = $derived(donutSegs(contractStatusCounts()));
+
+  const expiringList = $derived(() => {
+    const ninety = new Date(today.getTime() + 90 * 86400000);
+    return contracts
+      .filter(c => {
+        if (!c.expiryDate) return false;
+        if (!['signed', 'active', 'pending_signature'].includes(c.status)) return false;
+        const exp = new Date(c.expiryDate);
+        return exp >= today && exp <= ninety;
+      })
+      .map(c => {
+        const exp = new Date(c.expiryDate);
+        const eff = c.effectiveDate ? new Date(c.effectiveDate) : null;
+        const daysLeft  = Math.ceil((exp.getTime() - today.getTime()) / 86400000);
+        const totalDays = eff ? Math.max(1, Math.ceil((exp.getTime() - eff.getTime()) / 86400000)) : 90;
+        const pct       = Math.max(2, Math.min(100, Math.round(daysLeft / totalDays * 100)));
+        return { ...c, daysLeft, pct };
+      })
+      .sort((a, b) => a.daysLeft - b.daysLeft)
+      .slice(0, 5);
+  });
+
+  // ══════════════════════════════════════════════════════════════════════
   // CALENDAR
   // ══════════════════════════════════════════════════════════════════════
   const events = $derived((data.events ?? []) as any[]);
@@ -178,12 +296,15 @@
   {#if hasPermission(data.user, 'agile_milestones', 'read')}
   <section class="space-y-4">
 
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
         <span class="block w-0.5 h-4 rounded-full bg-primary opacity-80"></span>
         <h2 class="text-sm font-semibold">Agile</h2>
       </div>
-      <a href="/agile" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+      <div class="flex items-center gap-3">
+        <DateRangeFilter bind:value={agileRange} />
+        <a href="/agile" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+      </div>
     </div>
 
     <!-- KPI strip -->
@@ -324,12 +445,15 @@
   {#if hasPermission(data.user, 'crm_contacts', 'read')}
   <section class="space-y-4">
 
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
         <span class="block w-0.5 h-4 rounded-full bg-secondary opacity-80"></span>
         <h2 class="text-sm font-semibold">Nexus</h2>
       </div>
-      <a href="/crm" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+      <div class="flex items-center gap-3">
+        <DateRangeFilter bind:value={nexusRange} />
+        <a href="/crm" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+      </div>
     </div>
 
     <!-- KPI strip -->
@@ -403,12 +527,15 @@
   {#if hasPermission(data.user, 'finance_invoices', 'read')}
   <section class="space-y-4">
 
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
         <span class="block w-0.5 h-4 rounded-full bg-success opacity-80"></span>
         <h2 class="text-sm font-semibold">Folio</h2>
       </div>
-      <a href="/folio" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+      <div class="flex items-center gap-3">
+        <DateRangeFilter bind:value={folioRange} />
+        <a href="/folio" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+      </div>
     </div>
 
     <!-- KPI strip -->
@@ -504,6 +631,117 @@
           <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-success opacity-75 shrink-0"></span>Paid</span>
           <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-warning opacity-75 shrink-0"></span>Outstanding</span>
         </div>
+      </div>
+      {/if}
+
+    </div>
+    {/if}
+
+  </section>
+  {/if}
+
+  <!-- ══ CONTRACTS ════════════════════════════════════════════════════════ -->
+  {#if hasPermission(data.user, 'contracts', 'read')}
+  <section class="space-y-4">
+
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5">
+        <span class="block w-0.5 h-4 rounded-full bg-info opacity-80"></span>
+        <h2 class="text-sm font-semibold">Contracts</h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <DateRangeFilter bind:value={contractsRange} />
+        <a href="/contracts" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+      </div>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-base-200 border border-base-300 rounded-box p-4">
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Active</p>
+        <p class="text-2xl font-bold mt-1">{activeContractCount}</p>
+        <p class="text-xs opacity-40 mt-0.5">{contracts.length} total</p>
+      </div>
+      <div class="bg-base-200 border border-base-300 rounded-box p-4">
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Value</p>
+        <p class="text-2xl font-bold mt-1">{contractTotalValue > 0 ? fmtCurrency(contractTotalValue) : '—'}</p>
+        <p class="text-xs opacity-40 mt-0.5">executed contracts</p>
+      </div>
+      <div class="bg-base-200 border border-base-300 rounded-box p-4">
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Pending</p>
+        <p class="text-2xl font-bold mt-1 {pendingSignatureCount > 0 ? 'text-warning' : ''}">{pendingSignatureCount}</p>
+        <p class="text-xs opacity-40 mt-0.5">awaiting signature</p>
+      </div>
+      <div class="bg-base-200 border border-base-300 rounded-box p-4">
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Expiring</p>
+        <p class="text-2xl font-bold mt-1 {expiringSoonCount > 0 ? 'text-warning' : ''}">{expiringSoonCount}</p>
+        <p class="text-xs opacity-40 mt-0.5">within 30 days</p>
+      </div>
+    </div>
+
+    {#if contracts.length > 0}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <!-- Contract status donut -->
+      <div class="bg-base-200 border border-base-300 rounded-box p-5">
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Contract Status</p>
+        <div class="flex items-center gap-6">
+          <svg viewBox="0 0 180 180" width="148" height="148" class="shrink-0" aria-hidden="true">
+            {#if contractSegs.length > 0}
+              {#each contractSegs as seg}
+                <path d={seg.path} fill={CONTRACT_STATUS_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9"/>
+              {/each}
+            {:else}
+              <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
+            {/if}
+            <text x="90" y="84" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor">{contracts.length}</text>
+            <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">contracts</text>
+          </svg>
+          <ul class="flex-1 space-y-2.5">
+            {#each contractSegs as seg}
+              <li class="flex items-center justify-between gap-2 text-xs">
+                <span class="flex items-center gap-1.5 min-w-0">
+                  <span class="size-2 rounded-full shrink-0" style="background:{CONTRACT_STATUS_COLORS[seg.label] ?? 'var(--color-neutral)'}"></span>
+                  <span class="opacity-60 truncate">{CONTRACT_STATUS_LABELS[seg.label] ?? seg.label}</span>
+                </span>
+                <span class="font-semibold shrink-0">{seg.value} <span class="opacity-30 font-normal">{seg.pct}%</span></span>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Expiring soon list -->
+      {#if expiringList().length > 0}
+      {@const expiring = expiringList()}
+      <div class="bg-base-200 border border-base-300 rounded-box p-5">
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Expiring Soon</p>
+        <div class="space-y-3.5">
+          {#each expiring as c}
+            {@const barColor = c.daysLeft < 14 ? 'var(--color-error)' : c.daysLeft < 30 ? 'var(--color-warning)' : 'var(--color-info)'}
+            <a href="/contracts/{c.id}" class="block group">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-medium truncate max-w-[72%] group-hover:opacity-60 transition-opacity">{c.title}</span>
+                <span class="text-xs font-bold opacity-50">{c.daysLeft}d</span>
+              </div>
+              <div class="relative h-1.5 rounded-full bg-base-300 overflow-hidden">
+                <div
+                  class="absolute inset-y-0 left-0 rounded-full opacity-75 transition-all"
+                  style="width:{c.pct}%;background:{barColor}"
+                ></div>
+              </div>
+            </a>
+          {/each}
+        </div>
+        <div class="flex items-center gap-4 mt-4 text-[10px] opacity-50">
+          <span class="flex items-center gap-1.5"><span class="size-2 rounded-full shrink-0" style="background:var(--color-info)"></span>30+ days</span>
+          <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-warning shrink-0"></span>14-30 days</span>
+          <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-error shrink-0"></span>&lt;14 days</span>
+        </div>
+      </div>
+      {:else}
+      <div class="bg-base-200 border border-base-300 rounded-box p-5 flex items-center justify-center">
+        <p class="text-xs opacity-30">No contracts expiring within 90 days</p>
       </div>
       {/if}
 

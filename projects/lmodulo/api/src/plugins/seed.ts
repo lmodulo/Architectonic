@@ -2391,6 +2391,124 @@ export default fp(async function seedPlugin(app: any) {
       }
     }
 
+    // ── Contracts ─────────────────────────────────────────────────────
+    const contractsColl = db.collection('contracts');
+    if (!await contractsColl.countDocuments()) {
+      const [coVertexDoc, coTechDoc, coBluePeakDoc, coOrionDoc, coCivicDoc] = await Promise.all([
+        db.collection('crm_companies').findOne({ name: 'Vertex Systems' }),
+        db.collection('crm_companies').findOne({ name: 'TechFusion Inc' }),
+        db.collection('crm_companies').findOne({ name: 'BluePeak Agency' }),
+        db.collection('crm_companies').findOne({ name: 'Orion Labs' }),
+        db.collection('crm_companies').findOne({ name: 'CivicBridge' }),
+      ]);
+      const coVertex   = (coVertexDoc as any)?._id   ?? new ObjectId();
+      const coTech     = (coTechDoc as any)?._id     ?? new ObjectId();
+      const coBluePeak = (coBluePeakDoc as any)?._id ?? new ObjectId();
+      const coOrion    = (coOrionDoc as any)?._id    ?? new ObjectId();
+      const coCivic    = (coCivicDoc as any)?._id    ?? new ObjectId();
+
+      await contractsColl.insertMany([
+        {
+          title: 'Master Service Agreement — Vertex Systems',
+          type: 'msa', status: 'signed', content: '',
+          companyId: coVertex, contactIds: [], dealId: null, estimateId: null,
+          value: 48000, currency: 'USD',
+          effectiveDate: d(-90), expiryDate: d(275),
+          signers: [
+            { name: 'Marcus Webb',  email: 'marcus.webb@vertexsystems.io', role: 'client',   status: 'signed', signedAt: d(-88) },
+            { name: 'Joe Nicora',   email: 'joenicora@me.com',             role: 'provider', status: 'signed', signedAt: d(-89) },
+          ],
+          attachments: [], createdBy: joeId,
+          createdAt: d(-95), updatedAt: d(-88),
+        },
+        {
+          title: 'Platform Onboarding SOW — Vertex Systems',
+          type: 'sow', status: 'signed', content: '',
+          companyId: coVertex, contactIds: [], dealId: null, estimateId: null,
+          value: 18000, currency: 'USD',
+          effectiveDate: d(-60), expiryDate: d(28),
+          signers: [
+            { name: 'Priya Sharma', email: 'priya.sharma@vertexsystems.io', role: 'client',   status: 'signed', signedAt: d(-57) },
+            { name: 'Joe Nicora',   email: 'joenicora@me.com',              role: 'provider', status: 'signed', signedAt: d(-58) },
+          ],
+          attachments: [], createdBy: joeId,
+          createdAt: d(-62), updatedAt: d(-57),
+        },
+        {
+          title: 'Non-Disclosure Agreement — TechFusion Inc',
+          type: 'nda', status: 'signed', content: '',
+          companyId: coTech, contactIds: [], dealId: null, estimateId: null,
+          value: null, currency: 'USD',
+          effectiveDate: d(-45), expiryDate: d(320),
+          signers: [
+            { name: 'Dana Kowalski', email: 'dana@techfusion.dev',  role: 'client',   status: 'signed', signedAt: d(-43) },
+            { name: 'Alex Chen',     email: 'alex@lmodulo.com',     role: 'provider', status: 'signed', signedAt: d(-44) },
+          ],
+          attachments: [], createdBy: alexId,
+          createdAt: d(-48), updatedAt: d(-43),
+        },
+        {
+          title: 'Q2 Pilot Engagement SOW — TechFusion Inc',
+          type: 'sow', status: 'pending_signature', content: '',
+          companyId: coTech, contactIds: [], dealId: null, estimateId: null,
+          value: 22500, currency: 'USD',
+          effectiveDate: d(3), expiryDate: d(93),
+          signers: [
+            { name: 'Dana Kowalski', email: 'dana@techfusion.dev',       role: 'client', status: 'pending', signedAt: null },
+            { name: 'Tyler Osei',    email: 'tyler.osei@techfusion.dev', role: 'client', status: 'pending', signedAt: null },
+          ],
+          attachments: [], createdBy: alexId,
+          createdAt: d(-3), updatedAt: d(-1),
+        },
+        {
+          title: 'Brand Refresh & Design System SOW — BluePeak Agency',
+          type: 'sow', status: 'active', content: '',
+          companyId: coBluePeak, contactIds: [], dealId: null, estimateId: null,
+          value: 12000, currency: 'USD',
+          effectiveDate: d(-20), expiryDate: d(22),
+          signers: [
+            { name: 'Carmen Reyes', email: 'carmen@bluepeakagency.com', role: 'client',   status: 'signed', signedAt: d(-18) },
+            { name: 'Alex Chen',    email: 'alex@lmodulo.com',          role: 'provider', status: 'signed', signedAt: d(-19) },
+          ],
+          attachments: [], createdBy: alexId,
+          createdAt: d(-22), updatedAt: d(-18),
+        },
+        {
+          title: 'Partnership Non-Disclosure Agreement — Orion Labs',
+          type: 'nda', status: 'signed', content: '',
+          companyId: coOrion, contactIds: [], dealId: null, estimateId: null,
+          value: null, currency: 'USD',
+          effectiveDate: d(-30), expiryDate: d(335),
+          signers: [
+            { name: 'Finn Nakamura', email: 'finn@orionlabs.io',    role: 'client',   status: 'signed', signedAt: d(-28) },
+            { name: 'Kyle Nicora',   email: 'kylenicora@me.com',    role: 'provider', status: 'signed', signedAt: d(-29) },
+          ],
+          attachments: [], createdBy: kyleId,
+          createdAt: d(-32), updatedAt: d(-28),
+        },
+        {
+          title: 'Enterprise Platform Implementation SOW — CivicBridge',
+          type: 'sow', status: 'voided', content: '',
+          companyId: coCivic, contactIds: [], dealId: null, estimateId: null,
+          value: 34000, currency: 'USD',
+          effectiveDate: null, expiryDate: null,
+          signers: [],
+          attachments: [], createdBy: joeId,
+          createdAt: d(-25), updatedAt: d(-10),
+        },
+        {
+          title: 'Master Service Agreement — New Client (Draft)',
+          type: 'msa', status: 'draft', content: '',
+          companyId: null, contactIds: [], dealId: null, estimateId: null,
+          value: null, currency: 'USD',
+          effectiveDate: null, expiryDate: null,
+          signers: [],
+          attachments: [], createdBy: joeId,
+          createdAt: d(-1), updatedAt: d(-1),
+        },
+      ]);
+    }
+
     // ── Contract templates ─────────────────────────────────────────────
     const contractTemplates = db.collection('contract_templates');
     if (!await contractTemplates.countDocuments()) {

@@ -14,6 +14,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
     eventsRes, agileMs, sprintsRes, agileTasks,
     crmDealsRes, crmContactsRes, crmCompaniesRes, crmActivitiesRes,
     finInvoicesRes, finCustomersRes, finExpensesRes,
+    contractsRes,
   ] = await Promise.all([
     fetch(`${API_URL}/events`, { headers }).catch(() => null),
     fetch(`${API_URL}/agile/milestones?limit=50`, { headers }).catch(() => null),
@@ -26,6 +27,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
     fetch(`${API_URL}/finance/invoices?limit=200`, { headers }).catch(() => null),
     fetch(`${API_URL}/finance/customers`, { headers }).catch(() => null),
     fetch(`${API_URL}/finance/expenses?limit=200`, { headers }).catch(() => null),
+    fetch(`${API_URL}/contracts?limit=200`, { headers }).catch(() => null),
   ]);
 
   let events: unknown[] = [];
@@ -43,10 +45,12 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
   const finInvoicesRaw  = finInvoicesRes?.ok  ? (await finInvoicesRes.json().catch(() => ({}))).invoices  ?? [] : [];
   const finCustomersRaw = finCustomersRes?.ok ? (await finCustomersRes.json().catch(() => ({}))).customers ?? [] : [];
   const finExpensesRaw  = finExpensesRes?.ok  ? (await finExpensesRes.json().catch(() => ({}))).expenses  ?? [] : [];
+  const contractsRaw    = contractsRes?.ok    ? (await contractsRes.json().catch(() => []))                    : [];
 
   return {
     user: locals.user, events, milestones, sprints, agileTasks: agileTskRaw,
     crmDeals: crmDealsRaw, crmContactsTotal, crmCompaniesTotal, crmActivities: crmActivitiesRaw,
     folioInvoices: finInvoicesRaw, folioCustomers: finCustomersRaw, folioExpenses: finExpensesRaw,
+    contracts: Array.isArray(contractsRaw) ? contractsRaw : [],
   };
 };
