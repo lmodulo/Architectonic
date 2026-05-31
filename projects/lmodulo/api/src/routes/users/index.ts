@@ -284,6 +284,41 @@ export default async function usersRoutes(app: FastifyInstance) {
     return { deleted: true };
   });
 
+  // GET /users/me/preferences
+  app.get('/me/preferences', {
+    preHandler: app.requireAuth,
+    schema: { summary: 'Get current user preferences' }
+  }, async (req) => {
+    const user = await app.mongo.db!.collection(COLLECTION).findOne(
+      { _id: new ObjectId(req.session.userId!) },
+      { projection: { preferences: 1 } }
+    );
+    return { preferences: (user?.preferences as Record<string, unknown>) ?? {} };
+  });
+
+  // PATCH /users/me/preferences — upsert a single preference key (value is a JSON string)
+  app.patch<{ Body: { key: string; value: string } }>('/me/preferences', {
+    preHandler: app.requireAuth,
+    schema: {
+      summary: 'Update a user preference',
+      body: {
+        type: 'object',
+        required: ['key', 'value'],
+        properties: {
+          key:   { type: 'string', minLength: 1, maxLength: 100 },
+          value: { type: 'string', maxLength: 65536 }
+        }
+      }
+    }
+  }, async (req) => {
+    const { key, value } = req.body;
+    await app.mongo.db!.collection(COLLECTION).updateOne(
+      { _id: new ObjectId(req.session.userId!) },
+      { $set: { [`preferences.${key}`]: value, updatedAt: new Date() } }
+    );
+    return { updated: true };
+  });
+
   // PATCH /users/:id/role — assign a role to a user
   app.patch<{ Params: { id: string }; Body: { role: string } }>('/:id/role', {
     preHandler: app.requirePermission('users', 'update'),

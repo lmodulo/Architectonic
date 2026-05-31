@@ -1,8 +1,12 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
-  import { Search, TrendingUp, ShoppingCart, DollarSign, MapPin, ChevronUp, ChevronDown,
-           Plus, X, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import {
+    Search, TrendingUp, ShoppingCart, DollarSign, MapPin,
+    ChevronLeft, ChevronRight, Plus, X,
+    Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw
+  } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import type { PageData } from './$types';
@@ -12,7 +16,84 @@
 
   let { data }: { data: PageData } = $props();
 
-  // ── Seeded RNG (deterministic data on every load) ──────────────────
+  // ── Layout types & defaults ────────────────────────────────────────
+  interface ItemConfig    { id: string; visible: boolean; }
+  interface SectionConfig { id: string; visible: boolean; items?: ItemConfig[]; }
+  interface DashboardLayout { sections: SectionConfig[]; }
+
+  const SECTION_LABELS: Record<string, string> = {
+    kpi:           'KPI Cards',
+    charts:        'Charts',
+    'sales-table': 'Sales Records',
+    calendar:      'Order Calendar',
+    widgets:       'Module Widgets',
+  };
+
+  const ITEM_LABELS: Record<string, Record<string, string>> = {
+    kpi: {
+      revenue:      'Total Revenue',
+      orders:       'Total Orders',
+      'avg-order':  'Avg Order Value',
+      'top-region': 'Top Region',
+    },
+    charts: {
+      'daily-revenue':   'Daily Revenue',
+      'product-revenue': 'Revenue by Product',
+      'region-orders':   'Orders by Region',
+      'monthly-revenue': 'Monthly Revenue',
+    },
+  };
+
+  function defaultLayout(): DashboardLayout {
+    return {
+      sections: [
+        { id: 'kpi', visible: true, items: [
+          { id: 'revenue',      visible: true },
+          { id: 'orders',       visible: true },
+          { id: 'avg-order',    visible: true },
+          { id: 'top-region',   visible: true },
+        ]},
+        { id: 'charts', visible: true, items: [
+          { id: 'daily-revenue',   visible: true },
+          { id: 'product-revenue', visible: true },
+          { id: 'region-orders',   visible: true },
+          { id: 'monthly-revenue', visible: true },
+        ]},
+        { id: 'sales-table', visible: true },
+        { id: 'calendar',    visible: true },
+        { id: 'widgets',     visible: true },
+      ]
+    };
+  }
+
+  function mergeLayout(stored: DashboardLayout): DashboardLayout {
+    const defs = defaultLayout();
+    const merged = defs.sections.map(def => {
+      const ss = stored.sections.find(s => s.id === def.id);
+      if (!ss) return def;
+      if (!def.items) return { ...def, visible: ss.visible };
+      const mergedItems = def.items.map(di => {
+        const si = ss.items?.find(i => i.id === di.id);
+        return si ? { ...di, visible: si.visible } : di;
+      });
+      const ordered = [
+        ...mergedItems
+          .filter(mi => ss.items?.some(si => si.id === mi.id))
+          .sort((a, b) => ss.items!.findIndex(i => i.id === a.id) - ss.items!.findIndex(i => i.id === b.id)),
+        ...mergedItems.filter(mi => !ss.items?.some(si => si.id === mi.id)),
+      ];
+      return { ...def, visible: ss.visible, items: ordered };
+    });
+    const orderedSections = [
+      ...merged
+        .filter(ms => stored.sections.some(ss => ss.id === ms.id))
+        .sort((a, b) => stored.sections.findIndex(s => s.id === a.id) - stored.sections.findIndex(s => s.id === b.id)),
+      ...merged.filter(ms => !stored.sections.some(ss => ss.id === ms.id)),
+    ];
+    return { sections: orderedSections };
+  }
+
+  // ── Seeded RNG ─────────────────────────────────────────────────────
   function makeRng(seed: number) {
     let s = (seed >>> 0) || 1;
     return () => { s = (Math.imul(1664525, s) + 1013904223) >>> 0; return s / 0x100000000; };
@@ -32,8 +113,8 @@
     const daysAgo = Math.floor(rng() * 90);
     const d = new Date(today); d.setDate(d.getDate() - daysAgo);
     return {
-      id: `ORD-${1000 + i}`,
-      date: d,
+      id:      `ORD-${1000 + i}`,
+      date:    d,
       product: PRODUCTS[Math.floor(rng() * PRODUCTS.length)],
       region:  REGIONS[Math.floor(rng()  * REGIONS.length)],
       revenue: Math.round((rng() * 8500 + 500) * 100) / 100,
@@ -51,6 +132,13 @@
   )[0];
 
   const fmt = (n: number) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+  const KPI_DEFS = [
+    { id: 'revenue',    label: 'Total Revenue',  value: fmt(totalRevenue),    sub: '90-day period',       icon: DollarSign,   color: 'primary'   },
+    { id: 'orders',     label: 'Total Orders',   value: String(totalOrders),  sub: 'across all regions',  icon: ShoppingCart, color: 'secondary' },
+    { id: 'avg-order',  label: 'Avg Order Value',value: fmt(avgOrder),        sub: 'per transaction',     icon: TrendingUp,   color: 'success'   },
+    { id: 'top-region', label: 'Top Region',     value: topRegion,            sub: 'by order volume',     icon: MapPin,       color: 'warning'   },
+  ];
 
   // ── Chart datasets ─────────────────────────────────────────────────
   const dailyData = Array.from({ length: 30 }, (_, i) => {
@@ -159,7 +247,6 @@
   function prevMonth() { calMonth === 0 ? (calMonth=11, calYear--) : calMonth--; }
   function nextMonth() { calMonth === 11 ? (calMonth=0, calYear++) : calMonth++; }
 
-  // max revenue day for calendar heat intensity
   const maxDayRevenue = $derived(
     Math.max(...calDays.filter(Boolean).map(d => d!.revenue), 1)
   );
@@ -169,8 +256,8 @@
     id: string;
     title: string;
     content: string;
-    startDate: string; // YYYY-MM-DD
-    endDate: string;   // YYYY-MM-DD
+    startDate: string;
+    endDate: string;
     singleDay: boolean;
   };
 
@@ -206,10 +293,7 @@
       : []
   );
 
-  // Keep endDate in sync when singleDay is on
-  $effect(() => {
-    if (eventForm.singleDay) eventForm.endDate = eventForm.startDate;
-  });
+  $effect(() => { if (eventForm.singleDay) eventForm.endDate = eventForm.startDate; });
 
   function eventsForDay(year: number, month: number, day: number): CalEvent[] {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -240,10 +324,8 @@
   async function saveEvent() {
     if (!eventForm.title.trim()) { eventError = 'Title is required'; return; }
     if (!eventForm.startDate)    { eventError = 'Start date is required'; return; }
-
     eventLoading = true;
     eventError   = '';
-
     const body = {
       title:     eventForm.title.trim(),
       content:   eventForm.content,
@@ -251,29 +333,18 @@
       endDate:   eventForm.singleDay ? eventForm.startDate : (eventForm.endDate || eventForm.startDate),
       singleDay: eventForm.singleDay,
     };
-
     try {
       let res: Response;
       if (editingEventId) {
-        res = await fetch(`/api/events/${editingEventId}`, {
-          method: 'PUT',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(body),
-        });
+        res = await fetch(`/api/events/${editingEventId}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
       } else {
-        res = await fetch('/api/events', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(body),
-        });
+        res = await fetch('/api/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
       }
-
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         eventError = (d as { message?: string }).message ?? 'Save failed';
         return;
       }
-
       const saved = await res.json();
       const normalized: CalEvent = {
         id:        editingEventId ?? String(saved.id ?? saved._id ?? ''),
@@ -283,13 +354,11 @@
         endDate:   toDateStr(saved.endDate)   || body.endDate,
         singleDay: Boolean(saved.singleDay ?? body.singleDay),
       };
-
       if (editingEventId) {
         events = events.map(e => e.id === editingEventId ? normalized : e);
       } else {
         events = [...events, normalized];
       }
-
       eventModalOpen = false;
     } catch {
       eventError = 'Network error';
@@ -325,293 +394,521 @@
     return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
   }
 
-  // ── Dashboard widgets (injected by modules) ────────────────────────
+  // ── Dashboard widgets ──────────────────────────────────────────────
   const sortedWidgets = $derived([...dashboardWidgets].sort((a, b) => a.order - b.order));
+
+  // ── Edit Mode & Layout ────────────────────────────────────────────
+  let editMode        = $state(false);
+  let layout          = $state<DashboardLayout>(defaultLayout());
+  let saveStatus      = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  let draggingSection = $state<string | null>(null);
+  let dragOverSection = $state<string | null>(null);
+  let draggingItem    = $state<{ sectionId: string; itemId: string } | null>(null);
+  let dragOverItem    = $state<{ sectionId: string; itemId: string } | null>(null);
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function reorder<T>(arr: T[], fromId: string, toId: string, getId: (item: T) => string): T[] {
+    const from = arr.findIndex(a => getId(a) === fromId);
+    const to   = arr.findIndex(a => getId(a) === toId);
+    if (from === -1 || to === -1 || from === to) return arr;
+    const result = [...arr];
+    const [removed] = result.splice(from, 1);
+    result.splice(to, 0, removed);
+    return result;
+  }
+
+  function toggleSection(id: string) {
+    layout = { ...layout, sections: layout.sections.map(s => s.id === id ? { ...s, visible: !s.visible } : s) };
+    scheduleLayoutSave();
+  }
+
+  function toggleItem(sectionId: string, itemId: string) {
+    layout = {
+      ...layout,
+      sections: layout.sections.map(s =>
+        s.id === sectionId && s.items
+          ? { ...s, items: s.items.map(i => i.id === itemId ? { ...i, visible: !i.visible } : i) }
+          : s
+      )
+    };
+    scheduleLayoutSave();
+  }
+
+  function scheduleLayoutSave() {
+    clearTimeout(saveTimer);
+    saveStatus = 'saving';
+    saveTimer = setTimeout(saveLayout, 700);
+  }
+
+  async function saveLayout() {
+    const jsonStr = JSON.stringify(layout);
+    try {
+      localStorage.setItem('dashboard_layout', jsonStr);
+    } catch { /* ignore */ }
+    try {
+      const res = await fetch('/api/users/me/preferences', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ key: 'dashboardLayout', value: jsonStr }),
+      });
+      saveStatus = res.ok ? 'saved' : 'error';
+    } catch {
+      saveStatus = 'error';
+    }
+    setTimeout(() => { if (saveStatus !== 'saving') saveStatus = 'idle'; }, 2000);
+  }
+
+  function resetLayout() {
+    layout = defaultLayout();
+    scheduleLayoutSave();
+  }
+
+  // Section DnD — drag starts from the grip handle, drops on any section wrapper
+  function onSectionDragStart(e: DragEvent, id: string) {
+    e.dataTransfer?.setData('text/plain', id);
+    draggingSection = id;
+  }
+  function onSectionDragOver(e: DragEvent, targetId: string) {
+    e.preventDefault();
+    if (draggingSection && draggingSection !== targetId) dragOverSection = targetId;
+  }
+  function onSectionDrop(targetId: string) {
+    if (!draggingSection || draggingSection === targetId) { draggingSection = null; dragOverSection = null; return; }
+    layout = { ...layout, sections: reorder(layout.sections, draggingSection, targetId, s => s.id) };
+    draggingSection = null;
+    dragOverSection = null;
+    scheduleLayoutSave();
+  }
+  function onSectionDragEnd() { draggingSection = null; dragOverSection = null; }
+
+  // Item DnD — drag starts from each card (stop propagation to avoid triggering section drag)
+  function onItemDragStart(e: DragEvent, sectionId: string, itemId: string) {
+    e.stopPropagation();
+    e.dataTransfer?.setData('text/plain', itemId);
+    draggingItem = { sectionId, itemId };
+  }
+  function onItemDragOver(e: DragEvent, sectionId: string, itemId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggingItem?.sectionId === sectionId && draggingItem.itemId !== itemId) {
+      dragOverItem = { sectionId, itemId };
+    }
+  }
+  function onItemDrop(e: DragEvent, sectionId: string, targetItemId: string) {
+    e.stopPropagation();
+    if (!draggingItem || draggingItem.sectionId !== sectionId || draggingItem.itemId === targetItemId) {
+      draggingItem = null; dragOverItem = null; return;
+    }
+    layout = {
+      ...layout,
+      sections: layout.sections.map(s =>
+        s.id === sectionId && s.items
+          ? { ...s, items: reorder(s.items, draggingItem!.itemId, targetItemId, i => i.id) }
+          : s
+      )
+    };
+    draggingItem = null;
+    dragOverItem = null;
+    scheduleLayoutSave();
+  }
+  function onItemDragEnd(e: DragEvent) {
+    e.stopPropagation();
+    draggingItem = null;
+    dragOverItem = null;
+  }
+
+  // Load preferences on mount (server preferences first, then localStorage fallback)
+  onMount(async () => {
+    try {
+      const res = await fetch('/api/users/me/preferences');
+      if (res.ok) {
+        const d = await res.json();
+        if (d.preferences?.dashboardLayout) {
+          layout = mergeLayout(JSON.parse(d.preferences.dashboardLayout));
+          return;
+        }
+      }
+    } catch { /* ignore */ }
+    try {
+      const stored = localStorage.getItem('dashboard_layout');
+      if (stored) layout = mergeLayout(JSON.parse(stored));
+    } catch { /* use default */ }
+  });
 </script>
 
 <svelte:head><title>Dashboard</title></svelte:head>
 
-<div class="space-y-8">
+<div class="space-y-6">
 
-  <!-- Header -->
-  <PageHeader title="Dashboard">Welcome back, <strong>{data.user?.firstName ?? data.user?.username}</strong> — last 90 days of sales activity</PageHeader>
-
-  <!-- KPI Cards -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg bg-primary/10"><DollarSign class="size-5 text-primary" /></div>
-      <div>
-        <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Revenue</p>
-        <p class="text-2xl font-bold mt-0.5">{fmt(totalRevenue)}</p>
-        <p class="text-xs opacity-50 mt-0.5">90-day period</p>
-      </div>
-    </div>
-    <div class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg bg-secondary/10"><ShoppingCart class="size-5 text-secondary" /></div>
-      <div>
-        <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Orders</p>
-        <p class="text-2xl font-bold mt-0.5">{totalOrders}</p>
-        <p class="text-xs opacity-50 mt-0.5">across all regions</p>
-      </div>
-    </div>
-    <div class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg bg-success/10"><TrendingUp class="size-5 text-success" /></div>
-      <div>
-        <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Avg Order Value</p>
-        <p class="text-2xl font-bold mt-0.5">{fmt(avgOrder)}</p>
-        <p class="text-xs opacity-50 mt-0.5">per transaction</p>
-      </div>
-    </div>
-    <div class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4">
-      <div class="p-2 rounded-lg bg-warning/10"><MapPin class="size-5 text-warning" /></div>
-      <div>
-        <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Top Region</p>
-        <p class="text-2xl font-bold mt-0.5">{topRegion}</p>
-        <p class="text-xs opacity-50 mt-0.5">by order volume</p>
-      </div>
-    </div>
+  <!-- Header row with Edit Layout toggle -->
+  <div class="flex items-start justify-between gap-4">
+    <PageHeader title="Dashboard">Welcome back, <strong>{data.user?.firstName ?? data.user?.username}</strong> — last 90 days of sales activity</PageHeader>
+    <button
+      type="button"
+      class="btn btn-sm shrink-0 mt-1 {editMode ? 'btn-success' : 'btn-ghost border border-base-300'}"
+      onclick={() => { editMode = !editMode; }}
+    >
+      {#if editMode}
+        <Check class="size-4" /> Done
+      {:else}
+        <LayoutDashboard class="size-4" /> Edit Layout
+      {/if}
+    </button>
   </div>
 
-  <!-- Charts 2×2 -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-    <!-- Line: Daily Revenue -->
-    <div class="card bg-base-100 border border-base-200 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Daily Revenue — Last 30 Days</h2>
-      <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-        {#each [0.25, 0.5, 0.75, 1] as frac}
-          <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
-            stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
-        {/each}
-        <path d={areaPath(dailyData)} fill="var(--color-primary-500)" fill-opacity="0.15"/>
-        <polyline points={linePoints(dailyData)} fill="none" stroke="var(--color-primary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        {#each dailyData as d, i}
-          {#if i % 5 === 0}
-            <text x={(16 + (i/29)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
-          {/if}
-        {/each}
-      </svg>
+  <!-- Edit mode banner -->
+  {#if editMode}
+    <div
+      transition:fade={{ duration: 150 }}
+      class="flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-xl bg-primary/8 border border-primary/20 text-sm"
+    >
+      <span class="flex-1 opacity-65 text-xs">
+        Drag <GripVertical class="size-3.5 inline-block opacity-70" /> to reorder sections and cards &middot;
+        Click <Eye class="size-3.5 inline-block opacity-70" /> to show/hide &middot; Changes save automatically
+      </span>
+      <span class="text-xs {saveStatus === 'saved' ? 'text-success' : saveStatus === 'error' ? 'text-error' : 'opacity-40'}">
+        {#if saveStatus === 'saving'}Saving…{:else if saveStatus === 'saved'}Saved ✓{:else if saveStatus === 'error'}Save failed{/if}
+      </span>
+      <button type="button" class="btn btn-ghost btn-xs gap-1 opacity-60 hover:opacity-100" onclick={resetLayout}>
+        <RotateCcw class="size-3" /> Reset
+      </button>
     </div>
+  {/if}
 
-    <!-- Bar: Revenue by Product -->
-    <div class="card bg-base-100 border border-base-200 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Revenue by Product</h2>
-      <svg viewBox="0 0 460 165" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-        {#each bars as b, i}
-          <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
-          <rect x={b.x} y={b.y} width={b.w} height={b.bh} rx="3"
-            fill="var(--color-{DONUT_COLORS[i%5]}-500)" fill-opacity="0.85"/>
-          <text x={b.x + b.w + 5} y={b.midY + 3.5} font-size="9" fill="currentColor" fill-opacity="0.5">{fmt(b.value)}</text>
-        {/each}
-      </svg>
-    </div>
+  <!-- ── Sections (rendered in layout order) ─────────────────────── -->
+  {#each layout.sections as section (section.id)}
+    {#if section.visible || editMode}
 
-    <!-- Donut: Orders by Region -->
-    <div class="card bg-base-100 border border-base-200 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Orders by Region</h2>
-      <div class="flex items-center gap-6">
-        <svg viewBox="0 0 180 180" width="180" height="180" class="shrink-0" aria-hidden="true">
-          {#each segs as seg}
-            <path d={seg.path} fill={seg.color} fill-opacity="0.9"/>
-          {/each}
-          <text x="90" y="85" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">{totalOrders}</text>
-          <text x="90" y="100" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.5">orders</text>
-        </svg>
-        <ul class="space-y-2 text-sm flex-1">
-          {#each segs as seg, i}
-            <li class="flex items-center justify-between gap-2">
-              <span class="flex items-center gap-2">
-                <span class="size-2.5 rounded-full shrink-0" style="background:{seg.color}"></span>
-                <span class="opacity-70">{seg.label}</span>
-              </span>
-              <span class="font-semibold">{seg.pct}%</span>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    </div>
+      <!-- Section drop zone + optional edit chrome -->
+      <div
+        class="relative transition-all duration-150
+          {editMode ? 'rounded-xl ring-1 ring-base-300/60 p-2' : 'space-y-0'}
+          {editMode && dragOverSection === section.id && draggingSection !== section.id ? 'ring-2 ring-primary/60 bg-primary/3' : ''}
+          {editMode && draggingSection === section.id ? 'opacity-40 ring-dashed ring-base-content/30' : ''}"
+        ondragover={editMode ? (e: DragEvent) => onSectionDragOver(e, section.id) : undefined}
+        ondrop={editMode ? () => onSectionDrop(section.id) : undefined}
+      >
 
-    <!-- Area: Monthly Revenue -->
-    <div class="card bg-base-100 border border-base-200 p-5 space-y-3">
-      <h2 class="text-sm font-semibold opacity-70">Monthly Revenue — Last 12 Months</h2>
-      <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-        {#each [0.25, 0.5, 0.75, 1] as frac}
-          <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
-            stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
-        {/each}
-        <path d={areaPath(monthlyData)} fill="var(--color-secondary-500)" fill-opacity="0.18"/>
-        <polyline points={linePoints(monthlyData)} fill="none" stroke="var(--color-secondary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        {#each monthlyData as d, i}
-          <text x={(16 + (i/11)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
-        {/each}
-      </svg>
-    </div>
-
-  </div>
-
-  <!-- Sales Table -->
-  <div class="space-y-3">
-    <h2 class="text-lg font-semibold">Sales Records</h2>
-
-    <label class="input input-bordered flex items-center gap-2">
-      <Search class="size-4 opacity-50 shrink-0" />
-      <input type="search" class="grow" placeholder="Search by ID, product, region, or status…" bind:value={query} />
-    </label>
-
-    <div class="card bg-base-100 border border-base-200 overflow-hidden">
-      <table class="table table-sm">
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Date</th>
-            <th>Product</th>
-            <th>Region</th>
-            <th class="text-right">Units</th>
-            <th class="text-right">Revenue</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each pageRows as row}
-            <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-              <td class="font-mono text-xs opacity-60">{row.id}</td>
-              <td class="opacity-60">{row.date.toLocaleDateString()}</td>
-              <td>{row.product}</td>
-              <td class="opacity-60">{row.region}</td>
-              <td class="text-right">{row.units}</td>
-              <td class="text-right font-semibold">{fmt(row.revenue)}</td>
-              <td>
-                <span class="badge text-xs {STATUS_CLS[row.status] ?? ''}">{row.status}</span>
-              </td>
-            </tr>
-          {:else}
-            <tr><td colspan="7" class="px-4 py-8 text-center opacity-50">No records found.</td></tr>
-          {/each}
-        </tbody>
-      </table>
-
-      <div class="flex items-center justify-between px-4 py-2 border-t border-base-200">
-        <span class="text-xs opacity-50">
-          {filtered.length === 0 ? 'No records' : `${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filtered.length)} of ${filtered.length}`}
-        </span>
-        <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={e => (currentPage = e.page)} siblingCount={1} />
-      </div>
-    </div>
-  </div>
-
-  <!-- Order Calendar -->
-  <div class="space-y-3">
-    <h2 class="text-lg font-semibold">Order Calendar</h2>
-
-    <!-- Event search + New Event -->
-    <div class="flex items-center gap-3">
-      <div class="relative flex-1">
-        <label class="input input-bordered flex items-center gap-2">
-          <Search class="size-4 opacity-50 shrink-0" />
-          <input
-            type="search"
-            class="grow"
-            placeholder="Search events by title…"
-            autocomplete="off"
-            bind:value={eventQuery}
-            onfocus={() => (eventSearchOpen = true)}
-            onblur={() => setTimeout(() => (eventSearchOpen = false), 150)}
-          />
-        </label>
-        {#if eventSearchOpen && eventMatches.length > 0}
-          <div class="absolute top-full left-0 right-0 z-30 mt-1 card bg-base-100 border border-base-200 shadow-xl overflow-hidden">
-            {#each eventMatches as ev}
-              <button
-                type="button"
-                class="w-full text-left px-4 py-2.5 text-sm hover:bg-base-200 transition-colors border-b border-base-200 last:border-0"
-                onmousedown={() => selectEventFromSearch(ev)}
-              >
-                <span class="font-medium">{ev.title}</span>
-                <span class="text-xs opacity-50 ml-2">
-                  {new Date(ev.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </span>
-              </button>
-            {/each}
+        <!-- Edit mode: section handle bar -->
+        {#if editMode}
+          <div
+            class="flex items-center gap-2 px-1 py-1.5 mb-2 rounded-lg cursor-grab active:cursor-grabbing select-none hover:bg-base-200/60 transition-colors"
+            draggable="true"
+            ondragstart={(e: DragEvent) => onSectionDragStart(e, section.id)}
+            ondragend={onSectionDragEnd}
+          >
+            <GripVertical class="size-4 text-base-content/35 shrink-0" />
+            <span class="text-xs font-semibold uppercase tracking-wider text-base-content/45 flex-1">
+              {SECTION_LABELS[section.id] ?? section.id}
+            </span>
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs btn-square"
+              onclick={() => toggleSection(section.id)}
+              title={section.visible ? 'Hide section' : 'Show section'}
+            >
+              {#if section.visible}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5 opacity-40" />{/if}
+            </button>
           </div>
         {/if}
-      </div>
-      {#if hasPermission(data.user, 'events', 'create')}
-        <button type="button" class="btn btn-primary whitespace-nowrap" onclick={openNewEvent}>
-          <Plus class="size-4" /> New Event
-        </button>
-      {/if}
-    </div>
 
-    <div class="card bg-base-100 border border-base-200 overflow-hidden">
+        <!-- Section content (dimmed when hidden in edit mode) -->
+        <div class="transition-opacity duration-150 {editMode && !section.visible ? 'opacity-20 pointer-events-none select-none' : ''}">
 
-      <!-- Nav -->
-      <div class="flex items-center justify-between px-5 py-3 border-b border-base-200">
-        <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={prevMonth} aria-label="Previous month">
-          <ChevronLeft class="size-4"/>
-        </button>
-        <span class="font-semibold text-sm">{calLabel}</span>
-        <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={nextMonth} aria-label="Next month">
-          <ChevronRight class="size-4"/>
-        </button>
-      </div>
-
-      <!-- DOW header -->
-      <div class="grid grid-cols-7 border-b border-base-200">
-        {#each ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as dow}
-          <div class="px-2 py-2 text-center text-xs font-semibold opacity-50 uppercase tracking-wide">{dow}</div>
-        {/each}
-      </div>
-
-      <!-- Day cells -->
-      <div class="grid grid-cols-7">
-        {#each calDays as cell, i}
-          {@const borderR = (i+1) % 7 !== 0 ? 'border-r' : ''}
-          {@const borderB = i < calDays.length - 7 ? 'border-b' : ''}
-          <div class="min-h-[5.5rem] p-2 border-base-200 {borderR} {borderB} relative
-            {cell?.isToday ? 'bg-primary/5' : ''}">
-            {#if cell}
-              <span class="text-xs font-semibold
-                {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-content' : 'opacity-70'}">
-                {cell.day}
-              </span>
-              {#if cell.count > 0}
-                <div class="mt-1.5 space-y-0.5">
-                  <div class="w-full rounded-sm h-1.5 overflow-hidden bg-base-200">
-                    <div class="h-full rounded-sm bg-primary"
-                      style="width:{Math.round((cell.revenue/maxDayRevenue)*100)}%"></div>
+          <!-- ── KPI Cards ──────────────────────────────────────── -->
+          {#if section.id === 'kpi'}
+            {@const kpiItems = section.items ?? []}
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {#each kpiItems.filter(i => i.visible || editMode) as item (item.id)}
+                {@const kpi = KPI_DEFS.find(k => k.id === item.id)}
+                {#if kpi}
+                  <div
+                    class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4 relative transition-all duration-100
+                      {editMode ? 'cursor-grab active:cursor-grabbing' : ''}
+                      {editMode && dragOverItem?.sectionId === 'kpi' && dragOverItem.itemId === item.id && draggingItem?.itemId !== item.id ? 'ring-2 ring-primary/50 border-primary/30' : ''}
+                      {editMode && draggingItem?.sectionId === 'kpi' && draggingItem.itemId === item.id ? 'opacity-40' : ''}
+                      {editMode && !item.visible ? 'opacity-30' : ''}"
+                    draggable={editMode}
+                    ondragstart={editMode ? (e: DragEvent) => onItemDragStart(e, 'kpi', item.id) : undefined}
+                    ondragover={editMode ? (e: DragEvent) => onItemDragOver(e, 'kpi', item.id) : undefined}
+                    ondrop={editMode ? (e: DragEvent) => onItemDrop(e, 'kpi', item.id) : undefined}
+                    ondragend={editMode ? onItemDragEnd : undefined}
+                  >
+                    {#if editMode}
+                      <div class="absolute top-1.5 left-1.5 text-base-content/25 pointer-events-none">
+                        <GripVertical class="size-3.5" />
+                      </div>
+                      <button
+                        type="button"
+                        class="absolute top-1 right-1 btn btn-ghost btn-xs btn-square opacity-50 hover:opacity-100"
+                        onclick={(e) => { e.stopPropagation(); toggleItem('kpi', item.id); }}
+                        title={item.visible ? 'Hide' : 'Show'}
+                      >
+                        {#if item.visible}<Eye class="size-3" />{:else}<EyeOff class="size-3" />{/if}
+                      </button>
+                    {/if}
+                    <div class="p-2 rounded-lg bg-{kpi.color}/10">
+                      <svelte:component this={kpi.icon} class="size-5 text-{kpi.color}" />
+                    </div>
+                    <div>
+                      <p class="text-xs opacity-60 uppercase tracking-wide font-medium">{kpi.label}</p>
+                      <p class="text-2xl font-bold mt-0.5">{kpi.value}</p>
+                      <p class="text-xs opacity-50 mt-0.5">{kpi.sub}</p>
+                    </div>
                   </div>
-                  <p class="text-[10px] text-primary font-semibold">{fmt(cell.revenue)}</p>
-                  <p class="text-[10px] opacity-40">{cell.count} order{cell.count !== 1 ? 's' : ''}</p>
-                </div>
-              {/if}
-              <!-- Event pills -->
-              {#each eventsForDay(calYear, calMonth, cell.day) as ev}
-                <button
-                  type="button"
-                  class="mt-1 w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate
-                    bg-accent text-accent-content hover:opacity-90 transition-opacity"
-                  onclick={() => openEditEvent(ev)}
-                  title={ev.title}
-                >{ev.title}</button>
+                {/if}
               {/each}
+            </div>
+
+          <!-- ── Charts ─────────────────────────────────────────── -->
+          {:else if section.id === 'charts'}
+            {@const chartItems = section.items ?? []}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {#each chartItems.filter(i => i.visible || editMode) as item (item.id)}
+                <div
+                  class="card bg-base-100 border border-base-200 p-5 space-y-3 relative transition-all duration-100
+                    {editMode ? 'cursor-grab active:cursor-grabbing' : ''}
+                    {editMode && dragOverItem?.sectionId === 'charts' && dragOverItem.itemId === item.id && draggingItem?.itemId !== item.id ? 'ring-2 ring-primary/50 border-primary/30' : ''}
+                    {editMode && draggingItem?.sectionId === 'charts' && draggingItem.itemId === item.id ? 'opacity-40' : ''}
+                    {editMode && !item.visible ? 'opacity-30' : ''}"
+                  draggable={editMode}
+                  ondragstart={editMode ? (e: DragEvent) => onItemDragStart(e, 'charts', item.id) : undefined}
+                  ondragover={editMode ? (e: DragEvent) => onItemDragOver(e, 'charts', item.id) : undefined}
+                  ondrop={editMode ? (e: DragEvent) => onItemDrop(e, 'charts', item.id) : undefined}
+                  ondragend={editMode ? onItemDragEnd : undefined}
+                >
+                  {#if editMode}
+                    <div class="absolute top-1.5 left-1.5 text-base-content/25 pointer-events-none">
+                      <GripVertical class="size-3.5" />
+                    </div>
+                    <button
+                      type="button"
+                      class="absolute top-1 right-1 btn btn-ghost btn-xs btn-square opacity-50 hover:opacity-100 z-10"
+                      onclick={(e) => { e.stopPropagation(); toggleItem('charts', item.id); }}
+                      title={item.visible ? 'Hide' : 'Show'}
+                    >
+                      {#if item.visible}<Eye class="size-3" />{:else}<EyeOff class="size-3" />{/if}
+                    </button>
+                  {/if}
+
+                  {#if item.id === 'daily-revenue'}
+                    <h2 class="text-sm font-semibold opacity-70">Daily Revenue — Last 30 Days</h2>
+                    <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
+                      {#each [0.25, 0.5, 0.75, 1] as frac}
+                        <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
+                          stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
+                      {/each}
+                      <path d={areaPath(dailyData)} fill="var(--color-primary-500)" fill-opacity="0.15"/>
+                      <polyline points={linePoints(dailyData)} fill="none" stroke="var(--color-primary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                      {#each dailyData as d, i}
+                        {#if i % 5 === 0}
+                          <text x={(16 + (i/29)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
+                        {/if}
+                      {/each}
+                    </svg>
+
+                  {:else if item.id === 'product-revenue'}
+                    <h2 class="text-sm font-semibold opacity-70">Revenue by Product</h2>
+                    <svg viewBox="0 0 460 165" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
+                      {#each bars as b, i}
+                        <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
+                        <rect x={b.x} y={b.y} width={b.w} height={b.bh} rx="3"
+                          fill="var(--color-{DONUT_COLORS[i%5]}-500)" fill-opacity="0.85"/>
+                        <text x={b.x + b.w + 5} y={b.midY + 3.5} font-size="9" fill="currentColor" fill-opacity="0.5">{fmt(b.value)}</text>
+                      {/each}
+                    </svg>
+
+                  {:else if item.id === 'region-orders'}
+                    <h2 class="text-sm font-semibold opacity-70">Orders by Region</h2>
+                    <div class="flex items-center gap-6">
+                      <svg viewBox="0 0 180 180" width="180" height="180" class="shrink-0" aria-hidden="true">
+                        {#each segs as seg}
+                          <path d={seg.path} fill={seg.color} fill-opacity="0.9"/>
+                        {/each}
+                        <text x="90" y="85" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">{totalOrders}</text>
+                        <text x="90" y="100" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.5">orders</text>
+                      </svg>
+                      <ul class="space-y-2 text-sm flex-1">
+                        {#each segs as seg}
+                          <li class="flex items-center justify-between gap-2">
+                            <span class="flex items-center gap-2">
+                              <span class="size-2.5 rounded-full shrink-0" style="background:{seg.color}"></span>
+                              <span class="opacity-70">{seg.label}</span>
+                            </span>
+                            <span class="font-semibold">{seg.pct}%</span>
+                          </li>
+                        {/each}
+                      </ul>
+                    </div>
+
+                  {:else if item.id === 'monthly-revenue'}
+                    <h2 class="text-sm font-semibold opacity-70">Monthly Revenue — Last 12 Months</h2>
+                    <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
+                      {#each [0.25, 0.5, 0.75, 1] as frac}
+                        <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
+                          stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
+                      {/each}
+                      <path d={areaPath(monthlyData)} fill="var(--color-secondary-500)" fill-opacity="0.18"/>
+                      <polyline points={linePoints(monthlyData)} fill="none" stroke="var(--color-secondary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                      {#each monthlyData as d, i}
+                        <text x={(16 + (i/11)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
+                      {/each}
+                    </svg>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+
+          <!-- ── Sales Table ─────────────────────────────────────── -->
+          {:else if section.id === 'sales-table'}
+            <div class="space-y-3">
+              <h2 class="text-lg font-semibold">Sales Records</h2>
+              <label class="input input-bordered flex items-center gap-2">
+                <Search class="size-4 opacity-50 shrink-0" />
+                <input type="search" class="grow" placeholder="Search by ID, product, region, or status…" bind:value={query} />
+              </label>
+              <div class="card bg-base-100 border border-base-200 overflow-hidden">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Order</th><th>Date</th><th>Product</th><th>Region</th>
+                      <th class="text-right">Units</th><th class="text-right">Revenue</th><th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each pageRows as row}
+                      <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+                        <td class="font-mono text-xs opacity-60">{row.id}</td>
+                        <td class="opacity-60">{row.date.toLocaleDateString()}</td>
+                        <td>{row.product}</td>
+                        <td class="opacity-60">{row.region}</td>
+                        <td class="text-right">{row.units}</td>
+                        <td class="text-right font-semibold">{fmt(row.revenue)}</td>
+                        <td><span class="badge text-xs {STATUS_CLS[row.status] ?? ''}">{row.status}</span></td>
+                      </tr>
+                    {:else}
+                      <tr><td colspan="7" class="px-4 py-8 text-center opacity-50">No records found.</td></tr>
+                    {/each}
+                  </tbody>
+                </table>
+                <div class="flex items-center justify-between px-4 py-2 border-t border-base-200">
+                  <span class="text-xs opacity-50">
+                    {filtered.length === 0 ? 'No records' : `${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filtered.length)} of ${filtered.length}`}
+                  </span>
+                  <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={e => (currentPage = e.page)} siblingCount={1} />
+                </div>
+              </div>
+            </div>
+
+          <!-- ── Order Calendar ──────────────────────────────────── -->
+          {:else if section.id === 'calendar'}
+            <div class="space-y-3">
+              <h2 class="text-lg font-semibold">Order Calendar</h2>
+              <div class="flex items-center gap-3">
+                <div class="relative flex-1">
+                  <label class="input input-bordered flex items-center gap-2">
+                    <Search class="size-4 opacity-50 shrink-0" />
+                    <input
+                      type="search" class="grow" placeholder="Search events by title…" autocomplete="off"
+                      bind:value={eventQuery}
+                      onfocus={() => (eventSearchOpen = true)}
+                      onblur={() => setTimeout(() => (eventSearchOpen = false), 150)}
+                    />
+                  </label>
+                  {#if eventSearchOpen && eventMatches.length > 0}
+                    <div class="absolute top-full left-0 right-0 z-30 mt-1 card bg-base-100 border border-base-200 shadow-xl overflow-hidden">
+                      {#each eventMatches as ev}
+                        <button
+                          type="button"
+                          class="w-full text-left px-4 py-2.5 text-sm hover:bg-base-200 transition-colors border-b border-base-200 last:border-0"
+                          onmousedown={() => selectEventFromSearch(ev)}
+                        >
+                          <span class="font-medium">{ev.title}</span>
+                          <span class="text-xs opacity-50 ml-2">
+                            {new Date(ev.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </button>
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+                {#if hasPermission(data.user, 'events', 'create')}
+                  <button type="button" class="btn btn-primary whitespace-nowrap" onclick={openNewEvent}>
+                    <Plus class="size-4" /> New Event
+                  </button>
+                {/if}
+              </div>
+              <div class="card bg-base-100 border border-base-200 overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-base-200">
+                  <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={prevMonth} aria-label="Previous month">
+                    <ChevronLeft class="size-4"/>
+                  </button>
+                  <span class="font-semibold text-sm">{calLabel}</span>
+                  <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={nextMonth} aria-label="Next month">
+                    <ChevronRight class="size-4"/>
+                  </button>
+                </div>
+                <div class="grid grid-cols-7 border-b border-base-200">
+                  {#each ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as dow}
+                    <div class="px-2 py-2 text-center text-xs font-semibold opacity-50 uppercase tracking-wide">{dow}</div>
+                  {/each}
+                </div>
+                <div class="grid grid-cols-7">
+                  {#each calDays as cell, i}
+                    {@const borderR = (i+1) % 7 !== 0 ? 'border-r' : ''}
+                    {@const borderB = i < calDays.length - 7 ? 'border-b' : ''}
+                    <div class="min-h-[5.5rem] p-2 border-base-200 {borderR} {borderB} relative {cell?.isToday ? 'bg-primary/5' : ''}">
+                      {#if cell}
+                        <span class="text-xs font-semibold {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-content' : 'opacity-70'}">
+                          {cell.day}
+                        </span>
+                        {#if cell.count > 0}
+                          <div class="mt-1.5 space-y-0.5">
+                            <div class="w-full rounded-sm h-1.5 overflow-hidden bg-base-200">
+                              <div class="h-full rounded-sm bg-primary" style="width:{Math.round((cell.revenue/maxDayRevenue)*100)}%"></div>
+                            </div>
+                            <p class="text-[10px] text-primary font-semibold">{fmt(cell.revenue)}</p>
+                            <p class="text-[10px] opacity-40">{cell.count} order{cell.count !== 1 ? 's' : ''}</p>
+                          </div>
+                        {/if}
+                        {#each eventsForDay(calYear, calMonth, cell.day) as ev}
+                          <button
+                            type="button"
+                            class="mt-1 w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate bg-accent text-accent-content hover:opacity-90 transition-opacity"
+                            onclick={() => openEditEvent(ev)}
+                            title={ev.title}
+                          >{ev.title}</button>
+                        {/each}
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            </div>
+
+          <!-- ── Module Widgets ──────────────────────────────────── -->
+          {:else if section.id === 'widgets'}
+            {#if sortedWidgets.length > 0}
+              {#each sortedWidgets as w}
+                {#if hasPermission(data.user, w.permission.resource, w.permission.action)}
+                  <w.component />
+                {/if}
+              {/each}
+            {:else if editMode}
+              <div class="card bg-base-100 border border-base-200 border-dashed px-6 py-8 text-center opacity-40 text-sm">
+                Module Widgets — no widgets configured
+              </div>
             {/if}
-          </div>
-        {/each}
-      </div>
+          {/if}
 
-    </div>
-  </div>
-
-  <!-- Module Widgets -->
-  {#each sortedWidgets as w}
-    {#if hasPermission(data.user, w.permission.resource, w.permission.action)}
-      <w.component />
+        </div><!-- end section content -->
+      </div><!-- end section wrapper -->
     {/if}
   {/each}
 
 </div>
 
-<!-- ── Event Modal ──────────────────────────────────────────────────── -->
+<!-- ── Event Modal ───────────────────────────────────────────────── -->
 {#if eventModalOpen}
   <div
     transition:fade={{ duration: 200 }}
@@ -628,19 +925,14 @@
           <X class="size-5" />
         </button>
       </header>
-
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if eventError}
           <div role="alert" class="alert alert-error text-sm">{eventError}</div>
         {/if}
-
-        <!-- Title -->
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
           <input id="ev-title" type="text" class="input input-bordered w-full" placeholder="Event title" bind:value={eventForm.title} maxlength="200" />
         </div>
-
-        <!-- Dates -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
             <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
@@ -652,29 +944,21 @@
               disabled={eventForm.singleDay} min={eventForm.startDate} />
           </div>
         </div>
-
-        <!-- Single day toggle -->
         <label class="flex items-center gap-2 cursor-pointer select-none">
           <input type="checkbox" class="checkbox" bind:checked={eventForm.singleDay} />
           <span class="text-sm">Single-day event</span>
         </label>
-
-        <!-- Content -->
         <div class="space-y-1">
           <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
           <MessageEditor bind:html={eventForm.content} placeholder="Event description…" />
         </div>
       </div>
-
       <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-base-200 shrink-0">
         <div>
           {#if editingEventId && hasPermission(data.user, 'events', 'delete')}
-            <button
-              type="button"
-              class="btn btn-outline btn-error"
-              disabled={eventLoading}
-              onclick={() => (eventDeleteConfirm = true)}
-            >Delete this event</button>
+            <button type="button" class="btn btn-outline btn-error" disabled={eventLoading} onclick={() => (eventDeleteConfirm = true)}>
+              Delete this event
+            </button>
           {/if}
         </div>
         <div class="flex gap-3">
@@ -688,7 +972,7 @@
   </div>
 {/if}
 
-<!-- ── Delete Confirm Modal ─────────────────────────────────────────── -->
+<!-- ── Delete Confirm Modal ──────────────────────────────────────── -->
 {#if eventDeleteConfirm}
   <div
     transition:fade={{ duration: 150 }}
