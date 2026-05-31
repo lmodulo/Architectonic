@@ -22,6 +22,7 @@ import notificationsRoutes from '../../src/routes/notifications/index.js';
 import rolesRoutes         from '../../src/routes/roles/index.js';
 import settingsRoutes      from '../../src/routes/settings/index.js';
 import usersRoutes         from '../../src/routes/users/index.js';
+import agileRoutes         from '../../src/routes/agile/index.js';
 
 export async function createTestApp(mongoUri: string) {
   process.env.SESSION_SECRET = 'test-secret-minimum-32-chars-long!!';
@@ -52,6 +53,7 @@ export async function createTestApp(mongoUri: string) {
   await app.register(rolesRoutes,         { prefix: '/roles' });
   await app.register(settingsRoutes,      { prefix: '/settings' });
   await app.register(usersRoutes,         { prefix: '/users' });
+  await app.register(agileRoutes,         { prefix: '/agile' });
 
   await app.ready();
   return app;

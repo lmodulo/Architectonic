@@ -190,7 +190,7 @@
           {saving ? 'Saving…' : 'Save'}
         </button>
       {:else}
-        <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/print/contract/${c.id}`, '_blank')} title="Download / Print PDF">
+        <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/contract/${c.id}`, '_blank')} title="Download / Print PDF">
           <Printer class="size-4" />
         </button>
         {#if canEdit}
