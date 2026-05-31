@@ -32,9 +32,27 @@
   let results = $state<Results | null>(null);
   let loading = $state(false);
   let open = $state(false);
+  let cursor = $state(-1);
   let timer: ReturnType<typeof setTimeout> | null = null;
   let inputEl: HTMLInputElement;
   let containerEl: HTMLDivElement;
+
+  const flatResults = $derived.by(() => {
+    if (!results) return [];
+    return GROUPS.flatMap(group =>
+      results[group.key].map(item => ({ href: group.href(item._id), item, group }))
+    );
+  });
+
+  const groupStartIndices = $derived.by(() => {
+    const map: Record<string, number> = {};
+    let i = 0;
+    for (const group of GROUPS) {
+      map[group.key] = i;
+      i += results?.[group.key]?.length ?? 0;
+    }
+    return map;
+  });
 
   function hasResults(r: Results) {
     return GROUPS.some(g => r[g.key].length > 0);
@@ -55,6 +73,7 @@
         if (res.ok) {
           results = await res.json();
           open = true;
+          cursor = -1;
         }
       } catch { /* ignore */ } finally {
         loading = false;
@@ -67,7 +86,20 @@
       query = '';
       results = null;
       open = false;
+      cursor = -1;
       inputEl?.blur();
+      return;
+    }
+    if (!open || flatResults.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      cursor = cursor < flatResults.length - 1 ? cursor + 1 : 0;
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      cursor = cursor > 0 ? cursor - 1 : flatResults.length - 1;
+    } else if (e.key === 'Enter' && cursor >= 0) {
+      e.preventDefault();
+      navigate(flatResults[cursor].href);
     }
   }
 
@@ -82,10 +114,17 @@
     function handleClick(e: MouseEvent) {
       if (open && containerEl && !containerEl.contains(e.target as Node)) {
         open = false;
+        cursor = -1;
       }
     }
     window.addEventListener('mousedown', handleClick);
     return () => window.removeEventListener('mousedown', handleClick);
+  });
+
+  $effect(() => {
+    if (cursor < 0) return;
+    const el = containerEl?.querySelector(`[data-cursor-index="${cursor}"]`);
+    el?.scrollIntoView({ block: 'nearest' });
   });
 </script>
 
@@ -117,10 +156,12 @@
           {#if results[group.key].length > 0}
             <div>
               <p class="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider opacity-40">{group.label}</p>
-              {#each results[group.key] as item}
+              {#each results[group.key] as item, itemIdx}
+                {@const flatIdx = groupStartIndices[group.key] + itemIdx}
                 <button
                   type="button"
-                  class="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-base-300/60 transition-colors"
+                  data-cursor-index={flatIdx}
+                  class="flex items-center gap-2 w-full px-3 py-2 text-left transition-colors {flatIdx === cursor ? 'bg-base-300/60' : 'hover:bg-base-300/60'}"
                   onclick={() => navigate(group.href(item._id))}
                 >
                   <span class="badge badge-xs {group.badge} shrink-0">{group.label.slice(0, 1)}</span>
