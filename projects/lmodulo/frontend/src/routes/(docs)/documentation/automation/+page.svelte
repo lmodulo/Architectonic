@@ -11,6 +11,10 @@
     </p>
   </div>
 
+  <div class="alert alert-warning border border-warning/30 rounded-box p-4 text-sm">
+    <strong>Implementation status:</strong> The automation engine (event bus, rule cache, CRUD routes, and management UI) is a planned feature — the architecture described here is the intended design but the API routes (<code class="bg-base-300 px-1 rounded text-xs">/automation/*</code>) and the <code class="bg-base-300 px-1 rounded text-xs">/settings/automation</code> UI are not yet implemented. Use this page as the extension guide when building it out.
+  </div>
+
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">How it works</h2>
     <p class="text-sm opacity-70 leading-relaxed">

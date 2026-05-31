@@ -63,6 +63,14 @@
       <p class="text-sm font-semibold">Automation</p>
       <p class="text-sm opacity-60 leading-relaxed">Event-driven rules that connect modules. Define trigger → condition → action workflows — send notifications, create messages, or schedule calendar events when platform events occur.</p>
     </div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
+      <p class="text-sm font-semibold">Dashboard</p>
+      <p class="text-sm opacity-60 leading-relaxed">Customizable multi-module dashboard with sections for Agile, Nexus CRM, Folio, Contracts, and Calendar. Drag to reorder sections, show or hide individual panels, and filter by date range. Layout persists per user.</p>
+    </div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
+      <p class="text-sm font-semibold">Nexus CRM</p>
+      <p class="text-sm opacity-60 leading-relaxed">Lightweight CRM covering the prospect-to-customer lifecycle. Companies, contacts, and deals in a pipeline kanban with drag-to-stage. Health scoring, activity feed, per-client hours rollup, and SVG-based reports.</p>
+    </div>
   </div>
 
   <!-- Tech stack -->

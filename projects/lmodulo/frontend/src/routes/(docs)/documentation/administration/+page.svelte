@@ -102,4 +102,46 @@
     </p>
   </div>
 
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold">Teams — <code class="text-base font-mono">/teams</code></h2>
+    <p class="text-sm opacity-70 leading-relaxed">
+      Teams group users for sprint assignment and notification targeting. Each team has a name, optional description, and a member list. Requires <code class="bg-base-300 px-1 rounded text-xs">teams.read</code> to view.
+    </p>
+    <ul class="space-y-2 text-sm leading-relaxed list-disc list-inside opacity-80">
+      <li><strong>Create a team</strong> — POST <code class="bg-base-300 px-1 rounded text-xs">/teams</code> with <code class="bg-base-300 px-1 rounded text-xs">name</code> and optional <code class="bg-base-300 px-1 rounded text-xs">description</code>. Requires <code class="bg-base-300 px-1 rounded text-xs">teams.create</code>.</li>
+      <li><strong>Add members</strong> — POST <code class="bg-base-300 px-1 rounded text-xs">/teams/:id/members</code> with a <code class="bg-base-300 px-1 rounded text-xs">userId</code>.</li>
+      <li><strong>Remove members</strong> — DELETE <code class="bg-base-300 px-1 rounded text-xs">/teams/:id/members/:userId</code>.</li>
+      <li><strong>My teams</strong> — GET <code class="bg-base-300 px-1 rounded text-xs">/teams/mine</code> returns teams the current user belongs to (auth only, no permission gate).</li>
+    </ul>
+    <p class="text-sm opacity-70 leading-relaxed">
+      When a sprint is assigned to a team via <code class="bg-base-300 px-1 rounded text-xs">PATCH /agile/sprints/:id</code>, all team members receive a notification if the sprint status also changed.
+    </p>
+  </div>
+
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold">Audit Log — <code class="text-base font-mono">/audit-log</code></h2>
+    <p class="text-sm opacity-70 leading-relaxed">
+      Every significant mutation in the platform writes an entry to the <code class="bg-base-300 px-1 rounded text-xs">audit_logs</code> collection. The audit log page at <code class="bg-base-300 px-1 rounded text-xs">/audit-log</code> provides a searchable, filterable view of all recorded events.
+    </p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Action Category</th><th>Covers</th></tr></thead>
+        <tbody>
+          <tr><td class="font-mono text-xs">auth</td><td class="text-sm opacity-70">Login, logout, registration, password reset</td></tr>
+          <tr><td class="font-mono text-xs">user</td><td class="text-sm opacity-70">User create, update, role change, delete</td></tr>
+          <tr><td class="font-mono text-xs">role</td><td class="text-sm opacity-70">Role create, permission edit</td></tr>
+          <tr><td class="font-mono text-xs">team</td><td class="text-sm opacity-70">Team create, member add/remove</td></tr>
+          <tr><td class="font-mono text-xs">workspace</td><td class="text-sm opacity-70">Workspace create, update, member changes</td></tr>
+          <tr><td class="font-mono text-xs">message</td><td class="text-sm opacity-70">Messages sent</td></tr>
+          <tr><td class="font-mono text-xs">automation</td><td class="text-sm opacity-70">Automation rule enable/disable</td></tr>
+          <tr><td class="font-mono text-xs">event</td><td class="text-sm opacity-70">Calendar events created/deleted</td></tr>
+          <tr><td class="font-mono text-xs">settings</td><td class="text-sm opacity-70">Settings updated</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-sm opacity-70 leading-relaxed">
+      The page supports full-text search (user name, action string) and category filtering. Rows are sortable by timestamp or action. Click any row to expand the raw metadata payload. The API endpoint <code class="bg-base-300 px-1 rounded text-xs">GET /audit</code> supports <code class="bg-base-300 px-1 rounded text-xs">q</code>, <code class="bg-base-300 px-1 rounded text-xs">action</code>, <code class="bg-base-300 px-1 rounded text-xs">sort</code>, <code class="bg-base-300 px-1 rounded text-xs">sortDir</code>, <code class="bg-base-300 px-1 rounded text-xs">page</code>, and <code class="bg-base-300 px-1 rounded text-xs">limit</code> query params.
+    </p>
+  </div>
+
 </div>

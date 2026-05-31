@@ -208,6 +208,333 @@
     </div>
   </div>
 
+  <!-- Time Entries -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Time Entries — <code class="text-base font-mono">/agile/time-entries</code></h2>
+    <p class="text-sm opacity-60">Requires <code class="bg-base-300 px-1 rounded text-xs">agile_time_entries.read/create/update/delete</code>. Users may only PATCH/DELETE their own entries.</p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/agile/time-entries</td><td class="text-sm opacity-70">List entries. Query: userId, taskId, sprintId, milestoneId, dateFrom, dateTo.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/agile/time-entries/active-timer</td><td class="text-sm opacity-70">Current user's running timer entry + task context, or null when idle.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/agile/time-entries/summary</td><td class="text-sm opacity-70">Aggregated by task: totalMinutes, billableMinutes, entryCount.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/agile/time-entries</td><td class="text-sm opacity-70">Create manual entry. Body: taskId, date (YYYY-MM-DD), durationMinutes (snapped to 15), note?, billable?.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/agile/time-entries/timer/start</td><td class="text-sm opacity-70">Start a live timer. Body: taskId. Auto-stops any existing running timer first.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/agile/time-entries/timer/stop</td><td class="text-sm opacity-70">Stop the current user's running timer. Snaps elapsed time to 15-minute increments.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/agile/time-entries/:id</td><td class="text-sm opacity-70">Edit entry. Body: durationMinutes?, date?, note?, billable?. Own entries only.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/agile/time-entries/:id</td><td class="text-sm opacity-70">Delete entry. Own entries only.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CRM -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Nexus CRM — <code class="text-base font-mono">/crm</code></h2>
+    <p class="text-sm opacity-60">Requires <code class="bg-base-300 px-1 rounded text-xs">crm_companies/crm_contacts/crm_deals/crm_activities</code> permissions per resource.</p>
+
+    <h3 class="text-base font-semibold">Companies <code class="font-mono text-sm">/crm/companies</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/crm/companies</td><td class="text-sm opacity-70">List companies. Query: search, type, industry, assignedTo, limit, skip. Returns healthScore.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/crm/companies</td><td class="text-sm opacity-70">Create company. Body: name, domain?, industry?, size?, type, assignedTo?, tags?.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/crm/companies/:id</td><td class="text-sm opacity-70">Company detail with computed healthScore and dealCount.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/crm/companies/:id</td><td class="text-sm opacity-70">Update company fields.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/crm/companies/:id</td><td class="text-sm opacity-70">Delete company.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/crm/companies/:id/milestones</td><td class="text-sm opacity-70">Linked agile milestones with totalEstimatedHours, totalActualHours, and billableMinutes rollup.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-4">Contacts <code class="font-mono text-sm">/crm/contacts</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/crm/contacts</td><td class="text-sm opacity-70">List contacts. Query: companyId, status, search, limit, skip.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/crm/contacts</td><td class="text-sm opacity-70">Create contact. Body: firstName, lastName, email?, phone?, role?, status, source, companyId?, assignedTo?.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/crm/contacts/:id</td><td class="text-sm opacity-70">Contact detail.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/crm/contacts/:id</td><td class="text-sm opacity-70">Update contact fields.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/crm/contacts/:id</td><td class="text-sm opacity-70">Delete contact.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/crm/contacts/:id/convert</td><td class="text-sm opacity-70">Convert contact to a customer user account. Sends a 48-hour password-set token by email.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-4">Deals <code class="font-mono text-sm">/crm/deals</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/crm/deals</td><td class="text-sm opacity-70">List deals. Query: companyId, stage, type, limit, skip.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/crm/deals</td><td class="text-sm opacity-70">Create deal. Body: title, companyId, contactIds?, stage, value, probability, type, expectedCloseDate?.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/crm/deals/:id</td><td class="text-sm opacity-70">Deal detail.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/crm/deals/:id</td><td class="text-sm opacity-70">Update deal. lostReason required when stage is "Closed Lost".</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/crm/deals/:id</td><td class="text-sm opacity-70">Delete deal.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-4">Activities <code class="font-mono text-sm">/crm/activities</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/crm/activities</td><td class="text-sm opacity-70">List activities. Query: entityType, entityId, assignedTo, limit, skip.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/crm/activities</td><td class="text-sm opacity-70">Log activity. Body: entityType, entityId, type (Call/Email/Meeting/Demo/Note/Task), title, body?, scheduledAt?, assignedTo?.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/crm/activities/:id</td><td class="text-sm opacity-70">Update activity. Body: completedAt?, outcome?.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/crm/activities/:id</td><td class="text-sm opacity-70">Delete activity.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Finance -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Folio (Finance) — <code class="text-base font-mono">/finance</code></h2>
+    <p class="text-sm opacity-60">Most endpoints require <code class="bg-base-300 px-1 rounded text-xs">finance_invoices/finance_estimates/finance_subscriptions/finance_expenses</code> permissions.</p>
+
+    <h3 class="text-base font-semibold">Invoices <code class="font-mono text-sm">/finance/invoices</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/finance/invoices</td><td class="text-sm opacity-70">List invoices. Query: customerId, companyId, status, limit, skip. Customers see own only.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/invoices</td><td class="text-sm opacity-70">Create invoice. Body: customerId, lineItems[], taxRate?, currency?, dueDate?, recurrence?. Auto-assigns INV-NNNN number.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/finance/invoices/:id</td><td class="text-sm opacity-70">Invoice detail with line items, totals, and payment history.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/finance/invoices/:id</td><td class="text-sm opacity-70">Update draft invoice fields.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/finance/invoices/:id</td><td class="text-sm opacity-70">Delete draft invoice.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/invoices/:id/send</td><td class="text-sm opacity-70">Transition invoice to "sent" status.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/invoices/:id/pay</td><td class="text-sm opacity-70">Create Stripe PaymentIntent for customer payment. Returns clientSecret for Stripe Elements.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/stripe/webhook</td><td class="text-sm opacity-70">Stripe webhook. Handles payment_intent.succeeded → sets invoice to paid.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-4">Estimates <code class="font-mono text-sm">/finance/estimates</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/finance/estimates</td><td class="text-sm opacity-70">List estimates. Customers see own only (where they are the contact).</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/estimates</td><td class="text-sm opacity-70">Create estimate. Auto-assigns EST-NNNN number.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/finance/estimates/:id</td><td class="text-sm opacity-70">Estimate detail.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/finance/estimates/:id</td><td class="text-sm opacity-70">Update estimate fields.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/finance/estimates/:id</td><td class="text-sm opacity-70">Delete estimate.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/estimates/:id/send</td><td class="text-sm opacity-70">Transition estimate to "sent".</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/estimates/:id/accept</td><td class="text-sm opacity-70">Customer accepts estimate. Sets status to "accepted".</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/estimates/:id/decline</td><td class="text-sm opacity-70">Customer declines estimate.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/estimates/:id/convert</td><td class="text-sm opacity-70">Convert accepted estimate to a draft invoice. Returns 409 if already converted.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-4">Subscriptions <code class="font-mono text-sm">/finance/subscriptions</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/finance/subscriptions</td><td class="text-sm opacity-70">List subscriptions. Query: status, customerId.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/subscriptions</td><td class="text-sm opacity-70">Create subscription. Body: name, customerId, lineItems[], billingCycle, startDate, taxRate?, retainerEnabled?.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-sm opacity-70">Subscription detail with retainer period if applicable.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-sm opacity-70">Update or pause/cancel subscription.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/finance/subscriptions/:id</td><td class="text-sm opacity-70">Delete subscription.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-4">Expenses <code class="font-mono text-sm">/finance/expenses</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/finance/expenses</td><td class="text-sm opacity-70">List expenses. Query: status, category, companyId, milestoneId.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/finance/expenses</td><td class="text-sm opacity-70">Create expense. Auto-assigns EXP-NNNN number. Body: description, vendor, category, amount, expenseDate, billable?.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-sm opacity-70">Update expense fields or status.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/finance/expenses/:id</td><td class="text-sm opacity-70">Delete expense.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-4">Reports <code class="font-mono text-sm">/finance/reports</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/finance/reports</td><td class="text-sm opacity-70">P&L report. Query: from, to, groupBy (month|quarter|year). Returns period rows with revenue, expenses, and net. Requires <code class="bg-base-300 px-1 rounded text-xs">finance_reports.read</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Contracts -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Contracts — <code class="text-base font-mono">/contracts</code></h2>
+    <p class="text-sm opacity-60">Requires <code class="bg-base-300 px-1 rounded text-xs">contracts.read/create/update/delete</code>. Public signing endpoints require no auth — only a valid token.</p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/contracts</td><td class="text-sm opacity-70">List contracts. Query: status, companyId, type. Customers scoped to contracts where they are a signer.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/contracts</td><td class="text-sm opacity-70">Create contract. Body: title, type, content (HTML), companyId?, contactIds?, dealId?, estimateId?, value?, currency?, effectiveDate?, expiryDate?.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/contracts/:id</td><td class="text-sm opacity-70">Contract detail with embedded signers array.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/contracts/:id</td><td class="text-sm opacity-70">Update contract fields while in draft status.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/contracts/:id</td><td class="text-sm opacity-70">Delete contract.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/contracts/:id/send</td><td class="text-sm opacity-70">Create signer records with 30-day tokens and send email links. Transitions to pending_signature.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/contracts/:id/void</td><td class="text-sm opacity-70">Void a pending or active contract. Requires contracts.update.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/contracts/sign/:token</td><td class="text-sm opacity-70">Public. Returns contract HTML and signer state for the signing page.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/contracts/sign/:token</td><td class="text-sm opacity-70">Public. Submit signature. Body: signatureData (PNG data URL), consent (boolean). Records IP + user agent.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/contracts/sign/:token/decline</td><td class="text-sm opacity-70">Public. Signer declines. Body: reason? (optional).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-base font-semibold mt-4">Templates <code class="font-mono text-sm">/contracts/templates</code></h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/contracts/templates</td><td class="text-sm opacity-70">List contract templates.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/contracts/templates</td><td class="text-sm opacity-70">Create template. Body: name, type, content (HTML with <code class="bg-base-300 px-1 rounded text-xs">&#123;&#123;variable&#125;&#125;</code> placeholders).</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/contracts/templates/:id</td><td class="text-sm opacity-70">Update template.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/contracts/templates/:id</td><td class="text-sm opacity-70">Delete template.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Notifications — <code class="text-base font-mono">/notifications</code></h2>
+    <p class="text-sm opacity-60">All endpoints require authentication.</p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/notifications</td><td class="text-sm opacity-70">Paginated list for the current user. Query: filter (all|unread), page, limit.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PUT</span></td><td class="font-mono text-xs">/notifications/:id/read</td><td class="text-sm opacity-70">Mark a single notification as read.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PUT</span></td><td class="font-mono text-xs">/notifications/read-all</td><td class="text-sm opacity-70">Mark all notifications for the current user as read.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/notifications/preferences</td><td class="text-sm opacity-70">Get current user's notification preferences (channels, muted types, quiet hours).</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PUT</span></td><td class="font-mono text-xs">/notifications/preferences</td><td class="text-sm opacity-70">Update notification preferences.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/notifications/ws</td><td class="text-sm opacity-70">WebSocket endpoint. Sends real-time push on connect (unread count) and on new notification. Supports mark-read, mark-all-read, and sync messages.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Teams -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Teams — <code class="text-base font-mono">/teams</code></h2>
+    <p class="text-sm opacity-60">Requires <code class="bg-base-300 px-1 rounded text-xs">teams.read/create/update/delete</code>.</p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/teams</td><td class="text-sm opacity-70">List teams with member count. Query: search, skip, limit.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/teams/mine</td><td class="text-sm opacity-70">Teams the current user belongs to (auth only, no permission gate).</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/teams</td><td class="text-sm opacity-70">Create team. Body: name, description?.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/teams/:id</td><td class="text-sm opacity-70">Team detail with full member list.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/teams/:id</td><td class="text-sm opacity-70">Update team name or description.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/teams/:id</td><td class="text-sm opacity-70">Delete team.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/teams/:id/members</td><td class="text-sm opacity-70">Add user to team. Body: userId.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/teams/:id/members/:userId</td><td class="text-sm opacity-70">Remove user from team.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Workspaces -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Workspaces — <code class="text-base font-mono">/workspaces</code></h2>
+    <p class="text-sm opacity-60">Requires <code class="bg-base-300 px-1 rounded text-xs">workspaces.read/create/update/delete</code>.</p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/workspaces</td><td class="text-sm opacity-70">List workspaces the current user belongs to with their role in each.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/workspaces</td><td class="text-sm opacity-70">Create workspace. Caller becomes owner.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/workspaces/:id</td><td class="text-sm opacity-70">Workspace detail including caller's role.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/workspaces/:id</td><td class="text-sm opacity-70">Update name, slug, or description.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/workspaces/:id</td><td class="text-sm opacity-70">Delete workspace and all memberships. Owner only.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/workspaces/:id/members</td><td class="text-sm opacity-70">List members with user details and roles.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/workspaces/:id/members</td><td class="text-sm opacity-70">Add existing user by email with a specified role.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/workspaces/:id/members/:userId</td><td class="text-sm opacity-70">Change member's role.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/workspaces/:id/members/:userId</td><td class="text-sm opacity-70">Remove member from workspace.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/workspaces/:id/switch</td><td class="text-sm opacity-70">Set as the active workspace for the current session.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Audit -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Audit Log — <code class="text-base font-mono">/audit</code></h2>
+    <p class="text-sm opacity-60">Requires <code class="bg-base-300 px-1 rounded text-xs">audit.read</code>.</p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/audit</td><td class="text-sm opacity-70">Paginated audit log. Query: q (text search), action (category filter), sort, sortDir, page, limit.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Support Tickets -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Support Tickets — <code class="text-base font-mono">/tickets</code></h2>
+    <p class="text-sm opacity-60">Requires <code class="bg-base-300 px-1 rounded text-xs">support_tickets.read/create/update</code>. Customer users see their own tickets only.</p>
+    <p class="text-sm opacity-70 leading-relaxed">Tickets are stored as agile jobs in the reserved "Support" sprint. A support sprint is auto-created when the first ticket is submitted.</p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/tickets</td><td class="text-sm opacity-70">List support tickets with task completion percentage rollup. Customers see own only.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/tickets</td><td class="text-sm opacity-70">Submit a ticket. Body: title, description?, priority?. Attachments via multipart.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/tickets/:id</td><td class="text-sm opacity-70">Ticket detail.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/tickets/:id</td><td class="text-sm opacity-70">Update ticket (staff only for status changes).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Global Search — <code class="text-base font-mono">/search</code></h2>
+    <p class="text-sm opacity-60">Requires authentication.</p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/search?q=term</td><td class="text-sm opacity-70">Cross-module search returning up to 5 results each from milestones, sprints, jobs (supports JOB-NNN syntax), tasks, contacts, companies, and deals.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Public Events -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Public Events — <code class="text-base font-mono">/events</code></h2>
+    <p class="text-sm opacity-70 leading-relaxed">
+      A lightweight event bulletin board distinct from the team calendar. Publicly accessible at <code class="bg-base-300 px-1 rounded text-xs">/upcoming-events</code>.
+    </p>
+    <div class="overflow-x-auto">
+      <table class="table table-sm w-full">
+        <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/events/public</td><td>Public</td><td class="text-sm opacity-70">Next 12 months of events, sorted by startDate. No auth required.</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/events</td><td>Required</td><td class="text-sm opacity-70">All events. Query: title.</td></tr>
+          <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/events</td><td>events.create</td><td class="text-sm opacity-70">Create event. Body: title, content?, startDate, endDate?, singleDay?.</td></tr>
+          <tr><td><span class="badge badge-sm badge-warning">PATCH</span></td><td class="font-mono text-xs">/events/:id</td><td>events.update</td><td class="text-sm opacity-70">Update event.</td></tr>
+          <tr><td><span class="badge badge-sm badge-error">DELETE</span></td><td class="font-mono text-xs">/events/:id</td><td>events.delete</td><td class="text-sm opacity-70">Delete event.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Health -->
   <div class="space-y-4">
     <h2 class="text-xl font-semibold border-b border-base-300 pb-2">Health Check</h2>

@@ -132,6 +132,18 @@
         <p class="text-sm font-semibold">Job Detail</p>
         <p class="text-sm opacity-60 leading-relaxed">Full job view with task list, dependency graph, comment feed, attachments panel, and effort bar. Access at <code class="bg-base-300 px-1 rounded text-xs">/agile/jobs/:id</code>.</p>
       </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">My Tasks</p>
+        <p class="text-sm opacity-60 leading-relaxed">Personal task view showing all tasks assigned to the current user, sorted by status then priority then due date. Alert chips highlight overdue and due-within-7-days tasks. Filter by status chip or toggle to include Done tasks. Available at <code class="bg-base-300 px-1 rounded text-xs">/agile/my-tasks</code>.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Sprint Planning</p>
+        <p class="text-sm opacity-60 leading-relaxed">Two-panel sprint planner. The left panel shows backlog jobs (Backlog or Ready status) for the selected milestone; the right panel shows jobs already committed to the target sprint. A capacity gauge tracks committed hours vs. sprint capacity in real time. Move jobs between panels to build the sprint. Sortable by title, status, category, or estimated hours. Available at <code class="bg-base-300 px-1 rounded text-xs">/agile/plan</code>.</p>
+      </div>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-1">
+        <p class="text-sm font-semibold">Agile Reports</p>
+        <p class="text-sm opacity-60 leading-relaxed">Per-milestone reports with aggregate KPI cards (average velocity, average completion %, total tasks and jobs across all sprints), a sortable sprint performance table (sprint number, status, capacity, committed effort, velocity, job count, task count, completion %), and an SVG velocity chart showing committed effort vs. actual velocity per sprint. Available at <code class="bg-base-300 px-1 rounded text-xs">/agile/reports</code>.</p>
+      </div>
     </div>
   </div>
 
