@@ -383,6 +383,7 @@
       </div>
 
       <div class="card bg-base-200 overflow-hidden">
+        <div use:dragScroll class="table-scroll">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-base-300">
@@ -449,6 +450,7 @@
             {/each}
           </tbody>
         </table>
+        </div>
 
         <Pagination total={usersTotal} pageSize={PAGE_SIZE} {currentPage} onPage={gotoUsersPage} class="px-4 py-2 border-t border-base-300" />
       </div>
@@ -508,6 +510,7 @@
             <input type="search" placeholder="Search by name or email…" class="grow" bind:value={userQuery} oninput={onRolesQueryInput} />
           </label>
           <div class="card bg-base-200 overflow-hidden">
+            <div use:dragScroll class="table-scroll">
             <table class="w-full text-sm">
               <thead>
                 <tr class="border-b border-base-300">
@@ -540,6 +543,7 @@
                 {/each}
               </tbody>
             </table>
+            </div>
             <Pagination total={roleUsersTotal} pageSize={PAGE_SIZE} currentPage={rolesPage} onPage={gotoRolesPage} class="px-4 py-2 border-t border-base-300" />
           </div>
         </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { dragScroll } from '$lib/actions/dragScroll';
   import { Search, ChevronDown } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
@@ -117,6 +118,7 @@
   </div>
 
   <div class="card bg-base-100 border border-base-200 overflow-hidden">
+    <div use:dragScroll class="table-scroll">
     <table class="table table-sm">
       <thead>
         <tr>
@@ -190,6 +192,7 @@
         {/each}
       </tbody>
     </table>
+    </div>
 
     <Pagination
       total={data.count}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { dragScroll } from '$lib/actions/dragScroll';
   import { hasPermission } from '$lib/permissions';
   import PLBarChart      from '$lib/components/folio/PLBarChart.svelte';
   import ExpensePieChart from '$lib/components/folio/ExpensePieChart.svelte';
@@ -177,6 +178,7 @@
       <div class="p-4 pb-2">
         <p class="text-xs font-semibold opacity-50 uppercase tracking-wide">Period Detail</p>
       </div>
+      <div use:dragScroll class="table-scroll">
       <table class="table table-sm">
         <thead>
           <tr class="bg-base-300/30">
@@ -212,6 +214,7 @@
           </tr>
         </tfoot>
       </table>
+      </div>
     </div>
 
     <!-- Tax summary table -->
@@ -220,6 +223,7 @@
         <div class="p-4 pb-2">
           <p class="text-xs font-semibold opacity-50 uppercase tracking-wide">Tax Period Summary</p>
         </div>
+        <div use:dragScroll class="table-scroll">
         <table class="table table-sm">
           <thead>
             <tr class="bg-base-300/30">
@@ -240,6 +244,7 @@
             {/each}
           </tbody>
         </table>
+        </div>
       </div>
     {/if}
 

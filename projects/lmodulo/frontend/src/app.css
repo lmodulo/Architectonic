@@ -71,6 +71,12 @@ nav.tab-scroll {
 }
 .tab-scroll::-webkit-scrollbar { display: none; }
 
+.table-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.table-scroll::-webkit-scrollbar { display: none; }
+
 .select {
   padding-inline-end: 2.5rem;
   min-width: max-content;

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
+  import { dragScroll } from '$lib/actions/dragScroll';
   import { Plus, Receipt, ChevronUp, ChevronDown, ChevronsUpDown, Trash2, X } from 'lucide-svelte';
   import Modal from '$lib/components/Modal.svelte';
   import { hasPermission } from '$lib/permissions';
@@ -184,6 +185,7 @@
     </div>
   {:else}
     <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+      <div use:dragScroll class="table-scroll">
       <table class="table table-sm">
         <thead>
           <tr class="bg-base-300/30">
@@ -240,6 +242,7 @@
           {/each}
         </tbody>
       </table>
+      </div>
     </div>
 
     <!-- Pagination -->

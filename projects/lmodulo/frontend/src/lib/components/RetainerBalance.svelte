@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { dragScroll } from '$lib/actions/dragScroll';
+
   export type RetainerPeriod = {
     id:             string;
     periodStart:    string;
@@ -113,6 +115,7 @@
   {#if closedHistory.length > 0}
     <div class="space-y-2 pt-2 border-t border-base-300">
       <p class="text-xs font-medium opacity-50 uppercase tracking-wide">Period History</p>
+      <div use:dragScroll class="table-scroll">
       <table class="table table-xs w-full">
         <thead>
           <tr class="bg-base-300/30 text-xs">
@@ -140,6 +143,7 @@
           {/each}
         </tbody>
       </table>
+      </div>
     </div>
   {/if}
 </div>

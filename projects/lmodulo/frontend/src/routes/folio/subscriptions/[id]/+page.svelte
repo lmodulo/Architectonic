@@ -1,5 +1,6 @@
 <script lang="ts">
   import { invalidateAll, goto } from '$app/navigation';
+  import { dragScroll } from '$lib/actions/dragScroll';
   import { hasPermission } from '$lib/permissions';
   import { Pencil, X, Check, Trash2, Plus } from 'lucide-svelte';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
@@ -321,6 +322,7 @@
     <div class="space-y-2">
       <h2 class="text-sm font-semibold">Generated Invoices ({invoices.length})</h2>
       <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+        <div use:dragScroll class="table-scroll">
         <table class="table table-sm">
           <thead>
             <tr class="bg-base-300/30">
@@ -344,6 +346,7 @@
             {/each}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   {/if}
