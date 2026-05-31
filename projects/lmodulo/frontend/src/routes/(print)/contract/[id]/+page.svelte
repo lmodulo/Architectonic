@@ -43,7 +43,7 @@
 <BrandedDocument {brandName} {brandLogo} title={contract.title}>
   <!-- Contract header -->
   <div class="mb-10">
-    <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">
+    <p class="text-xs text-black uppercase tracking-widest mb-1">
       {TYPE_LABELS[contract.type] ?? 'Agreement'}
     </p>
     <h1 class="text-2xl font-semibold text-gray-800 leading-snug">{contract.title}</h1>
@@ -51,10 +51,10 @@
     {#if contract.effectiveDate || contract.expiryDate}
       <div class="flex flex-wrap gap-6 mt-4 text-sm text-gray-500">
         {#if contract.effectiveDate}
-          <span><span class="text-gray-400">Effective:</span> {fmtDate(contract.effectiveDate)}</span>
+          <span><span class="text-black">Effective:</span> {fmtDate(contract.effectiveDate)}</span>
         {/if}
         {#if contract.expiryDate}
-          <span><span class="text-gray-400">Expires:</span> {fmtDate(contract.expiryDate)}</span>
+          <span><span class="text-black">Expires:</span> {fmtDate(contract.expiryDate)}</span>
         {/if}
       </div>
     {/if}
@@ -68,21 +68,21 @@
   <!-- Signers -->
   {#if contract.signers?.length > 0}
     <div class="border-t border-gray-200 pt-8">
-      <p class="text-xs text-gray-400 uppercase tracking-widest mb-4">Signatures</p>
+      <p class="text-xs text-black uppercase tracking-widest mb-4">Signatures</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {#each contract.signers as signer}
           <div class="border border-gray-200 rounded-sm p-4">
-            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{signer.role}</p>
+            <p class="text-xs text-black uppercase tracking-wide mb-1">{signer.role}</p>
             <p class="font-medium text-gray-800">{signer.name}</p>
             <p class="text-sm text-gray-500 mb-3">{signer.email}</p>
             {#if signer.status === 'signed' && signer.signedAt}
               <div class="border-t border-gray-100 pt-3">
-                <p class="text-xs text-gray-400">Signed electronically</p>
+                <p class="text-xs text-black">Signed electronically</p>
                 <p class="text-xs text-gray-500">{fmtDate(signer.signedAt)}</p>
               </div>
             {:else}
               <div class="border-t border-dashed border-gray-200 pt-3 mt-3">
-                <p class="text-xs text-gray-300 italic">Pending signature</p>
+                <p class="text-xs text-gray-500 italic">Pending signature</p>
               </div>
             {/if}
           </div>

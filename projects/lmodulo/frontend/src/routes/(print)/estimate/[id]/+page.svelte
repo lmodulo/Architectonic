@@ -48,15 +48,15 @@
   <!-- Estimate header -->
   <div class="flex flex-wrap items-start justify-between gap-4 mb-10">
     <div>
-      <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Estimate</p>
+      <p class="text-xs text-black uppercase tracking-widest mb-1">Estimate</p>
       <h1 class="text-2xl font-semibold text-gray-800">{est.title}</h1>
       {#if est.estimateNumber}
-        <p class="text-sm text-gray-400 font-mono mt-0.5">{est.estimateNumber}</p>
+        <p class="text-sm text-black font-mono mt-0.5">{est.estimateNumber}</p>
       {/if}
     </div>
     <div class="text-right text-sm text-gray-500">
       {#if est.validUntil}
-        <p><span class="text-gray-400">Valid until:</span> {fmtDate(est.validUntil)}</p>
+        <p><span class="text-black">Valid until:</span> {fmtDate(est.validUntil)}</p>
       {/if}
       {#if est.status}
         <p class="mt-1 font-medium">{STATUS_LABEL[est.status] ?? est.status}</p>
@@ -67,7 +67,7 @@
   <!-- Prepared for -->
   {#if est.customerName || est.companyName}
     <div class="mb-8">
-      <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Prepared For</p>
+      <p class="text-xs text-black uppercase tracking-widest mb-1">Prepared For</p>
       {#if est.companyName}<p class="font-medium text-gray-800">{est.companyName}</p>{/if}
       {#if est.customerName}<p class="text-sm text-gray-600">{est.customerName}</p>{/if}
     </div>
@@ -118,7 +118,7 @@
   <!-- Notes -->
   {#if est.notes}
     <div class="border-t border-gray-100 pt-6">
-      <p class="text-xs text-gray-400 uppercase tracking-widest mb-2">Notes</p>
+      <p class="text-xs text-black uppercase tracking-widest mb-2">Notes</p>
       <p class="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{est.notes}</p>
     </div>
   {/if}

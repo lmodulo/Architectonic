@@ -82,9 +82,13 @@ nav.tab-scroll {
   min-width: max-content;
 }
 
-thead tr {
+.table thead tr {
   background: var(--color-neutral);
-  color: var(--color-neutral-content);
+}
+
+.table thead tr th {
+  padding-inline: 1rem;
+  color: white;
 }
 
 /*
@@ -110,7 +114,7 @@ thead tr {
   --color-base-content: oklch(97% 0 0);
   --color-primary: oklch(29% 0.149 302.717);
   --color-primary-content: oklch(97% 0.013 17.38);
-  --color-secondary: oklch(64% 0.222 41.116);
+  --color-secondary: oklch(42.288% 0.13421 38.871);
   --color-secondary-content: oklch(97% 0.014 308.299);
   --color-accent: oklch(60% 0.25 292.717);
   --color-accent-content: oklch(98% 0.026 102.212);

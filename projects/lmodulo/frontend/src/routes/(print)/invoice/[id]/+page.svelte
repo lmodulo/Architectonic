@@ -41,15 +41,15 @@
   <!-- Invoice header -->
   <div class="flex flex-wrap items-start justify-between gap-4 mb-10">
     <div>
-      <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Invoice</p>
+      <p class="text-xs text-black uppercase tracking-widest mb-1">Invoice</p>
       <h1 class="text-3xl font-mono font-semibold text-gray-800">{inv.invoiceNumber}</h1>
     </div>
     <div class="text-right text-sm text-gray-500">
       {#if inv.issuedAt}
-        <p><span class="text-gray-400">Issued:</span> {fmtDate(inv.issuedAt)}</p>
+        <p><span class="text-black">Issued:</span> {fmtDate(inv.issuedAt)}</p>
       {/if}
       {#if inv.dueDate}
-        <p><span class="text-gray-400">Due:</span> {fmtDate(inv.dueDate)}</p>
+        <p><span class="text-black">Due:</span> {fmtDate(inv.dueDate)}</p>
       {/if}
       {#if inv.paidAt}
         <p class="text-green-600 font-medium">Paid {fmtDate(inv.paidAt)}</p>
@@ -60,7 +60,7 @@
   <!-- Bill to -->
   {#if inv.customerName || inv.companyName}
     <div class="mb-8">
-      <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Bill To</p>
+      <p class="text-xs text-black uppercase tracking-widest mb-1">Bill To</p>
       {#if inv.companyName}<p class="font-medium text-gray-800">{inv.companyName}</p>{/if}
       {#if inv.customerName}<p class="text-sm text-gray-600">{inv.customerName}</p>{/if}
     </div>
@@ -111,7 +111,7 @@
   <!-- Notes -->
   {#if inv.notes}
     <div class="border-t border-gray-100 pt-6">
-      <p class="text-xs text-gray-400 uppercase tracking-widest mb-2">Notes</p>
+      <p class="text-xs text-black uppercase tracking-widest mb-2">Notes</p>
       <p class="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{inv.notes}</p>
     </div>
   {/if}

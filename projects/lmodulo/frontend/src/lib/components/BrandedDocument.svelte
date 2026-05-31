@@ -37,14 +37,8 @@
   <div class="w-full max-w-[794px] bg-white shadow-md rounded-sm overflow-hidden">
 
     <!-- Brand header -->
-    <header style="background-color:#371840;" class="px-10 py-12 flex flex-col items-center gap-2">
-      {#if brandLogo}
-        <img src={brandLogo} alt={brandName || 'Logo'} style="height:48px;width:auto;max-width:240px;" />
-      {:else if brandName}
-        <span style="font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;font-size:1.5rem;font-weight:300;letter-spacing:0.3em;color:#ffffff;text-transform:uppercase;">
-          {brandName}
-        </span>
-      {/if}
+    <header class="px-10 py-12 flex flex-col items-center gap-2 border-b border-gray-100">
+      <img src="/logo-black.svg" alt={brandName || 'Logo'} style="height:48px;width:auto;max-width:240px;" />
     </header>
 
     <!-- Document content -->
@@ -84,7 +78,6 @@
     }
 
     /* Remove card styling for print */
-    div[style*="background-color:#f0f0f0"],
     .bg-\[#f0f0f0\] {
       background: white !important;
       padding: 0 !important;

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { goto } from '$app/navigation';
   import { ChevronLeft, ChevronRight, Plus, Search, LayoutList, Calendar as CalIcon, SearchX } from 'lucide-svelte';
+  import { dragScroll } from '$lib/actions/dragScroll';
   import type { PageData } from './$types';
   import EventCard          from '$lib/components/EventCard.svelte';
   import EventCalendarGrid  from '$lib/components/EventCalendarGrid.svelte';
@@ -37,9 +39,7 @@
 
   function switchTab(tab: Tab) {
     activeTab = tab;
-    const u = new URL(window.location.href);
-    u.searchParams.set('tab', tab);
-    history.replaceState({}, '', u.toString());
+    goto(`?tab=${tab}`, { replaceState: true, noScroll: true, keepFocus: true });
   }
 
   // ── Modal ──────────────────────────────────────────────────────────────────
@@ -219,32 +219,30 @@
   </div>
 
   <!-- Tab bar -->
-  <div class="border-b border-base-300">
-    <div class="flex">
-      {#if data.user}
-        <button
-          type="button"
-          class="px-5 py-2.5 text-sm font-medium transition-colors rounded-t
-            {activeTab === 'calendar' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
-          onclick={() => switchTab('calendar')}
-        >My Calendar</button>
-      {/if}
+  <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300">
+    {#if data.user}
       <button
         type="button"
-        class="px-5 py-2.5 text-sm font-medium transition-colors rounded-t
-          {activeTab === 'events' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
-        onclick={() => switchTab('events')}
-      >Events</button>
-      {#if canManage}
-        <button
-          type="button"
-          class="px-5 py-2.5 text-sm font-medium transition-colors rounded-t
-            {activeTab === 'manage' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
-          onclick={() => switchTab('manage')}
-        >Manage</button>
-      {/if}
-    </div>
-  </div>
+        class="px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+          {activeTab === 'calendar' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
+        onclick={() => switchTab('calendar')}
+      >My Calendar</button>
+    {/if}
+    <button
+      type="button"
+      class="px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+        {activeTab === 'events' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
+      onclick={() => switchTab('events')}
+    >Events</button>
+    {#if canManage}
+      <button
+        type="button"
+        class="px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+          {activeTab === 'manage' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
+        onclick={() => switchTab('manage')}
+      >Manage</button>
+    {/if}
+  </nav>
 
   <!-- ── My Calendar tab ──────────────────────────────────────────────────── -->
   {#if activeTab === 'calendar' && data.user}
