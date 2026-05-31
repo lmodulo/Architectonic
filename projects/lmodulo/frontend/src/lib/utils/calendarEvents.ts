@@ -127,6 +127,23 @@ export function typeLabel(eventType: string): string {
   return eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
+/** YYYY-MM-DD string from year + 0-indexed month + day (mirrors JS Date constructor). */
+export function ds(year: number, month: number, day: number): string {
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/** Short locale date from an ISO date string, e.g. "Jun 15". */
+export function fmtShort(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+/** Emoji icon for an event's visibility value. */
+export function visIcon(v: string | undefined): string {
+  if (v === 'public') return '🌐';
+  if (v === 'shared') return '👥';
+  return '🔒';
+}
+
 export function normalizeEvent(e: Record<string, unknown>): CalendarEvent {
   const allDay = Boolean(e.allDay);
   return {

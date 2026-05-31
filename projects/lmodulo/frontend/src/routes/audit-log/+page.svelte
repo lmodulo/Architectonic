@@ -5,6 +5,7 @@
   import Avatar from '$lib/components/Avatar.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
+  import { parseAction, relativeTime } from '$lib/utils/auditLog';
 
   let { data }: { data: PageData } = $props();
 
@@ -57,9 +58,18 @@
   }
 
   function toggleSort(field: string) {
-    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-    else { sortField = field; sortDir = 'asc'; }
-    navigate(1);
+    const newDir: 'asc' | 'desc' = sortField === field
+      ? (sortDir === 'asc' ? 'desc' : 'asc')
+      : 'asc';
+    sortField = field;
+    sortDir = newDir;
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    if (q.trim())  params.set('q', q.trim());
+    if (action)    params.set('action', action);
+    params.set('sort',    field);
+    params.set('sortDir', newDir);
+    goto(`/audit-log?${params}`);
   }
 
   function applyFilters() {
@@ -76,20 +86,6 @@
     expanded = next;
   }
 
-  function parseAction(raw: string): { category: string; verb: string } {
-    const dot = raw.indexOf('.');
-    return dot === -1
-      ? { category: raw, verb: '' }
-      : { category: raw.slice(0, dot), verb: raw.slice(dot + 1).replace(/_/g, ' ') };
-  }
-
-  function relativeTime(date: string | Date): string {
-    const secs = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
-    if (secs < 60)    return `${secs}s ago`;
-    if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`;
-    if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
-    return `${Math.floor(secs / 86400)}d ago`;
-  }
 </script>
 
 <svelte:head>

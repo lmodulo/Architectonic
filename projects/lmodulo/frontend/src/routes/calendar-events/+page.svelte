@@ -8,7 +8,7 @@
   import EventCalendarGrid  from '$lib/components/EventCalendarGrid.svelte';
   import EventModal         from '$lib/components/EventModal.svelte';
   import { hasPermission }  from '$lib/permissions';
-  import { normalizeEvent, groupByMonth, typeLabel, type CalendarEvent } from '$lib/utils/calendarEvents';
+  import { normalizeEvent, groupByMonth, typeLabel, ds, fmtShort, visIcon, type CalendarEvent } from '$lib/utils/calendarEvents';
 
   let { data }: { data: PageData } = $props();
 
@@ -105,10 +105,6 @@
   function prevMonth() { calMonth === 0 ? (calMonth = 11, calYear--) : calMonth--; }
   function nextMonth() { calMonth === 11 ? (calMonth = 0, calYear++) : calMonth++; }
 
-  function ds(year: number, month: number, day: number): string {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  }
-
   function buildCal(year: number, month: number) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startDow    = new Date(year, month, 1).getDay();
@@ -144,16 +140,6 @@
       })
       .sort((a, b) => a.startDate.localeCompare(b.startDate));
   });
-
-  function fmtShort(iso: string): string {
-    return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-
-  function visIcon(v: string | undefined) {
-    if (v === 'public') return '🌐';
-    if (v === 'shared') return '👥';
-    return '🔒';
-  }
 
   // ── Events tab ─────────────────────────────────────────────────────────────
   let eventTypeFilter = $state(data.activeType ?? '');

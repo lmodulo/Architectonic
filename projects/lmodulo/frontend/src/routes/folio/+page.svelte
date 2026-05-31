@@ -171,13 +171,15 @@
               <th class="text-right">Invoices</th>
               <th class="text-right">Total</th>
               <th class="text-right">Paid</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
             {#each customers as customer (customer.id)}
               {@const stats = customerStats(customer.id)}
-              <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+              <tr
+                class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
+                onclick={() => goto(`/folio/invoices?customerId=${customer.id}`)}
+              >
                 <td>
                   <div class="font-medium text-sm">{customer.firstName} {customer.lastName}</div>
                   <div class="text-xs opacity-50">{customer.email}</div>
@@ -191,15 +193,6 @@
                 </td>
                 <td class="text-right text-sm font-medium">{fmtCurrency(stats.total)}</td>
                 <td class="text-right text-sm text-success">{fmtCurrency(stats.paid)}</td>
-                <td>
-                  <button
-                    type="button"
-                    class="btn btn-ghost btn-xs"
-                    onclick={() => goto(`/folio/invoices?customerId=${customer.id}`)}
-                  >
-                    View
-                  </button>
-                </td>
               </tr>
             {/each}
           </tbody>

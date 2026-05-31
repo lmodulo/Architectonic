@@ -3,57 +3,11 @@
   import { hasPermission } from '$lib/permissions';
   import type { AgileMilestone, AgileSprint, AgileTask } from '$lib/utils/agile';
   import ActivityVolumeChart from '$lib/components/crm/ActivityVolumeChart.svelte';
+  import { fmtCurrency, donutSegs, funnelPolygons } from '$lib/utils/dashboard';
 
   let { data }: { data: PageData } = $props();
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
-
-  function fmtCurrency(v: number): string {
-    if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
-    if (v >= 1_000)     return `$${(v / 1_000).toFixed(0)}k`;
-    return `$${v.toFixed(0)}`;
-  }
-
-  // ── SVG: donut chart ──────────────────────────────────────────────────
-  function donutSegs(pts: { label: string; value: number }[], cx = 90, cy = 90, r = 72, ir = 48) {
-    const total = pts.reduce((s, d) => s + d.value, 0) || 1;
-    let a = -Math.PI / 2;
-    return pts.map(d => {
-      const sw   = (d.value / total) * Math.PI * 2;
-      const gap  = 0.05;
-      const a0   = a + gap / 2;
-      const a1   = a + sw - gap / 2;
-      const lg   = (a1 - a0) > Math.PI ? 1 : 0;
-      const x1   = cx + r  * Math.cos(a0);  const y1 = cy + r  * Math.sin(a0);
-      const x2   = cx + r  * Math.cos(a1);  const y2 = cy + r  * Math.sin(a1);
-      const xi1  = cx + ir * Math.cos(a1);  const yi1= cy + ir * Math.sin(a1);
-      const xi2  = cx + ir * Math.cos(a0);  const yi2= cy + ir * Math.sin(a0);
-      const path = `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${lg} 1 ${x2.toFixed(2)},${y2.toFixed(2)} L${xi1.toFixed(2)},${yi1.toFixed(2)} A${ir},${ir} 0 ${lg} 0 ${xi2.toFixed(2)},${yi2.toFixed(2)}Z`;
-      a += sw;
-      return { path, label: d.label, value: d.value, pct: Math.round(d.value / total * 100) };
-    });
-  }
-
-  // ── SVG: funnel polygons ──────────────────────────────────────────────
-  function funnelPolygons(stages: { stage: string; count: number; value: number; color: string }[]) {
-    const W = 200, H = 240, minW = 40, gap = 2;
-    const n = stages.length || 1;
-    const step = (W - minW) / n;
-    return stages.map((s, i) => {
-      const topW = W - i * step;
-      const botW = W - (i + 1) * step;
-      const topY = (i / n) * H;
-      const botY = ((i + 1) / n) * H;
-      const cx   = W / 2;
-      const pts  = [
-        `${(cx - topW / 2).toFixed(1)},${(topY + gap).toFixed(1)}`,
-        `${(cx + topW / 2).toFixed(1)},${(topY + gap).toFixed(1)}`,
-        `${(cx + botW / 2).toFixed(1)},${(botY - gap).toFixed(1)}`,
-        `${(cx - botW / 2).toFixed(1)},${(botY - gap).toFixed(1)}`,
-      ].join(' ');
-      return { pts, midY: (topY + botY) / 2, ...s };
-    });
-  }
 
   // ══════════════════════════════════════════════════════════════════════
   // AGILE
