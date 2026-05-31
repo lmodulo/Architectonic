@@ -364,25 +364,25 @@
       </div>
     {:else}
       <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
-        <table class="w-full text-sm">
+        <table class="table table-sm">
           <thead>
-            <tr class="border-b border-base-300">
-              <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Task</th>
-              <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Assignee</th>
-              <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Priority</th>
-              <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Status</th>
-              <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Est</th>
-              <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Logged</th>
-              <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Due</th>
+            <tr class="bg-base-300/30">
+              <th>Task</th>
+              <th>Assignee</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th class="text-right">Est</th>
+              <th class="text-right">Logged</th>
+              <th class="text-right">Due</th>
               {#if hasPermission(data.user, 'agile_tasks', 'update')}
-                <th class="w-8 px-2 py-2.5"></th>
+                <th class="w-8"></th>
               {/if}
             </tr>
           </thead>
           <tbody>
             {#each tasks as task (task.id)}
-              <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-                <td class="px-4 py-2.5 font-medium">
+              <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+                <td class="font-medium">
                   <button
                     type="button"
                     class="text-left hover:text-primary hover:underline transition-colors"
@@ -392,17 +392,17 @@
                     <p class="text-[10px] text-error mt-0.5">{task.blockedReason}</p>
                   {/if}
                 </td>
-                <td class="px-4 py-2.5 text-xs opacity-70">
+                <td class="text-xs opacity-70">
                   {#if task.assignedTo}
                     <UserNameLink user={users.find((u: any) => u.id === task.assignedTo)} />
                   {:else}
                     Unassigned
                   {/if}
                 </td>
-                <td class="px-4 py-2.5">
+                <td>
                   <span class="badge text-xs {PRIORITY_COLOR[task.priority] ?? 'badge-ghost'}">{task.priority}</span>
                 </td>
-                <td class="px-4 py-2.5">
+                <td>
                   {#if hasPermission(data.user, 'agile_tasks', 'update')}
                     <select
                       class="select text-xs h-7 pl-2 pr-6"
@@ -417,11 +417,11 @@
                     <span class="badge text-xs {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
                   {/if}
                 </td>
-                <td class="px-4 py-2.5 text-right text-xs opacity-70">{fmtEffort(task.estimateHours)}</td>
-                <td class="px-4 py-2.5 text-right text-xs opacity-70">{fmtEffort(task.actualHours ?? 0)}</td>
-                <td class="px-4 py-2.5 text-right text-xs opacity-70">{fmtDate(task.dueDate)}</td>
+                <td class="text-right text-xs opacity-70">{fmtEffort(task.estimateHours)}</td>
+                <td class="text-right text-xs opacity-70">{fmtEffort(task.actualHours ?? 0)}</td>
+                <td class="text-right text-xs opacity-70">{fmtDate(task.dueDate)}</td>
                 {#if hasPermission(data.user, 'agile_tasks', 'update')}
-                  <td class="px-2 py-2.5 text-center">
+                  <td class="text-center">
                     <button
                       type="button"
                       class="btn btn-ghost btn-sm btn-square opacity-40 hover:opacity-100"

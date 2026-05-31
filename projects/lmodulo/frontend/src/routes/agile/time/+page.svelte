@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { Clock, Play, Square, Plus, Search, ChevronLeft, ChevronRight, Timer, X } from 'lucide-svelte';
+  import { Clock, Play, Square, Plus, Search, ChevronLeft, ChevronRight, Timer, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -83,6 +83,30 @@
     const fromEntries = entries.filter(e => !e.timerRunning).map(e => e.taskId);
     const fromTasks   = tasks.map(t => t.id);
     return [...new Set([...fromTasks, ...fromEntries])];
+  });
+
+  let timeSortField = $state<'title' | 'total'>('title');
+  let timeSortDir   = $state<'asc' | 'desc'>('asc');
+
+  function toggleTimeSort(field: 'title' | 'total') {
+    if (timeSortField === field) timeSortDir = timeSortDir === 'asc' ? 'desc' : 'asc';
+    else { timeSortField = field; timeSortDir = 'asc'; }
+  }
+
+  const sortedRowTaskIds = $derived.by(() => {
+    return [...rowTaskIds].sort((a, b) => {
+      let av: any, bv: any;
+      if (timeSortField === 'title') {
+        av = taskMap[a]?.title ?? '';
+        bv = taskMap[b]?.title ?? '';
+      } else {
+        av = rowTotalMins(a);
+        bv = rowTotalMins(b);
+      }
+      if (av < bv) return timeSortDir === 'asc' ? -1 : 1;
+      if (av > bv) return timeSortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
   });
 
   // ── Cell dialog ───────────────────────────────────────────────
@@ -268,25 +292,44 @@
       <p class="text-xs opacity-40 mt-1">Press <kbd class="kbd kbd-xs">⌘K</kbd> to log time on any task.</p>
     </div>
   {:else}
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+      <div class="overflow-x-auto">
       <table class="table table-sm w-full min-w-[820px]">
         <thead>
-          <tr class="bg-base-200 text-xs">
-            <th class="min-w-[200px] font-medium">Task</th>
+          <tr class="bg-base-300/30">
+            <th class="min-w-[200px] font-medium">
+              <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleTimeSort('title')}>
+                Task
+                {#if timeSortField === 'title'}
+                  {#if timeSortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                {:else}
+                  <ChevronsUpDown class="size-3 opacity-30" />
+                {/if}
+              </button>
+            </th>
             {#each weekDates as d, i}
               <th class="text-right min-w-[70px] font-medium
                 {d === today ? 'text-primary' : ''}">
                 {DAY_LABELS[i]}&nbsp;{new Date(d + 'T00:00:00Z').getUTCDate()}
               </th>
             {/each}
-            <th class="text-right min-w-[70px] font-medium opacity-50">Total</th>
+            <th class="text-right min-w-[70px] font-medium opacity-50">
+              <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity ml-auto" onclick={() => toggleTimeSort('total')}>
+                Total
+                {#if timeSortField === 'total'}
+                  {#if timeSortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                {:else}
+                  <ChevronsUpDown class="size-3 opacity-30" />
+                {/if}
+              </button>
+            </th>
           </tr>
         </thead>
         <tbody>
-          {#each rowTaskIds as taskId (taskId)}
+          {#each sortedRowTaskIds as taskId (taskId)}
             {@const task     = taskMap[taskId]}
             {@const rowTotal = rowTotalMins(taskId)}
-            <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-base-300/40 transition-colors">
+            <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
               <td class="py-2.5 pr-3">
                 <p class="text-sm font-medium leading-tight line-clamp-1">{task?.title ?? 'Unknown task'}</p>
                 {#if task?.jobTitle || task?.sprintTitle}
@@ -328,6 +371,7 @@
           </tr>
         </tfoot>
       </table>
+      </div>
     </div>
   {/if}
 

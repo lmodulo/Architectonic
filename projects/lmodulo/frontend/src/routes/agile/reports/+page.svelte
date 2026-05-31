@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { STATUS_COLOR, fmtEffort } from '$lib/utils/agile';
-  import { GitBranch } from 'lucide-svelte';
+  import { GitBranch, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -29,6 +29,32 @@
   );
   const totalTasks = $derived(sprints.reduce((s: number, sp: any) => s + (sp.taskCount ?? 0), 0));
   const totalJobs  = $derived(sprints.reduce((s: number, sp: any) => s + (sp.jobCount  ?? 0), 0));
+
+  let sortField = $state('sprintNumber');
+  let sortDir   = $state<'asc' | 'desc'>('asc');
+
+  function toggleSort(field: string) {
+    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortField = field; sortDir = 'asc'; }
+  }
+
+  const sortedSprints = $derived.by(() => {
+    return [...sprints].sort((a: any, b: any) => {
+      let av: any, bv: any;
+      if      (sortField === 'sprintNumber')    { av = a.sprintNumber    ?? 0;  bv = b.sprintNumber    ?? 0; }
+      else if (sortField === 'status')          { av = a.status          ?? ''; bv = b.status          ?? ''; }
+      else if (sortField === 'capacity')        { av = a.capacity        ?? 0;  bv = b.capacity        ?? 0; }
+      else if (sortField === 'committedEffort') { av = a.committedEffort ?? 0;  bv = b.committedEffort ?? 0; }
+      else if (sortField === 'velocity')        { av = a.velocity        ?? 0;  bv = b.velocity        ?? 0; }
+      else if (sortField === 'jobCount')        { av = a.jobCount        ?? 0;  bv = b.jobCount        ?? 0; }
+      else if (sortField === 'taskCount')       { av = a.taskCount       ?? 0;  bv = b.taskCount       ?? 0; }
+      else if (sortField === 'completionPct')   { av = a.completionPct   ?? 0;  bv = b.completionPct   ?? 0; }
+      else return 0;
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  });
 
   // ── Velocity chart (grouped bar) ───────────────────────────────────
   const VPL = 48, VPR = 16, VPT = 20, VPB = 36;
@@ -276,43 +302,55 @@
 
     <!-- ── Summary table ─────────────────────────────────────────────── -->
     <section class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
-      <table class="w-full text-sm">
+      <table class="table table-sm">
         <thead>
-          <tr class="border-b border-base-300">
-            <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Sprint</th>
-            <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Status</th>
-            <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Capacity</th>
-            <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Committed</th>
-            <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Velocity</th>
-            <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Jobs</th>
-            <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Tasks</th>
-            <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Complete</th>
+          <tr class="bg-base-300/30">
+            {#snippet sortTh(label: string, field: string, cls = '')}
+              <th class="text-xs font-semibold opacity-50 {cls}">
+                <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity {cls.includes('text-right') ? 'ml-auto' : ''}" onclick={() => toggleSort(field)}>
+                  {label}
+                  {#if sortField === field}
+                    {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                  {:else}
+                    <ChevronsUpDown class="size-3 opacity-30" />
+                  {/if}
+                </button>
+              </th>
+            {/snippet}
+            {@render sortTh('Sprint',    'sprintNumber')}
+            {@render sortTh('Status',    'status')}
+            {@render sortTh('Capacity',  'capacity',        'text-right')}
+            {@render sortTh('Committed', 'committedEffort', 'text-right')}
+            {@render sortTh('Velocity',  'velocity',        'text-right')}
+            {@render sortTh('Jobs',      'jobCount',        'text-right')}
+            {@render sortTh('Tasks',     'taskCount',       'text-right')}
+            {@render sortTh('Complete',  'completionPct',   'text-right')}
           </tr>
         </thead>
         <tbody>
-          {#each sprints as sprint}
+          {#each sortedSprints as sprint}
             {@const pct = Math.round(sprint.completionPct ?? 0)}
-            <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-              <td class="px-4 py-2.5">
+            <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+              <td>
                 <a href="/agile/sprints/{sprint.id}" class="font-medium hover:text-primary hover:underline">
                   S{sprint.sprintNumber}: {sprint.title}
                 </a>
               </td>
-              <td class="px-4 py-2.5">
+              <td>
                 <span class="badge text-xs {STATUS_COLOR[sprint.status] ?? 'badge-ghost'}">{sprint.status}</span>
               </td>
-              <td class="px-4 py-2.5 text-right text-xs opacity-70 tabular-nums">
+              <td class="text-right text-xs opacity-70 tabular-nums">
                 {sprint.capacity ? fmtEffort(sprint.capacity) : '—'}
               </td>
-              <td class="px-4 py-2.5 text-right text-xs opacity-70 tabular-nums">
+              <td class="text-right text-xs opacity-70 tabular-nums">
                 {fmtEffort(sprint.committedEffort ?? 0)}
               </td>
-              <td class="px-4 py-2.5 text-right text-xs tabular-nums">
+              <td class="text-right text-xs tabular-nums">
                 <span class="font-medium text-success">{fmtEffort(sprint.velocity ?? 0)}</span>
               </td>
-              <td class="px-4 py-2.5 text-right text-xs opacity-70 tabular-nums">{sprint.jobCount ?? 0}</td>
-              <td class="px-4 py-2.5 text-right text-xs opacity-70 tabular-nums">{sprint.taskCount ?? 0}</td>
-              <td class="px-4 py-2.5 text-right">
+              <td class="text-right text-xs opacity-70 tabular-nums">{sprint.jobCount ?? 0}</td>
+              <td class="text-right text-xs opacity-70 tabular-nums">{sprint.taskCount ?? 0}</td>
+              <td class="text-right">
                 <div class="flex items-center justify-end gap-2">
                   <div class="w-14 h-1.5 rounded-full bg-base-300 overflow-hidden">
                     <div class="h-full rounded-full bg-primary" style="width:{pct}%"></div>
@@ -327,19 +365,19 @@
         <!-- Totals row -->
         <tfoot>
           <tr class="border-t-2 border-base-300 bg-base-300/30">
-            <td class="px-4 py-2.5 text-xs font-semibold opacity-60" colspan="2">Totals / Averages</td>
-            <td class="px-4 py-2.5 text-right text-xs font-semibold tabular-nums">
+            <td class="text-xs font-semibold opacity-60" colspan="2">Totals / Averages</td>
+            <td class="text-right text-xs font-semibold tabular-nums">
               {fmtEffort(sprints.reduce((s: number, sp: any) => s + (sp.capacity ?? 0), 0))}
             </td>
-            <td class="px-4 py-2.5 text-right text-xs font-semibold tabular-nums">
+            <td class="text-right text-xs font-semibold tabular-nums">
               {fmtEffort(sprints.reduce((s: number, sp: any) => s + (sp.committedEffort ?? 0), 0))}
             </td>
-            <td class="px-4 py-2.5 text-right text-xs font-semibold tabular-nums text-success">
+            <td class="text-right text-xs font-semibold tabular-nums text-success">
               {fmtEffort(sprints.reduce((s: number, sp: any) => s + (sp.velocity ?? 0), 0))}
             </td>
-            <td class="px-4 py-2.5 text-right text-xs font-semibold tabular-nums">{totalJobs}</td>
-            <td class="px-4 py-2.5 text-right text-xs font-semibold tabular-nums">{totalTasks}</td>
-            <td class="px-4 py-2.5 text-right text-xs font-semibold tabular-nums">
+            <td class="text-right text-xs font-semibold tabular-nums">{totalJobs}</td>
+            <td class="text-right text-xs font-semibold tabular-nums">{totalTasks}</td>
+            <td class="text-right text-xs font-semibold tabular-nums">
               {avgCompletion !== null ? `${avgCompletion}%` : '—'} avg
             </td>
           </tr>

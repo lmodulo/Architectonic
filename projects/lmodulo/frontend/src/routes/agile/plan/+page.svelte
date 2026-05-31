@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { Plus, X, ArrowRight, ArrowLeft, ExternalLink, GitBranch } from 'lucide-svelte';
+  import { Plus, X, ArrowRight, ArrowLeft, ExternalLink, GitBranch, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
@@ -50,6 +50,27 @@
   const visibleSprintJobs = $derived(
     statusFilter ? sprintJobs.filter(j => j.status === statusFilter) : sprintJobs
   );
+
+  let planSortField = $state('title');
+  let planSortDir   = $state<'asc' | 'desc'>('asc');
+
+  function togglePlanSort(field: string) {
+    if (planSortField === field) planSortDir = planSortDir === 'asc' ? 'desc' : 'asc';
+    else { planSortField = field; planSortDir = 'asc'; }
+  }
+
+  const sortedSprintJobs = $derived.by(() => {
+    return [...visibleSprintJobs].sort((a: any, b: any) => {
+      let av: any, bv: any;
+      if      (planSortField === 'title')          { av = a.title          ?? ''; bv = b.title          ?? ''; }
+      else if (planSortField === 'status')         { av = a.status         ?? ''; bv = b.status         ?? ''; }
+      else if (planSortField === 'estimatedHours') { av = a.estimatedHours ?? 0;  bv = b.estimatedHours ?? 0; }
+      else return 0;
+      if (av < bv) return planSortDir === 'asc' ? -1 : 1;
+      if (av > bv) return planSortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  });
 
   // Navigate when milestone changes
   function onMilestoneChange(id: string) {
@@ -284,20 +305,32 @@
           </div>
         {:else}
           <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
-            <table class="w-full text-sm">
+            <table class="table table-sm">
               <thead>
-                <tr class="border-b border-base-300">
-                  <th class="text-left px-3 py-2 text-xs font-semibold opacity-50">Job</th>
-                  <th class="text-left px-3 py-2 text-xs font-semibold opacity-50">Status</th>
-                  <th class="text-right px-3 py-2 text-xs font-semibold opacity-50">Est</th>
-                  <th class="w-16 px-2 py-2"></th>
+                <tr class="bg-base-300/30">
+                  {#snippet sortTh(label: string, field: string, cls = '')}
+                    <th class="text-xs font-semibold opacity-50 {cls}">
+                      <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity {cls.includes('text-right') ? 'ml-auto' : ''}" onclick={() => togglePlanSort(field)}>
+                        {label}
+                        {#if planSortField === field}
+                          {#if planSortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                        {:else}
+                          <ChevronsUpDown class="size-3 opacity-30" />
+                        {/if}
+                      </button>
+                    </th>
+                  {/snippet}
+                  {@render sortTh('Job',    'title')}
+                  {@render sortTh('Status', 'status')}
+                  {@render sortTh('Est',    'estimatedHours', 'text-right')}
+                  <th class="w-16"></th>
                 </tr>
               </thead>
               <tbody>
-                {#each visibleSprintJobs as job (job.id)}
+                {#each sortedSprintJobs as job (job.id)}
                   {@const pct = Math.round((job as any).completionPct ?? 0)}
-                  <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-                    <td class="px-3 py-2">
+                  <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+                    <td>
                       <div class="space-y-0.5">
                         <div class="flex items-center gap-1.5">
                           <span class="badge text-[10px] {CATEGORY_COLOR[job.category] ?? 'badge-ghost'}">{job.category}</span>
@@ -313,11 +346,11 @@
                         {/if}
                       </div>
                     </td>
-                    <td class="px-3 py-2">
+                    <td>
                       <span class="badge text-xs {STATUS_COLOR[job.status] ?? 'badge-ghost'}">{job.status}</span>
                     </td>
-                    <td class="px-3 py-2 text-right text-xs opacity-60">{fmtEffort((job as any).estimatedHours ?? 0)}</td>
-                    <td class="px-2 py-2 text-center">
+                    <td class="text-right text-xs opacity-60">{fmtEffort((job as any).estimatedHours ?? 0)}</td>
+                    <td class="text-center">
                       {#if hasPermission(data.user, 'agile_jobs', 'update') && otherSprints.length > 0 && job.status === 'Backlog'}
                         <button
                           type="button"

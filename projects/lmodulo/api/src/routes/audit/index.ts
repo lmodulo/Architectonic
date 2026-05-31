@@ -1,25 +1,32 @@
 import type { FastifyInstance } from 'fastify';
 
+const SORT_FIELDS = new Set(['createdAt', 'username', 'action', 'ip']);
+
 export default async function auditRoutes(app: FastifyInstance) {
 
   // GET /audit
-  app.get<{ Querystring: { limit?: string; skip?: string; action?: string; q?: string } }>('/', {
+  app.get<{ Querystring: { limit?: string; skip?: string; action?: string; q?: string; sort?: string; sortDir?: string } }>('/', {
     preHandler: app.requirePermission('audit', 'read'),
     schema: {
       summary: 'List recent audit log entries',
       querystring: {
         type: 'object',
         properties: {
-          limit:  { type: 'string' },
-          skip:   { type: 'string' },
-          action: { type: 'string' },
-          q:      { type: 'string' }
+          limit:   { type: 'string' },
+          skip:    { type: 'string' },
+          action:  { type: 'string' },
+          q:       { type: 'string' },
+          sort:    { type: 'string' },
+          sortDir: { type: 'string' }
         }
       }
     }
   }, async (req) => {
     const limit = Math.min(Number(req.query.limit ?? 50), 200);
     const skip  = Number(req.query.skip ?? 0);
+
+    const sortField = SORT_FIELDS.has(req.query.sort ?? '') ? req.query.sort! : 'createdAt';
+    const sortDir   = req.query.sortDir === 'asc' ? 1 : -1;
 
     const filter: Record<string, unknown> = {};
     if (req.query.action) {
@@ -31,7 +38,7 @@ export default async function auditRoutes(app: FastifyInstance) {
 
     const collection = app.mongo.db!.collection('audit_logs');
     const [entries, count] = await Promise.all([
-      collection.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+      collection.find(filter).sort({ [sortField]: sortDir }).skip(skip).limit(limit).toArray(),
       collection.countDocuments(filter)
     ]);
 

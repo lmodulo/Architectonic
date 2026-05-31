@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Pencil, X, Check, Milestone } from 'lucide-svelte';
+  import { Pencil, X, Check, Milestone, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import { dragScroll } from '$lib/actions/dragScroll';
@@ -76,6 +76,33 @@
   const totalDealValue = $derived(
     deals.filter(d => d.stage !== 'Closed Lost').reduce((s, d) => s + (d.value ?? 0), 0)
   );
+
+  const PRIORITY_WEIGHT: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1, None: 0 };
+
+  let msSortField = $state('title');
+  let msSortDir   = $state<'asc' | 'desc'>('asc');
+
+  function toggleMsSort(field: string) {
+    if (msSortField === field) msSortDir = msSortDir === 'asc' ? 'desc' : 'asc';
+    else { msSortField = field; msSortDir = 'asc'; }
+  }
+
+  const sortedMilestones = $derived.by(() => {
+    return [...milestones].sort((a: any, b: any) => {
+      let av: any, bv: any;
+      if      (msSortField === 'title')              { av = a.title                 ?? ''; bv = b.title                 ?? ''; }
+      else if (msSortField === 'status')             { av = a.status                ?? ''; bv = b.status                ?? ''; }
+      else if (msSortField === 'priority')           { av = PRIORITY_WEIGHT[a.priority] ?? 0; bv = PRIORITY_WEIGHT[b.priority] ?? 0; }
+      else if (msSortField === 'completionPct')      { av = a.completionPct         ?? 0;  bv = b.completionPct         ?? 0; }
+      else if (msSortField === 'totalEstimatedHours'){ av = a.totalEstimatedHours   ?? 0;  bv = b.totalEstimatedHours   ?? 0; }
+      else if (msSortField === 'totalActualHours')   { av = a.totalActualHours      ?? 0;  bv = b.totalActualHours      ?? 0; }
+      else if (msSortField === 'startDate')          { av = a.startDate             ?? ''; bv = b.startDate             ?? ''; }
+      else return 0;
+      if (av < bv) return msSortDir === 'asc' ? -1 : 1;
+      if (av > bv) return msSortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  });
 </script>
 
 <svelte:head><title>{company.name} — Nexus</title></svelte:head>
@@ -259,31 +286,43 @@
               <p class="text-xs opacity-30 mt-1">Link a client from the Agile → Milestone detail page.</p>
             </div>
           {:else}
-            <table class="w-full text-sm">
+            <table class="table table-sm">
               <thead>
-                <tr class="border-b border-base-300">
-                  <th class="text-left px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide">Milestone</th>
-                  <th class="text-left px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide">Status</th>
-                  <th class="text-left px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden md:table-cell">Priority</th>
-                  <th class="text-right px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden lg:table-cell">Progress</th>
-                  <th class="text-right px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden lg:table-cell">Est</th>
-                  <th class="text-right px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden lg:table-cell">Actual</th>
-                  <th class="text-right px-4 py-3 text-xs font-medium opacity-60 uppercase tracking-wide hidden xl:table-cell">Dates</th>
+                <tr class="bg-base-300/30">
+                  {#snippet sortTh(label: string, field: string, cls = '')}
+                    <th class="text-xs font-medium opacity-60 uppercase tracking-wide {cls}">
+                      <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity {cls.includes('text-right') ? 'ml-auto' : ''}" onclick={() => toggleMsSort(field)}>
+                        {label}
+                        {#if msSortField === field}
+                          {#if msSortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                        {:else}
+                          <ChevronsUpDown class="size-3 opacity-30" />
+                        {/if}
+                      </button>
+                    </th>
+                  {/snippet}
+                  {@render sortTh('Milestone', 'title')}
+                  {@render sortTh('Status',    'status')}
+                  {@render sortTh('Priority',  'priority',           'hidden md:table-cell')}
+                  {@render sortTh('Progress',  'completionPct',      'text-right hidden lg:table-cell')}
+                  {@render sortTh('Est',       'totalEstimatedHours','text-right hidden lg:table-cell')}
+                  {@render sortTh('Actual',    'totalActualHours',   'text-right hidden lg:table-cell')}
+                  {@render sortTh('Dates',     'startDate',          'text-right hidden xl:table-cell')}
                 </tr>
               </thead>
               <tbody>
-                {#each milestones as m (m.id)}
+                {#each sortedMilestones as m (m.id)}
                   <tr
                     class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
                     onclick={() => goto(`/agile/milestones/${m.id}`)}
                   >
-                    <td class="px-4 py-3 font-medium">{m.title}</td>
-                    <td class="px-4 py-3"><span class="badge badge-xs {STATUS_COLOR[m.status] ?? 'badge-ghost'}">{m.status}</span></td>
+                    <td class="font-medium">{m.title}</td>
+                    <td><span class="badge badge-xs {STATUS_COLOR[m.status] ?? 'badge-ghost'}">{m.status}</span></td>
                     <td class="px-4 py-3 hidden md:table-cell"><span class="badge badge-xs {PRIORITY_COLOR[m.priority] ?? 'badge-ghost'}">{m.priority}</span></td>
-                    <td class="px-4 py-3 text-right hidden lg:table-cell">{Math.round(m.completionPct ?? 0)}%</td>
-                    <td class="px-4 py-3 text-right hidden lg:table-cell opacity-70">{fmtEffort(m.totalEstimatedHours ?? 0)}</td>
-                    <td class="px-4 py-3 text-right hidden lg:table-cell opacity-70">{fmtEffort(m.totalActualHours ?? 0)}</td>
-                    <td class="px-4 py-3 text-right hidden xl:table-cell opacity-50 text-xs">{fmtDateRange(m.startDate ?? null, m.endDate ?? null)}</td>
+                    <td class="text-right hidden lg:table-cell">{Math.round(m.completionPct ?? 0)}%</td>
+                    <td class="text-right hidden lg:table-cell opacity-70">{fmtEffort(m.totalEstimatedHours ?? 0)}</td>
+                    <td class="text-right hidden lg:table-cell opacity-70">{fmtEffort(m.totalActualHours ?? 0)}</td>
+                    <td class="text-right hidden xl:table-cell opacity-50 text-xs">{fmtDateRange(m.startDate ?? null, m.endDate ?? null)}</td>
                   </tr>
                 {/each}
               </tbody>

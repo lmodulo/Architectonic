@@ -9,12 +9,14 @@ const PAGE_SIZE = 20;
 export const load: PageServerLoad = async ({ locals, cookies, url }) => {
   if (!hasPermission(locals.user, 'audit', 'read')) redirect(303, '/403');
 
-  const page   = Math.max(1, Number(url.searchParams.get('page') ?? 1));
-  const action = url.searchParams.get('action') ?? '';
-  const q      = url.searchParams.get('q') ?? '';
+  const page    = Math.max(1, Number(url.searchParams.get('page') ?? 1));
+  const action  = url.searchParams.get('action') ?? '';
+  const q       = url.searchParams.get('q') ?? '';
+  const sort    = url.searchParams.get('sort')    ?? 'createdAt';
+  const sortDir = url.searchParams.get('sortDir') ?? 'desc';
 
   const skip  = (page - 1) * PAGE_SIZE;
-  const qs    = new URLSearchParams({ limit: String(PAGE_SIZE), skip: String(skip) });
+  const qs    = new URLSearchParams({ limit: String(PAGE_SIZE), skip: String(skip), sort, sortDir });
   if (action) qs.set('action', action);
   if (q)      qs.set('q', q);
 
@@ -29,8 +31,8 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
     const json = await res.json();
     const entries = Array.isArray(json?.entries) ? json.entries : Array.isArray(json) ? json : [];
     const count   = typeof json?.count === 'number' ? json.count : Array.isArray(json) ? json.length : 0;
-    return { entries, count, page, action, q, error: null };
+    return { entries, count, page, action, q, sort, sortDir, error: null };
   } catch {
-    return { entries: [], count: 0, page, action, q, error: 'Cannot reach the API server' };
+    return { entries: [], count: 0, page, action, q, sort, sortDir, error: 'Cannot reach the API server' };
   }
 };

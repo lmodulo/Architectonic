@@ -244,6 +244,9 @@
     {/if}
   </nav>
 
+  {#key activeTab}
+  <div class="page-content">
+
   <!-- ── My Calendar tab ──────────────────────────────────────────────────── -->
   {#if activeTab === 'calendar' && data.user}
     <div class="space-y-6">
@@ -484,6 +487,9 @@
 
     </div>
   {/if}
+
+  </div>
+  {/key}
 
 </div>
 

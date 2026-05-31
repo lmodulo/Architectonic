@@ -35,7 +35,7 @@
   });
 </script>
 
-<div class="flex flex-col gap-6">
+<div data-no-anim class="flex flex-col gap-6">
   <!-- Page header -->
   <div>
     <h1 class="text-2xl font-bold leading-none">Agile</h1>
@@ -61,5 +61,9 @@
   {/if}
 
   <!-- Page content -->
-  {@render children()}
+  {#key page.url.pathname}
+    <div class="page-content">
+      {@render children()}
+    </div>
+  {/key}
 </div>

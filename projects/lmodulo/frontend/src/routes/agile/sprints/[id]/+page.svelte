@@ -339,23 +339,23 @@
         {/if}
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
-        <table class="w-full text-sm">
+        <table class="table table-sm">
           <thead>
-            <tr class="border-b border-base-300">
-              <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Job</th>
-              <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Category</th>
-              <th class="text-left px-4 py-2.5 text-xs font-semibold opacity-50">Status</th>
-              <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Tasks</th>
-              <th class="text-right px-4 py-2.5 text-xs font-semibold opacity-50">Progress</th>
+            <tr class="bg-base-300/30">
+              <th>Job</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th class="text-right">Tasks</th>
+              <th class="text-right">Progress</th>
             </tr>
           </thead>
           <tbody>
             {#each jobs as job (job.id)}
               <tr
-                class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
+                class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
                 onclick={() => goto(`/agile/jobs/JOB-${job.jobNumber}`)}
               >
-                <td class="px-4 py-2.5 font-medium">
+                <td class="font-medium">
                   <span class="flex items-center gap-1">
                     {job.title}
                     {#if job.blocked}
@@ -364,14 +364,14 @@
                   </span>
                   <span class="font-mono text-[10px] opacity-30 select-all">JOB-{job.jobNumber}</span>
                 </td>
-                <td class="px-4 py-2.5">
+                <td>
                   <span class="badge badge-ghost text-xs">{job.category}</span>
                 </td>
-                <td class="px-4 py-2.5">
+                <td>
                   <span class="badge text-xs {STATUS_COLOR[job.status] ?? 'badge-ghost'}">{job.status}</span>
                 </td>
-                <td class="px-4 py-2.5 text-right text-xs opacity-60">{job.taskCount ?? 0}</td>
-                <td class="px-4 py-2.5">
+                <td class="text-right text-xs opacity-60">{job.taskCount ?? 0}</td>
+                <td>
                   <div class="flex items-center gap-2 justify-end">
                     <div class="w-16 h-1.5 rounded-full bg-base-300 overflow-hidden">
                       <div class="h-full rounded-full" style="width:{Math.round(job.completionPct ?? 0)}%;background:{completionColor(Math.round(job.completionPct ?? 0))}"></div>

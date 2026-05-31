@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { dragScroll } from '$lib/actions/dragScroll';
-  import { Search, ChevronDown } from 'lucide-svelte';
+  import { Search, ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
@@ -37,6 +37,8 @@
 
   let q        = $state(data.q);
   let action   = $state(data.action);
+  let sortField = $state(data.sort);
+  let sortDir   = $state(data.sortDir);
   let expanded = $state(new Set<string>());
 
   $effect(() => {
@@ -49,7 +51,15 @@
     params.set('page', String(pg));
     if (overrideQ.trim())    params.set('q', overrideQ.trim());
     if (overrideAction)      params.set('action', overrideAction);
+    params.set('sort',    sortField);
+    params.set('sortDir', sortDir);
     goto(`/audit-log?${params}`);
+  }
+
+  function toggleSort(field: string) {
+    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortField = field; sortDir = 'asc'; }
+    navigate(1);
   }
 
   function applyFilters() {
@@ -117,16 +127,28 @@
     <button type="button" class="btn btn-primary" onclick={applyFilters}>Apply</button>
   </div>
 
-  <div class="card bg-base-100 border border-base-200 overflow-hidden">
+  <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
     <div use:dragScroll class="table-scroll">
     <table class="table table-sm">
       <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Actor</th>
-          <th>Action</th>
+        <tr class="bg-base-300/30">
+          {#snippet sortTh(label: string, field: string)}
+            <th>
+              <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
+                {label}
+                {#if sortField === field}
+                  {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                {:else}
+                  <ChevronsUpDown class="size-3 opacity-30" />
+                {/if}
+              </button>
+            </th>
+          {/snippet}
+          {@render sortTh('Timestamp', 'createdAt')}
+          {@render sortTh('Actor', 'username')}
+          {@render sortTh('Action', 'action')}
           <th>Resource</th>
-          <th>IP</th>
+          {@render sortTh('IP', 'ip')}
           <th></th>
         </tr>
       </thead>

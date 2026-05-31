@@ -382,13 +382,13 @@
         {/if}
       </div>
 
-      <div class="card bg-base-200 overflow-hidden">
+      <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
         <div use:dragScroll class="table-scroll">
-        <table class="w-full text-sm">
+        <table class="table table-sm">
           <thead>
-            <tr class="border-b border-base-300">
+            <tr class="bg-base-300/30">
               {#snippet sortTh(label: string, field: string)}
-                <th class="text-left px-4 py-3 font-semibold text-base-content/50">
+                <th>
                   <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
                     {label}
                     {#if sortField === field}
@@ -403,13 +403,13 @@
               {@render sortTh('Email', 'email')}
               {@render sortTh('Role', 'role')}
               {@render sortTh('Joined', 'createdAt')}
-              <th class="px-4 py-3"></th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {#each users as user}
-              <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-                <td class="px-4 py-3">
+              <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+                <td>
                   <div class="flex items-center gap-3">
                     <Avatar user={user} size="sm" />
                     <div>
@@ -427,10 +427,10 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-4 py-3 text-base-content/40">{user.email}</td>
-                <td class="px-4 py-3"><span class="badge badge-primary badge-outline text-xs">{user.role ?? 'viewer'}</span></td>
-                <td class="px-4 py-3 text-base-content/50">{new Date(user.createdAt).toLocaleDateString()}</td>
-                <td class="px-4 py-3">
+                <td class="text-base-content/40">{user.email}</td>
+                <td><span class="badge badge-primary badge-outline text-xs">{user.role ?? 'viewer'}</span></td>
+                <td class="text-base-content/50">{new Date(user.createdAt).toLocaleDateString()}</td>
+                <td>
                   <div class="flex items-center justify-end gap-1">
                     {#if hasPermission(data.user, 'users', 'update')}
                       <button type="button" class="btn btn-ghost btn-xs btn-square" aria-label="Edit {user.username}" onclick={() => openEdit(user)}>
@@ -509,20 +509,20 @@
             <Search class="size-4 shrink-0 opacity-50" />
             <input type="search" placeholder="Search by name or email…" class="grow" bind:value={userQuery} oninput={onRolesQueryInput} />
           </label>
-          <div class="card bg-base-200 overflow-hidden">
+          <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
             <div use:dragScroll class="table-scroll">
-            <table class="w-full text-sm">
+            <table class="table table-sm">
               <thead>
-                <tr class="border-b border-base-300">
-                  <th class="text-left px-4 py-3 font-semibold text-base-content/50">User</th>
-                  <th class="text-left px-4 py-3 font-semibold text-base-content/50">Email</th>
-                  <th class="text-left px-4 py-3 font-semibold text-base-content/50">Role</th>
+                <tr class="bg-base-300/30">
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Role</th>
                 </tr>
               </thead>
               <tbody>
                 {#each roleUsers as user}
-                  <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035]">
-                    <td class="px-4 py-3">
+                  <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+                    <td>
                       {#if user.firstName || user.lastName}
                         <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
                         <div class="text-xs text-base-content/50">{user.username}</div>
@@ -530,8 +530,8 @@
                         <div class="font-medium">{user.username}</div>
                       {/if}
                     </td>
-                    <td class="px-4 py-3 text-base-content/40">{user.email}</td>
-                    <td class="px-4 py-3">
+                    <td class="text-base-content/40">{user.email}</td>
+                    <td>
                       <select class="select select-sm text-xs" value={user.role ?? 'viewer'}
                         onchange={(e) => assignRole(user.id, (e.currentTarget as HTMLSelectElement).value)}>
                         {#each data.roles as role}

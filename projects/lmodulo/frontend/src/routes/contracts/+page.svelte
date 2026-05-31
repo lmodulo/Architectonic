@@ -105,10 +105,10 @@
       {/if}
     </div>
   {:else}
-    <div class="overflow-x-auto rounded-lg border border-base-300">
-      <table class="table table-sm w-full">
+    <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+      <table class="table table-sm">
         <thead>
-          <tr>
+          <tr class="bg-base-300/30">
             {#snippet sortTh(label: string, field: string, cls = '')}
               <th class={cls}>
                 <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
