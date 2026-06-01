@@ -110,7 +110,8 @@
         {@const bh = (m.value / maxRevenue) * chartH}
         {@const y  = PAD_T + chartH - bh}
         <rect x={x} y={y} width={barW} height={bh} rx={3}
-          fill="var(--color-success)" opacity="0.7" />
+          fill="var(--color-success)" opacity="0.7"
+          class="revenue-bar" style="animation-delay:{i * 80}ms" />
         <text x={x + barW / 2} y={H - 6} text-anchor="middle" font-size="10"
           fill="currentColor" opacity="0.6">{m.label}</text>
       {/each}
@@ -118,3 +119,15 @@
   </section>
 
 </div>
+
+<style>
+  @keyframes revenueBarGrow {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+  .revenue-bar {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: revenueBarGrow 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+</style>

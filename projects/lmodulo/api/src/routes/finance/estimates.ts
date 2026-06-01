@@ -27,7 +27,7 @@ function mapEstimate(doc: Record<string, unknown>) {
 export default async function estimatesRoutes(app: FastifyInstance) {
 
   // GET /finance/estimates
-  app.get('/estimates', { preHandler: app.requireAuth }, async (req) => {
+  app.get('/', { preHandler: app.requireAuth }, async (req) => {
     const db     = app.mongo.db!;
     const userId = req.session.userId!;
 
@@ -59,7 +59,7 @@ export default async function estimatesRoutes(app: FastifyInstance) {
   });
 
   // POST /finance/estimates
-  app.post('/estimates', { preHandler: app.requirePermission('finance_estimates', 'create') }, async (req, reply) => {
+  app.post('/', { preHandler: app.requirePermission('finance_estimates', 'create') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const now = new Date();
     const {
@@ -123,7 +123,7 @@ export default async function estimatesRoutes(app: FastifyInstance) {
   });
 
   // GET /finance/estimates/:id
-  app.get('/estimates/:id', { preHandler: app.requireAuth }, async (req, reply) => {
+  app.get('/:id', { preHandler: app.requireAuth }, async (req, reply) => {
     const db     = app.mongo.db!;
     const oid    = parseOid((req.params as { id: string }).id, app);
     const userId = req.session.userId!;
@@ -140,7 +140,7 @@ export default async function estimatesRoutes(app: FastifyInstance) {
   });
 
   // PATCH /finance/estimates/:id
-  app.patch('/estimates/:id', { preHandler: app.requirePermission('finance_estimates', 'update') }, async (req, reply) => {
+  app.patch('/:id', { preHandler: app.requirePermission('finance_estimates', 'update') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
@@ -197,7 +197,7 @@ export default async function estimatesRoutes(app: FastifyInstance) {
   });
 
   // DELETE /finance/estimates/:id
-  app.delete('/estimates/:id', { preHandler: app.requirePermission('finance_estimates', 'delete') }, async (req, reply) => {
+  app.delete('/:id', { preHandler: app.requirePermission('finance_estimates', 'delete') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
 
@@ -213,7 +213,7 @@ export default async function estimatesRoutes(app: FastifyInstance) {
   });
 
   // POST /finance/estimates/:id/accept — customer signs off (sent → accepted)
-  app.post('/estimates/:id/accept', { preHandler: app.requirePermission('finance_estimates', 'read') }, async (req, reply) => {
+  app.post('/:id/accept', { preHandler: app.requirePermission('finance_estimates', 'read') }, async (req, reply) => {
     const db     = app.mongo.db!;
     const oid    = parseOid((req.params as { id: string }).id, app);
     const userId = req.session.userId!;
@@ -238,7 +238,7 @@ export default async function estimatesRoutes(app: FastifyInstance) {
   });
 
   // POST /finance/estimates/:id/decline — customer declines (sent → declined)
-  app.post('/estimates/:id/decline', { preHandler: app.requirePermission('finance_estimates', 'read') }, async (req, reply) => {
+  app.post('/:id/decline', { preHandler: app.requirePermission('finance_estimates', 'read') }, async (req, reply) => {
     const db     = app.mongo.db!;
     const oid    = parseOid((req.params as { id: string }).id, app);
     const userId = req.session.userId!;
@@ -263,7 +263,7 @@ export default async function estimatesRoutes(app: FastifyInstance) {
   });
 
   // POST /finance/estimates/:id/convert — convert accepted estimate to a new draft invoice
-  app.post('/estimates/:id/convert', { preHandler: app.requirePermission('finance_invoices', 'create') }, async (req, reply) => {
+  app.post('/:id/convert', { preHandler: app.requirePermission('finance_invoices', 'create') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     const now = new Date();

@@ -12,11 +12,14 @@ async function sessionPlugin(app: FastifyInstance) {
     throw new Error('SESSION_SECRET env var must be set and at least 32 characters long');
   }
 
-  const store = MongoStore.create({
-    mongoUrl: process.env.MONGO_URI ?? 'mongodb://localhost:27017/appdb',
-    collectionName: 'sessions',
-    ttl: SESSION_MAX_AGE_SEC
-  });
+  // Use synchronous in-memory store during tests to avoid async write races with light-my-request
+  const store = process.env.VITEST
+    ? undefined
+    : MongoStore.create({
+        mongoUrl: process.env.MONGO_URI ?? 'mongodb://localhost:27017/appdb',
+        collectionName: 'sessions',
+        ttl: SESSION_MAX_AGE_SEC
+      });
 
   await app.register(fastifySession, {
     secret,

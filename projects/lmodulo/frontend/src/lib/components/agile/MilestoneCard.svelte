@@ -7,6 +7,12 @@
 
   const pct    = $derived(Math.round(milestone.completionPct ?? 0));
   const barClr = $derived(completionColor(pct));
+
+  let animPct = $state(0);
+  $effect(() => {
+    const target = pct;
+    requestAnimationFrame(() => { animPct = target; });
+  });
 </script>
 
 <div
@@ -47,7 +53,7 @@
       <span class="font-semibold" style="color:{barClr}">{pct}%</span>
     </div>
     <div class="w-full h-2 rounded-full bg-base-300 overflow-hidden">
-      <div class="h-full rounded-full transition-all" style="width:{pct}%;background:{barClr}"></div>
+      <div class="h-full rounded-full" style="width:{animPct}%;background:{barClr};transition:width 0.8s ease-out"></div>
     </div>
   </div>
 

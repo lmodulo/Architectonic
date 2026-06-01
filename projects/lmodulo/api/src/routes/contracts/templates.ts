@@ -42,7 +42,7 @@ export default async function contractTemplateRoutes(app: FastifyInstance) {
       updatedAt: now,
     };
     const result = await db.collection(COL).insertOne(doc);
-    await logAudit(app, req, 'contract_templates.create', result.insertedId, { name });
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contract_templates.create', resourceId: result.insertedId.toString(), meta: { name }, ip: req.ip });
 
     reply.code(201);
     return mapTemplate({ ...doc, _id: result.insertedId } as Record<string, unknown>);
@@ -73,7 +73,7 @@ export default async function contractTemplateRoutes(app: FastifyInstance) {
     if (variables   != null) update.variables   = variables;
 
     await db.collection(COL).updateOne({ _id: oid }, { $set: update });
-    await logAudit(app, req, 'contract_templates.update', oid, update);
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contract_templates.update', resourceId: oid.toString(), meta: update, ip: req.ip });
 
     const updated = await db.collection(COL).findOne({ _id: oid });
     return mapTemplate(updated as Record<string, unknown>);
@@ -88,7 +88,7 @@ export default async function contractTemplateRoutes(app: FastifyInstance) {
     if (doc.isDefault) throw app.httpErrors.badRequest('Cannot delete built-in templates');
 
     await db.collection(COL).deleteOne({ _id: oid });
-    await logAudit(app, req, 'contract_templates.delete', oid, { name: doc.name });
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contract_templates.delete', resourceId: oid.toString(), meta: { name: doc.name }, ip: req.ip });
 
     reply.code(204).send();
   });

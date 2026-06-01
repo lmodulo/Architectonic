@@ -580,7 +580,7 @@
               {/if}
 
               {#if itemVisible('agile', 'kpi-strip')}
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 kpi-strip">
                 {#if isPriv}
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
                     <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Tasks</p>
@@ -636,8 +636,8 @@
                   <div class="flex items-center gap-6">
                     <svg viewBox="0 0 180 180" width="148" height="148" class="shrink-0" aria-hidden="true">
                       {#if taskSegs.length > 0}
-                        {#each taskSegs as seg}
-                          <path d={seg.path} fill={TASK_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9"/>
+                        {#each taskSegs as seg, i}
+                          <path d={seg.path} fill={TASK_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg" style="animation-delay:{i * 80}ms"/>
                         {/each}
                       {:else}
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
@@ -673,7 +673,7 @@
                           <span class="text-xs font-bold opacity-50">{pct}%</span>
                         </div>
                         <div class="relative h-1.5 rounded-full bg-base-300 overflow-hidden">
-                          <div class="absolute inset-y-0 left-0 rounded-full bg-primary opacity-80 transition-all" style="width:{pct}%"></div>
+                          <div class="absolute inset-y-0 left-0 rounded-full bg-primary opacity-80 bar-anim" style="width:{pct}%"></div>
                         </div>
                       </a>
                     {/each}
@@ -689,7 +689,7 @@
                       <div class="flex items-center gap-2.5">
                         <span class="text-[11px] opacity-50 w-[4.5rem] shrink-0 truncate">Sprint {sprint.sprintNumber}</span>
                         <div class="relative flex-1 h-2 rounded-full bg-base-300 overflow-hidden">
-                          <div class="absolute inset-y-0 left-0 rounded-full"
+                          <div class="absolute inset-y-0 left-0 rounded-full bar-anim"
                             style="width:{pct}%;background:{done ? 'var(--color-success)' : 'var(--color-primary)'};opacity:0.75"></div>
                         </div>
                         <span class="text-[11px] font-semibold w-7 text-right opacity-60">{pct}%</span>
@@ -732,7 +732,7 @@
               {/if}
 
               {#if itemVisible('nexus', 'kpi-strip')}
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 kpi-strip">
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
                   <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Pipeline</p>
                   <p class="text-2xl font-bold mt-1">{fmtCurrency(pipelineVal)}</p>
@@ -763,8 +763,8 @@
                   <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Deal Pipeline</p>
                   <div class="flex items-start gap-5">
                     <svg viewBox="0 0 200 240" width="130" height="156" class="shrink-0" aria-hidden="true">
-                      {#each funnelSegs as seg}
-                        <polygon points={seg.pts} fill={seg.color} fill-opacity="0.72"/>
+                      {#each funnelSegs as seg, i}
+                        <polygon points={seg.pts} fill={seg.color} fill-opacity="0.72" class="funnel-seg" style="animation-delay:{i * 70}ms"/>
                         <text x="100" y={seg.midY + 4} text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" fill-opacity="0.9">{seg.count}</text>
                       {/each}
                     </svg>
@@ -817,7 +817,7 @@
               {/if}
 
               {#if itemVisible('folio', 'kpi-strip')}
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 kpi-strip">
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
                   <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Revenue</p>
                   <p class="text-2xl font-bold mt-1">{fmtCurrency(totalBilled)}</p>
@@ -854,8 +854,8 @@
                   <div class="flex items-center gap-6">
                     <svg viewBox="0 0 180 180" width="148" height="148" class="shrink-0" aria-hidden="true">
                       {#if invSegs.length > 0}
-                        {#each invSegs as seg}
-                          <path d={seg.path} fill={INV_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9"/>
+                        {#each invSegs as seg, i}
+                          <path d={seg.path} fill={INV_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg" style="animation-delay:{i * 80}ms"/>
                         {/each}
                       {:else}
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
@@ -890,9 +890,9 @@
                           <span class="font-semibold opacity-60 shrink-0">{fmtCurrency(client.total)}</span>
                         </div>
                         <div class="relative h-2 rounded-full bg-base-300 overflow-hidden">
-                          <div class="absolute inset-y-0 left-0 rounded-full bg-success opacity-75" style="width:{Math.round(client.paid / maxTotal * 100)}%"></div>
+                          <div class="absolute inset-y-0 left-0 rounded-full bg-success opacity-75 bar-anim" style="width:{Math.round(client.paid / maxTotal * 100)}%"></div>
                           {#if client.outstanding > 0}
-                          <div class="absolute inset-y-0 rounded-full bg-warning opacity-75" style="left:{Math.round(client.paid / maxTotal * 100)}%;width:{Math.round(client.outstanding / maxTotal * 100)}%"></div>
+                          <div class="absolute inset-y-0 rounded-full bg-warning opacity-75 bar-anim" style="left:{Math.round(client.paid / maxTotal * 100)}%;width:{Math.round(client.outstanding / maxTotal * 100)}%;animation-delay:80ms"></div>
                           {/if}
                         </div>
                       </div>
@@ -933,7 +933,7 @@
               {/if}
 
               {#if itemVisible('contracts', 'kpi-strip')}
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 kpi-strip">
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
                   <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Active</p>
                   <p class="text-2xl font-bold mt-1">{activeContractCount}</p>
@@ -965,8 +965,8 @@
                   <div class="flex items-center gap-6">
                     <svg viewBox="0 0 180 180" width="148" height="148" class="shrink-0" aria-hidden="true">
                       {#if contractSegs.length > 0}
-                        {#each contractSegs as seg}
-                          <path d={seg.path} fill={CONTRACT_STATUS_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9"/>
+                        {#each contractSegs as seg, i}
+                          <path d={seg.path} fill={CONTRACT_STATUS_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg" style="animation-delay:{i * 80}ms"/>
                         {/each}
                       {:else}
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
@@ -1002,7 +1002,7 @@
                             <span class="text-xs font-bold opacity-50">{c.daysLeft}d</span>
                           </div>
                           <div class="relative h-1.5 rounded-full bg-base-300 overflow-hidden">
-                            <div class="absolute inset-y-0 left-0 rounded-full opacity-75 transition-all" style="width:{c.pct}%;background:{barColor}"></div>
+                            <div class="absolute inset-y-0 left-0 rounded-full opacity-75 bar-anim" style="width:{c.pct}%;background:{barColor}"></div>
                           </div>
                         </a>
                       {/each}
@@ -1043,9 +1043,9 @@
                 {/if}
                 <div class="bg-base-200 border border-base-300 rounded-box overflow-hidden">
                   <ul class="divide-y divide-base-300">
-                    {#each upcomingEvents as ev}
+                    {#each upcomingEvents as ev, i}
                       {@const isToday = ev._d.toDateString() === today.toDateString()}
-                      <li class="flex items-center gap-4 px-5 py-3 {isToday ? 'bg-accent/5' : ''}">
+                      <li class="flex items-center gap-4 px-5 py-3 event-item {isToday ? 'bg-accent/5' : ''}" style="animation-delay:{i * 55}ms">
                         <div class="text-center shrink-0 w-9">
                           <p class="text-[9px] font-semibold uppercase opacity-40 tracking-wide">
                             {ev._d.toLocaleDateString('en-US', { month: 'short' })}
@@ -1086,3 +1086,57 @@
   {/each}
 
 </div>
+
+<style>
+  /* ── KPI cards ───────────────────────────────────────────── */
+  @keyframes kpiSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  :global(.kpi-strip > div) {
+    animation: kpiSlideUp 0.4s ease-out both;
+  }
+  :global(.kpi-strip > div:nth-child(2)) { animation-delay: 70ms; }
+  :global(.kpi-strip > div:nth-child(3)) { animation-delay: 140ms; }
+  :global(.kpi-strip > div:nth-child(4)) { animation-delay: 210ms; }
+  :global(.kpi-strip > div:nth-child(5)) { animation-delay: 280ms; }
+
+  /* ── Donut segments ──────────────────────────────────────── */
+  @keyframes donutSegIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  :global(.donut-seg) {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+    animation: donutSegIn 0.45s ease-out both;
+  }
+
+  /* ── Progress bars ───────────────────────────────────────── */
+  @keyframes barGrow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  :global(.bar-anim) {
+    transform-origin: left center;
+    animation: barGrow 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  /* ── Funnel polygons ─────────────────────────────────────── */
+  @keyframes funnelSegIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  :global(.funnel-seg) {
+    animation: funnelSegIn 0.4s ease-out both;
+  }
+
+  /* ── Calendar event rows ─────────────────────────────────── */
+  @keyframes eventSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  :global(.event-item) {
+    animation: eventSlideIn 0.35s ease-out both;
+  }
+</style>

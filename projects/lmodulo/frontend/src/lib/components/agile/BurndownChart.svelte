@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { AgileSprint, AgileTask } from '$lib/utils/agile';
 
   let { sprint, tasks }: { sprint: AgileSprint; tasks: AgileTask[] } = $props();
@@ -99,7 +100,30 @@
       return { label: `${d.getMonth() + 1}/${d.getDate()}`, xPos: xp(i) };
     });
   });
+
+  let actualPathEl: SVGPathElement | undefined;
+
+  onMount(() => {
+    if (!actualPathEl) return;
+    const len = actualPathEl.getTotalLength();
+    actualPathEl.style.strokeDasharray = `${len}`;
+    actualPathEl.style.strokeDashoffset = `${len}`;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!actualPathEl) return;
+        actualPathEl.style.transition = 'stroke-dashoffset 1.4s ease-in-out';
+        actualPathEl.style.strokeDashoffset = '0';
+      });
+    });
+  });
 </script>
+
+<style>
+  @keyframes burndown-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+</style>
 
 {#if chart}
   <svg viewBox="0 0 {VW} {VH}" width="100%" class="block" aria-label="Sprint burndown chart">
@@ -120,12 +144,12 @@
 
     <!-- Ideal (dashed) -->
     {#if idealPath}
-      <path d={idealPath} fill="none" stroke="currentColor" stroke-opacity="0.28" stroke-width="1.5" stroke-dasharray="5 4" />
+      <path d={idealPath} fill="none" stroke="currentColor" stroke-opacity="0.28" stroke-width="1.5" stroke-dasharray="5 4" style="animation:burndown-fade-in 0.8s ease-out 0.2s both" />
     {/if}
 
     <!-- Actual -->
     {#if actualPath}
-      <path d={actualPath} fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path bind:this={actualPathEl} d={actualPath} fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
     {/if}
 
     <!-- Today marker -->
@@ -140,8 +164,8 @@
     {#if chart.actual[chart.todayIdx] !== null}
       {@const cx = xp(chart.todayIdx)}
       {@const cy = yp(chart.actual[chart.todayIdx] as number)}
-      <circle {cx} {cy} r="7" fill="var(--color-primary)" fill-opacity="0.18" />
-      <circle {cx} {cy} r="4" fill="var(--color-primary)" />
+      <circle {cx} {cy} r="7" fill="var(--color-primary)" fill-opacity="0.18" style="animation:burndown-fade-in 0.5s ease-out 1.2s both" />
+      <circle {cx} {cy} r="4" fill="var(--color-primary)" style="animation:burndown-fade-in 0.5s ease-out 1.2s both" />
     {/if}
   </svg>
 

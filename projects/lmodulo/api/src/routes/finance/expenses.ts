@@ -25,7 +25,7 @@ function mapExpense(doc: Record<string, unknown>) {
 export default async function expensesRoutes(app: FastifyInstance) {
 
   // GET /finance/expenses
-  app.get('/expenses', { preHandler: app.requirePermission('finance_expenses', 'read') }, async (req) => {
+  app.get('/', { preHandler: app.requirePermission('finance_expenses', 'read') }, async (req) => {
     const db = app.mongo.db!;
 
     const {
@@ -65,7 +65,7 @@ export default async function expensesRoutes(app: FastifyInstance) {
   });
 
   // POST /finance/expenses
-  app.post('/expenses', { preHandler: app.requirePermission('finance_expenses', 'create') }, async (req, reply) => {
+  app.post('/', { preHandler: app.requirePermission('finance_expenses', 'create') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const now = new Date();
     const {
@@ -122,7 +122,7 @@ export default async function expensesRoutes(app: FastifyInstance) {
   });
 
   // GET /finance/expenses/:id
-  app.get('/expenses/:id', { preHandler: app.requirePermission('finance_expenses', 'read') }, async (req, reply) => {
+  app.get('/:id', { preHandler: app.requirePermission('finance_expenses', 'read') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     const doc = await db.collection(EXP_COL).findOne({ _id: oid });
@@ -131,7 +131,7 @@ export default async function expensesRoutes(app: FastifyInstance) {
   });
 
   // PATCH /finance/expenses/:id
-  app.patch('/expenses/:id', { preHandler: app.requirePermission('finance_expenses', 'update') }, async (req) => {
+  app.patch('/:id', { preHandler: app.requirePermission('finance_expenses', 'update') }, async (req) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     const {
@@ -159,7 +159,7 @@ export default async function expensesRoutes(app: FastifyInstance) {
   });
 
   // DELETE /finance/expenses/:id
-  app.delete('/expenses/:id', { preHandler: app.requirePermission('finance_expenses', 'delete') }, async (req, reply) => {
+  app.delete('/:id', { preHandler: app.requirePermission('finance_expenses', 'delete') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
     await db.collection(EXP_COL).deleteOne({ _id: oid });

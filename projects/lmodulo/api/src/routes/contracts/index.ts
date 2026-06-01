@@ -99,7 +99,7 @@ export default async function contractRoutes(app: FastifyInstance) {
     };
 
     const result = await db.collection(COL).insertOne(doc);
-    await logAudit(app, req, 'contracts.create', result.insertedId, { title, type });
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contracts.create', resourceId: result.insertedId.toString(), meta: { title, type }, ip: req.ip });
 
     reply.code(201);
     return mapContract({ ...doc, _id: result.insertedId } as Record<string, unknown>);
@@ -176,7 +176,7 @@ export default async function contractRoutes(app: FastifyInstance) {
     if (expiryDate    != null) update.expiryDate     = new Date(expiryDate as string);
 
     await db.collection(COL).updateOne({ _id: oid }, { $set: update });
-    await logAudit(app, req, 'contracts.update', oid, update);
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contracts.update', resourceId: oid.toString(), meta: update, ip: req.ip });
 
     const updated = await db.collection(COL).findOne({ _id: oid });
     return mapContract(updated as Record<string, unknown>);
@@ -193,7 +193,7 @@ export default async function contractRoutes(app: FastifyInstance) {
 
     await db.collection(COL).deleteOne({ _id: oid });
     await db.collection(SIGNERS_COL).deleteMany({ contractId: oid });
-    await logAudit(app, req, 'contracts.delete', oid, { title: doc.title });
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contracts.delete', resourceId: oid.toString(), meta: { title: doc.title }, ip: req.ip });
 
     reply.code(204).send();
   });
@@ -258,7 +258,7 @@ export default async function contractRoutes(app: FastifyInstance) {
       }
     }
 
-    await logAudit(app, req, 'contracts.send_for_signature', oid, { signerCount: signers.length });
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contracts.send_for_signature', resourceId: oid.toString(), meta: { signerCount: signers.length }, ip: req.ip });
 
     return { ok: true, signerCount: signers.length };
   });
@@ -274,7 +274,7 @@ export default async function contractRoutes(app: FastifyInstance) {
     if (doc.status === 'voided') throw app.httpErrors.badRequest('Already voided');
 
     await db.collection(COL).updateOne({ _id: oid }, { $set: { status: 'voided', updatedAt: now } });
-    await logAudit(app, req, 'contracts.void', oid, {});
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contracts.void', resourceId: oid.toString(), ip: req.ip });
 
     return { ok: true };
   });

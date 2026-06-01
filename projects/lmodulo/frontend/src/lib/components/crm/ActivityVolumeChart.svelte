@@ -38,7 +38,8 @@
     {@const bh  = (c.count / maxCount) * chartH}
     {@const y   = PAD_T + chartH - bh}
     <rect x={x} y={y} width={barW} height={bh} rx={3}
-      fill={COLORS[i % COLORS.length]} opacity="0.75" />
+      fill={COLORS[i % COLORS.length]} opacity="0.75"
+      class="bar-grow" style="animation-delay:{i * 80}ms" />
     <text x={x + barW / 2} y={H - 6} text-anchor="middle" font-size="10"
       fill="currentColor" opacity="0.6">{c.type}</text>
     {#if c.count > 0}
@@ -47,3 +48,15 @@
     {/if}
   {/each}
 </svg>
+
+<style>
+  @keyframes barGrowUp {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+  .bar-grow {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: barGrowUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+</style>

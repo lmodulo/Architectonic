@@ -35,6 +35,13 @@
   const rotate   = $derived(periods.length > 8);
 </script>
 
+<style>
+  @keyframes plbar-grow-up {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+</style>
+
 <svg viewBox="0 0 {W} {H}" width="100%" aria-label="Revenue vs Expenses by period">
   <!-- Y grid + labels -->
   {#each yTicks as tick}
@@ -70,6 +77,7 @@
       rx={2}
       fill="var(--color-success)"
       opacity="0.75"
+      style="transform-box:fill-box;transform-origin:bottom center;animation:plbar-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08}s both"
     />
     <!-- Expense bar -->
     <rect
@@ -78,6 +86,7 @@
       rx={2}
       fill="var(--color-error)"
       opacity="0.75"
+      style="transform-box:fill-box;transform-origin:bottom center;animation:plbar-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08 + 0.04}s both"
     />
 
     <!-- X label -->

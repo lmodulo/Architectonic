@@ -33,7 +33,8 @@
     {@const barW = Math.max(4, (s.count / maxCount) * (W - 140))}
     {@const y    = PAD + i * (ROW_H + PAD)}
     <rect x={130} y={y} width={barW} height={ROW_H} rx={4}
-      fill={COLORS[s.stage] ?? 'var(--color-base-300)'} opacity="0.7" />
+      fill={COLORS[s.stage] ?? 'var(--color-base-300)'} opacity="0.7"
+      class="pipeline-bar" style="animation-delay:{i * 70}ms" />
     <text x={124} y={y + ROW_H / 2 + 4} text-anchor="end" font-size="11"
       fill="currentColor" opacity="0.7">{s.stage}</text>
     <text x={134 + barW} y={y + ROW_H / 2 + 4} font-size="11"
@@ -42,3 +43,15 @@
     </text>
   {/each}
 </svg>
+
+<style>
+  @keyframes pipelineBarGrow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  .pipeline-bar {
+    transform-box: fill-box;
+    transform-origin: 0% 50%;
+    animation: pipelineBarGrow 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+</style>

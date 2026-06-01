@@ -68,14 +68,21 @@
   }
 </script>
 
+<style>
+  @keyframes pie-slice-in {
+    from { opacity: 0; transform: scale(0.85); transform-origin: 100px 100px; }
+    to   { opacity: 0.8; transform: scale(1); transform-origin: 100px 100px; }
+  }
+</style>
+
 <svg viewBox="0 0 320 200" width="100%" aria-label="Expenses by category">
   {#if slices.length === 0}
     <text x="160" y="105" text-anchor="middle" font-size="12"
       fill="currentColor" opacity="0.3">No expense data</text>
   {:else}
     <!-- Donut slices -->
-    {#each slices as s}
-      <path d={s.path} fill={s.color} opacity="0.8" />
+    {#each slices as s, i}
+      <path d={s.path} fill={s.color} opacity="0.8" style="animation:pie-slice-in 0.45s ease-out {i * 0.07}s both" />
     {/each}
 
     <!-- Centre total -->

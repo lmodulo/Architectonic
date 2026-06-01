@@ -91,6 +91,13 @@
   });
 </script>
 
+<style>
+  @keyframes gantt-bar-slide {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+</style>
+
 <div class="overflow-x-auto">
   <svg
     viewBox="0 0 {width} {totalH}"
@@ -146,6 +153,7 @@
           tabindex="0"
           onclick={() => goto(row.href)}
           onkeydown={e => e.key === 'Enter' && goto(row.href)}
+          style="transform-box:fill-box;transform-origin:left center;animation:gantt-bar-slide 0.45s cubic-bezier(0.34,1.56,0.64,1) {i * 0.04}s both"
         >
           <title>{row.label}: {row.start?.toLocaleDateString()} – {row.end?.toLocaleDateString()}</title>
         </rect>

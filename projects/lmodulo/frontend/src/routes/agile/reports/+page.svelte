@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import { STATUS_COLOR, fmtEffort } from '$lib/utils/agile';
   import { GitBranch, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
@@ -137,7 +138,37 @@
     label: `${100 - i * 25}%`,
     y: CPT + (i / 4) * CCH,
   }));
+
+  let compPathEl = $state<SVGPathElement | undefined>(undefined);
+
+  $effect(() => {
+    if (!compPathEl) return;
+    const len = compPathEl.getTotalLength();
+    compPathEl.style.strokeDasharray = `${len}`;
+    compPathEl.style.strokeDashoffset = `${len}`;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!compPathEl) return;
+        compPathEl.style.transition = 'stroke-dashoffset 1.2s ease-in-out';
+        compPathEl.style.strokeDashoffset = '0';
+      });
+    });
+  });
 </script>
+
+<style>
+  @keyframes reports-grow-up {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+  @keyframes reports-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes reports-progress {
+    from { width: 0; }
+  }
+</style>
 
 <svelte:head><title>Agile Reports</title></svelte:head>
 
@@ -220,6 +251,7 @@
             <rect
               x={velBarX(i, 0)} y={velBarY(cap)} width={bw} height={velBarH(cap)}
               rx="2" fill="currentColor" fill-opacity="0.18"
+              style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08}s both"
             />
           {/if}
           <!-- Committed bar (primary) -->
@@ -227,6 +259,7 @@
             <rect
               x={velBarX(i, 1)} y={velBarY(com)} width={bw} height={velBarH(com)}
               rx="2" fill="var(--color-primary)" fill-opacity="0.55"
+              style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08 + 0.04}s both"
             />
           {/if}
           <!-- Velocity bar (success) -->
@@ -234,6 +267,7 @@
             <rect
               x={velBarX(i, 2)} y={velBarY(vel)} width={bw} height={velBarH(vel)}
               rx="2" fill="var(--color-success)" fill-opacity="0.75"
+              style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08 + 0.08}s both"
             />
           {/if}
 
@@ -274,11 +308,11 @@
 
         <!-- Area fill -->
         {#if compArea}
-          <path d={compArea} fill="var(--color-primary)" fill-opacity="0.08" />
+          <path d={compArea} fill="var(--color-primary)" fill-opacity="0.08" style="animation:reports-fade-in 1.2s ease-out both" />
         {/if}
         <!-- Line -->
         {#if compPath}
-          <path d={compPath} fill="none" stroke="var(--color-primary)" stroke-width="2"
+          <path bind:this={compPathEl} d={compPath} fill="none" stroke="var(--color-primary)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round" />
         {/if}
 
@@ -286,13 +320,13 @@
         {#each sprints as sprint, i}
           {@const cx = compX(i)}
           {@const cy = compY(sprint.completionPct ?? 0)}
-          <circle {cx} {cy} r="4" fill="var(--color-primary)" />
+          <circle {cx} {cy} r="4" fill="var(--color-primary)" style="animation:reports-fade-in 0.4s ease-out {i * 0.05 + 0.8}s both" />
           <text x={cx} y={CPT + CCH + 16} font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.45">
             S{sprint.sprintNumber}
           </text>
           <!-- Value label above dot -->
           {#if (sprint.completionPct ?? 0) > 5}
-            <text x={cx} y={cy - 7} font-size="8" text-anchor="middle" fill="var(--color-primary)" fill-opacity="0.7">
+            <text x={cx} y={cy - 7} font-size="8" text-anchor="middle" fill="var(--color-primary)" fill-opacity="0.7" style="animation:reports-fade-in 0.4s ease-out {i * 0.05 + 0.9}s both">
               {Math.round(sprint.completionPct ?? 0)}%
             </text>
           {/if}
@@ -353,7 +387,7 @@
               <td class="text-right">
                 <div class="flex items-center justify-end gap-2">
                   <div class="w-14 h-1.5 rounded-full bg-base-300 overflow-hidden">
-                    <div class="h-full rounded-full bg-primary" style="width:{pct}%"></div>
+                    <div class="h-full rounded-full bg-primary" style="width:{pct}%;animation:reports-progress 0.8s ease-out both"></div>
                   </div>
                   <span class="text-xs font-medium tabular-nums w-8 text-right">{pct}%</span>
                 </div>

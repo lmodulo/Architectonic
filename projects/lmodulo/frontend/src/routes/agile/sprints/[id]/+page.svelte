@@ -27,6 +27,12 @@
   const pct    = $derived(Math.round(sprint.completionPct ?? 0));
   const barClr = $derived(completionColor(pct));
 
+  let animPct = $state(0);
+  $effect(() => {
+    const target = pct;
+    requestAnimationFrame(() => { animPct = target; });
+  });
+
   const velocity   = $derived(sprint.velocity ?? 0);
   const capacity   = $derived(sprint.capacity ?? 0);
   const committed  = $derived(sprint.committedEffort ?? 0);
@@ -202,6 +208,13 @@
   );
 </script>
 
+<style>
+  @keyframes sprint-grow-up {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+</style>
+
 <svelte:head><title>Sprint {sprint.sprintNumber}: {sprint.title}</title></svelte:head>
 
 <div class="space-y-6">
@@ -273,7 +286,7 @@
         <span class="font-bold" style="color:{barClr}">{pct}%</span>
       </div>
       <div class="w-full h-2 rounded-full bg-base-300 overflow-hidden">
-        <div class="h-full rounded-full" style="width:{pct}%;background:{barClr}"></div>
+        <div class="h-full rounded-full" style="width:{animPct}%;background:{barClr};transition:width 0.8s ease-out"></div>
       </div>
     </div>
 
@@ -285,11 +298,11 @@
       </div>
       <svg viewBox="0 0 120 60" width="100%" height="60" class="block" aria-hidden="true">
         <!-- Capacity -->
-        <rect x={5}        y={60 - (capacity  / maxBar)*50} width={bw} height={(capacity  / maxBar)*50} rx="3" fill="currentColor" fill-opacity="0.3"/>
+        <rect x={5}        y={60 - (capacity  / maxBar)*50} width={bw} height={(capacity  / maxBar)*50} rx="3" fill="currentColor" fill-opacity="0.3" style="transform-box:fill-box;transform-origin:bottom center;animation:sprint-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) both"/>
         <!-- Committed -->
-        <rect x={5+bw+gap} y={60 - (committed / maxBar)*50} width={bw} height={(committed / maxBar)*50} rx="3" fill="var(--color-primary)" fill-opacity="0.6"/>
+        <rect x={5+bw+gap} y={60 - (committed / maxBar)*50} width={bw} height={(committed / maxBar)*50} rx="3" fill="var(--color-primary)" fill-opacity="0.6" style="transform-box:fill-box;transform-origin:bottom center;animation:sprint-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.08s both"/>
         <!-- Velocity -->
-        <rect x={5+2*(bw+gap)} y={60 - (velocity  / maxBar)*50} width={bw} height={(velocity  / maxBar)*50} rx="3" fill="var(--color-success)" fill-opacity="0.8"/>
+        <rect x={5+2*(bw+gap)} y={60 - (velocity  / maxBar)*50} width={bw} height={(velocity  / maxBar)*50} rx="3" fill="var(--color-success)" fill-opacity="0.8" style="transform-box:fill-box;transform-origin:bottom center;animation:sprint-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.16s both"/>
         <text x="20"  y="58" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity="0.5">Cap</text>
         <text x="55"  y="58" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity="0.5">Com</text>
         <text x="90"  y="58" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity="0.5">Vel</text>
