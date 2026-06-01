@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { Pencil, Trash2, X, Check, UserPlus, UserCheck } from 'lucide-svelte';
+  import { slide } from 'svelte/transition';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -91,7 +92,7 @@
 <div class="space-y-6">
   <Breadcrumb {crumbs} />
 
-  <div class="flex items-start justify-between gap-4">
+  <div class="flex items-center justify-between gap-4">
     <div>
       <h2 class="text-xl font-bold">{contact.firstName} {contact.lastName}</h2>
       <p class="text-sm opacity-50">{contact.role}{contact.companyName ? ` · ${contact.companyName}` : ''}</p>
@@ -122,7 +123,7 @@
 
   <!-- Edit form or detail view -->
   {#if editing}
-    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4" transition:slide={{ duration: 200 }}>
       {#if saveError}
         <aside class="alert alert-error p-3 rounded text-sm">{saveError}</aside>
       {/if}

@@ -2,6 +2,7 @@
   import { goto, invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
   import { Send, CheckCircle, XCircle, Pencil, X, Check, Trash2, Printer } from 'lucide-svelte';
+  import { slide } from 'svelte/transition';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import type { PageData } from './$types';
 
@@ -210,7 +211,7 @@
   {/if}
 
   {#if editing}
-    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4" transition:slide={{ duration: 200 }}>
       <div class="space-y-1">
         <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-title">Title</label>
         <input id="edit-title" type="text" class="input w-full" placeholder="e.g. Website Redesign 2026" bind:value={editForm.title} />

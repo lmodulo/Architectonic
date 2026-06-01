@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
   import { ChevronRight, Pencil, Trash2, X, Check } from 'lucide-svelte';
+  import { slide } from 'svelte/transition';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
 
@@ -190,7 +191,7 @@
 
   {#if editing}
     <!-- Edit form -->
-    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-4">
+    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-4" transition:slide={{ duration: 200 }}>
       {#if saveError}
         <aside class="alert alert-error p-3 rounded text-sm">{saveError}</aside>
       {/if}

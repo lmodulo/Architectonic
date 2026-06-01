@@ -2,6 +2,7 @@
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
   import { Send, CheckCircle, AlertCircle, Clock, Circle, Pencil, X, Check, Trash2, Printer } from 'lucide-svelte';
+  import { slide } from 'svelte/transition';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import type { PageData } from './$types';
 
@@ -160,7 +161,7 @@
   {/if}
 
   {#if editing}
-    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4" transition:slide={{ duration: 200 }}>
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-status">Status</label>

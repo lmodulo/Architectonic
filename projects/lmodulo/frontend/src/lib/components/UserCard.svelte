@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { fade, scale } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import Avatar from './Avatar.svelte';
   import { Mail, Phone, Users, MessageSquare } from 'lucide-svelte';
   import { isOpen, getPopX, getPopY, isAbove, getUser, isLoading, closeCard, handleDocClick } from '$lib/stores/userCard.svelte';
@@ -28,6 +30,7 @@
     class="fixed z-[9999] w-72 rounded-xl bg-base-100 border border-base-200 overflow-hidden"
     style="{isAbove() ? `bottom:${getPopY()}px` : `top:${getPopY()}px`}; left:{getPopX()}px; box-shadow:0 0 80px rgba(0,0,0,0.45);"
     role="tooltip"
+    transition:scale={{ duration: 200, start: 0.95, easing: cubicOut }}
   >
     {#if u}
       <div class="flex items-start gap-3 p-4">

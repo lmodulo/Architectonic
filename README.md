@@ -316,6 +316,26 @@ Custom fixed overlay — do not use DaisyUI `.modal`:
 
 ---
 
+### Animations / Transitions
+
+**Rule:** Any action that causes a visual layout shift — showing or hiding an element, a panel appearing, a card expanding — must include a transition animation. No instant show/hide.
+
+| Pattern | Directive | Use case |
+| ------- | --------- | -------- |
+| Popup / floating card | `transition:scale={{ duration: 200, start: 0.95, easing: cubicOut }}` | Tooltips, user cards, dropdowns |
+| Inline edit panel | `transition:slide={{ duration: 200 }}` | Edit cards that expand below a header |
+| Modal backdrop | `transition:fade={{ duration: 200 }}` | Overlay behind modal |
+| Modal content | `transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}` | Modal dialog box |
+
+Standard imports:
+
+```ts
+import { fade, scale, slide } from 'svelte/transition';
+import { cubicOut } from 'svelte/easing';
+```
+
+---
+
 ### Badges
 
 | Use | Classes |

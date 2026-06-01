@@ -45,7 +45,7 @@
   }
 </script>
 
-<div class="flex flex-col border border-base-300 rounded overflow-hidden">
+<div class="flex flex-col border border-base-300 rounded overflow-hidden bg-base-100">
   <!-- Toolbar -->
   <div class="flex items-center gap-0.5 px-2 py-1.5 border-b border-base-300 flex-wrap">
     <button type="button"
@@ -107,6 +107,7 @@
   <div
     bind:this={element}
     class="min-h-[8rem] max-h-[24rem] overflow-y-auto p-3 text-sm prose prose-sm dark:prose-invert max-w-none focus-within:outline-none"
+    onclick={() => editor?.view.focus()}
   ></div>
 </div>
 
