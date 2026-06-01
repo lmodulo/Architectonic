@@ -66,6 +66,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.user?.role === 'customer' &&
     !CUSTOMER_ALLOWED_PATHS.has(path) &&
     !path.startsWith('/client-portal/invoices/') &&
+    !path.startsWith('/invoice/') &&
     !path.startsWith('/api/') &&
     !path.startsWith('/messages/')
   ) {

@@ -330,7 +330,7 @@
         >
           <MenuIcon class="size-5" />
         </button>
-        <GlobalSearch />
+        {#if data.user?.role !== 'customer'}<GlobalSearch />{/if}
         <div class="flex items-center gap-1 ml-auto">
           <div class="tooltip tooltip-bottom" data-tip="Messages">
             <a href="/messages" class="btn btn-ghost btn-sm btn-square relative">

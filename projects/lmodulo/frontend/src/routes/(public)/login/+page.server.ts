@@ -48,6 +48,6 @@ export const actions: Actions = {
     }
 
     const user = await apiRes.json().catch(() => null);
-    redirect(303, user?.role === 'customer' ? '/' : '/dashboard');
+    redirect(303, user?.role === 'customer' ? '/client-portal' : '/dashboard');
   }
 };

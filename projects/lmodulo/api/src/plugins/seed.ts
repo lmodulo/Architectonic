@@ -1831,34 +1831,30 @@ export default fp(async function seedPlugin(app: any) {
           ], 5, 'draft', -20, 25,
             'Pre-billing draft for TechFusion Q2 Pilot (Team Plan, 30 seats, $18k/yr). Awaiting CFO approval per Tyler Osei. Dana Kowalski confirmed onboarding scope following the full product demo (Sprint 4 UI Layer walkthrough). To be issued once the Q2 Pilot deal moves to Closed Won.'),
 
-          // ── Meridian Digital — New Customer (first invoice ever) ─────
-          // INV-0010: Website Platform Build Phase 1 (sent, awaiting first payment)
-          inv('INV-0010', cmId, coMeridian, [
-            { desc: 'Discovery & Architecture — Phase 1 (20h)',  qty: 20, price: 150 },
-            { desc: 'Design & Initial Build — Phase 1 (40h)',    qty: 40, price: 150 },
-          ], 8, 'sent', -7, 21,
-            'First invoice for Meridian Digital — Website Platform Build, Phase 1. Converted from accepted estimate EST-0006. Contact: James Hartley.'),
-
         ]);
 
         // Welcome messages for each customer
+        // Vertex: sent on onboarding day (~90 days ago) — long-time client
+        // TechFusion: sent when pilot access was granted (~75 days ago)
+        // Meridian: sent on portal access day (~7 days ago) — new client
         const adminUser = await users.findOne({ username: 'admin' });
         if (adminUser) {
-          for (const [cusId, firstName, companyName] of [
-            [cvId, 'Marcus', 'Vertex Systems'],
-            [ctId, 'Priya',  'TechFusion Inc'],
-          ] as [ObjectId, string, string][]) {
+          for (const [cusId, firstName, companyName, sentAt] of [
+            [cvId, 'Marcus', 'Vertex Systems',   d(-90)],
+            [ctId, 'Priya',  'TechFusion Inc',   d(-75)],
+            [cmId, 'James',  'Meridian Digital', d(-7) ],
+          ] as [ObjectId, string, string, Date][]) {
             const msgId = new ObjectId();
             const msgBody = `<p>Hi ${firstName},</p><p>Welcome to the Client Portal! Your account is ready.</p><ul><li>View invoices and payment history</li><li>Make secure payments online</li><li>Message our team directly</li></ul><p>Reply here if you have any questions.</p><p>Best regards,<br />${adminUser.firstName || adminUser.username}</p>`;
             await db.collection('messages').insertOne({
               _id: msgId, threadId: msgId, parentId: null,
               from: adminUser._id, to: [cusId], cc: [],
               subject: `Welcome to the Client Portal — ${companyName}`,
-              body: msgBody, attachments: [], createdAt: now,
+              body: msgBody, attachments: [], createdAt: sentAt,
             });
             await db.collection('message_state').insertMany([
-              { messageId: msgId, userId: adminUser._id, read: true,  readAt: now,  archived: false, deleted: false },
-              { messageId: msgId, userId: cusId,         read: false, readAt: null, archived: false, deleted: false },
+              { messageId: msgId, userId: adminUser._id, read: true,  readAt: sentAt, archived: false, deleted: false },
+              { messageId: msgId, userId: cusId,         read: false, readAt: null,   archived: false, deleted: false },
             ]);
           }
         }
@@ -2067,6 +2063,23 @@ export default fp(async function seedPlugin(app: any) {
           notes: 'Converted from EST-0003 (Data Migration Sprint). Awaiting final hour log confirmation from Kwame Asante before sending.',
           dueDate: d(20),
           createdBy: adminId, createdAt: d(-35), updatedAt: d(-35),
+        });
+
+        // INV-0010 — sent, converted from EST-0006 (Website Platform Build, Meridian Digital)
+        await financeInvColl.insertOne({
+          _id: inv10Id,
+          invoiceNumber: 'INV-0010',
+          customerId: cmId, companyId: coMeridian,
+          estimateId: est6Id,
+          lineItems: [
+            { description: 'Discovery & Architecture — Phase 1 (20h)', quantity: 20, unitPrice: 150, amount: 3000 },
+            { description: 'Design & Initial Build — Phase 1 (40h)',   quantity: 40, unitPrice: 150, amount: 6000 },
+          ],
+          subtotal: 9000, taxRate: 8, taxAmount: 720, total: 9720,
+          currency: 'USD', status: 'sent',
+          notes: 'Converted from EST-0006. First invoice for Meridian Digital — Website Platform Build, Phase 1. Contact: James Hartley.',
+          dueDate: d(21),
+          createdBy: adminId, createdAt: d(-7), updatedAt: d(-7),
         });
 
         // ── finance_subscriptions ────────────────────────────────────────
