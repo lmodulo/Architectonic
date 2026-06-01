@@ -26,9 +26,12 @@
 {:else}
   <div data-no-anim class="flex flex-col gap-6">
     <!-- Page header -->
-    <div>
-      <h1 class="text-2xl font-bold leading-none">Contracts</h1>
-      <p class="text-xs opacity-50 mt-0.5">Agreements · Templates</p>
+    <div class="flex items-start gap-3">
+      <FileSignature class="size-6 opacity-60 shrink-0 mt-0.5" />
+      <div>
+        <h1 class="text-2xl font-bold leading-none">Contracts</h1>
+        <p class="text-xs opacity-50 mt-0.5">Agreements · Templates</p>
+      </div>
     </div>
 
     <!-- Sub-navigation -->

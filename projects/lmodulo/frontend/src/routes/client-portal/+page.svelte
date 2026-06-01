@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invalidate, invalidateAll, goto } from '$app/navigation';
-  import { Send, Paperclip, FileText, X, Mail, ChevronRight } from 'lucide-svelte';
+  import { Send, Paperclip, FileText, X, Mail, ChevronRight, LayoutDashboard } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import type { PageData } from './$types';
 
@@ -107,9 +107,12 @@
 <input bind:this={fileInput} type="file" class="hidden" onchange={onFileSelect} />
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-bold">Client Portal</h1>
-    <p class="text-sm opacity-60 mt-0.5">Send a message to our team or view your conversation history.</p>
+  <div class="flex items-start gap-3">
+    <LayoutDashboard class="size-6 opacity-60 shrink-0 mt-0.5" />
+    <div>
+      <h1 class="text-2xl font-bold">Client Portal</h1>
+      <p class="text-sm opacity-60 mt-0.5">Send a message to our team or view your conversation history.</p>
+    </div>
   </div>
 
   <!-- Compose -->

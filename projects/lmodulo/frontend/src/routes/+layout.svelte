@@ -27,6 +27,7 @@
 
   let sidebarOpen = $state(false);
   let sidebarExpanded = $state(false);
+  const pathname = $derived(page.url.pathname);
   let logoutForm: HTMLFormElement = $state()!;
   let unreadCount = $state(data.unreadCount ?? 0);
   let openGroups = $state<Record<string, boolean>>({});
@@ -100,7 +101,7 @@
   <title>{data.appName ?? 'Application'} — {brand.description}</title>
 </svelte:head>
 
-{#if data.user && page.url.pathname !== '/' && !page.url.pathname.startsWith('/documentation') && !page.data.isPrint}
+{#if data.user && pathname !== '/' && !pathname.startsWith('/documentation') && !page.data.isPrint}
 
   {#if showOverlay}
     <div data-theme={APP_THEME} class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
@@ -186,7 +187,7 @@
             {#if isSeparator(entry)}
               <li><div class="border-t border-base-300/50 my-1"></div></li>
             {:else if isNavGroup(entry)}
-              {@const anyChildActive = entry.children.some(c => page.url.pathname.startsWith(c.href))}
+              {@const anyChildActive = entry.children.some(c => pathname.startsWith(c.href))}
               {@const isOpen = openGroups[entry.label] ?? false}
               {@const GroupIcon = entry.icon}
               <li>
@@ -210,7 +211,7 @@
                         {@const ChildIcon = child.icon}
                         <a
                           href={child.href}
-                          class="flex items-center gap-3 pl-9 pr-3 py-2 rounded text-sm {page.url.pathname.startsWith(child.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
+                          class="flex items-center gap-3 pl-9 pr-3 py-2 rounded text-sm {pathname.startsWith(child.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                           onclick={closeSidebar}
                         >
                           <ChildIcon class="size-3.5 shrink-0 opacity-70" />
@@ -227,7 +228,7 @@
                 <li>
                   <a
                     href={entry.href}
-                    class="flex items-center gap-3 p-3 rounded {(entry.matchPrefix ? page.url.pathname.startsWith(entry.href) : page.url.pathname === entry.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
+                    class="flex items-center gap-3 p-3 rounded {(entry.matchPrefix ? pathname.startsWith(entry.href) : pathname === entry.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                     onclick={closeSidebar}
                   >
                     <Icon class="size-4 shrink-0" />
@@ -266,7 +267,7 @@
             <div class="nav-subnav-inner pt-1">
               <a
                 href="/profile"
-                class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/profile' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
+                class="flex items-center gap-3 px-3 py-2 rounded text-sm {pathname === '/profile' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >
                 <User class="size-4 shrink-0" />
@@ -275,7 +276,7 @@
               {#if hasPermission(data.user, 'users', 'read') || hasPermission(data.user, 'roles', 'read')}
                 <a
                   href="/user-management"
-                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/user-management' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
+                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {pathname === '/user-management' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                   onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
                   <Users class="size-4 shrink-0" />
@@ -285,7 +286,7 @@
               {#if hasPermission(data.user, 'settings', 'read')}
                 <a
                   href="/settings"
-                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname === '/settings' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
+                  class="flex items-center gap-3 px-3 py-2 rounded text-sm {pathname === '/settings' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                   onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
                   <Settings class="size-4 shrink-0" />
@@ -295,7 +296,7 @@
               <div class="border-t border-base-300/50 my-1"></div>
               <a
                 href="/documentation"
-                class="flex items-center gap-3 px-3 py-2 rounded text-sm {page.url.pathname.startsWith('/documentation') ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
+                class="flex items-center gap-3 px-3 py-2 rounded text-sm {pathname.startsWith('/documentation') ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >
                 <HelpCircle class="size-4 shrink-0" />
@@ -357,7 +358,7 @@
 
       <!-- Page content -->
       <main bind:this={mainEl} class="flex-1 overflow-auto" onscroll={closeCard}>
-        {#key page.url.pathname}
+        {#key pathname}
           <div class="container mx-auto p-6 max-w-5xl page-content">
             {@render children()}
           </div>

@@ -1,5 +1,5 @@
 import {
-  House, CalendarRange, Milestone, Handshake,
+  CircleGauge, CalendarRange, Milestone, Handshake,
   Receipt, LayoutDashboard, CreditCard, Ticket,
   FolderKanban, FileText, ClipboardList, FileSignature, History,
 } from 'lucide-svelte';
@@ -34,7 +34,7 @@ export function isSeparator(entry: NavEntry): entry is NavSeparator {
 
 export const navItems: NavEntry[] = [
   // Staff-only items (hidden from customers via customerOnly filter)
-  { label: 'Dashboard',     href: '/dashboard',       icon: House },
+  { label: 'Dashboard',     href: '/dashboard',       icon: CircleGauge },
   { label: 'Agile', href: '/agile',           icon: Milestone,       matchPrefix: true, permission: { resource: 'agile_milestones', action: 'read' } },
   { label: 'Nexus',         href: '/crm',             icon: Handshake,       matchPrefix: true, permission: { resource: 'crm_contacts',      action: 'read' } },
   { label: 'Folio',         href: '/folio',           icon: Receipt,         matchPrefix: true, permission: { resource: 'finance_invoices',   action: 'read' } },

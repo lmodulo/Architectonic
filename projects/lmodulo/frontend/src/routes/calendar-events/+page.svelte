@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { ChevronLeft, ChevronRight, Plus, Search, LayoutList, Calendar as CalIcon, SearchX } from 'lucide-svelte';
+  import { ChevronLeft, ChevronRight, Plus, Search, LayoutList, Calendar as CalIcon, SearchX, CalendarRange } from 'lucide-svelte';
   import { dragScroll } from '$lib/actions/dragScroll';
   import type { PageData } from './$types';
   import EventCard          from '$lib/components/EventCard.svelte';
@@ -188,9 +188,12 @@
 
   <!-- Header -->
   <div class="flex items-start justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold">Calendar Events</h1>
-      <p class="text-sm opacity-60 mt-0.5">Events, announcements, and your personal schedule.</p>
+    <div class="flex items-start gap-3">
+      <CalendarRange class="size-6 opacity-60 shrink-0 mt-0.5" />
+      <div>
+        <h1 class="text-2xl font-bold">Calendar Events</h1>
+        <p class="text-sm opacity-60 mt-0.5">Events, announcements, and your personal schedule.</p>
+      </div>
     </div>
     <div class="flex items-center gap-2 shrink-0">
       {#if data.user}

@@ -6,7 +6,7 @@
   import ActivityVolumeChart from '$lib/components/crm/ActivityVolumeChart.svelte';
   import DateRangeFilter from '$lib/components/DateRangeFilter.svelte';
   import { fmtCurrency, donutSegs, funnelPolygons } from '$lib/utils/dashboard';
-  import { Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw } from 'lucide-svelte';
+  import { Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw, CircleGauge } from 'lucide-svelte';
   import { fade } from 'svelte/transition';
   import type { PageData } from './$types';
 
@@ -446,11 +446,14 @@
 
   <!-- Header -->
   <div class="flex items-end justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
-      <p class="text-sm opacity-50 mt-0.5">
-        Welcome back, <span class="opacity-100 font-medium">{data.user?.firstName ?? data.user?.username}</span>
-      </p>
+    <div class="flex items-start gap-3">
+      <CircleGauge class="size-6 opacity-60 shrink-0 mt-0.5" />
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p class="text-sm opacity-50 mt-0.5">
+          Welcome back, <span class="opacity-100 font-medium">{data.user?.firstName ?? data.user?.username}</span>
+        </p>
+      </div>
     </div>
     <div class="flex items-center gap-3 shrink-0">
       <p class="text-xs opacity-25 hidden sm:block">

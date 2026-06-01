@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { LayoutGrid, Users, Building2, TrendingUp, CalendarDays, BarChart2 } from 'lucide-svelte';
+  import { LayoutGrid, Users, Building2, TrendingUp, CalendarDays, BarChart2, Handshake } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { LayoutData } from './$types';
   import { dragScroll } from '$lib/actions/dragScroll';
@@ -34,9 +34,12 @@
 </script>
 
 <div data-no-anim class="flex flex-col gap-6">
-  <div>
-    <h1 class="text-2xl font-bold leading-none">Nexus</h1>
-    <p class="text-xs opacity-50 mt-0.5">Companies · Contacts · Deals · Activities</p>
+  <div class="flex items-start gap-3">
+    <Handshake class="size-6 opacity-60 shrink-0 mt-0.5" />
+    <div>
+      <h1 class="text-2xl font-bold leading-none">Nexus</h1>
+      <p class="text-xs opacity-50 mt-0.5">Companies · Contacts · Deals · Activities</p>
+    </div>
   </div>
 
   {#if hasPermission(data.user, 'crm_contacts', 'read')}

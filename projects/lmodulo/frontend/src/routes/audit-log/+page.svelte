@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { dragScroll } from '$lib/actions/dragScroll';
-  import { Search, ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-svelte';
+  import { Search, ChevronDown, ChevronUp, ChevronsUpDown, History } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
@@ -93,9 +93,12 @@
 </svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-bold">Audit Log</h1>
-    <p class="text-sm opacity-60 mt-0.5">Track actions taken by workspace members</p>
+  <div class="flex items-start gap-3">
+    <History class="size-6 opacity-60 shrink-0 mt-0.5" />
+    <div>
+      <h1 class="text-2xl font-bold">Audit Log</h1>
+      <p class="text-sm opacity-60 mt-0.5">Track actions taken by workspace members</p>
+    </div>
   </div>
 
   {#if data.error}

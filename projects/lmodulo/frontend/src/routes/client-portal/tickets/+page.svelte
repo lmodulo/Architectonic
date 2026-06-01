@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
-  import { TicketPlus, Paperclip, X, FileText, AlertCircle } from 'lucide-svelte';
+  import { Ticket, TicketPlus, Paperclip, X, FileText, AlertCircle } from 'lucide-svelte';
   import Modal from '$lib/components/Modal.svelte';
   import type { PageData } from './$types';
 
@@ -112,9 +112,12 @@
 
 <div class="p-6 max-w-4xl mx-auto">
   <div class="flex items-center justify-between mb-6">
-    <div>
-      <h1 class="text-2xl font-bold">Support Tickets</h1>
-      <p class="text-base-content/60 text-sm mt-0.5">Submit and track your support requests</p>
+    <div class="flex items-start gap-3">
+      <Ticket class="size-6 opacity-60 shrink-0 mt-0.5" />
+      <div>
+        <h1 class="text-2xl font-bold">Support Tickets</h1>
+        <p class="text-base-content/60 text-sm mt-0.5">Submit and track your support requests</p>
+      </div>
     </div>
     <button class="btn btn-primary btn-sm gap-2" onclick={() => openModal()}>
       <TicketPlus size={16} />
