@@ -323,9 +323,12 @@
 
   <!-- Description -->
   {#if job.description?.replace(/<[^>]+>/g, '').trim()}
-    <div class="prose prose-sm dark:prose-invert max-w-none opacity-80">
-      {@html job.description}
-    </div>
+    <section class="space-y-2">
+      <h2 class="text-xs font-semibold uppercase tracking-wide opacity-50">Description</h2>
+      <div class="border-l-2 border-primary/30 pl-4 py-0.5 prose prose-sm dark:prose-invert max-w-none">
+        {@html job.description}
+      </div>
+    </section>
   {/if}
 
   <!-- Attachments -->
