@@ -1,9 +1,3 @@
-# complete test coverage for Folio, Contracts and Audit Log
-
-`
-using MEMORY.md, this projects README.md and existing patterns in project lmodulo, add test coverage to the `/{section}` module in project lmodulo. if session context window size permits add coverage for each tab content otherwise just cover `Overview`
-`
-
 # CSV import for bulk contacts/invoices
  - just use AI?
 

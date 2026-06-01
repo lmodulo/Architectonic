@@ -1202,11 +1202,12 @@ export default fp(async function seedPlugin(app: any) {
     if (!await crmCompaniesColl.countDocuments()) {
 
       // ── Company IDs ──────────────────────────────────────────────────
-      const coVertex   = new ObjectId(); // Vertex Systems  — Customer
+      const coVertex   = new ObjectId(); // Vertex Systems  — Customer (long-time)
       const coTech     = new ObjectId(); // TechFusion Inc  — Prospect
       const coBluePeak = new ObjectId(); // BluePeak Agency — Prospect
       const coOrion    = new ObjectId(); // Orion Labs      — Partner
       const coCivic    = new ObjectId(); // CivicBridge     — Prospect (lost)
+      const coMeridian = new ObjectId(); // Meridian Digital — Customer (new)
 
       await crmCompaniesColl.insertMany([
         {
@@ -1264,17 +1265,29 @@ export default fp(async function seedPlugin(app: any) {
           createdBy: joeId, updatedBy: joeId,
           createdAt: d(-28), updatedAt: d(-10),
         },
+        {
+          _id: coMeridian,
+          name: 'Meridian Digital', domain: 'meridiandigital.co',
+          industry: 'Agency', size: '11-50', type: 'Customer',
+          description: 'Boutique digital agency recently converted to a paying customer. First project is a website platform rebuild.',
+          website: 'https://meridiandigital.co',
+          assignedTo: alexId, tags: ['agency', 'new-client', 'smb'],
+          healthScore: 72, dealCount: 1,
+          createdBy: alexId, updatedBy: alexId,
+          createdAt: d(-28), updatedAt: d(-12),
+        },
       ]);
 
       // ── Contact IDs ──────────────────────────────────────────────────
-      const ctMarcus  = new ObjectId(); // Vertex Systems  — Decision Maker
-      const ctPriya   = new ObjectId(); // Vertex Systems  — Technical
-      const ctDana    = new ObjectId(); // TechFusion Inc  — Champion
-      const ctTyler   = new ObjectId(); // TechFusion Inc  — Finance
-      const ctKwame   = new ObjectId(); // TechFusion Inc  — Technical
-      const ctCarmen  = new ObjectId(); // BluePeak Agency — Champion
-      const ctFinn    = new ObjectId(); // Orion Labs      — Technical
-      const ctEleanor = new ObjectId(); // CivicBridge     — Decision Maker
+      const ctMarcus  = new ObjectId(); // Vertex Systems   — Decision Maker
+      const ctPriya   = new ObjectId(); // Vertex Systems   — Technical
+      const ctDana    = new ObjectId(); // TechFusion Inc   — Champion
+      const ctTyler   = new ObjectId(); // TechFusion Inc   — Finance
+      const ctKwame   = new ObjectId(); // TechFusion Inc   — Technical
+      const ctCarmen  = new ObjectId(); // BluePeak Agency  — Champion
+      const ctFinn    = new ObjectId(); // Orion Labs       — Technical
+      const ctEleanor = new ObjectId(); // CivicBridge      — Decision Maker
+      const ctJames   = new ObjectId(); // Meridian Digital — Champion
 
       await db.collection('crm_contacts').insertMany([
         {
@@ -1361,15 +1374,26 @@ export default fp(async function seedPlugin(app: any) {
           createdBy: joeId, updatedBy: joeId,
           createdAt: d(-28), updatedAt: d(-10),
         },
+        {
+          _id: ctJames,
+          firstName: 'James', lastName: 'Hartley',
+          email: 'james@meridiandigital.co', phone: '+1 720 555 0148',
+          role: 'Champion', status: 'Active', source: 'Referral',
+          companyId: coMeridian, assignedTo: alexId,
+          linkedInUrl: '', timezone: 'America/Denver', tags: ['new-client', 'decision-maker'],
+          createdBy: alexId, updatedBy: alexId,
+          createdAt: d(-28), updatedAt: d(-12),
+        },
       ]);
 
       // ── Deal IDs ─────────────────────────────────────────────────────
-      const dlVertex   = new ObjectId(); // Vertex Systems  — Enterprise License — Closed Won
-      const dlTech1    = new ObjectId(); // TechFusion Inc  — Team Plan Q2 Pilot — Proposal
-      const dlTech2    = new ObjectId(); // TechFusion Inc  — API Access Add-on  — Negotiation
-      const dlBluePeak = new ObjectId(); // BluePeak Agency — Starter Plan       — Discovery
-      const dlOrion    = new ObjectId(); // Orion Labs      — Integration Partnership — Closed Won
-      const dlCivic    = new ObjectId(); // CivicBridge     — Government Edition  — Closed Lost
+      const dlVertex   = new ObjectId(); // Vertex Systems   — Enterprise License  — Closed Won
+      const dlTech1    = new ObjectId(); // TechFusion Inc   — Team Plan Q2 Pilot  — Proposal
+      const dlTech2    = new ObjectId(); // TechFusion Inc   — API Access Add-on   — Negotiation
+      const dlBluePeak = new ObjectId(); // BluePeak Agency  — Starter Plan        — Discovery
+      const dlOrion    = new ObjectId(); // Orion Labs       — Integration Partner — Closed Won
+      const dlCivic    = new ObjectId(); // CivicBridge      — Government Edition  — Closed Lost
+      const dlMeridian = new ObjectId(); // Meridian Digital — Website Platform    — Closed Won
 
       await db.collection('crm_deals').insertMany([
         {
@@ -1443,6 +1467,18 @@ export default fp(async function seedPlugin(app: any) {
           assignedTo: joeId, lostReason: 'On-premises / air-gapped hosting requirement not supported',
           createdBy: joeId, updatedBy: joeId,
           createdAt: d(-28), updatedAt: d(-10),
+        },
+        {
+          _id: dlMeridian,
+          title: 'Meridian Digital — Website Platform Build',
+          companyId: coMeridian, contactIds: [ctJames],
+          stage: 'Closed Won', type: 'New Business',
+          value: 12000, currency: 'USD', probability: 100,
+          expectedCloseDate: d(-12),
+          description: 'Website platform rebuild for a 20-person digital agency. Phase 1 covers architecture, design, and initial build. Referred in by Orion Labs.',
+          assignedTo: alexId, lostReason: null,
+          createdBy: alexId, updatedBy: alexId,
+          createdAt: d(-28), updatedAt: d(-12),
         },
       ]);
 
@@ -1611,6 +1647,32 @@ export default fp(async function seedPlugin(app: any) {
           assignedTo: alexId, createdBy: alexId, updatedBy: null,
           createdAt: d(-2), updatedAt: d(-2),
         },
+
+        // ── Meridian Digital ─────────────────────────────────────────
+        {
+          type: 'Call', title: 'Discovery call — James Hartley, Meridian Digital',
+          body: 'Referral from Finn at Orion Labs. James runs ops for a 20-person digital agency looking to rebuild their client website platform. Budget confirmed, timeline is Q3. Sent a brief scope outline after the call.',
+          entityType: 'contact', entityId: ctJames,
+          scheduledAt: dh(-26, 10), completedAt: dh(-26, 11), outcome: 'Productive',
+          assignedTo: alexId, createdBy: alexId, updatedBy: alexId,
+          createdAt: d(-27), updatedAt: d(-26),
+        },
+        {
+          type: 'Email', title: 'Proposal sent — Meridian Digital Website Platform Build',
+          body: 'Sent EST-0006 covering Phase 1: discovery & architecture, design, and initial build (60h total at $150/h + tax). James confirmed receipt same day.',
+          entityType: 'deal', entityId: dlMeridian,
+          scheduledAt: d(-20), completedAt: d(-20), outcome: 'Productive',
+          assignedTo: alexId, createdBy: alexId, updatedBy: alexId,
+          createdAt: d(-20), updatedAt: d(-20),
+        },
+        {
+          type: 'Call', title: 'Deal close — Meridian Digital',
+          body: 'James accepted the estimate and confirmed contract. Portal access granted same day. First invoice to follow once kickoff is complete.',
+          entityType: 'deal', entityId: dlMeridian,
+          scheduledAt: dh(-12, 14), completedAt: dh(-12, 15), outcome: 'Productive',
+          assignedTo: alexId, createdBy: alexId, updatedBy: alexId,
+          createdAt: d(-13), updatedAt: d(-12),
+        },
       ]);
 
       // ── Folio: customer users + invoices + welcome messages ──────────
@@ -1641,29 +1703,34 @@ export default fp(async function seedPlugin(app: any) {
     if (!await financeInvColl.countDocuments()) {
 
       // Look up CRM company IDs from the DB (CRM may have been seeded in a prior run)
-      const [coVertexDoc, coTechDoc, coBluePeakDoc] = await Promise.all([
+      const [coVertexDoc, coTechDoc, coBluePeakDoc, coMeridianDoc] = await Promise.all([
         db.collection('crm_companies').findOne({ name: 'Vertex Systems' }),
         db.collection('crm_companies').findOne({ name: 'TechFusion Inc' }),
         db.collection('crm_companies').findOne({ name: 'BluePeak Agency' }),
+        db.collection('crm_companies').findOne({ name: 'Meridian Digital' }),
       ]);
       const coVertex   = coVertexDoc?._id   as ObjectId;
       const coTech     = coTechDoc?._id     as ObjectId;
       const coBluePeak = coBluePeakDoc?._id as ObjectId;
+      const coMeridian = coMeridianDoc?._id as ObjectId;
 
-      if (!coVertex || !coTech || !coBluePeak) {
+      if (!coVertex || !coTech || !coBluePeak || !coMeridian) {
         console.warn('[seed] Folio: CRM companies not found — skipping finance seed');
       } else {
 
         // Customer users — paying/active customers only (Discovery-stage prospects excluded)
-        // cvId → Marcus Powell (Vertex Systems — Enterprise Customer, Closed Won)
-        // ctId → Priya Nair   (TechFusion Inc — Pilot customer, Q2 deal in Proposal)
+        // cvId → Marcus Powell (Vertex Systems  — Enterprise Customer, long-time)
+        // ctId → Priya Nair   (TechFusion Inc   — Pilot customer, Q2 deal in Proposal)
+        // cmId → James Hartley (Meridian Digital — New customer, just onboarded)
         const cvId = new ObjectId();
         const ctId = new ObjectId();
+        const cmId = new ObjectId();
         const customerPasswordHash = await bcrypt.hash('ClientPass1!', 12);
 
         for (const [cusId, username, email, firstName, lastName, companyId] of [
-          [cvId, 'client.vertex',    'client@vertexsystems.io', 'Marcus', 'Powell', coVertex],
-          [ctId, 'client.techfusion','client@techfusion.io',    'Priya',  'Nair',   coTech  ],
+          [cvId, 'client.vertex',    'client@vertexsystems.io',  'Marcus', 'Powell',  coVertex  ],
+          [ctId, 'client.techfusion','client@techfusion.io',     'Priya',  'Nair',    coTech    ],
+          [cmId, 'client.meridian',  'client@meridiandigital.co','James',  'Hartley', coMeridian],
         ] as [ObjectId, string, string, string, string, ObjectId][]) {
           const existing = await users.findOne({ email });
           if (!existing) {
@@ -1763,6 +1830,14 @@ export default fp(async function seedPlugin(app: any) {
             { desc: 'Agile User Guide — Documentation Package', qty: 1, price: 500 },
           ], 5, 'draft', -20, 25,
             'Pre-billing draft for TechFusion Q2 Pilot (Team Plan, 30 seats, $18k/yr). Awaiting CFO approval per Tyler Osei. Dana Kowalski confirmed onboarding scope following the full product demo (Sprint 4 UI Layer walkthrough). To be issued once the Q2 Pilot deal moves to Closed Won.'),
+
+          // ── Meridian Digital — New Customer (first invoice ever) ─────
+          // INV-0010: Website Platform Build Phase 1 (sent, awaiting first payment)
+          inv('INV-0010', cmId, coMeridian, [
+            { desc: 'Discovery & Architecture — Phase 1 (20h)',  qty: 20, price: 150 },
+            { desc: 'Design & Initial Build — Phase 1 (40h)',    qty: 40, price: 150 },
+          ], 8, 'sent', -7, 21,
+            'First invoice for Meridian Digital — Website Platform Build, Phase 1. Converted from accepted estimate EST-0006. Contact: James Hartley.'),
 
         ]);
 
@@ -1890,8 +1965,9 @@ export default fp(async function seedPlugin(app: any) {
         // ── finance_estimates ────────────────────────────────────────────
         const est1Id = new ObjectId(); const est2Id = new ObjectId();
         const est3Id = new ObjectId(); const est4Id = new ObjectId();
-        const est5Id = new ObjectId();
+        const est5Id = new ObjectId(); const est6Id = new ObjectId();
         const inv9Id  = new ObjectId();
+        const inv10Id = new ObjectId();
 
         const estNum = (n: number) => `EST-${String(n).padStart(4, '0')}`;
 
@@ -1966,6 +2042,13 @@ export default fp(async function seedPlugin(app: any) {
             { desc: 'Enterprise Dashboard Configuration & Training',     qty: 8,  price: 150 },
           ], 8, 'expired', -75, -10,
           'Expired — valid until passed without signature. Superseded by EST-0001 (reduced Q3 scope). Originally scoped at Vertex Q2 planning session.'),
+
+          // EST-0006: Meridian Digital — Website Platform Build Phase 1 — accepted → INV-0010
+          estDoc(est6Id, estNum(6), 'Website Platform Build — Phase 1', cmId, coMeridian, [
+            { desc: 'Discovery & Architecture — Phase 1 (20h)', qty: 20, price: 150 },
+            { desc: 'Design & Initial Build — Phase 1 (40h)',   qty: 40, price: 150 },
+          ], 8, 'accepted', -20, 10,
+          'Accepted by James Hartley. Covers Phase 1 of the Meridian Digital website platform rebuild. Converted to INV-0010.', inv10Id),
         ]);
 
         // INV-0009 — draft converted from EST-0003 (Data Migration Sprint, TechFusion)
