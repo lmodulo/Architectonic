@@ -109,3 +109,56 @@ Rendered after the closing `</div>` of the `h-screen overflow-hidden` shell in `
 - **Dashboard:** Placeholder with charts (pure SVG)
 - **Chat assistant:** Ollama-backed, fixed bottom-right panel
 - **Theme toggle:** Dark/light, persisted to localStorage
+- **Vault:** Document library module (`modules/vault/`) — see Vault section below
+
+## Vault Module
+
+Document library for SOPs, policies, handbooks, and certificates.
+
+### Collections
+
+- `vault_folders` — nested folder tree; `workspaceId`, `name`, `parentId` (null = root), `visibility`, `ownerId`, `createdAt`, `updatedAt`
+- `vault_documents` — document records; `workspaceId`, `folderId`, `name`, `description`, `visibility`, `ownerId`, `currentVersionId`, `tags[]`, `createdAt`, `updatedAt`
+- `vault_document_versions` — file versions; `workspaceId`, `documentId`, `versionNumber`, `storageKey`, `url`, `mimetype`, `size`, `originalName`, `uploadedBy`, `note`, `createdAt`
+
+### Visibility tiers
+
+| Value | Who can see |
+| --- | --- |
+| `staff` | All authenticated staff (non-customer) |
+| `admin_only` | owner / admin only |
+| `customer` | Customers (client portal) + staff |
+
+### Vault permissions
+
+- `vault_documents` — `create`, `read`, `update`, `delete`
+- `vault_folders` — `create`, `read`, `update`, `delete`
+
+### Vault API routes (prefix `/vault`)
+
+- `GET    /vault/folders` — list folders (visibility-filtered); `?parentId=` optional
+- `POST   /vault/folders` — create folder (`name`, `visibility`, `parentId?`)
+- `PATCH  /vault/folders/:id` — update name / visibility / parentId / ownerId
+- `DELETE /vault/folders/:id` — rejects if folder has documents or subfolders
+- `GET    /vault/documents` — list with pagination; `?folderId=`, `?q=` (text search), `?tags=`, `?visibility=`, `?limit=`, `?skip=`
+- `POST   /vault/documents` — multipart upload (`file` + metadata fields: `name`, `description`, `visibility`, `folderId`, `ownerId`, `tags`, `note`)
+- `GET    /vault/documents/:id` — get single document
+- `PATCH  /vault/documents/:id` — update metadata (including `currentVersionId` to promote a version)
+- `DELETE /vault/documents/:id` — deletes document + all stored files
+- `GET    /vault/documents/:id/file` — returns `{ url, mimetype, originalName }` for current version
+- `GET    /vault/documents/:id/versions` — version history (newest first)
+- `POST   /vault/documents/:id/versions` — multipart upload of a new version (`file`, `note?`); auto-becomes current version
+
+### Storage backends
+
+Controlled by `STORAGE_PROVIDER` env var (`local` default, `s3`). When `s3`: also set `AWS_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`.
+
+### Vault frontend pages
+
+- `/vault` — two-panel layout: collapsible folder tree sidebar (left) + document table (right). Upload, New Folder, Delete actions gated by permission.
+- `/vault/[docId]` — document detail: file preview (image inline, PDF iframe, generic download), metadata sidebar, version history with "set as current" button.
+- `/client-portal/vault` — read-only view for customers; download-only, no upload or folder management.
+
+### Vault audit log events
+
+`vault_document.upload`, `vault_document.update`, `vault_document.delete`, `vault_document.version_upload`, `vault_folder.create`, `vault_folder.update`, `vault_folder.delete`

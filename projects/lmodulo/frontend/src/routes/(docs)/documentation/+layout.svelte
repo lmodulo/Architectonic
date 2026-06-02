@@ -7,7 +7,7 @@
   import {
     Menu as MenuIcon, X,
     BookOpen, Rocket, Layers, Lock, ShieldCheck,
-    Code2, ListTodo, Mail, CalendarDays, Settings, Handshake, Receipt, Zap, Building2, Clock, FileSignature,
+    Code2, ListTodo, Mail, CalendarDays, Settings, Handshake, Receipt, Zap, Building2, Clock, FileSignature, FolderLock,
   } from 'lucide-svelte';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -46,6 +46,7 @@
     { label: 'Nexus CRM',         href: `${BASE}/crm`,               icon: Handshake },
     { label: 'Folio',             href: `${BASE}/folio`,             icon: Receipt },
     { label: 'Contracts',         href: `${BASE}/contracts`,         icon: FileSignature },
+    { label: 'Vault',             href: `${BASE}/vault`,             icon: FolderLock },
     { label: 'Messaging',          href: `${BASE}/messaging`,         icon: Mail },
     { label: 'Calendar & Events',  href: `${BASE}/calendar`,          icon: CalendarDays },
     { label: 'Automation',         href: `${BASE}/automation`,        icon: Zap },

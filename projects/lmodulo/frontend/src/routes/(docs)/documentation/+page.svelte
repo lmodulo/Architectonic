@@ -71,6 +71,10 @@
       <p class="text-sm font-semibold">Nexus CRM</p>
       <p class="text-sm opacity-60 leading-relaxed">Lightweight CRM covering the prospect-to-customer lifecycle. Companies, contacts, and deals in a pipeline kanban with drag-to-stage. Health scoring, activity feed, per-client hours rollup, and SVG-based reports.</p>
     </div>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-2">
+      <p class="text-sm font-semibold">Vault</p>
+      <p class="text-sm opacity-60 leading-relaxed">Document library for SOPs, policies, handbooks, and certificates. Nested folders, three visibility tiers (staff / admin-only / customer), full version history with rollback, and inline preview for images and PDFs.</p>
+    </div>
   </div>
 
   <!-- Tech stack -->

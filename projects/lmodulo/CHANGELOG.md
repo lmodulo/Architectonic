@@ -8,6 +8,25 @@ All notable changes to this project are documented here.
 
 ---
 
+## 2026-06-02 (vault module)
+
+### Added
+
+- **Vault** (`modules/vault/`) — document library for SOPs, policies, handbooks, and certificates.
+  - Three MongoDB collections: `vault_folders` (nested folder tree), `vault_documents` (document metadata), `vault_document_versions` (full version history per document).
+  - Three visibility tiers: `staff` (all non-customer roles), `admin_only` (owner + admin), `customer` (client portal + staff). Enforced on every read at the API layer via `visibilityFilter()`.
+  - **Folders API** (`GET|POST /vault/folders`, `PATCH|DELETE /vault/folders/:id`) — flat list returned to client; tree built on the frontend. DELETE rejects if folder still contains documents or subfolders.
+  - **Documents API** (`GET|POST /vault/documents`, `GET|PATCH|DELETE /vault/documents/:id`, `GET /vault/documents/:id/file`, `GET|POST /vault/documents/:id/versions`) — multipart upload for both initial document and new versions; text-index search on name + tags; `currentVersionId` field promotable via PATCH.
+  - **Storage backends** — `STORAGE_PROVIDER=local` (default, saves to `/uploads/vault/`) or `s3` (requires `AWS_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`). Abstracted behind `storage.save()` / `storage.remove()`.
+  - **`/vault` page** — two-panel layout: collapsible folder tree sidebar + paginated document table with search. Upload and New Folder modals; permission-gated delete.
+  - **`/vault/[docId]` page** — file preview (image inline, PDF iframe, fallback icon), metadata + tags sidebar, version history with "set as current" button, New Version upload modal.
+  - **`/client-portal/vault` page** — read-only customer view; download only.
+  - **Permissions** — `vault_documents` and `vault_folders` resources added; admin gets full CRUD, viewer gets read.
+  - **Audit log events** — `vault_document.upload`, `vault_document.update`, `vault_document.delete`, `vault_document.version_upload`, `vault_folder.create`, `vault_folder.update`, `vault_folder.delete`.
+  - Nav entry: **Vault** (`FolderLock` icon, `/vault`, gated by `vault_documents.read`).
+
+---
+
 ## 2026-05-20 (seed data — finance features)
 
 ### Added
