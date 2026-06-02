@@ -38,10 +38,12 @@
 <style>
   .modal-inner :global(header) {
     background-color: var(--color-secondary);
+    color: var(--color-secondary-content);
     border-radius: var(--rounded-box, 1rem) var(--rounded-box, 1rem) 0 0;
   }
   .modal-inner :global(footer) {
     background-color: var(--color-secondary);
+    color: var(--color-secondary-content);
     border-radius: 0 0 var(--rounded-box, 1rem) var(--rounded-box, 1rem);
   }
 </style>
