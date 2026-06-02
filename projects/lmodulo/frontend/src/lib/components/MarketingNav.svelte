@@ -1,13 +1,15 @@
 <script lang="ts">
   import Logo from '$lib/components/Logo.svelte';
-  let { brandName = '', brandLogo = '' }: { brandName?: string | null; brandLogo?: string | null } = $props();
+  let { brandName = '', brandLogo = '', hideSignIn = false }: { brandName?: string | null; brandLogo?: string | null; hideSignIn?: boolean } = $props();
 </script>
 
 <nav class="marketing-nav">
   <a href="/" class="nav-brand" aria-label="Home">
     <Logo brandName={brandName ?? ''} brandLogo={brandLogo ?? ''} />
   </a>
-  <a href="/login" class="btn btn-primary btn-sm">Sign In</a>
+  {#if !hideSignIn}
+    <a href="/login" class="btn btn-primary btn-sm">Sign In</a>
+  {/if}
 </nav>
 
 <style>

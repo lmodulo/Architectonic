@@ -24,6 +24,9 @@
   const pct    = $derived(Math.round(milestone.completionPct ?? 0));
   const barClr = $derived(completionColor(pct));
 
+  let animPct = $state(0);
+  $effect(() => { const target = pct; requestAnimationFrame(() => { animPct = target; }); });
+
   // ── Sprint modal ───────────────────────────────────────────────────
   let sprintModal = $state(false);
   let savingSprint = $state(false);
@@ -243,7 +246,7 @@
         <span class="font-bold" style="color:{barClr}">{pct}%</span>
       </div>
       <div class="w-full h-3 rounded-full bg-base-300 overflow-hidden">
-        <div class="h-full rounded-full transition-all" style="width:{pct}%;background:{barClr}"></div>
+        <div class="h-full rounded-full transition-[width] duration-700 ease-out" style="width:{animPct}%;background:{barClr}"></div>
       </div>
       <div class="flex gap-4 text-xs opacity-50">
         <span>{fmtDateRange(milestone.startDate ?? null, milestone.endDate ?? null)}</span>

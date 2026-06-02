@@ -2,17 +2,18 @@
   import type { Snippet } from 'svelte';
   import MarketingNav from './MarketingNav.svelte';
 
-  let { children, title, subtitle, brandName, brandLogo }: {
+  let { children, title, subtitle, brandName, brandLogo, hideSignIn = false }: {
     children: Snippet;
     title: string;
     subtitle?: string;
     brandName?: string | null;
     brandLogo?: string | null;
+    hideSignIn?: boolean;
   } = $props();
 </script>
 
 <div class="auth-page">
-  <MarketingNav {brandName} {brandLogo} />
+  <MarketingNav {brandName} {brandLogo} {hideSignIn} />
 
   <div class="grain" aria-hidden="true"></div>
   <div class="auth-glow" aria-hidden="true"></div>

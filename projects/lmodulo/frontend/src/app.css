@@ -112,11 +112,11 @@ nav.tab-scroll {
   --color-base-200: oklch(20% 0.020 304.300);
   --color-base-300: oklch(26% 0.035 304.300);
   --color-base-content: oklch(97% 0 0);
-  --color-primary: oklch(43% 0.104 292.759);
+  --color-primary: oklch(0.3298 0.0767 303.97);
   --color-primary-content: oklch(97% 0.013 17.38);
-  --color-secondary: oklch(64% 0.169 41.116);
+  --color-secondary: oklch(0.5881 0.1498 45.91);
   --color-secondary-content: oklch(100% 0 0);
-  --color-accent: oklch(60% 0.083 292.717);
+  --color-accent: oklch(0.4808 0.1059 303.98);
   --color-accent-content: oklch(98% 0.026 102.212);
   --color-neutral: oklch(43% 0 0);
   --color-neutral-content: oklch(98% 0 0);

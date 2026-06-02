@@ -1,4 +1,4 @@
-# Business Model — Custom SaaS / ERP for Small Local Businesses
+# Business Model — Vertical SaaS Factory (Custom-First) for Small Local Businesses
 
 *Internal reference document. Sections marked `[MKT]` are written for direct lift into marketing copy.*
 
@@ -8,7 +8,25 @@
 
 We build custom business management software (ERP, workflow tools, internal systems) for small local businesses — typically 5 to 50 employees — at a price point that competes with generic SaaS subscriptions while delivering software that actually fits how the business operates.
 
-We use AI-assisted development (Claude) to compress what was historically a 6–12 month, $200k+ custom build into a 4–8 week, $25–50k engagement. This lets us serve a customer segment that has always been too small for traditional custom development and too operationally specific for generic SaaS.
+We do this **one vertical at a time**. We are not a generic "small business software" shop; that's a customer size, not a market. We pick an industry, learn its workflows deeply, and reuse the result across every customer that shares them.
+
+AI-assisted development is the mechanism that makes the price point possible: it compresses what was historically a 6–12 month, $200k+ custom build into a 4–8 week, $25–50k engagement. The judgment stays human — architecture, scope, integrations, and anything touching money or PII are owned by an operator, not generated and shipped unreviewed. That distinction matters both for quality and for how the business is valued (see §1.1).
+
+This lets us serve a customer segment that has always been too small for traditional custom development and too operationally specific for generic SaaS.
+
+### 1.1 The actual strategy: a vertical SaaS factory
+
+The simplest framing — "custom software priced like SaaS" — undersells what this is and anchors it to the wrong valuation multiple. Custom-software shops are valued on consulting multiples; repeatable products are valued on SaaS multiples.
+
+What we are really building is a **vertical SaaS factory that begins as custom work**:
+
+1. **Custom deployments** for real customers in one vertical.
+2. **Pattern recognition** — identify the workflows that recur across every customer in that vertical.
+3. **Vertical modules** — package the recurring workflows as standard, reusable modules.
+4. **Productization** — turn the strongest vertical into a repeatable platform.
+5. **Vertical SaaS company** — operate a productized platform in that industry, with proven workflows and paying customers already in hand.
+
+Every custom deployment funds the move along this path and tells us exactly which product to build. The closer we get to a repeatable vertical platform, the more the business is worth and the less each new customer costs to serve.
 
 ## 2. Market Context
 
@@ -33,15 +51,24 @@ Most small businesses run the DIY stack because tier 1 is unreachable and tier 2
 - Has identifiable workflows that don't fit generic software (industry-specific scheduling, custom pricing rules, multi-step approvals, regulatory tracking)
 - Owner-operator or small management team that makes buying decisions directly
 
-**Vertical focus (recommended):**
-Pick 1–3 industries and own them. Candidates with strong fit:
-- Trades and field services (HVAC, plumbing, electrical, landscaping)
-- Independent healthcare (dental, optometry, veterinary, physical therapy)
-- Specialty manufacturing and fabrication shops
-- Wholesale distribution and food service supply
-- Property management and short-term rental operators
+### Vertical focus is not optional — it's the model
 
-Vertical focus lets us reuse 60–80% of code across deployments, build accurate proposals quickly, and develop industry-specific marketing that converts better than generic outreach.
+Pick one vertical first, own it, then add a second only by deliberate decision (see §11, Phase 3). The capacity and margin assumptions in §7 hold *only* under vertical focus; without it, every deployment is a fresh build and the reuse curve never kicks in.
+
+**First-vertical selection criteria:**
+- A workflow spine that's consistent across companies in the industry (so code reuse is real)
+- Enough local density to reach 10+ customers without geographic sprawl
+- Pain with generic SaaS that's specific and articulable (so marketing converts)
+- No heavy compliance burden we can't yet support (see Disqualifiers)
+
+**Candidate verticals, ranked by fit:**
+1. **Trades and field services** (HVAC, plumbing, electrical, landscaping) — strong shared spine: dispatch, scheduling, job costing, recurring maintenance contracts, mobile time entry. Recommended first vertical.
+2. Independent healthcare (dental, optometry, veterinary, physical therapy) — strong spine but watch HIPAA scope.
+3. Specialty manufacturing and fabrication shops
+4. Wholesale distribution and food service supply
+5. Property management and short-term rental operators
+
+The recommendation is to commit to **one** of these (trades/field services unless discovery says otherwise), prove the model there, and treat the others as a backlog — not a simultaneous target.
 
 **Disqualifiers:**
 - Businesses requiring multi-entity accounting, foreign currency, or formal audit trails (these need NetSuite-tier systems)
@@ -79,7 +106,7 @@ Most small businesses run six to ten disconnected tools held together by spreads
 **Price: $25,000–$50,000 fixed, scoped per engagement**
 
 ### Tier 2: Add-on Modules
-Custom modules added after base deployment or as part of an expanded initial scope. Examples: advanced reporting dashboards, custom pricing engines, scheduling and dispatch, inventory tracking, document generation, customer portals, mobile field apps.
+Custom modules added after base deployment or as part of an expanded initial scope. Examples: advanced reporting dashboards, custom pricing engines, scheduling and dispatch, inventory tracking, document generation, customer portals, mobile field apps. As a vertical matures, these shift from custom builds toward catalog modules (see §1.1) — the same module sold repeatedly is where margin improves fastest.
 
 **Price: $5,000–$15,000 per module, fixed**
 
@@ -130,17 +157,20 @@ Our pricing is structured around three principles:
 - At 20 active customers + 8 new deployments/year, gross revenue is roughly $300–400k with $150–250k margin before owner compensation
 - This is a viable single-operator business; scaling beyond requires hiring and changes the economics
 
+**Critical dependency — these numbers assume vertical focus.** The 20–30 active-customer ceiling and the year-2-onward cost figures are only achievable if support load stays predictable and customizations stay controlled. That predictability comes from verticalization: when the tenth HVAC customer's requests resemble the previous nine, support is bounded and module reuse is high. Without a vertical, each customer is a bespoke system with bespoke support, and the realistic single-operator ceiling drops to roughly 8–12 active customers — at which point the business is a custom-dev consultancy, not a product company. The capacity model and the vertical strategy (§3) are the same decision viewed from two angles. Treat any plan that claims 20–30 customers *without* a committed vertical as unfunded.
+
 ## 8. Operational Model
 
-### How Claude fits in the workflow
-- Requirements documents drafted with Claude, reviewed with customer
-- Schema design and initial scaffolding generated with Claude
-- Boilerplate (CRUD, auth, admin UI, reports) generated with Claude, reviewed by operator
-- Business logic written collaboratively, with operator owning correctness
-- Test generation and edge case enumeration with Claude
-- Documentation generated with Claude
+### How AI fits in the workflow
+AI accelerates production; the operator owns correctness. Specifically:
+- Requirements documents drafted with AI assistance, reviewed with the customer
+- Schema design and initial scaffolding generated, then reviewed and corrected by the operator
+- Boilerplate (CRUD, auth, admin UI, reports) generated, reviewed by the operator
+- Business logic written collaboratively, with the operator owning correctness
+- Test generation and edge-case enumeration assisted
+- Documentation generated, then edited for accuracy
 
-Operator time concentrates on: customer relationship, scope discipline, architecture decisions, integration debugging, anything touching money or PII, deployment, and training.
+Operator time concentrates on: customer relationship, scope discipline, architecture decisions, integration debugging, anything touching money or PII, deployment, and training. Nothing in the money or PII path ships without human review.
 
 ### What we standardize across customers
 - Auth, user management, billing integration, audit logging
@@ -149,7 +179,7 @@ Operator time concentrates on: customer relationship, scope discipline, architec
 - Customer onboarding checklist
 - Project templates per vertical
 
-This is where vertical focus pays off — the second HVAC company gets 70% of the first one's codebase for free.
+This is where vertical focus pays off — the second HVAC company gets 70% of the first one's codebase for free, and that reuse is what underwrites the §7 economics.
 
 ### What we customize per customer
 - Workflow definitions
@@ -164,7 +194,7 @@ This is where vertical focus pays off — the second HVAC company gets 70% of th
 Zoho serves millions of customers with a single codebase. Customizing for one business would cost them more than the customer is worth. We pick up where their economics fail — customers who need something specific enough that mass-market software can't justify building it.
 
 ### [MKT] Why we can do this and a traditional dev shop can't
-Traditional custom software costs $150–400/hour and takes thousands of hours. A real custom ERP from a normal agency starts at $200k and takes a year. AI-assisted development changes the labor math: the same scope takes a fraction of the hours, which is what makes the $25–50k price point work without sacrificing quality.
+Traditional custom software costs $150–400/hour and takes thousands of hours. A real custom ERP from a normal agency starts at $200k and takes a year. AI-assisted development changes the labor math: the same scope takes a fraction of the hours, which is what makes the $25–50k price point work without sacrificing quality. The engineering judgment is still ours; the speed is what's new.
 
 ### [MKT] Why we can do this and an offshore dev shop can't
 Offshore shops can match the price but not the model. Custom business software requires deep conversation about how the business operates — conversations that happen better with someone in the same timezone, language, and business culture. Our advantage is being local, available, and capable of having a one-hour discovery call that actually maps the workflow correctly.
@@ -176,27 +206,32 @@ Offshore shops can match the price but not the model. Custom business software r
 | Scope creep on fixed-price deployments | Strict change-order process, written sign-off on workflow spec before build |
 | Customer expects unlimited support for $500/month | Clear contract terms on support inclusions; escalation to retainer or hourly for excess |
 | One operator becomes single point of failure | Code conventions and documentation enforced from day one; second operator hired at ~15 active customers |
+| Support load scales faster than revenue | Enforce vertical focus; refuse out-of-vertical customers in Phase 1–2 even when tempting; track support hours per customer and flag outliers early |
 | Claude API pricing changes affect cost structure | Monitor token consumption per project; pricing model has room to absorb 2-3x API cost increases |
+| Schema evolution across live customers | Additive, optional fields; version-tolerant readers that handle old and new document shapes during transitions; structural changes gated behind a deployment version flag |
 | Customer outgrows the system | Build with clean data export from day one; this is a feature, not a bug — graceful exit preserves referrals |
 | Liability for downtime, data loss, or bugs | E&O insurance, contractual limitations of liability, documented backup and restore |
 | Customer wants to take the code and self-host | Offer source code release as a paid option ($10–20k); price it to reflect the loss of recurring revenue |
 
 ## 11. Go-to-Market
 
-### Phase 1 (months 1–6): Prove the model
-- Build 2–3 deployments at reduced rate for case study customers in one vertical
+### Phase 1 (months 1–6): Prove the model in one vertical
+- Build 2–3 deployments at reduced rate for case study customers **in the single chosen vertical**
 - Document everything: workflow templates, time tracking, support patterns
 - Generate 3 published case studies with named customers, real numbers, and demos
+- Goal: validate that customer two and three reuse 60–80% of customer one
 
 ### Phase 2 (months 6–18): Vertical traction
 - Direct outreach to businesses in the chosen vertical: industry associations, trade publications, local business groups
 - Content marketing focused on the vertical (blog posts, comparison guides, ROI calculators)
 - Referral incentives for existing customers
 - Targeted ads against competitor keywords ("[vertical] + Zoho problems," "[vertical] + custom software")
+- Begin extracting recurring workflows into catalog modules (§1.1, step 3)
 
 ### Phase 3 (month 18+): Scale or specialize
 - Decision point: add a second operator and a second vertical, or stay solo and go deeper in one
-- Either path is viable; the choice affects lifestyle, risk, and ceiling
+- A third path: productize the first vertical (§1.1, steps 4–5) and shift the revenue mix from custom builds toward repeatable platform subscriptions
+- Each path affects lifestyle, risk, valuation, and ceiling differently
 
 ## 12. Extractable Marketing Statements
 
@@ -214,4 +249,4 @@ For lifting into website copy, sales decks, and outreach:
 
 ---
 
-*Document version: 1.0. Update pricing tables quarterly. Update market context section annually or when a major competitor changes pricing.*
+*Document version: 1.1. Update pricing tables quarterly. Update market context section annually or when a major competitor changes pricing.*

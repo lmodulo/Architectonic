@@ -13,7 +13,7 @@
   <title>Sign In</title>
 </svelte:head>
 
-<AuthShell title="Sign In" subtitle="Welcome back." brandName={data.brandName} brandLogo={data.brandLogo}>
+<AuthShell title="Sign In" subtitle="Welcome back." brandName={data.brandName} brandLogo={data.brandLogo} hideSignIn>
 
   {#if resetSuccess}
     <div role="alert" class="alert alert-success text-sm">
