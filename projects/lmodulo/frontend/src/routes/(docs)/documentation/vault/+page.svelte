@@ -73,7 +73,7 @@ vault_document_versions     ← one record per uploaded file; full history retai
           <tr><td class="font-mono text-xs">workspaceId</td><td class="text-xs opacity-60">ObjectId ref</td><td class="text-sm opacity-70">Multi-tenant scope</td></tr>
           <tr><td class="font-mono text-xs">documentId</td><td class="text-xs opacity-60">ObjectId ref</td><td class="text-sm opacity-70">Parent document</td></tr>
           <tr><td class="font-mono text-xs">versionNumber</td><td class="text-xs opacity-60">integer</td><td class="text-sm opacity-70">Auto-incremented per document starting at 1</td></tr>
-          <tr><td class="font-mono text-xs">storageKey</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">Storage path: <code class="bg-base-300 px-1 rounded text-xs">vault/{workspaceId}/{documentId}</code></td></tr>
+          <tr><td class="font-mono text-xs">storageKey</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">Storage path: <code class="bg-base-300 px-1 rounded text-xs">vault/&#123;workspaceId&#125;/&#123;documentId&#125;</code></td></tr>
           <tr><td class="font-mono text-xs">url</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">Accessible URL returned by the storage backend</td></tr>
           <tr><td class="font-mono text-xs">mimetype</td><td class="text-xs opacity-60">string</td><td class="text-sm opacity-70">e.g. <code class="bg-base-300 px-1 rounded text-xs">application/pdf</code>, <code class="bg-base-300 px-1 rounded text-xs">image/png</code></td></tr>
           <tr><td class="font-mono text-xs">size</td><td class="text-xs opacity-60">integer (bytes)</td><td class="text-sm opacity-70">File size in bytes</td></tr>
