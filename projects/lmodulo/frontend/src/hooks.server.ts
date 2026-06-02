@@ -28,7 +28,8 @@ const CUSTOMER_ALLOWED_PATHS = new Set([
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {
   '/manage-users': { resource: 'users',            action: 'read' },
   '/roles':        { resource: 'roles',            action: 'read' },
-  '/folio':        { resource: 'finance_invoices', action: 'read' }
+  '/folio':        { resource: 'finance_invoices', action: 'read' },
+  '/vault':        { resource: 'vault_documents',  action: 'read' }
 };
 
 export const handle: Handle = async ({ event, resolve }) => {

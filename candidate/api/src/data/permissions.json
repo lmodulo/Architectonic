@@ -12,7 +12,9 @@
     "commerce_categories":  { "create": true,  "read": true,  "update": true,  "delete": true  },
     "events":               { "create": true,  "read": true,  "update": true,  "delete": true  },
     "automation":           { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "workspaces":           { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "workspaces":           { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "vault_documents":      { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "vault_folders":        { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "admin": {
     "users":                { "create": true,  "read": true,  "update": true,  "delete": true  },
@@ -27,7 +29,9 @@
     "commerce_categories":  { "create": true,  "read": true,  "update": true,  "delete": true  },
     "events":               { "create": true,  "read": true,  "update": true,  "delete": true  },
     "automation":           { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "workspaces":           { "create": true,  "read": true,  "update": true,  "delete": false }
+    "workspaces":           { "create": true,  "read": true,  "update": true,  "delete": false },
+    "vault_documents":      { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "vault_folders":        { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "lead": {
     "users":                { "create": false, "read": true,  "update": false, "delete": false },
@@ -42,7 +46,9 @@
     "commerce_categories":  { "create": false, "read": true,  "update": false, "delete": false },
     "events":               { "create": true,  "read": true,  "update": true,  "delete": false },
     "automation":           { "create": false, "read": true,  "update": false, "delete": false },
-    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false }
+    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_documents":      { "create": true,  "read": true,  "update": true,  "delete": false },
+    "vault_folders":        { "create": true,  "read": true,  "update": true,  "delete": false }
   },
   "contributor": {
     "users":                { "create": false, "read": true,  "update": false, "delete": false },
@@ -57,7 +63,9 @@
     "commerce_categories":  { "create": false, "read": true,  "update": false, "delete": false },
     "events":               { "create": true,  "read": true,  "update": true,  "delete": false },
     "automation":           { "create": false, "read": false, "update": false, "delete": false },
-    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false }
+    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_documents":      { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_folders":        { "create": false, "read": true,  "update": false, "delete": false }
   },
   "viewer": {
     "users":                { "create": false, "read": true,  "update": false, "delete": false },
@@ -72,7 +80,9 @@
     "commerce_categories":  { "create": false, "read": true,  "update": false, "delete": false },
     "events":               { "create": true,  "read": true,  "update": true,  "delete": true  },
     "automation":           { "create": false, "read": false, "update": false, "delete": false },
-    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false }
+    "workspaces":           { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_documents":      { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_folders":        { "create": false, "read": true,  "update": false, "delete": false }
   },
   "customer": {
     "users":               { "create": false, "read": false, "update": false, "delete": false },
@@ -87,6 +97,8 @@
     "commerce_categories": { "create": false, "read": true,  "update": false, "delete": false },
     "events":              { "create": false, "read": true,  "update": false, "delete": false },
     "automation":          { "create": false, "read": false, "update": false, "delete": false },
-    "workspaces":          { "create": false, "read": false, "update": false, "delete": false }
+    "workspaces":          { "create": false, "read": false, "update": false, "delete": false },
+    "vault_documents":     { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_folders":       { "create": false, "read": true,  "update": false, "delete": false }
   }
 }

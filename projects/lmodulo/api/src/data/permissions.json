@@ -29,7 +29,9 @@
     "finance_reports":        { "create": false, "read": true,  "update": false, "delete": false },
     "client_portal":          { "create": true,  "read": true,  "update": true,  "delete": true  },
     "contracts":              { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "contract_templates":     { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "contract_templates":     { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "vault_documents":        { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "vault_folders":          { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "admin": {
     "users":              { "create": true,  "read": true,  "update": true,  "delete": true  },
@@ -61,7 +63,9 @@
     "finance_reports":        { "create": false, "read": true,  "update": false, "delete": false },
     "client_portal":          { "create": true,  "read": true,  "update": true,  "delete": true  },
     "contracts":              { "create": true,  "read": true,  "update": true,  "delete": true  },
-    "contract_templates":     { "create": true,  "read": true,  "update": true,  "delete": true  }
+    "contract_templates":     { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "vault_documents":        { "create": true,  "read": true,  "update": true,  "delete": true  },
+    "vault_folders":          { "create": true,  "read": true,  "update": true,  "delete": true  }
   },
   "lead": {
     "users":              { "create": false, "read": true,  "update": false, "delete": false },
@@ -93,7 +97,9 @@
     "finance_reports":        { "create": false, "read": true,  "update": false, "delete": false },
     "client_portal":          { "create": false, "read": false, "update": false, "delete": false },
     "contracts":              { "create": true,  "read": true,  "update": true,  "delete": false },
-    "contract_templates":     { "create": false, "read": true,  "update": false, "delete": false }
+    "contract_templates":     { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_documents":        { "create": true,  "read": true,  "update": true,  "delete": false },
+    "vault_folders":          { "create": true,  "read": true,  "update": true,  "delete": false }
   },
   "contributor": {
     "users":              { "create": false, "read": true,  "update": false, "delete": false },
@@ -125,7 +131,9 @@
     "finance_reports":        { "create": false, "read": false, "update": false, "delete": false },
     "client_portal":          { "create": false, "read": false, "update": false, "delete": false },
     "contracts":              { "create": false, "read": true,  "update": false, "delete": false },
-    "contract_templates":     { "create": false, "read": true,  "update": false, "delete": false }
+    "contract_templates":     { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_documents":        { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_folders":          { "create": false, "read": true,  "update": false, "delete": false }
   },
   "customer": {
     "users":              { "create": false, "read": false, "update": false, "delete": false },
@@ -156,7 +164,9 @@
     "finance_reports":        { "create": false, "read": false, "update": false, "delete": false },
     "client_portal":          { "create": true,  "read": true,  "update": false, "delete": false },
     "contracts":              { "create": false, "read": true,  "update": false, "delete": false },
-    "contract_templates":     { "create": false, "read": false, "update": false, "delete": false }
+    "contract_templates":     { "create": false, "read": false, "update": false, "delete": false },
+    "vault_documents":        { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_folders":          { "create": false, "read": true,  "update": false, "delete": false }
   },
   "viewer": {
     "users":              { "create": false, "read": true,  "update": false, "delete": false },
@@ -188,6 +198,8 @@
     "finance_reports":        { "create": false, "read": true,  "update": false, "delete": false },
     "client_portal":          { "create": false, "read": false, "update": false, "delete": false },
     "contracts":              { "create": false, "read": true,  "update": false, "delete": false },
-    "contract_templates":     { "create": false, "read": true,  "update": false, "delete": false }
+    "contract_templates":     { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_documents":        { "create": false, "read": true,  "update": false, "delete": false },
+    "vault_folders":          { "create": false, "read": true,  "update": false, "delete": false }
   }
 }

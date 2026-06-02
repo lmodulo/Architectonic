@@ -22,13 +22,16 @@
     "daisyui": "^5.0.0",
     "lucide-svelte": "^0.577.0",
     "svelte-select": "^5.8.3",
-    "svelte-tiptap": "^3.0.1"
+    "svelte-tiptap": "^3.0.1",
+    "dompurify": "^3.2.6",
+    "marked": "^15.0.12"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tailwindcss/vite": "^4.0.0",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^22.0.0",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",

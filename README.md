@@ -289,30 +289,53 @@ Every `<tbody>` row:
 
 ### Modals
 
-Custom fixed overlay — do not use DaisyUI `.modal`:
+**Always use `$lib/components/Modal.svelte`** — do not write raw backdrop markup. The component handles fade/scale transitions, card chrome, and applies `var(--color-secondary)` to `<header>` and `<footer>` automatically via scoped CSS.
 
 ```svelte
+import Modal from '$lib/components/Modal.svelte';
+
 {#if open}
-  <div transition:fade class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-    <div transition:scale class="bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
-        <h2 class="font-semibold">{title}</h2>
-        <button class="btn btn-ghost btn-square btn-sm" onclick={() => open = false}>
-          <X class="size-4" />
-        </button>
-      </header>
-      <div class="p-6 space-y-4"><!-- body --></div>
-      <footer class="flex items-center justify-between px-6 pb-5 pt-3">
-        <div><!-- destructive action (delete) if applicable --></div>
-        <div class="flex gap-3">
-          <button class="btn btn-ghost" onclick={() => open = false}>Cancel</button>
-          <button class="btn btn-primary">Save</button>
-        </div>
-      </footer>
-    </div>
-  </div>
+  <Modal size="md" label="Dialog title">
+    <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
+      <h2 class="text-lg font-semibold">Dialog title</h2>
+      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => open = false}>
+        <X class="size-5" />
+      </button>
+    </header>
+    <div class="p-6 space-y-4 overflow-y-auto flex-1"><!-- body --></div>
+    <footer class="flex justify-end gap-3 px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
+      <button type="button" class="btn btn-ghost" onclick={() => open = false}>Cancel</button>
+      <button type="button" class="btn btn-primary">Save</button>
+    </footer>
+  </Modal>
 {/if}
 ```
+
+`size` prop: `"sm"` (max-w-sm) · `"md"` (max-w-xl, default) · `"lg"` (max-w-2xl)
+
+**Form fields inside modals** — match the pattern used across all pages:
+
+```svelte
+<!-- Single field -->
+<div class="space-y-1">
+  <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Label</label>
+  <input type="text" class="input w-full" bind:value={...} />
+</div>
+
+<!-- Two-column row -->
+<div class="grid grid-cols-2 gap-4">
+  <div class="space-y-1">
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Left</label>
+    <select class="select w-full" bind:value={...}>...</select>
+  </div>
+  <div class="space-y-1">
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Right</label>
+    <select class="select w-full" bind:value={...}>...</select>
+  </div>
+</div>
+```
+
+Use `input w-full` and `select w-full` — **no** `-bordered` suffix inside modals.
 
 ---
 
