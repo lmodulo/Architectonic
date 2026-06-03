@@ -1,7 +1,7 @@
 <script lang="ts">
   import { slide } from 'svelte/transition';
   import { goto } from '$app/navigation';
-  import { Search, Plus, Trash2, FolderPlus, FolderOpen, Folder, X, ChevronRight, Upload, FileText, FileImage, File, FolderLock } from 'lucide-svelte';
+  import { Search, Plus, Trash2, FolderPlus, FolderOpen, Folder, X, ChevronRight, Upload, FileText, File, FolderLock, Image, Film, Music, Code, Sheet, Archive, Braces, Terminal } from 'lucide-svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import { hasPermission } from '$lib/permissions';
@@ -52,6 +52,49 @@
     admin_only: 'Admin only',
     customer:   'Customer'
   };
+
+  const EXT_MAP: Record<string, any> = {
+    // Images
+    jpg: Image, jpeg: Image, png: Image, gif: Image,
+    svg: Image, webp: Image, bmp: Image, ico: Image,
+    tiff: Image, tif: Image, heic: Image, avif: Image,
+    // Video
+    mp4: Film, mov: Film, avi: Film, mkv: Film,
+    webm: Film, wmv: Film, flv: Film, m4v: Film,
+    // Audio
+    mp3: Music, wav: Music, ogg: Music, flac: Music,
+    aac: Music, m4a: Music, wma: Music, opus: Music,
+    // Shell scripts
+    sh: Terminal, bash: Terminal, zsh: Terminal, fish: Terminal,
+    // Code / markup
+    js: Code, ts: Code, jsx: Code, tsx: Code,
+    py: Code, rb: Code, go: Code, rs: Code,
+    java: Code, c: Code, cpp: Code, cs: Code,
+    php: Code, css: Code, scss: Code, html: Code,
+    htm: Code, xml: Code, yaml: Code, yml: Code,
+    sql: Code, swift: Code, kt: Code,
+    // JSON / config
+    json: Braces, jsonc: Braces, toml: Braces, env: Braces,
+    // Spreadsheets
+    xlsx: Sheet, xls: Sheet, csv: Sheet,
+    numbers: Sheet, ods: Sheet, tsv: Sheet,
+    // Archives
+    zip: Archive, tar: Archive, gz: Archive, rar: Archive,
+    '7z': Archive, bz2: Archive, xz: Archive, tgz: Archive,
+    // Text / documents
+    txt: FileText, md: FileText, pdf: FileText, doc: FileText, docx: FileText,
+    rtf: FileText, odt: FileText, pages: FileText, tex: FileText,
+  };
+
+  function fileIcon(originalName?: string | null, mimetype?: string | null) {
+    const ext = originalName?.split('.').pop()?.toLowerCase();
+    if (ext && EXT_MAP[ext]) return EXT_MAP[ext];
+    if (mimetype?.startsWith('image/')) return Image;
+    if (mimetype?.startsWith('video/')) return Film;
+    if (mimetype?.startsWith('audio/')) return Music;
+    if (mimetype?.startsWith('text/'))  return FileText;
+    return File;
+  }
 
   // ── Filtered / paged list ──────────────────────────────────────────────────
   const filtered = $derived((() => {
@@ -349,13 +392,14 @@
           </thead>
           <tbody>
             {#each paged as doc (doc.id)}
+              {@const DocIcon = fileIcon(doc.originalName, doc.mimetype)}
               <tr
                 class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
                 onclick={() => goto(`/vault/${doc.id}`)}
               >
                 <td>
                   <div class="flex items-center gap-2">
-                    <FileText class="size-4 opacity-40 shrink-0" />
+                    <DocIcon class="size-4 opacity-40 shrink-0" />
                     <div>
                       <div class="font-medium">{doc.name}</div>
                       {#if (doc.tags ?? []).length > 0}

@@ -470,7 +470,7 @@
   <Modal size="md" label="Edit task">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Task</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editModal = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-neutral btn-sm btn-square" onclick={() => (editModal = false)}><X class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editError}
@@ -550,9 +550,9 @@
             <button type="button" class="btn btn-error btn-sm" disabled={taskDeleting} onclick={deleteTask}>
               {taskDeleting ? 'Deleting…' : 'Yes, delete'}
             </button>
-            <button type="button" class="btn btn-ghost btn-sm" onclick={() => { taskDeleteConfirm = false; taskDeleteError = ''; }}>Cancel</button>
+            <button type="button" class="btn btn-neutral btn-sm" onclick={() => { taskDeleteConfirm = false; taskDeleteError = ''; }}>Cancel</button>
           {:else}
-            <button type="button" class="btn btn-ghost btn-sm text-error hover:bg-error/10 mr-auto" onclick={() => taskDeleteConfirm = true}>
+            <button type="button" class="btn btn-outline btn-error btn-sm mr-auto" onclick={() => taskDeleteConfirm = true}>
               <Trash2 class="size-4" /> Delete
             </button>
           {/if}
@@ -560,7 +560,7 @@
         {#if taskDeleteError}
           <span class="text-xs text-error">{taskDeleteError}</span>
         {/if}
-        <button type="button" class="btn btn-ghost" onclick={() => {
+        <button type="button" class="btn btn-neutral" onclick={() => {
           tasks = tasks.map(t => t.id === editingId ? { ...t, attachments: editTaskAttachments } as AgileTask : t);
           editModal = false;
           taskDeleteConfirm = false;
@@ -577,7 +577,7 @@
   <Modal size="md" label="New Task">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Task</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (taskModal = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-neutral btn-sm btn-square" onclick={() => (taskModal = false)}><X class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if taskError}
@@ -627,7 +627,7 @@
         {/if}
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (taskModal = false)}>Cancel</button>
+        <button type="button" class="btn btn-neutral" onclick={() => (taskModal = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={savingTask} onclick={saveTask}>
           {savingTask ? 'Creating…' : 'Create Task'}
         </button>
@@ -640,7 +640,7 @@
   <Modal size="lg" label="Edit job">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Job</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobEditing = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-neutral btn-sm btn-square" onclick={() => (jobEditing = false)}><X class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if jobEditError}
@@ -693,7 +693,7 @@
         </label>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (jobEditing = false)}>Cancel</button>
+        <button type="button" class="btn btn-neutral" onclick={() => (jobEditing = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={jobEditSaving} onclick={saveJobEdit}>
           {jobEditSaving ? 'Saving…' : 'Save Changes'}
         </button>

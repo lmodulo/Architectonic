@@ -95,7 +95,21 @@ export default async function documentsRoutes(app: FastifyInstance) {
       db.collection(COL_DOCS).countDocuments(filter)
     ]);
 
-    return { documents: docs.map(mapDoc), total, skip, limit };
+    const versionIds = docs.map((d: any) => d.currentVersionId).filter(Boolean);
+    const versions = versionIds.length
+      ? await db.collection(COL_VER)
+          .find({ _id: { $in: versionIds } })
+          .project({ mimetype: 1, originalName: 1 })
+          .toArray()
+      : [];
+    const versionMap = new Map(versions.map((v: any) => [v._id.toString(), v]));
+
+    const documents = docs.map((d: any) => {
+      const ver = versionMap.get(d.currentVersionId?.toString());
+      return { ...mapDoc(d), mimetype: ver?.mimetype ?? null, originalName: ver?.originalName ?? null };
+    });
+
+    return { documents, total, skip, limit };
   });
 
   // POST /vault/documents — upload a document (multipart: file + metadata fields)
