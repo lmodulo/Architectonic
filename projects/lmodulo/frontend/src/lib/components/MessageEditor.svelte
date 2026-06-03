@@ -69,6 +69,26 @@
     <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
 
     <button type="button"
+      class="btn btn-ghost btn-sm px-2 text-xs font-bold {active('heading', { level: 1 }) ? 'bg-primary/15 text-primary' : ''}"
+      onmousedown={cmd(() => editor?.chain().toggleHeading({ level: 1 }).run())}
+      aria-label="Heading 1" title="Heading 1"
+    >H1</button>
+
+    <button type="button"
+      class="btn btn-ghost btn-sm px-2 text-xs font-bold {active('heading', { level: 2 }) ? 'bg-primary/15 text-primary' : ''}"
+      onmousedown={cmd(() => editor?.chain().toggleHeading({ level: 2 }).run())}
+      aria-label="Heading 2" title="Heading 2"
+    >H2</button>
+
+    <button type="button"
+      class="btn btn-ghost btn-sm px-2 text-xs font-bold {active('heading', { level: 3 }) ? 'bg-primary/15 text-primary' : ''}"
+      onmousedown={cmd(() => editor?.chain().toggleHeading({ level: 3 }).run())}
+      aria-label="Heading 3" title="Heading 3"
+    >H3</button>
+
+    <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
+
+    <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('bulletList') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBulletList().run())}
       aria-label="Bullet list" title="Bullet list"
@@ -128,4 +148,7 @@
     padding-left: 0.75rem;
     opacity: 0.8;
   }
+  :global(.tiptap h1) { font-size: 1.75em; font-weight: 700; line-height: 1.3; margin-top: 1em;    margin-bottom: 0.25em; }
+  :global(.tiptap h2) { font-size: 1.4em;  font-weight: 700; line-height: 1.3; margin-top: 0.75em; margin-bottom: 0.25em; }
+  :global(.tiptap h3) { font-size: 1.15em; font-weight: 600; line-height: 1.3; margin-top: 0.5em;  margin-bottom: 0.25em; }
 </style>
