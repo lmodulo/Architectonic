@@ -1,8 +1,10 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import { fade, slide } from 'svelte/transition';
   import {
-    ChevronRight, Building2, CalendarDays, DollarSign,
+    ArrowLeft, Building2, CalendarDays, DollarSign,
     Send, Ban, Trash2, Edit3, Check, X, UserPlus, Plus, Printer
   } from 'lucide-svelte';
   import type { PageData } from './$types';
@@ -25,17 +27,29 @@
   };
 
   // Edit state
-  let editing     = $state(false);
-  let editTitle   = $state('');
-  let editContent = $state('');
-  let saving      = $state(false);
-  let err         = $state('');
+  let editing          = $state(false);
+  let editTitle        = $state('');
+  let editContent      = $state('');
+  let editType         = $state('custom');
+  let editCompanyId    = $state('');
+  let editValue        = $state('');
+  let editCurrency     = $state('USD');
+  let editEffDate      = $state('');
+  let editExpDate      = $state('');
+  let saving           = $state(false);
+  let err              = $state('');
 
   function startEdit() {
-    editTitle   = c.title;
-    editContent = c.content ?? '';
-    editing     = true;
-    err         = '';
+    editTitle     = c.title;
+    editContent   = c.content ?? '';
+    editType      = c.type ?? 'custom';
+    editCompanyId = c.companyId ?? '';
+    editValue     = c.value != null ? String(c.value) : '';
+    editCurrency  = c.currency ?? 'USD';
+    editEffDate   = c.effectiveDate ? c.effectiveDate.slice(0, 10) : '';
+    editExpDate   = c.expiryDate    ? c.expiryDate.slice(0, 10)    : '';
+    editing       = true;
+    err           = '';
   }
 
   async function saveEdit() {
@@ -43,10 +57,21 @@
     saving = true;
     err = '';
     try {
+      const payload: Record<string, unknown> = {
+        title:    editTitle.trim(),
+        content:  editContent,
+        type:     editType,
+        currency: editCurrency,
+      };
+      if (editCompanyId)    payload.companyId     = editCompanyId;
+      if (editValue !== '') payload.value         = Number(editValue);
+      if (editEffDate)      payload.effectiveDate = editEffDate;
+      if (editExpDate)      payload.expiryDate    = editExpDate;
+
       const res = await fetch(`/api/contracts/${c.id}`, {
         method:  'PATCH',
         headers: { 'content-type': 'application/json' },
-        body:    JSON.stringify({ title: editTitle.trim(), content: editContent }),
+        body:    JSON.stringify(payload),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -150,69 +175,85 @@
   );
 </script>
 
-<!-- Breadcrumb -->
-<div class="flex items-center gap-2 text-sm text-base-content/60 mb-4">
-  <a href="/contracts" class="hover:text-base-content">Contracts</a>
-  <ChevronRight class="size-3" />
-  <span class="truncate max-w-xs">{c.title}</span>
-</div>
-
 <div class="flex flex-col gap-6">
 
   <!-- Header -->
   <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div class="flex flex-col gap-1">
-      {#if editing}
-        <input type="text" class="input input-bordered text-xl font-semibold w-full" bind:value={editTitle} />
-      {:else}
-        <h2 class="text-xl font-semibold">{c.title}</h2>
-      {/if}
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="badge badge-ghost badge-sm">{TYPE_LABELS[c.type] ?? c.type}</span>
-        <span class="badge badge-sm {STATUS_COLORS[c.status] ?? 'badge-ghost'}">
-          {c.status.replace(/_/g, ' ')}
-        </span>
-        {#if c.companyName}
-          <span class="flex items-center gap-1 text-sm text-base-content/60">
-            <Building2 class="size-3" />
-            {c.companyName}
-          </span>
+    <div class="flex items-start gap-3">
+      <a href="/contracts" class="btn btn-ghost btn-square btn-sm mt-0.5"><ArrowLeft class="size-4" /></a>
+      <div class="flex flex-col gap-1.5">
+        {#if editing}
+          <input transition:fade={{ duration: 150 }} type="text" class="input input-bordered text-xl font-semibold w-full" bind:value={editTitle} />
+        {:else}
+          <h2 transition:fade={{ duration: 150 }} class="text-xl font-semibold">{c.title}</h2>
         {/if}
+        <div class="flex items-center gap-2 flex-wrap">
+          {#if editing}
+            <select transition:fade={{ duration: 150 }} class="select select-bordered select-sm" bind:value={editType}>
+              <option value="msa">MSA</option>
+              <option value="sow">SOW</option>
+              <option value="nda">NDA</option>
+              <option value="custom">Custom</option>
+            </select>
+          {:else}
+            <span transition:fade={{ duration: 150 }} class="badge badge-ghost badge-sm">{TYPE_LABELS[c.type] ?? c.type}</span>
+          {/if}
+          <span class="badge badge-sm {STATUS_COLORS[c.status] ?? 'badge-ghost'}">
+            {c.status.replace(/_/g, ' ')}
+          </span>
+          {#if editing}
+            <select transition:fade={{ duration: 150 }} class="select select-bordered select-sm" bind:value={editCompanyId}>
+              <option value="">— No company —</option>
+              {#each data.companies as co}
+                <option value={co.id ?? co._id}>{co.name}</option>
+              {/each}
+            </select>
+          {:else if c.companyName}
+            <span transition:fade={{ duration: 150 }} class="flex items-center gap-1 text-sm text-base-content/60">
+              <Building2 class="size-3" />
+              {c.companyName}
+            </span>
+          {/if}
+        </div>
       </div>
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center gap-2 flex-wrap">
+    <div class="relative flex items-center gap-2 flex-wrap">
       {#if editing}
-        <button class="btn btn-ghost btn-sm" onclick={() => editing = false}><X class="size-4" /> Cancel</button>
-        <button class="btn btn-primary btn-sm" onclick={saveEdit} disabled={saving}>
-          <Check class="size-4" />
-          {saving ? 'Saving…' : 'Save'}
-        </button>
+        <div transition:fade={{ duration: 150 }} class="flex items-center gap-2">
+          <button class="btn btn-ghost btn-sm" onclick={() => editing = false}><X class="size-4" /> Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick={saveEdit} disabled={saving}>
+            <Check class="size-4" />
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
       {:else}
-        <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/contract/${c.id}`, '_blank')} title="Download / Print PDF">
-          <Printer class="size-4" />
-        </button>
-        {#if canEdit}
-          <button class="btn btn-ghost btn-sm" onclick={startEdit}>
-            <Edit3 class="size-4" /> Edit
+        <div transition:fade={{ duration: 150 }} class="flex items-center gap-2 flex-wrap">
+          <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/contract/${c.id}`, '_blank')} title="Download / Print PDF">
+            <Printer class="size-4" />
           </button>
-        {/if}
-        {#if canSend}
-          <button class="btn btn-primary btn-sm" onclick={() => showSendModal = true}>
-            <Send class="size-4" /> Send for Signature
-          </button>
-        {/if}
-        {#if canVoid}
-          <button class="btn btn-ghost btn-sm text-warning" onclick={voidContract}>
-            <Ban class="size-4" /> Void
-          </button>
-        {/if}
-        {#if canDelete}
-          <button class="btn btn-ghost btn-sm text-error" onclick={deleteContract}>
-            <Trash2 class="size-4" />
-          </button>
-        {/if}
+          {#if canEdit}
+            <button class="btn btn-ghost btn-sm" onclick={startEdit}>
+              <Edit3 class="size-4" /> Edit
+            </button>
+          {/if}
+          {#if canSend}
+            <button class="btn btn-primary btn-sm" onclick={() => showSendModal = true}>
+              <Send class="size-4" /> Send for Signature
+            </button>
+          {/if}
+          {#if canVoid}
+            <button class="btn btn-ghost btn-sm text-warning" onclick={voidContract}>
+              <Ban class="size-4" /> Void
+            </button>
+          {/if}
+          {#if canDelete}
+            <button class="btn btn-ghost btn-sm text-error" onclick={deleteContract}>
+              <Trash2 class="size-4" />
+            </button>
+          {/if}
+        </div>
       {/if}
     </div>
   </div>
@@ -224,28 +265,56 @@
   <!-- Meta row -->
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
     <div class="card bg-base-200 p-3">
-      <p class="text-xs text-base-content/50 mb-0.5">Value</p>
-      <p class="font-medium text-sm flex items-center gap-1">
-        <DollarSign class="size-3 opacity-50" />
-        {fmtCurrency(c.value, c.currency)}
-      </p>
+      <p class="text-xs text-base-content/50 mb-1">Value</p>
+      {#if editing}
+        <div transition:fade={{ duration: 150 }} class="flex gap-1">
+          <input
+            type="number"
+            class="input input-bordered input-xs flex-1 min-w-0"
+            bind:value={editValue}
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+          />
+          <select class="select select-bordered select-xs w-[4.5rem]" bind:value={editCurrency}>
+            <option>USD</option>
+            <option>EUR</option>
+            <option>GBP</option>
+            <option>CAD</option>
+            <option>AUD</option>
+          </select>
+        </div>
+      {:else}
+        <p transition:fade={{ duration: 150 }} class="font-medium text-sm flex items-center gap-1">
+          <DollarSign class="size-3 opacity-50" />
+          {fmtCurrency(c.value, c.currency)}
+        </p>
+      {/if}
     </div>
     <div class="card bg-base-200 p-3">
-      <p class="text-xs text-base-content/50 mb-0.5">Effective</p>
-      <p class="font-medium text-sm flex items-center gap-1">
-        <CalendarDays class="size-3 opacity-50" />
-        {fmtDate(c.effectiveDate)}
-      </p>
+      <p class="text-xs text-base-content/50 mb-1">Effective</p>
+      {#if editing}
+        <input transition:fade={{ duration: 150 }} type="date" class="input input-bordered input-xs w-full" bind:value={editEffDate} />
+      {:else}
+        <p transition:fade={{ duration: 150 }} class="font-medium text-sm flex items-center gap-1">
+          <CalendarDays class="size-3 opacity-50" />
+          {fmtDate(c.effectiveDate)}
+        </p>
+      {/if}
     </div>
     <div class="card bg-base-200 p-3">
-      <p class="text-xs text-base-content/50 mb-0.5">Expires</p>
-      <p class="font-medium text-sm flex items-center gap-1">
-        <CalendarDays class="size-3 opacity-50" />
-        {fmtDate(c.expiryDate)}
-      </p>
+      <p class="text-xs text-base-content/50 mb-1">Expires</p>
+      {#if editing}
+        <input transition:fade={{ duration: 150 }} type="date" class="input input-bordered input-xs w-full" bind:value={editExpDate} />
+      {:else}
+        <p transition:fade={{ duration: 150 }} class="font-medium text-sm flex items-center gap-1">
+          <CalendarDays class="size-3 opacity-50" />
+          {fmtDate(c.expiryDate)}
+        </p>
+      {/if}
     </div>
     <div class="card bg-base-200 p-3">
-      <p class="text-xs text-base-content/50 mb-0.5">Created</p>
+      <p class="text-xs text-base-content/50 mb-1">Created</p>
       <p class="font-medium text-sm">{fmtDate(c.createdAt)}</p>
     </div>
   </div>
@@ -281,13 +350,12 @@
   <div class="card card-bordered">
     <div class="card-body p-4 sm:p-8">
       {#if editing}
-        <textarea
-          class="textarea textarea-bordered w-full font-mono text-xs min-h-[500px]"
-          bind:value={editContent}
-        ></textarea>
+        <div transition:slide={{ duration: 200 }}>
+          <MessageEditor bind:html={editContent} placeholder="Contract content…" />
+        </div>
       {:else}
         <!-- print-friendly prose -->
-        <div class="prose prose-sm max-w-none contract-content">
+        <div transition:fade={{ duration: 150 }} class="prose prose-sm max-w-none contract-content">
           {@html c.content ?? '<p class="text-base-content/40 italic">No content.</p>'}
         </div>
       {/if}
