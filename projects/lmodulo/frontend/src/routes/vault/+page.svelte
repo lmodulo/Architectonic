@@ -586,7 +586,7 @@
     </div>
     <footer class="flex justify-end gap-3 px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
       <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>Cancel</button>
-      <button type="button" class="btn btn-error btn-outline" disabled={deleting} onclick={confirmDelete}>
+      <button type="button" class="btn btn-error" disabled={deleting} onclick={confirmDelete}>
         {deleting ? 'Deleting…' : 'Delete'}
       </button>
     </footer>
