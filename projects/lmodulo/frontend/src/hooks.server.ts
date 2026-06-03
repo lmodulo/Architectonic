@@ -6,6 +6,16 @@ import type { Action } from '$lib/permissions';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
+// Returns the client workspace slug from the subdomain, or null for the apex/www/localhost.
+// e.g. techfusion.lmodulo.net → 'techfusion', www.lmodulo.net → null
+function getWorkspaceSlug(hostname: string): string | null {
+  const apex = env.PUBLIC_APEX_DOMAIN ?? 'lmodulo.net';
+  if (hostname === apex || hostname === `www.${apex}` || hostname === 'localhost' || hostname === '127.0.0.1') return null;
+  const dot = hostname.indexOf('.');
+  if (dot !== -1 && hostname.slice(dot + 1) === apex) return hostname.slice(0, dot);
+  return null;
+}
+
 // All paths accessible without authentication
 const PUBLIC_PATHS = new Set([
   '/', '/login', '/register', '/forgot-password', '/reset-password',
@@ -36,11 +46,15 @@ export const handle: Handle = async ({ event, resolve }) => {
   const sessionCookie = event.cookies.get('session');
 
   event.locals.user = null;
+  event.locals.workspaceSlug = getWorkspaceSlug(event.url.hostname);
 
   if (sessionCookie) {
     try {
       const res = await fetch(`${API_URL}/auth/me`, {
-        headers: { cookie: `session=${sessionCookie}` }
+        headers: {
+          cookie: `session=${sessionCookie}`,
+          ...(event.locals.workspaceSlug ? { 'x-workspace-slug': event.locals.workspaceSlug } : {})
+        }
       });
       if (res.ok) {
         event.locals.user = await res.json();

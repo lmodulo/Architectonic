@@ -5,6 +5,7 @@ declare global {
   namespace App {
     interface Locals {
       user: UserWithPermissions | null;
+      workspaceSlug: string | null;
     }
     interface PageData {
       user?: UserWithPermissions | null;
