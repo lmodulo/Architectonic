@@ -9,7 +9,7 @@ Step-by-step instructions for getting lmodulo live on Railway with `lmodulo.net`
 - **Cloudflare** — DNS, SSL, and file storage (R2)
 - **Resend** — transactional email
 - **Railway** — app hosting (API + Frontend)
-- **RunPod** *(optional)* — GPU server for Ollama AI chat
+- **RunPod** *(optional)* — GPU server for Ollama AI chat, explore MongoDB Atlas services?
 
 **Total time:** ~60–90 minutes first time through.
 

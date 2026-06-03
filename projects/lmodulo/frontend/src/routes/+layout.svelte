@@ -11,6 +11,7 @@
   import { navigating, page } from '$app/state';
   import { beforeNavigate, afterNavigate } from '$app/navigation';
   import { tick } from 'svelte';
+  import { fly } from 'svelte/transition';
   import { hasPermission } from '$lib/permissions';
   import { scrollStore } from '$lib/stores/scroll';
   import Logo from '$lib/components/Logo.svelte';
@@ -354,6 +355,17 @@
             </a>
           </div>
         </div>
+        {#if !sidebarExpanded}
+          <div class="hidden lg:flex items-center gap-3" transition:fly={{ x: 14, duration: 200 }}>
+            <div class="w-px h-5 bg-base-300 shrink-0"></div>
+            <a
+              href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'}
+              class="flex items-center no-underline text-inherit"
+            >
+              <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
+            </a>
+          </div>
+        {/if}
       </header>
 
       <!-- Page content -->

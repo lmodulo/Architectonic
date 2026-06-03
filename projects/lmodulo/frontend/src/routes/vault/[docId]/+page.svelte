@@ -2,13 +2,15 @@
   import { goto } from '$app/navigation';
   import {
     ArrowLeft, Download, Upload, Pencil, Check, X, Clock, FileText,
-    File, Trash2
+    File, Trash2, Save, SquarePen
   } from 'lucide-svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
+  import { fade } from 'svelte/transition';
 
   let { data }: { data: PageData } = $props();
 
@@ -63,6 +65,7 @@
 
   async function loadPreview() {
     markdownHtml = null;
+    editingRaw   = false;
     try {
       const res = await fetch(`/api/vault/documents/${doc.id}/file`);
       if (!res.ok) return;
@@ -79,6 +82,45 @@
   }
 
   $effect(() => { if (doc.id) loadPreview(); });
+
+  // ── Edit raw markdown ──────────────────────────────────────────────────────
+  let editingRaw  = $state(false);
+  let rawEditorHtml = $state('');
+  let rawSaving   = $state(false);
+  let rawError    = $state('');
+
+  function openEditRaw() {
+    rawEditorHtml = markdownHtml ?? '';
+    rawError      = '';
+    editingRaw    = true;
+  }
+
+  function cancelEditRaw() {
+    editingRaw = false;
+    rawError   = '';
+  }
+
+  async function saveRaw() {
+    rawSaving = true;
+    rawError  = '';
+    try {
+      const filename = currentVersion?.originalName ?? `${doc.name}.md`;
+      const blob = new Blob([rawEditorHtml], { type: 'text/markdown; charset=utf-8' });
+      const file = new File([blob], filename, { type: 'text/markdown' });
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`/api/vault/documents/${doc.id}/versions`, { method: 'POST', body: fd });
+      if (!res.ok) { const b = await res.json().catch(() => ({})); rawError = (b as any).message ?? 'Save failed'; return; }
+      const vRes = await fetch(`/api/vault/documents/${doc.id}/versions`);
+      if (vRes.ok) {
+        const vData = await vRes.json();
+        versions = vData.versions ?? [];
+        currentVersionId = vData.currentVersionId ?? null;
+      }
+      await loadPreview();
+    } catch { rawError = 'Network error'; }
+    finally { rawSaving = false; }
+  }
 
   // ── Download ───────────────────────────────────────────────────────────────
   async function download() {
@@ -216,6 +258,20 @@
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openEdit}>
           <Pencil class="size-4" /><span class="hidden sm:inline">Edit</span>
         </button>
+        {#if currentVersion && isMarkdown(currentVersion.mimetype, currentVersion.originalName) && markdownHtml !== null}
+          {#if editingRaw}
+            <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={cancelEditRaw}>
+              <X class="size-4" /><span class="hidden sm:inline">Cancel</span>
+            </button>
+            <button type="button" class="btn btn-primary btn-sm gap-1" disabled={rawSaving} onclick={saveRaw}>
+              <Save class="size-4" /><span>{rawSaving ? 'Saving…' : 'Save Changes'}</span>
+            </button>
+          {:else}
+            <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openEditRaw}>
+              <SquarePen class="size-4" /><span class="hidden sm:inline">Edit Raw</span>
+            </button>
+          {/if}
+        {/if}
       {/if}
       <button type="button" class="btn btn-primary btn-sm gap-1" onclick={download}>
         <Download class="size-4" /><span>Download</span>
@@ -253,9 +309,16 @@
               <div class="px-4 py-2 border-b border-base-300">
                 <p class="text-xs font-medium opacity-50">{currentVersion.originalName}</p>
               </div>
-              <div class="markdown-body p-6 overflow-y-auto max-h-[560px]">
-                {@html markdownHtml}
-              </div>
+              {#if editingRaw}
+                <div class="p-4" transition:fade={{ duration: 180 }}>
+                  <MessageEditor bind:html={rawEditorHtml} placeholder="Write your document content…" />
+                  {#if rawError}<p class="text-xs text-error mt-2">{rawError}</p>{/if}
+                </div>
+              {:else}
+                <div class="markdown-body p-6 overflow-y-auto max-h-[560px]" transition:fade={{ duration: 180 }}>
+                  {@html markdownHtml}
+                </div>
+              {/if}
             </div>
           {:else}
             <div class="flex flex-col items-center gap-3 py-16 opacity-40">
