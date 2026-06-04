@@ -97,6 +97,14 @@ nav.tab-scroll {
 }
 */
 
+/* ── Surface depth ─────────────────────────────────────────────────────────── */
+.card,
+.bg-base-200.border-base-300 {
+  box-shadow:
+    0 0 8px 2px color-mix(in srgb, var(--color-base-300) 20%, transparent),
+    inset 0 0 16px color-mix(in srgb, var(--color-base-100) 50%, transparent);
+}
+
 /* ── Custom theme: lmodulo ────────────────────────────────────────────────────
    To use: set APP_THEME = 'lmodulo' in src/lib/config/theme.ts
    To create a new custom theme: duplicate this block, rename the selector,

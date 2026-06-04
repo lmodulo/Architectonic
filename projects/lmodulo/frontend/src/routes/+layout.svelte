@@ -11,7 +11,7 @@
   import { navigating, page } from '$app/state';
   import { beforeNavigate, afterNavigate } from '$app/navigation';
   import { tick } from 'svelte';
-  import { fly, fade } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
   import { hasPermission } from '$lib/permissions';
   import { scrollStore } from '$lib/stores/scroll';
   import Logo from '$lib/components/Logo.svelte';
@@ -151,7 +151,7 @@
         >
           <span
             style="font-family: var(--display); background: radial-gradient(circle, color-mix(in oklch, var(--color-accent) 30%, transparent) 0%, transparent 70%);"
-            class="text-4xl font-bold text-accent select-none w-12 h-12 flex items-center justify-center rounded-full"
+            class="text-4xl font-bold text-base-content select-none w-12 h-12 flex items-center justify-center rounded-full"
           >%</span>
         </a>
         <button
@@ -320,6 +320,19 @@
         >
           <MenuIcon class="size-5" />
         </button>
+        <div class="hidden lg:grid transition-[grid-template-columns] duration-200 ease-in-out {sidebarExpanded ? 'grid-cols-[0fr]' : 'grid-cols-[1fr]'}">
+          <div class="overflow-hidden">
+            <div class="flex items-center gap-3 pr-0.5">
+              <a
+                href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'}
+                class="flex items-center no-underline text-inherit"
+              >
+                <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
+              </a>
+              <div class="w-px h-5 bg-base-300 shrink-0"></div>
+            </div>
+          </div>
+        </div>
         {#if data.user?.role !== 'customer'}<GlobalSearch />{/if}
         <div class="flex items-center gap-1 ml-auto">
           <div class="tooltip tooltip-bottom" data-tip="Messages">
@@ -343,17 +356,13 @@
             </a>
           </div>
         </div>
-        {#if !sidebarExpanded}
-          <div class="hidden lg:flex items-center gap-3" transition:fly={{ x: 14, duration: 200 }}>
-            <div class="w-px h-5 bg-base-300 shrink-0"></div>
-            <a
-              href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'}
-              class="flex items-center no-underline text-inherit"
-            >
-              <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
-            </a>
+        <div class="hidden lg:grid transition-[grid-template-columns] duration-200 ease-in-out {sidebarExpanded ? 'grid-cols-[0fr]' : 'grid-cols-[1fr]'}">
+          <div class="overflow-hidden">
+            <div class="pl-0.5">
+              <div class="w-px h-5 bg-base-300 shrink-0"></div>
+            </div>
           </div>
-        {/if}
+        </div>
       </header>
 
       {#if showOverlay}

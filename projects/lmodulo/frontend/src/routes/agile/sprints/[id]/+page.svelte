@@ -369,7 +369,7 @@
             {#each jobs as job (job.id)}
               <tr
                 class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
-                onclick={() => goto(`/agile/jobs/JOB-${job.jobNumber}`)}
+                onclick={() => goto(`/agile/jobs/${job.id}`)}
               >
                 <td class="font-medium">
                   <span class="flex items-center gap-1">
@@ -378,7 +378,9 @@
                       <span class="badge badge-error badge-outline text-[9px]">Blocked</span>
                     {/if}
                   </span>
-                  <span class="font-mono text-[10px] opacity-30 select-all">JOB-{job.jobNumber}</span>
+                  {#if job.jobNumber}
+                    <span class="font-mono text-[10px] opacity-30 select-all">JOB-{job.jobNumber}</span>
+                  {/if}
                 </td>
                 <td>
                   <span class="badge badge-ghost text-xs">{job.category}</span>
