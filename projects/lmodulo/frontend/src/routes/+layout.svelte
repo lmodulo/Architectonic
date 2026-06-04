@@ -11,7 +11,7 @@
   import { navigating, page } from '$app/state';
   import { beforeNavigate, afterNavigate } from '$app/navigation';
   import { tick } from 'svelte';
-  import { fly } from 'svelte/transition';
+  import { fly, fade } from 'svelte/transition';
   import { hasPermission } from '$lib/permissions';
   import { scrollStore } from '$lib/stores/scroll';
   import Logo from '$lib/components/Logo.svelte';
@@ -103,18 +103,6 @@
 </svelte:head>
 
 {#if data.user && pathname !== '/' && !pathname.startsWith('/documentation') && !page.data.isPrint}
-
-  {#if showOverlay}
-    <div data-theme={APP_THEME} class="fixed inset-0 z-[100] flex items-center justify-center bg-base-100/60 backdrop-blur-sm">
-      <div class="card bg-base-200 shadow-xl px-6 py-4 flex items-center gap-3">
-        <svg class="size-5 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        <span class="text-sm font-medium">Loading…</span>
-      </div>
-    </div>
-  {/if}
 
   <form bind:this={logoutForm} method="POST" action="/logout" class="hidden"></form>
 
@@ -320,7 +308,7 @@
     </aside>
 
     <!-- Main content column -->
-    <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+    <div class="relative flex flex-col flex-1 min-w-0 overflow-hidden">
 
       <!-- Top bar (always visible) -->
       <header class="flex items-center gap-3 px-4 h-16 shrink-0 bg-base-200 rounded-br-xl">
@@ -368,10 +356,25 @@
         {/if}
       </header>
 
+      {#if showOverlay}
+        <div
+          transition:fade={{ duration: 150 }}
+          class="absolute inset-0 z-10 flex items-center justify-center bg-base-100/50 backdrop-blur-[2px] pointer-events-none"
+        >
+          <div class="card bg-base-200 shadow-xl px-5 py-3 flex items-center gap-3 pointer-events-auto">
+            <svg class="size-4 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span class="text-sm font-medium">Loading…</span>
+          </div>
+        </div>
+      {/if}
+
       <!-- Page content -->
       <main bind:this={mainEl} class="flex-1 overflow-auto" onscroll={closeCard}>
         {#key pathname}
-          <div class="container mx-auto p-6 max-w-5xl page-content">
+          <div class="container mx-auto p-6 max-w-5xl page-content transition-[opacity,filter] duration-200 {showOverlay ? 'opacity-40 blur-[1px]' : ''}">
             {@render children()}
           </div>
         {/key}
