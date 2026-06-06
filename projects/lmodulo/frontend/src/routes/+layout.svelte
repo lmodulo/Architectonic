@@ -20,7 +20,13 @@
   import { connect, disconnect, getUnreadCount } from '$lib/stores/notifications.svelte';
   import { closeCard } from '$lib/stores/userCard.svelte';
   import { brand } from '$lib/config/logo';
-  import { APP_THEME } from '$lib/config/theme';
+  import { APP_THEME, APP_FONTS } from '$lib/config/theme';
+
+  const fontVars = [
+    `--display:'${APP_FONTS.display.family}',${APP_FONTS.display.fallback}`,
+    `--body:'${APP_FONTS.body.family}',${APP_FONTS.body.fallback}`,
+    `--mono:'${APP_FONTS.mono.family}',${APP_FONTS.mono.fallback}`,
+  ].join(';');
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
 
@@ -100,13 +106,23 @@
 
 <svelte:head>
   <title>{data.appName ?? 'Application'} — {brand.description}</title>
+  {#if APP_FONTS.preconnect}
+    {#each APP_FONTS.preconnect as href}
+      <link rel="preconnect" {href} crossorigin />
+    {/each}
+  {/if}
+  {#if APP_FONTS.cdnUrls}
+    {#each APP_FONTS.cdnUrls as href}
+      <link rel="stylesheet" {href} />
+    {/each}
+  {/if}
 </svelte:head>
 
 {#if data.user && pathname !== '/' && !pathname.startsWith('/documentation') && !page.data.isPrint}
 
   <form bind:this={logoutForm} method="POST" action="/logout" class="hidden"></form>
 
-  <div data-theme={APP_THEME} class="h-screen flex overflow-hidden">
+  <div data-theme={APP_THEME} style={fontVars} class="h-screen flex overflow-hidden">
 
     <!-- Mobile overlay -->
     {#if sidebarOpen}

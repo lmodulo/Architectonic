@@ -5,3 +5,38 @@
 //   business · acid · lemonade · night · coffee · winter · dim · nord · sunset
 // Custom themes (defined in src/app.css): lmodulo
 export const APP_THEME = 'lmodulo';
+
+export type FontStack = {
+  family: string;   // font name as it appears in the CDN, e.g. 'Fraunces'
+  fallback: string; // CSS fallback stack, e.g. 'ui-serif, Georgia, serif'
+};
+
+export type FontConfig = {
+  display: FontStack;    // h1–h6 headings
+  body: FontStack;       // body copy
+  mono: FontStack;       // code / monospace
+  cdnUrls?: string[];    // full CDN stylesheet URLs (Google Fonts, etc.)
+  preconnect?: string[]; // domains to preconnect
+};
+
+// Change font families here — CDN links load automatically from cdnUrls.
+// To use self-hosted fonts: omit cdnUrls/preconnect and add @font-face rules in app.css.
+export const APP_FONTS: FontConfig = {
+  display: {
+    family: 'Cormorant Garamond',
+    fallback: 'ui-serif, Georgia, serif',
+  },
+  body: {
+    family: 'Roboto',
+    fallback: 'ui-serif, Georgia, serif',
+  },
+  mono: {
+    family: 'JetBrains Mono',
+    fallback: 'ui-monospace, SFMono-Regular, monospace',
+  },
+  preconnect: ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
+  cdnUrls: [
+    'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap',
+    'https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'
+  ],
+};
