@@ -234,6 +234,15 @@
       <p class="text-xs opacity-50">{fmtDateRange(sprint.startDate ?? null, sprint.endDate ?? null)}</p>
     </div>
 
+    <!-- Description -->
+    {#if sprint.description?.replace(/<[^>]+>/g, '').trim()}
+      <section class="space-y-2">
+        <div class="border-l-2 border-primary/30 pl-4 py-0.5 prose prose-sm dark:prose-invert max-w-none">
+          {@html sprint.description}
+        </div>
+      </section>
+    {/if}
+
     <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
       <div class="flex items-center gap-2 flex-wrap">
         <span class="badge text-xs {LEVEL.sprint.badge}">Sprint {sprint.sprintNumber}</span>
@@ -268,16 +277,6 @@
 
   {#if deleteError}
     <aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>
-  {/if}
-
-  <!-- Description -->
-  {#if sprint.description?.replace(/<[^>]+>/g, '').trim()}
-    <section class="space-y-2">
-      <h2 class="text-xs font-semibold uppercase tracking-wide opacity-50">Description</h2>
-      <div class="border-l-2 border-primary/30 pl-4 py-0.5 prose prose-sm dark:prose-invert max-w-none">
-        {@html sprint.description}
-      </div>
-    </section>
   {/if}
 
   <!-- Stats row -->
