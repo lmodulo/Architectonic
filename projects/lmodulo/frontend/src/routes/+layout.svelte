@@ -336,8 +336,8 @@
         >
           <MenuIcon class="size-5" />
         </button>
-        <div class="hidden lg:grid transition-[grid-template-columns] duration-200 ease-in-out {sidebarExpanded ? 'grid-cols-[0fr]' : 'grid-cols-[1fr]'}">
-          <div class="overflow-hidden">
+        <div class="hidden lg:grid h-16 items-center transition-[grid-template-columns] duration-200 ease-in-out {sidebarExpanded ? 'grid-cols-[0fr]' : 'grid-cols-[1fr]'}">
+          <div class="overflow-hidden h-full flex items-center">
             <div class="flex items-center gap-3 pr-0.5">
               <a
                 href={data.user?.role === 'customer' ? '/client-portal' : '/dashboard'}
@@ -345,7 +345,6 @@
               >
                 <Logo brandName={data.brandName ?? ''} brandLogo={data.brandLogo ?? ''} />
               </a>
-              <div class="w-px h-5 bg-base-300 shrink-0"></div>
             </div>
           </div>
         </div>
