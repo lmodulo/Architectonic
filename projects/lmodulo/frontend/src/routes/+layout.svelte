@@ -367,8 +367,10 @@
             </div>
           </div>
         </div>
+        <div class="flex-1"></div>
         {#if data.user?.role !== 'customer'}<GlobalSearch />{/if}
-        <div class="flex items-center gap-1 ml-auto">
+        <div class="w-px h-5 bg-base-300 shrink-0"></div>
+        <div class="flex items-center gap-1">
           <div class="tooltip tooltip-bottom" data-tip="Messages">
             <a href="/messages" class="btn btn-ghost btn-sm btn-square relative">
               <Mail class="size-4" />
