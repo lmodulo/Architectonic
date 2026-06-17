@@ -207,7 +207,7 @@ export default async function messagesRoutes(app: FastifyInstance) {
     // Resolve sender display names
     const senderIds = [...new Set(msgs.map(m => m.from))];
     const users = await db.collection('users')
-      .find({ _id: { $in: senderIds } }, { projection: { username: 1, firstName: 1, lastName: 1 } })
+      .find({ _id: { $in: senderIds } }, { projection: { username: 1, firstName: 1, lastName: 1, avatarUrl: 1, avatarColor: 1 } })
       .toArray();
     const userMap = new Map(users.map(u => [u._id.toString(), u]));
 
@@ -218,9 +218,11 @@ export default async function messagesRoutes(app: FastifyInstance) {
         threadId: m.threadId.toString(),
         parentId: m.parentId?.toString() ?? null,
         from: {
-          id:       m.from.toString(),
-          username: sender?.username ?? 'unknown',
-          name:     sender ? [sender.firstName, sender.lastName].filter(Boolean).join(' ') || sender.username : 'Unknown',
+          id:          m.from.toString(),
+          username:    sender?.username    ?? 'unknown',
+          name:        sender ? [sender.firstName, sender.lastName].filter(Boolean).join(' ') || sender.username : 'Unknown',
+          avatarUrl:   sender?.avatarUrl   ?? '',
+          avatarColor: sender?.avatarColor ?? '',
         },
         to:          (m.to  as ObjectId[]).map((id: ObjectId) => id.toString()),
         cc:          (m.cc  as ObjectId[]).map((id: ObjectId) => id.toString()),

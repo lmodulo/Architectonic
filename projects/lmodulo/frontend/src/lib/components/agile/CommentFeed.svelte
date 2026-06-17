@@ -3,6 +3,7 @@
   import { MessageSquare, Send, Pencil, Trash2, X, Check } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import UserNameLink from '$lib/components/UserNameLink.svelte';
+  import Avatar from '$lib/components/Avatar.svelte';
 
   let {
     jobId  = '',
@@ -34,16 +35,6 @@
   let editingId = $state('');
   let editText  = $state('');
   let saving    = $state(false);
-
-  function userName(id: string): string {
-    const u = users.find((u: any) => u.id === id);
-    if (!u) return 'Unknown';
-    return (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}` : u.username;
-  }
-
-  function initials(id: string): string {
-    return userName(id).charAt(0).toUpperCase();
-  }
 
   function timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime();
@@ -132,9 +123,7 @@
     <div class="space-y-4">
       {#each comments as c (c.id)}
         <div class="flex gap-3 group">
-          <div class="size-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 select-none">
-            {initials(c.createdBy)}
-          </div>
+          <Avatar user={users.find((u: any) => u.id === c.createdBy) ?? {}} size="sm" class="mt-0.5" />
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline gap-2 flex-wrap">
               <UserNameLink user={users.find((u: any) => u.id === c.createdBy)} class="text-xs font-semibold" />

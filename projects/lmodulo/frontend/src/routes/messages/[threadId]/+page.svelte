@@ -18,7 +18,7 @@
   type Message = {
     id: string;
     threadId: string;
-    from: { id: string; username: string; name: string };
+    from: { id: string; username: string; name: string; avatarUrl?: string; avatarColor?: string };
     subject: string;
     body: string;
     attachments: Attachment[];
@@ -119,7 +119,7 @@
   <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
     {#each messages as msg (msg.id)}
       <div class="flex gap-3">
-        <Avatar user={{ username: msg.from.username }} size="md" />
+        <Avatar user={msg.from} size="md" />
 
         <div class="flex-1 min-w-0">
           <div class="flex items-baseline gap-2 mb-1">

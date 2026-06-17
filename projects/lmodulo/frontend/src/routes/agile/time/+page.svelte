@@ -1,8 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { Clock, Play, Square, Plus, Search, ChevronLeft, ChevronRight, Timer, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import { Clock, Play, Square, Plus, ChevronLeft, ChevronRight, Timer, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import { openLogTimePalette, getLastSavedEntry, getLastTimerStarted } from '$lib/stores/logTimePalette.svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -150,53 +151,6 @@
     if (res.ok) entries = entries.filter(e => e.id !== id);
   }
 
-  // ── Palette ───────────────────────────────────────────────────
-  let palOpen     = $state(false);
-  let palQuery    = $state('');
-  let palTaskId   = $state('');
-  let palDate     = $state(today);
-  let palMinutes  = $state(60);
-  let palNote     = $state('');
-  let palSaving   = $state(false);
-
-  const palResults = $derived.by(() => {
-    const q = palQuery.trim().toLowerCase();
-    if (!q) return tasks.slice(0, 8);
-    return tasks.filter(t =>
-      t.title.toLowerCase().includes(q) ||
-      (t.jobTitle ?? '').toLowerCase().includes(q)
-    ).slice(0, 10);
-  });
-
-  const palTask = $derived(taskMap[palTaskId]);
-
-  function openPalette(prefillTaskId = '', prefillDate = '') {
-    palOpen    = true;
-    palQuery   = '';
-    palTaskId  = prefillTaskId;
-    palDate    = prefillDate || today;
-    palMinutes = 60;
-    palNote    = '';
-  }
-
-  function closePalette() { palOpen = false; palTaskId = ''; palQuery = ''; }
-
-  async function submitPalette() {
-    if (!palTaskId || palSaving) return;
-    palSaving = true;
-    try {
-      const res = await fetch('/api/agile/time-entries', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ taskId: palTaskId, date: palDate, durationMinutes: palMinutes, note: palNote, billable: true }),
-      });
-      if (res.ok) {
-        entries = [...entries, await res.json()];
-        closePalette();
-      }
-    } finally { palSaving = false; }
-  }
-
   // ── Timer controls ────────────────────────────────────────────
   let timerStopping = $state(false);
 
@@ -228,16 +182,23 @@
   // ── Keyboard shortcut ─────────────────────────────────────────
   onMount(() => {
     function onKey(e: KeyboardEvent) {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        palOpen ? closePalette() : openPalette();
-      }
-      if (e.key === 'Escape') { closePalette(); cellOpen = false; }
+      if (e.key === 'Escape') { cellOpen = false; }
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
+  });
+
+  // ── Sync global palette saves/timer to local grid state ───────
+  $effect(() => {
+    const saved = getLastSavedEntry();
+    if (saved && weekDates.includes(saved.date) && !entries.find((e: any) => e.id === saved.id)) {
+      entries = [...entries, saved];
+    }
+  });
+
+  $effect(() => {
+    const timerEntry = getLastTimerStarted();
+    if (timerEntry) activeTimer = { entry: timerEntry, task: taskMap[timerEntry.taskId] ?? null };
   });
 </script>
 
@@ -259,7 +220,7 @@
       <button class="btn btn-sm btn-error" onclick={stopTimer} disabled={timerStopping}>
         <Square class="size-3.5" />Stop
       </button>
-      <button class="btn btn-sm btn-ghost" onclick={() => openPalette()}>Switch task</button>
+      <button class="btn btn-sm btn-ghost" onclick={() => openLogTimePalette()}>Switch task</button>
     </div>
   {/if}
 
@@ -278,7 +239,7 @@
         <ChevronRight class="size-4" />
       </button>
     </div>
-    <button class="btn btn-sm btn-primary" onclick={() => openPalette()}>
+    <button class="btn btn-sm btn-primary" onclick={() => openLogTimePalette()}>
       <Plus class="size-4" />Log time
       <kbd class="kbd kbd-xs opacity-60">⌘K</kbd>
     </button>
@@ -466,124 +427,3 @@
   </div>
 {/if}
 
-<!-- Palette modal -->
-{#if palOpen}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-[14vh] p-4" onclick={closePalette}>
-    <div class="card bg-base-100 shadow-xl rounded-box w-full max-w-lg" onclick={e => e.stopPropagation()}>
-      <div class="p-4 space-y-3">
-
-        {#if !palTaskId}
-          <!-- Step 1: search -->
-          <div class="flex items-center gap-2 border border-base-300 rounded-lg px-3 py-2 focus-within:border-primary transition-colors">
-            <Search class="size-4 opacity-40 shrink-0" />
-            <!-- svelte-ignore a11y-autofocus -->
-            <input
-              autofocus
-              type="text"
-              class="flex-1 bg-transparent text-sm outline-none"
-              placeholder="Search tasks…"
-              bind:value={palQuery}
-            />
-            {#if palQuery}
-              <button class="opacity-40 hover:opacity-100" onclick={() => palQuery = ''}>
-                <X class="size-4" />
-              </button>
-            {/if}
-          </div>
-
-          <div class="space-y-0.5 max-h-60 overflow-y-auto">
-            {#each palResults as t (t.id)}
-              <button
-                class="w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-base-200 transition-colors"
-                onclick={() => palTaskId = t.id}
-              >
-                <span class="size-2 rounded-full mt-1.5 shrink-0
-                  {t.priority === 'Critical' ? 'bg-error' :
-                   t.priority === 'High'     ? 'bg-warning' :
-                   t.priority === 'Medium'   ? 'bg-primary' : 'bg-base-content/30'}
-                "></span>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm leading-tight">{t.title}</p>
-                  {#if t.jobTitle || t.sprintTitle}
-                    <p class="text-[11px] opacity-40 mt-0.5">
-                      {t.sprintTitle ?? ''}{t.sprintTitle && t.jobTitle ? ' › ' : ''}{t.jobTitle ?? ''}
-                    </p>
-                  {/if}
-                </div>
-                {#if t.estimateHours}
-                  <span class="text-[11px] opacity-30 shrink-0 mt-0.5">{t.estimateHours}h est.</span>
-                {/if}
-              </button>
-            {:else}
-              <p class="text-center py-8 text-sm opacity-40">No tasks match "{palQuery}"</p>
-            {/each}
-          </div>
-
-        {:else}
-          <!-- Step 2: form -->
-          <div class="flex items-center gap-2">
-            <button class="btn btn-xs btn-ghost opacity-50" onclick={() => palTaskId = ''}>
-              <ChevronLeft class="size-3.5" />
-            </button>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold leading-tight">{palTask?.title ?? ''}</p>
-              {#if palTask?.jobTitle || palTask?.sprintTitle}
-                <p class="text-[11px] opacity-40">
-                  {palTask?.sprintTitle ?? ''}{palTask?.sprintTitle && palTask?.jobTitle ? ' › ' : ''}{palTask?.jobTitle ?? ''}
-                </p>
-              {/if}
-            </div>
-          </div>
-
-          <div class="space-y-3 pt-1">
-            <div class="grid grid-cols-2 gap-3">
-              <div class="space-y-1">
-                <label class="text-xs opacity-50">Date</label>
-                <input type="date" class="input input-sm input-bordered w-full" bind:value={palDate} />
-              </div>
-              <div class="space-y-1">
-                <label class="text-xs opacity-50">Duration</label>
-                <div class="flex items-center gap-1">
-                  <input
-                    type="number"
-                    class="input input-sm input-bordered w-20"
-                    bind:value={palMinutes}
-                    min="15"
-                    step="15"
-                  />
-                  <span class="text-xs opacity-40">min&nbsp;·&nbsp;{fmtMins(palMinutes)}</span>
-                </div>
-              </div>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs opacity-50">Note <span class="opacity-60">(optional)</span></label>
-              <input
-                type="text"
-                class="input input-sm input-bordered w-full"
-                placeholder="What did you work on?"
-                bind:value={palNote}
-              />
-            </div>
-            <div class="flex gap-2">
-              <button class="btn btn-sm btn-ghost flex-1" onclick={closePalette}>Cancel</button>
-              <button
-                class="btn btn-sm btn-primary flex-1"
-                onclick={submitPalette}
-                disabled={palSaving || palMinutes < 15}
-              >{palSaving ? 'Saving…' : 'Log time'}</button>
-            </div>
-            <div class="border-t border-base-300 pt-2">
-              <button
-                class="btn btn-sm btn-success btn-outline w-full"
-                onclick={async () => { await startTimer(palTaskId); closePalette(); }}
-              ><Play class="size-3.5" />Start timer instead</button>
-            </div>
-          </div>
-        {/if}
-
-      </div>
-    </div>
-  </div>
-{/if}

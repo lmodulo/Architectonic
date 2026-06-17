@@ -4,6 +4,10 @@ import Stripe from 'stripe';
 import { logAudit } from '../../lib/audit.js';
 import { calcNextDate } from '../../lib/recurringDates.js';
 import { sendInvoiceEmail } from '../../lib/email.js';
+import expensesRoutes      from './expenses.js';
+import estimatesRoutes     from './estimates.js';
+import subscriptionsRoutes from './subscriptions.js';
+import reportsRoutes       from './reports.js';
 
 const INV_COL = 'finance_invoices';
 const PAY_COL = 'finance_payments';
@@ -344,6 +348,11 @@ export default async function financeRoutes(app: FastifyInstance) {
 
     return { received: true };
   });
+
+  await app.register(expensesRoutes,      { prefix: '/expenses'      });
+  await app.register(estimatesRoutes,     { prefix: '/estimates'     });
+  await app.register(subscriptionsRoutes, { prefix: '/subscriptions' });
+  await app.register(reportsRoutes,       { prefix: '/reports'       });
 
   // GET /finance/customers
   app.get('/customers', { preHandler: app.requirePermission('users', 'read') }, async (req) => {

@@ -17,8 +17,10 @@
   import Logo from '$lib/components/Logo.svelte';
   import ChatAssistant from '$lib/components/ChatAssistant.svelte';
   import UserCard from '$lib/components/UserCard.svelte';
+  import LogTimePalette from '$lib/components/agile/LogTimePalette.svelte';
   import { connect, disconnect, getUnreadCount } from '$lib/stores/notifications.svelte';
   import { closeCard } from '$lib/stores/userCard.svelte';
+  import { isOpen as isPaletteOpen, openLogTimePalette, closeLogTimePalette } from '$lib/stores/logTimePalette.svelte';
   import { brand } from '$lib/config/logo';
   import { APP_THEME, APP_FONTS } from '$lib/config/theme';
 
@@ -94,6 +96,20 @@
     } else {
       mainEl.scrollTop = 0;
     }
+  });
+
+  $effect(() => {
+    if (!data.user) return;
+    function onKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        isPaletteOpen() ? closeLogTimePalette() : openLogTimePalette();
+      }
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   });
 
   function closeSidebar() {
@@ -238,6 +254,9 @@
                   >
                     <Icon class="size-4 shrink-0" />
                     <span class="text-sm flex-1 whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label}</span>
+                    {#if entry.href === '/agile'}
+                      <kbd class="kbd kbd-xs opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">⌘K</kbd>
+                    {/if}
                   </a>
                 </li>
               {/if}
@@ -408,6 +427,10 @@
   </div>
 
   <div data-theme={APP_THEME} style="display:contents"><UserCard /></div>
+
+  {#if isPaletteOpen()}
+    <div data-theme={APP_THEME} style="display:contents"><LogTimePalette /></div>
+  {/if}
 
   {#if data.chatEnabled}
     <div data-theme={APP_THEME} style="display:contents"><ChatAssistant /></div>

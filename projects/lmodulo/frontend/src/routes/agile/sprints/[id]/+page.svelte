@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Plus, X, Zap, LayoutGrid, Trash2 } from 'lucide-svelte';
+  import Avatar from '$lib/components/Avatar.svelte';
   import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
@@ -140,13 +141,6 @@
     const u = users.find((u: any) => u.id === id);
     if (!u) return id;
     return (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}` : u.username;
-  }
-
-  function userInitials(id: string): string {
-    const u = users.find((u: any) => u.id === id);
-    if (!u) return '?';
-    if (u.firstName) return (u.firstName[0] + (u.lastName?.[0] ?? '')).toUpperCase();
-    return u.username[0].toUpperCase();
   }
 
   // ── Retrospective ──────────────────────────────────────────────────
@@ -429,15 +423,12 @@
             {#each assignedUids as uid}
               <button
                 type="button"
-                class="size-7 rounded-full text-[10px] font-bold transition-all select-none
-                  {selectedAssignee === uid
-                    ? 'ring-2 ring-primary ring-offset-1 ring-offset-base-100 bg-primary text-primary-content'
-                    : 'bg-base-300 hover:bg-base-content/20 text-base-content'}"
+                class="rounded-full transition-all select-none {selectedAssignee === uid ? 'ring-2 ring-primary ring-offset-1 ring-offset-base-100' : ''}"
                 onclick={() => selectedAssignee = selectedAssignee === uid ? '' : uid}
                 title={userName(uid)}
                 aria-pressed={selectedAssignee === uid}
                 aria-label="Filter by {userName(uid)}"
-              >{userInitials(uid)}</button>
+              ><Avatar user={users.find((u: any) => u.id === uid) ?? {}} size="sm" /></button>
             {/each}
           </div>
           {#if selectedAssignee}

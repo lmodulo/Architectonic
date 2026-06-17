@@ -438,6 +438,29 @@
       if (stored) layout = mergeLayout(JSON.parse(stored));
     } catch { /* use default */ }
   });
+
+  // ── Chart tooltips ────────────────────────────────────────────────────
+  type DonutTT = { v: boolean; x: number; y: number; label: string; value: number; pct: number };
+  const ttOff: DonutTT = { v: false, x: 0, y: 0, label: '', value: 0, pct: 0 };
+
+  let taskTt     = $state<DonutTT>({ ...ttOff });
+  let invTt      = $state<DonutTT>({ ...ttOff });
+  let contractTt = $state<DonutTT>({ ...ttOff });
+
+  let taskTtEl:     HTMLDivElement | undefined = $state(undefined);
+  let invTtEl:      HTMLDivElement | undefined = $state(undefined);
+  let contractTtEl: HTMLDivElement | undefined = $state(undefined);
+
+  function trackMove(e: MouseEvent, el: HTMLDivElement | undefined, tt: DonutTT) {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    tt.x = e.clientX - r.left;
+    tt.y = e.clientY - r.top;
+  }
+  function enterDonut(tt: DonutTT, seg: { label: string; value: number; pct: number }) {
+    tt.v = true; tt.label = seg.label; tt.value = seg.value; tt.pct = seg.pct;
+  }
+  function leaveDonut(tt: DonutTT) { tt.v = false; }
 </script>
 
 <svelte:head><title>Dashboard</title></svelte:head>
@@ -637,10 +660,16 @@
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
                   <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Task Status</p>
                   <div class="flex items-center gap-6">
-                    <svg viewBox="0 0 180 180" width="148" height="148" class="shrink-0" aria-hidden="true">
+                    <div class="relative shrink-0"
+                      bind:this={taskTtEl}
+                      onmousemove={(e) => trackMove(e, taskTtEl, taskTt)}
+                      onmouseleave={() => leaveDonut(taskTt)}>
+                    <svg viewBox="0 0 180 180" width="148" height="148" aria-hidden="true">
                       {#if taskSegs.length > 0}
                         {#each taskSegs as seg, i}
-                          <path d={seg.path} fill={TASK_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg" style="animation-delay:{i * 80}ms"/>
+                          <path d={seg.path} fill={TASK_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg cursor-default" style="animation-delay:{i * 80}ms"
+                            onmouseenter={() => enterDonut(taskTt, seg)}
+                          />
                         {/each}
                       {:else}
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
@@ -648,6 +677,14 @@
                       <text x="90" y="84" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor">{tasks.length}</text>
                       <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">total tasks</text>
                     </svg>
+                    {#if taskTt.v}
+                      <div class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
+                        style="left:{taskTt.x + 12}px;top:{taskTt.y}px;transform:translateY(-100%)">
+                        <p class="font-semibold">{taskTt.label}</p>
+                        <p class="opacity-60">{taskTt.value} task{taskTt.value !== 1 ? 's' : ''} · {taskTt.pct}%</p>
+                      </div>
+                    {/if}
+                    </div>
                     <ul class="flex-1 space-y-2.5">
                       {#each taskSegs as seg}
                         <li class="flex items-center justify-between gap-2 text-xs">
@@ -855,10 +892,16 @@
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
                   <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Invoice Status</p>
                   <div class="flex items-center gap-6">
-                    <svg viewBox="0 0 180 180" width="148" height="148" class="shrink-0" aria-hidden="true">
+                    <div class="relative shrink-0"
+                      bind:this={invTtEl}
+                      onmousemove={(e) => trackMove(e, invTtEl, invTt)}
+                      onmouseleave={() => leaveDonut(invTt)}>
+                    <svg viewBox="0 0 180 180" width="148" height="148" aria-hidden="true">
                       {#if invSegs.length > 0}
                         {#each invSegs as seg, i}
-                          <path d={seg.path} fill={INV_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg" style="animation-delay:{i * 80}ms"/>
+                          <path d={seg.path} fill={INV_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg cursor-default" style="animation-delay:{i * 80}ms"
+                            onmouseenter={() => enterDonut(invTt, seg)}
+                          />
                         {/each}
                       {:else}
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
@@ -866,6 +909,14 @@
                       <text x="90" y="84" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor">{folioInvoices.length}</text>
                       <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">invoices</text>
                     </svg>
+                    {#if invTt.v}
+                      <div class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
+                        style="left:{invTt.x + 12}px;top:{invTt.y}px;transform:translateY(-100%)">
+                        <p class="font-semibold capitalize">{invTt.label}</p>
+                        <p class="opacity-60">{invTt.value} invoice{invTt.value !== 1 ? 's' : ''} · {invTt.pct}%</p>
+                      </div>
+                    {/if}
+                    </div>
                     <ul class="flex-1 space-y-2.5">
                       {#each invSegs as seg}
                         <li class="flex items-center justify-between gap-2 text-xs">
@@ -966,10 +1017,16 @@
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
                   <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Contract Status</p>
                   <div class="flex items-center gap-6">
-                    <svg viewBox="0 0 180 180" width="148" height="148" class="shrink-0" aria-hidden="true">
+                    <div class="relative shrink-0"
+                      bind:this={contractTtEl}
+                      onmousemove={(e) => trackMove(e, contractTtEl, contractTt)}
+                      onmouseleave={() => leaveDonut(contractTt)}>
+                    <svg viewBox="0 0 180 180" width="148" height="148" aria-hidden="true">
                       {#if contractSegs.length > 0}
                         {#each contractSegs as seg, i}
-                          <path d={seg.path} fill={CONTRACT_STATUS_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg" style="animation-delay:{i * 80}ms"/>
+                          <path d={seg.path} fill={CONTRACT_STATUS_COLORS[seg.label] ?? 'var(--color-neutral)'} fill-opacity="0.9" class="donut-seg cursor-default" style="animation-delay:{i * 80}ms"
+                            onmouseenter={() => enterDonut(contractTt, seg)}
+                          />
                         {/each}
                       {:else}
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
@@ -977,6 +1034,14 @@
                       <text x="90" y="84" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor">{contracts.length}</text>
                       <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">contracts</text>
                     </svg>
+                    {#if contractTt.v}
+                      <div class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
+                        style="left:{contractTt.x + 12}px;top:{contractTt.y}px;transform:translateY(-100%)">
+                        <p class="font-semibold">{CONTRACT_STATUS_LABELS[contractTt.label] ?? contractTt.label}</p>
+                        <p class="opacity-60">{contractTt.value} contract{contractTt.value !== 1 ? 's' : ''} · {contractTt.pct}%</p>
+                      </div>
+                    {/if}
+                    </div>
                     <ul class="flex-1 space-y-2.5">
                       {#each contractSegs as seg}
                         <li class="flex items-center justify-between gap-2 text-xs">

@@ -677,37 +677,37 @@
 <!-- Invite User modal -->
 {#if newUserOpen}
   <Modal size="md" label="Invite user">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Invite User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
       </header>
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if newError}<aside class="alert alert-error p-3 rounded text-sm">{newError}</aside>{/if}
         <div class="grid grid-cols-2 gap-4">
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium">First Name</span>
-            <input type="text" class="input" bind:value={newForm.firstName} maxlength="50" placeholder="Jane" />
-          </label>
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium">Last Name</span>
-            <input type="text" class="input" bind:value={newForm.lastName} maxlength="50" placeholder="Doe" />
-          </label>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="inv-first">First Name</label>
+            <input id="inv-first" type="text" class="input w-full" bind:value={newForm.firstName} maxlength="50" placeholder="Jane" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="inv-last">Last Name</label>
+            <input id="inv-last" type="text" class="input w-full" bind:value={newForm.lastName} maxlength="50" placeholder="Doe" />
+          </div>
         </div>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Email <span class="text-error">*</span></span>
-          <input type="email" class="input" bind:value={newForm.email} placeholder="you@example.com" autocomplete="off" />
-        </label>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Role <span class="text-error">*</span></span>
-          <select class="select" bind:value={newForm.role}>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="inv-email">Email *</label>
+          <input id="inv-email" type="email" class="input w-full" bind:value={newForm.email} placeholder="you@example.com" autocomplete="off" />
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="inv-role">Role *</label>
+          <select id="inv-role" class="select w-full" bind:value={newForm.role}>
             {#each data.roles as role}
               <option value={role.name}>{role.label}</option>
             {/each}
           </select>
-        </label>
+        </div>
         <p class="text-sm text-base-content/50">An invitation email will be sent. The user sets their own username and password.</p>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (newUserOpen = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={creating} onclick={submitInvite}>
           {creating ? 'Sending…' : 'Send Invitation'}
@@ -719,36 +719,36 @@
 <!-- Edit User modal -->
 {#if editTarget}
   <Modal size="md" label="Edit user">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTarget = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editError}<aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>{/if}
         <div class="grid grid-cols-2 gap-4">
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium">First Name</span>
-            <input type="text" class="input" bind:value={editForm.firstName} maxlength="50" />
-          </label>
-          <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium">Last Name</span>
-            <input type="text" class="input" bind:value={editForm.lastName} maxlength="50" />
-          </label>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-first">First Name</label>
+            <input id="edit-first" type="text" class="input w-full" bind:value={editForm.firstName} maxlength="50" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-last">Last Name</label>
+            <input id="edit-last" type="text" class="input w-full" bind:value={editForm.lastName} maxlength="50" />
+          </div>
         </div>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Username</span>
-          <input type="text" class="input" bind:value={editForm.username} minlength="2" maxlength="50" required />
-        </label>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Email</span>
-          <input type="email" class="input" bind:value={editForm.email} required />
-        </label>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Phone</span>
-          <input type="tel" class="input" bind:value={editForm.phone} maxlength="30" placeholder="+1 555 000 0000" />
-        </label>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-username">Username</label>
+          <input id="edit-username" type="text" class="input w-full" bind:value={editForm.username} minlength="2" maxlength="50" required />
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-email">Email</label>
+          <input id="edit-email" type="email" class="input w-full" bind:value={editForm.email} required />
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-phone">Phone</label>
+          <input id="edit-phone" type="tel" class="input w-full" bind:value={editForm.phone} maxlength="30" placeholder="+1 555 000 0000" />
+        </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (editTarget = null)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={saving} onclick={submitEdit}>
           {saving ? 'Saving…' : 'Save Changes'}
@@ -760,15 +760,15 @@
 <!-- Delete User modal -->
 {#if deleteTarget}
   <Modal size="sm" label="Delete user">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Delete User</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
-      <div class="p-6 space-y-3">
+      <div class="p-6 space-y-3 overflow-y-auto flex-1">
         {#if deleteError}<aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>{/if}
         <p class="text-sm">Are you sure you want to delete <span class="font-semibold">{deleteTarget.username}</span>? This action cannot be undone.</p>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>Cancel</button>
         <button type="button" class="btn btn-error" disabled={deleting} onclick={confirmDelete}>
           {deleting ? 'Deleting…' : 'Delete'}
@@ -780,22 +780,22 @@
 <!-- New Team modal -->
 {#if newTeamOpen}
   <Modal size="md" label="New team">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Team</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newTeamOpen = false)} aria-label="Close"><X class="size-5" /></button>
       </header>
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if newTeamError}<aside class="alert alert-error p-3 rounded text-sm">{newTeamError}</aside>{/if}
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Name <span class="text-error">*</span></span>
-          <input type="text" class="input" bind:value={newTeamForm.name} maxlength="100" placeholder="Engineering" />
-        </label>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Description</span>
-          <textarea class="textarea" bind:value={newTeamForm.description} maxlength="500" rows="2" placeholder="Optional description"></textarea>
-        </label>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="team-name">Name *</label>
+          <input id="team-name" type="text" class="input w-full" bind:value={newTeamForm.name} maxlength="100" placeholder="Engineering" />
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="team-desc">Description</label>
+          <textarea id="team-desc" class="textarea w-full" bind:value={newTeamForm.description} maxlength="500" rows="2" placeholder="Optional description"></textarea>
+        </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (newTeamOpen = false)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={creatingTeam} onclick={submitNewTeam}>
           {creatingTeam ? 'Creating…' : 'Create Team'}
@@ -807,22 +807,22 @@
 <!-- Edit Team modal -->
 {#if editTeam}
   <Modal size="md" label="Edit team">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Team</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTeam = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editTeamError}<aside class="alert alert-error p-3 rounded text-sm">{editTeamError}</aside>{/if}
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Name <span class="text-error">*</span></span>
-          <input type="text" class="input" bind:value={editTeamForm.name} maxlength="100" />
-        </label>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Description</span>
-          <textarea class="textarea" bind:value={editTeamForm.description} maxlength="500" rows="2"></textarea>
-        </label>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="editteam-name">Name *</label>
+          <input id="editteam-name" type="text" class="input w-full" bind:value={editTeamForm.name} maxlength="100" />
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="editteam-desc">Description</label>
+          <textarea id="editteam-desc" class="textarea w-full" bind:value={editTeamForm.description} maxlength="500" rows="2"></textarea>
+        </div>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (editTeam = null)}>Cancel</button>
         <button type="button" class="btn btn-primary" disabled={savingTeam} onclick={submitEditTeam}>
           {savingTeam ? 'Saving…' : 'Save Changes'}
@@ -834,15 +834,15 @@
 <!-- Delete Team modal -->
 {#if deleteTeam}
   <Modal size="sm" label="Delete team">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Delete Team</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTeam = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
-      <div class="p-6 space-y-3">
+      <div class="p-6 space-y-3 overflow-y-auto flex-1">
         {#if deleteTeamError}<aside class="alert alert-error p-3 rounded text-sm">{deleteTeamError}</aside>{/if}
         <p class="text-sm">Are you sure you want to delete <span class="font-semibold">{deleteTeam.name}</span>? This action cannot be undone.</p>
       </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3">
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (deleteTeam = null)}>Cancel</button>
         <button type="button" class="btn btn-error" disabled={deletingTeam} onclick={confirmDeleteTeam}>
           {deletingTeam ? 'Deleting…' : 'Delete'}

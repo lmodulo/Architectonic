@@ -23,7 +23,7 @@ export type FontConfig = {
 // To use self-hosted fonts: omit cdnUrls/preconnect and add @font-face rules in app.css.
 export const APP_FONTS: FontConfig = {
   display: {
-    family: 'Cormorant Garamond',
+    family: 'Ancizar Serif',
     fallback: 'ui-serif, Georgia, serif',
   },
   body: {
@@ -36,7 +36,7 @@ export const APP_FONTS: FontConfig = {
   },
   preconnect: ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
   cdnUrls: [
-    'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap',
+    'https://fonts.googleapis.com/css2?family=Ancizar+Serif:ital,wght@0,300..900;1,300..900&display=swap',
     'https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'
   ],
 };

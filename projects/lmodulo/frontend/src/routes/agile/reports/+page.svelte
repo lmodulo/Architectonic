@@ -154,6 +154,19 @@
       });
     });
   });
+
+  // ── Chart tooltips ────────────────────────────────────────────────────
+  let velTt  = $state({ v: false, x: 0, y: 0, lines: [] as string[] });
+  let compTt = $state({ v: false, x: 0, y: 0, lines: [] as string[] });
+  let velTtEl:  HTMLDivElement | undefined = $state(undefined);
+  let compTtEl: HTMLDivElement | undefined = $state(undefined);
+
+  function trackMove(e: MouseEvent, el: HTMLDivElement | undefined, tt: { x: number; y: number }) {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    tt.x = e.clientX - r.left;
+    tt.y = e.clientY - r.top;
+  }
 </script>
 
 <style>
@@ -230,54 +243,71 @@
     <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-3">
       <h2 class="text-sm font-semibold">Velocity &amp; Capacity</h2>
 
-      <svg viewBox="0 0 {VVW} {VVH}" width="100%" class="block" aria-label="Velocity and capacity chart">
-        <!-- Gridlines + Y labels -->
-        {#each velYTicks as tick}
-          <line x1={VPL} y1={tick.y} x2={VVW - VPR} y2={tick.y} stroke="currentColor" stroke-opacity="0.07" />
-          <text x={VPL - 6} y={tick.y + 4} font-size="9" text-anchor="end" fill="currentColor" fill-opacity="0.4">{tick.label}</text>
-        {/each}
-        <!-- Axes -->
-        <line x1={VPL} y1={VPT + VCH} x2={VVW - VPR} y2={VPT + VCH} stroke="currentColor" stroke-opacity="0.15" />
-        <line x1={VPL} y1={VPT}       x2={VPL}        y2={VPT + VCH} stroke="currentColor" stroke-opacity="0.15" />
+      <div class="relative" bind:this={velTtEl} onmousemove={(e) => trackMove(e, velTtEl, velTt)} onmouseleave={() => velTt.v = false}>
+        <svg viewBox="0 0 {VVW} {VVH}" width="100%" class="block" aria-label="Velocity and capacity chart">
+          <!-- Gridlines + Y labels -->
+          {#each velYTicks as tick}
+            <line x1={VPL} y1={tick.y} x2={VVW - VPR} y2={tick.y} stroke="currentColor" stroke-opacity="0.07" />
+            <text x={VPL - 6} y={tick.y + 4} font-size="9" text-anchor="end" fill="currentColor" fill-opacity="0.4">{tick.label}</text>
+          {/each}
+          <!-- Axes -->
+          <line x1={VPL} y1={VPT + VCH} x2={VVW - VPR} y2={VPT + VCH} stroke="currentColor" stroke-opacity="0.15" />
+          <line x1={VPL} y1={VPT}       x2={VPL}        y2={VPT + VCH} stroke="currentColor" stroke-opacity="0.15" />
 
-        {#each sprints as sprint, i}
-          {@const bw = velBarW()}
-          {@const cap  = sprint.capacity       ?? 0}
-          {@const com  = sprint.committedEffort ?? 0}
-          {@const vel  = sprint.velocity        ?? 0}
+          {#each sprints as sprint, i}
+            {@const bw = velBarW()}
+            {@const cap  = sprint.capacity       ?? 0}
+            {@const com  = sprint.committedEffort ?? 0}
+            {@const vel  = sprint.velocity        ?? 0}
 
-          <!-- Capacity bar (gray) -->
-          {#if cap > 0}
-            <rect
-              x={velBarX(i, 0)} y={velBarY(cap)} width={bw} height={velBarH(cap)}
-              rx="2" fill="currentColor" fill-opacity="0.18"
-              style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08}s both"
-            />
-          {/if}
-          <!-- Committed bar (primary) -->
-          {#if com > 0}
-            <rect
-              x={velBarX(i, 1)} y={velBarY(com)} width={bw} height={velBarH(com)}
-              rx="2" fill="var(--color-primary)" fill-opacity="0.55"
-              style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08 + 0.04}s both"
-            />
-          {/if}
-          <!-- Velocity bar (success) -->
-          {#if vel > 0}
-            <rect
-              x={velBarX(i, 2)} y={velBarY(vel)} width={bw} height={velBarH(vel)}
-              rx="2" fill="var(--color-success)" fill-opacity="0.75"
-              style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08 + 0.08}s both"
-            />
-          {/if}
+            <!-- Capacity bar (gray) -->
+            {#if cap > 0}
+              <rect
+                x={velBarX(i, 0)} y={velBarY(cap)} width={bw} height={velBarH(cap)}
+                rx="2" fill="currentColor" fill-opacity="0.18"
+                class="cursor-default"
+                style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08}s both"
+                onmouseenter={() => { velTt.v = true; velTt.lines = [`S${sprint.sprintNumber}: ${sprint.title}`, `Capacity: ${fmtEffort(cap)}`, `Committed: ${fmtEffort(com)}`, `Velocity: ${fmtEffort(vel)}`]; }}
+              />
+            {/if}
+            <!-- Committed bar (primary) -->
+            {#if com > 0}
+              <rect
+                x={velBarX(i, 1)} y={velBarY(com)} width={bw} height={velBarH(com)}
+                rx="2" fill="var(--color-primary)" fill-opacity="0.55"
+                class="cursor-default"
+                style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08 + 0.04}s both"
+                onmouseenter={() => { velTt.v = true; velTt.lines = [`S${sprint.sprintNumber}: ${sprint.title}`, `Capacity: ${fmtEffort(cap)}`, `Committed: ${fmtEffort(com)}`, `Velocity: ${fmtEffort(vel)}`]; }}
+              />
+            {/if}
+            <!-- Velocity bar (success) -->
+            {#if vel > 0}
+              <rect
+                x={velBarX(i, 2)} y={velBarY(vel)} width={bw} height={velBarH(vel)}
+                rx="2" fill="var(--color-success)" fill-opacity="0.75"
+                class="cursor-default"
+                style="transform-box:fill-box;transform-origin:bottom center;animation:reports-grow-up 0.55s cubic-bezier(0.34,1.56,0.64,1) {i * 0.08 + 0.08}s both"
+                onmouseenter={() => { velTt.v = true; velTt.lines = [`S${sprint.sprintNumber}: ${sprint.title}`, `Capacity: ${fmtEffort(cap)}`, `Committed: ${fmtEffort(com)}`, `Velocity: ${fmtEffort(vel)}`]; }}
+              />
+            {/if}
 
-          <!-- X label -->
-          <text
-            x={velGroupCenter(i)} y={VPT + VCH + 16}
-            font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.45"
-          >S{sprint.sprintNumber}</text>
-        {/each}
-      </svg>
+            <!-- X label -->
+            <text
+              x={velGroupCenter(i)} y={VPT + VCH + 16}
+              font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.45"
+            >S{sprint.sprintNumber}</text>
+          {/each}
+        </svg>
+
+        {#if velTt.v}
+          <div class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
+            style="left:{velTt.x + 12}px;top:{velTt.y}px;transform:translateY(-100%)">
+            {#each velTt.lines as line, i}
+              <p class={i === 0 ? 'font-semibold' : 'opacity-60'}>{line}</p>
+            {/each}
+          </div>
+        {/if}
+      </div>
 
       <div class="flex gap-5 text-[10px] opacity-50">
         <span class="flex items-center gap-1.5">
@@ -296,42 +326,57 @@
     <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-3">
       <h2 class="text-sm font-semibold">Sprint Completion Rate</h2>
 
-      <svg viewBox="0 0 {CVW} {CVH}" width="100%" class="block" aria-label="Sprint completion rate chart">
-        <!-- Gridlines + Y labels -->
-        {#each compYTicks as tick}
-          <line x1={CPL} y1={tick.y} x2={CVW - CPR} y2={tick.y} stroke="currentColor" stroke-opacity="0.07" />
-          <text x={CPL - 6} y={tick.y + 4} font-size="9" text-anchor="end" fill="currentColor" fill-opacity="0.4">{tick.label}</text>
-        {/each}
-        <!-- Axes -->
-        <line x1={CPL} y1={CPT + CCH} x2={CVW - CPR} y2={CPT + CCH} stroke="currentColor" stroke-opacity="0.15" />
-        <line x1={CPL} y1={CPT}       x2={CPL}        y2={CPT + CCH} stroke="currentColor" stroke-opacity="0.15" />
+      <div class="relative" bind:this={compTtEl} onmousemove={(e) => trackMove(e, compTtEl, compTt)} onmouseleave={() => compTt.v = false}>
+        <svg viewBox="0 0 {CVW} {CVH}" width="100%" class="block" aria-label="Sprint completion rate chart">
+          <!-- Gridlines + Y labels -->
+          {#each compYTicks as tick}
+            <line x1={CPL} y1={tick.y} x2={CVW - CPR} y2={tick.y} stroke="currentColor" stroke-opacity="0.07" />
+            <text x={CPL - 6} y={tick.y + 4} font-size="9" text-anchor="end" fill="currentColor" fill-opacity="0.4">{tick.label}</text>
+          {/each}
+          <!-- Axes -->
+          <line x1={CPL} y1={CPT + CCH} x2={CVW - CPR} y2={CPT + CCH} stroke="currentColor" stroke-opacity="0.15" />
+          <line x1={CPL} y1={CPT}       x2={CPL}        y2={CPT + CCH} stroke="currentColor" stroke-opacity="0.15" />
 
-        <!-- Area fill -->
-        {#if compArea}
-          <path d={compArea} fill="var(--color-primary)" fill-opacity="0.08" style="animation:reports-fade-in 1.2s ease-out both" />
-        {/if}
-        <!-- Line -->
-        {#if compPath}
-          <path bind:this={compPathEl} d={compPath} fill="none" stroke="var(--color-primary)" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" />
-        {/if}
-
-        <!-- Dots + X labels -->
-        {#each sprints as sprint, i}
-          {@const cx = compX(i)}
-          {@const cy = compY(sprint.completionPct ?? 0)}
-          <circle {cx} {cy} r="4" fill="var(--color-primary)" style="animation:reports-fade-in 0.4s ease-out {i * 0.05 + 0.8}s both" />
-          <text x={cx} y={CPT + CCH + 16} font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.45">
-            S{sprint.sprintNumber}
-          </text>
-          <!-- Value label above dot -->
-          {#if (sprint.completionPct ?? 0) > 5}
-            <text x={cx} y={cy - 7} font-size="8" text-anchor="middle" fill="var(--color-primary)" fill-opacity="0.7" style="animation:reports-fade-in 0.4s ease-out {i * 0.05 + 0.9}s both">
-              {Math.round(sprint.completionPct ?? 0)}%
-            </text>
+          <!-- Area fill -->
+          {#if compArea}
+            <path d={compArea} fill="var(--color-primary)" fill-opacity="0.08" style="animation:reports-fade-in 1.2s ease-out both" />
           {/if}
-        {/each}
-      </svg>
+          <!-- Line -->
+          {#if compPath}
+            <path bind:this={compPathEl} d={compPath} fill="none" stroke="var(--color-primary)" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" />
+          {/if}
+
+          <!-- Dots + X labels -->
+          {#each sprints as sprint, i}
+            {@const cx = compX(i)}
+            {@const cy = compY(sprint.completionPct ?? 0)}
+            <circle {cx} {cy} r="6" fill="transparent"
+              class="cursor-default"
+              onmouseenter={() => { compTt.v = true; compTt.lines = [`S${sprint.sprintNumber}: ${sprint.title}`, `${Math.round(sprint.completionPct ?? 0)}% complete`]; }}
+            />
+            <circle {cx} {cy} r="4" fill="var(--color-primary)" style="animation:reports-fade-in 0.4s ease-out {i * 0.05 + 0.8}s both" />
+            <text x={cx} y={CPT + CCH + 16} font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.45">
+              S{sprint.sprintNumber}
+            </text>
+            <!-- Value label above dot -->
+            {#if (sprint.completionPct ?? 0) > 5}
+              <text x={cx} y={cy - 7} font-size="8" text-anchor="middle" fill="var(--color-primary)" fill-opacity="0.7" style="animation:reports-fade-in 0.4s ease-out {i * 0.05 + 0.9}s both">
+                {Math.round(sprint.completionPct ?? 0)}%
+              </text>
+            {/if}
+          {/each}
+        </svg>
+
+        {#if compTt.v}
+          <div class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
+            style="left:{compTt.x + 12}px;top:{compTt.y}px;transform:translateY(-100%)">
+            {#each compTt.lines as line, i}
+              <p class={i === 0 ? 'font-semibold' : 'opacity-60'}>{line}</p>
+            {/each}
+          </div>
+        {/if}
+      </div>
     </section>
 
     <!-- ── Summary table ─────────────────────────────────────────────── -->

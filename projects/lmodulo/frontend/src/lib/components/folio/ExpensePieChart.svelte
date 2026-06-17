@@ -66,6 +66,17 @@
   function pct(n: number) {
     return total > 0 ? `${Math.round((n / total) * 100)}%` : '0%';
   }
+
+  // ── Tooltip ──────────────────────────────────────────────────────────
+  let tt = $state({ v: false, x: 0, y: 0, cat: '', amt: '', pctStr: '' });
+  let el: HTMLDivElement | undefined = $state(undefined);
+
+  function move(e: MouseEvent) {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    tt.x = e.clientX - r.left;
+    tt.y = e.clientY - r.top;
+  }
 </script>
 
 <style>
@@ -75,31 +86,51 @@
   }
 </style>
 
-<svg viewBox="0 0 320 200" width="100%" aria-label="Expenses by category">
-  {#if slices.length === 0}
-    <text x="160" y="105" text-anchor="middle" font-size="12"
-      fill="currentColor" opacity="0.3">No expense data</text>
-  {:else}
-    <!-- Donut slices -->
-    {#each slices as s, i}
-      <path d={s.path} fill={s.color} opacity="0.8" style="animation:pie-slice-in 0.45s ease-out {i * 0.07}s both" />
-    {/each}
+<div class="relative" bind:this={el} onmousemove={move}>
+  <svg viewBox="0 0 320 200" width="100%" aria-label="Expenses by category">
+    {#if slices.length === 0}
+      <text x="160" y="105" text-anchor="middle" font-size="12"
+        fill="currentColor" opacity="0.3">No expense data</text>
+    {:else}
+      <!-- Donut slices -->
+      {#each slices as s, i}
+        <path
+          d={s.path}
+          fill={s.color}
+          opacity="0.8"
+          class="cursor-default"
+          style="animation:pie-slice-in 0.45s ease-out {i * 0.07}s both"
+          onmouseenter={() => { tt.v = true; tt.cat = s.category; tt.amt = fmtCurrency(s.amount); tt.pctStr = pct(s.amount); }}
+          onmouseleave={() => { tt.v = false; }}
+        />
+      {/each}
 
-    <!-- Centre total -->
-    <text x={CX} y={CY - 4}  text-anchor="middle" font-size="9"
-      fill="currentColor" opacity="0.45">Total</text>
-    <text x={CX} y={CY + 10} text-anchor="middle" font-size="11" font-weight="600"
-      fill="currentColor">{fmtCurrency(total)}</text>
+      <!-- Centre total -->
+      <text x={CX} y={CY - 4}  text-anchor="middle" font-size="9"
+        fill="currentColor" opacity="0.45">Total</text>
+      <text x={CX} y={CY + 10} text-anchor="middle" font-size="11" font-weight="600"
+        fill="currentColor">{fmtCurrency(total)}</text>
 
-    <!-- Legend (right side) -->
-    {#each slices as s, i}
-      {@const ly = 24 + i * 22}
-      <rect x={210} y={ly} width={10} height={10} rx={2} fill={s.color} opacity="0.8" />
-      <text x={224} y={ly + 9} font-size="10" fill="currentColor" opacity="0.7">
-        {s.category}
-      </text>
-      <text x={318} y={ly + 9} text-anchor="end" font-size="10"
-        fill="currentColor" opacity="0.55">{pct(s.amount)}</text>
-    {/each}
+      <!-- Legend (right side) -->
+      {#each slices as s, i}
+        {@const ly = 24 + i * 22}
+        <rect x={210} y={ly} width={10} height={10} rx={2} fill={s.color} opacity="0.8" />
+        <text x={224} y={ly + 9} font-size="10" fill="currentColor" opacity="0.7">
+          {s.category}
+        </text>
+        <text x={318} y={ly + 9} text-anchor="end" font-size="10"
+          fill="currentColor" opacity="0.55">{pct(s.amount)}</text>
+      {/each}
+    {/if}
+  </svg>
+
+  {#if tt.v}
+    <div
+      class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
+      style="left:{tt.x + 12}px;top:{tt.y}px;transform:translateY(-100%)"
+    >
+      <p class="font-semibold">{tt.cat}</p>
+      <p class="opacity-60">{tt.amt} · {tt.pctStr}</p>
+    </div>
   {/if}
-</svg>
+</div>
