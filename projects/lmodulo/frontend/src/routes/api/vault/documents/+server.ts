@@ -18,16 +18,11 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 
 export const POST: RequestHandler = async ({ cookies, request }) => {
   const sessionCookie = cookies.get('session');
-  // Pass multipart body through directly — do not re-encode
+  const formData = await request.formData();
   const res = await fetch(`${API_URL}/vault/documents`, {
     method: 'POST',
-    headers: {
-      'content-type': request.headers.get('content-type') ?? 'multipart/form-data',
-      ...(sessionCookie ? { cookie: `session=${sessionCookie}` } : {})
-    },
-    // @ts-ignore — duplex required for streaming body
-    body: request.body,
-    duplex: 'half'
+    headers: sessionCookie ? { cookie: `session=${sessionCookie}` } : {},
+    body: formData
   });
   const data = res.ok ? await res.json() : await res.json().catch(() => ({}));
   return new Response(JSON.stringify(data), {
