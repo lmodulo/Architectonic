@@ -192,14 +192,11 @@
             <div class="space-y-1">
               <label class="text-xs opacity-50">Duration</label>
               <div class="flex items-center gap-1">
-                <input
-                  type="number"
-                  class="input input-sm input-bordered w-20"
-                  bind:value={palMinutes}
-                  min="15"
-                  step="15"
-                />
-                <span class="text-xs opacity-40">min&nbsp;·&nbsp;{fmtMins(palMinutes)}</span>
+                <button class="btn btn-xs btn-ghost font-mono" onclick={() => palMinutes = Math.max(15, palMinutes - 60)}>−1h</button>
+                <button class="btn btn-xs btn-ghost font-mono" onclick={() => palMinutes = Math.max(15, palMinutes - 15)}>−15m</button>
+                <span class="flex-1 text-center text-sm font-semibold tabular-nums">{fmtMins(palMinutes)}</span>
+                <button class="btn btn-xs btn-ghost font-mono" onclick={() => palMinutes = palMinutes + 15}>+15m</button>
+                <button class="btn btn-xs btn-ghost font-mono" onclick={() => palMinutes = palMinutes + 60}>+1h</button>
               </div>
             </div>
           </div>

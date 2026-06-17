@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
   import { FileText, FileSignature, Shield, LayoutTemplate, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { PageData } from './$types';
 
@@ -225,11 +226,7 @@
         <div class="alert alert-error alert-sm text-sm">{err}</div>
       {/if}
 
-      <textarea
-        class="textarea textarea-bordered w-full font-mono text-xs min-h-[400px]"
-        bind:value={content}
-        placeholder="Paste or type contract HTML content here..."
-      ></textarea>
+      <MessageEditor bind:html={content} placeholder="Paste or type contract content here…" />
 
       <div class="flex justify-between">
         <button class="btn btn-ghost" onclick={() => step = 2}>

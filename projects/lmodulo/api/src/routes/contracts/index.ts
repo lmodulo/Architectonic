@@ -436,5 +436,45 @@ export default async function contractRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 
+  // POST /contracts/:id/signers/:signerId/resend — resend a signing link
+  app.post('/:id/signers/:signerId/resend', { preHandler: app.requirePermission('contracts', 'update') }, async (req) => {
+    const db         = app.mongo.db!;
+    const contractId = parseOid((req.params as { id: string }).id, app);
+    const signerId   = parseOid((req.params as { signerId: string }).signerId, app);
+    const now        = new Date();
+
+    const signer = await db.collection(SIGNERS_COL).findOne({ _id: signerId, contractId });
+    if (!signer) throw app.httpErrors.notFound('Signer not found');
+    if (signer.status !== 'pending') throw app.httpErrors.badRequest('Can only resend to pending signers');
+
+    const contract = await db.collection(COL).findOne({ _id: contractId });
+    if (!contract) throw app.httpErrors.notFound('Contract not found');
+
+    const newToken   = randomUUID();
+    const newExpiry  = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    await db.collection(SIGNERS_COL).updateOne(
+      { _id: signerId },
+      { $set: { token: newToken, tokenExpiresAt: newExpiry } },
+    );
+
+    const appUrl     = process.env.FRONTEND_ORIGIN ?? 'http://localhost:3000';
+    const signingUrl = `${appUrl}/contracts/sign/${newToken}`;
+    try {
+      await sendContractSigningEmail(signer.email as string, {
+        signerName:    signer.name    as string,
+        contractTitle: contract.title as string,
+        signingUrl,
+        expiryDays:    30,
+      });
+    } catch (err) {
+      app.log.warn({ err }, `Failed to resend signing email to ${signer.email}`);
+    }
+
+    logAudit(db, { userId: req.session.userId!, username: req.session.username!, action: 'contracts.resend_signing_link', resourceId: contractId.toString(), meta: { signerEmail: signer.email, signerId: signerId.toString() }, ip: req.ip });
+
+    return { ok: true };
+  });
+
   await app.register(contractTemplateRoutes, { prefix: '/templates' });
 }

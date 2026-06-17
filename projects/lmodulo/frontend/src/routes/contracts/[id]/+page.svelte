@@ -5,7 +5,7 @@
   import { fade, slide } from 'svelte/transition';
   import {
     ArrowLeft, Building2, CalendarDays, DollarSign,
-    Send, Ban, Trash2, Edit3, Check, X, UserPlus, Plus, Printer
+    Send, Ban, Trash2, Edit3, Check, X, UserPlus, Plus, Printer, RefreshCcw
   } from 'lucide-svelte';
   import type { PageData } from './$types';
 
@@ -130,6 +130,29 @@
       sendErr = 'Network error.';
     } finally {
       sending = false;
+    }
+  }
+
+  // Resend signing link
+  let resendingId = $state<string | null>(null);
+  let resendMsg   = $state('');
+
+  async function resendLink(signerId: string) {
+    resendingId = signerId;
+    resendMsg   = '';
+    try {
+      const res = await fetch(`/api/contracts/${c.id}/signers/${signerId}/resend`, { method: 'POST' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        resendMsg = (d as any).message ?? 'Failed to resend.';
+      } else {
+        resendMsg = 'Signing link resent.';
+        setTimeout(() => { resendMsg = ''; }, 4000);
+      }
+    } catch {
+      resendMsg = 'Network error.';
+    } finally {
+      resendingId = null;
     }
   }
 
@@ -331,17 +354,32 @@
                 <p class="text-sm font-medium">{s.name}</p>
                 <p class="text-xs text-base-content/50">{s.email} · {s.role}</p>
               </div>
-              <div class="flex flex-col items-end gap-0.5">
-                <span class="badge badge-sm {s.status === 'signed' ? 'badge-success' : s.status === 'declined' ? 'badge-error' : 'badge-warning'}">
-                  {s.status}
-                </span>
-                {#if s.signedAt}
-                  <span class="text-xs text-base-content/40">{fmtDate(s.signedAt)}</span>
+              <div class="flex items-center gap-2">
+                {#if s.status === 'pending' && canSend && s.id}
+                  <button
+                    class="btn btn-ghost btn-xs"
+                    onclick={() => resendLink(s.id)}
+                    disabled={resendingId === s.id}
+                    title="Resend signing link"
+                  >
+                    <RefreshCcw class="size-3 {resendingId === s.id ? 'animate-spin' : ''}" />
+                  </button>
                 {/if}
+                <div class="flex flex-col items-end gap-0.5">
+                  <span class="badge badge-sm {s.status === 'signed' ? 'badge-success' : s.status === 'declined' ? 'badge-error' : 'badge-warning'}">
+                    {s.status}
+                  </span>
+                  {#if s.signedAt}
+                    <span class="text-xs text-base-content/40">{fmtDate(s.signedAt)}</span>
+                  {/if}
+                </div>
               </div>
             </div>
           {/each}
         </div>
+        {#if resendMsg}
+          <p transition:fade={{ duration: 200 }} class="text-xs mt-2 {resendMsg === 'Signing link resent.' ? 'text-success' : 'text-error'}">{resendMsg}</p>
+        {/if}
       </div>
     </div>
   {/if}

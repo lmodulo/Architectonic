@@ -37,13 +37,13 @@
 
 <style>
   .modal-inner :global(header) {
-    background-color: var(--color-secondary);
-    color: var(--color-secondary-content);
+    background-color: var(--color-base-200);
+    color: var(--color-base-content);
     border-radius: var(--radius-box, 1rem) var(--radius-box, 1rem) 0 0;
   }
   .modal-inner :global(footer) {
-    background-color: var(--color-secondary);
-    color: var(--color-secondary-content);
+    background-color: var(--color-base-200);
+    color: var(--color-base-content);
     border-radius: 0 0 var(--radius-box, 1rem) var(--radius-box, 1rem);
   }
 </style>
