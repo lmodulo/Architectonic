@@ -89,11 +89,9 @@
 
 <svelte:head><title>New Subscription — Folio</title></svelte:head>
 
-<div class="space-y-6 max-w-2xl">
+<div class="space-y-6 max-w-2xl -mt-6">
   <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Subscriptions', href: '/folio/subscriptions' }, { label: 'New Subscription' }]} />
-    </div>
+    <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Subscriptions', href: '/folio/subscriptions' }, { label: 'New Subscription' }]} />
     <h1 class="text-2xl font-bold">New Subscription</h1>
   </div>
 

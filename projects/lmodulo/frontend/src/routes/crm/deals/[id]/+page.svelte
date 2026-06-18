@@ -139,7 +139,7 @@
 
 <svelte:head><title>{deal.title} — Nexus</title></svelte:head>
 
-<div class="space-y-6">
+<div class="space-y-6 -mt-6">
   <Breadcrumb {crumbs} />
 
   <div class="flex items-start justify-between gap-4">

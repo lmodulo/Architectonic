@@ -151,11 +151,9 @@
 
 <svelte:head><title>{estimate.estimateNumber} — Folio</title></svelte:head>
 
-<div class="space-y-6 max-w-2xl">
+<div class="space-y-6 -mt-6">
   <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Estimates', href: '/folio/estimates' }, { label: estimate.estimateNumber }]} />
-    </div>
+    <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Estimates', href: '/folio/estimates' }, { label: estimate.estimateNumber }]} />
     <div class="space-y-1 min-w-0">
       <h1 class="text-2xl font-bold font-mono leading-tight">{estimate.estimateNumber}</h1>
       {#if estimate.title}

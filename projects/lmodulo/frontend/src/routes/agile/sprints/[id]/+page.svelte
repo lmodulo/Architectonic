@@ -211,17 +211,15 @@
 
 <svelte:head><title>Sprint {sprint.sprintNumber}: {sprint.title}</title></svelte:head>
 
-<div class="space-y-6">
+<div class="space-y-6 -mt-6">
 
   <!-- Header -->
   <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[
-        { label: 'Agile', href: '/agile' },
-        { label: (data as any).milestone?.title ?? 'Milestone', href: sprint.milestoneId ? `/agile/milestones/${sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
-        { label: `Sprint ${sprint.sprintNumber}`, colorClass: LEVEL.sprint.badge },
-      ]} />
-    </div>
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: (data as any).milestone?.title ?? 'Milestone', href: sprint.milestoneId ? `/agile/milestones/${sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
+      { label: `Sprint ${sprint.sprintNumber}`, colorClass: LEVEL.sprint.badge },
+    ]} />
 
     <div class="space-y-1">
       <h1 class="text-2xl font-bold">{sprint.title}</h1>
@@ -273,10 +271,10 @@
     <aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>
   {/if}
 
-  <!-- Stats row -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <!-- Charts row -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <!-- Progress -->
-    <div class="card bg-base-200 border border-base-300 rounded-box p-4 col-span-2 space-y-2">
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
       <div class="flex items-center justify-between text-sm">
         <span class="font-medium">Sprint Progress</span>
         <span class="font-bold" style="color:{barClr}">{pct}%</span>
@@ -284,6 +282,12 @@
       <div class="w-full h-2 rounded-full bg-base-300 overflow-hidden">
         <div class="h-full rounded-full" style="width:{animPct}%;background:{barClr};transition:width 0.8s ease-out"></div>
       </div>
+    </div>
+
+    <!-- Burndown chart -->
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
+      <h2 class="text-sm font-semibold opacity-70">Burndown</h2>
+      <BurndownChart {sprint} {tasks} />
     </div>
 
     <!-- Velocity chart (SVG mini-bar) -->
@@ -316,12 +320,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Burndown chart -->
-  <section class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
-    <h2 class="text-sm font-semibold opacity-70">Burndown</h2>
-    <BurndownChart {sprint} {tasks} />
-  </section>
 
   <!-- Attachments -->
   <section class="space-y-3">

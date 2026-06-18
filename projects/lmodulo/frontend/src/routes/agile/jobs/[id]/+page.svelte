@@ -255,18 +255,16 @@
 
 <svelte:head><title>{job.title} — Job</title></svelte:head>
 
-<div class="space-y-6">
+<div class="space-y-6 -mt-6">
 
   <!-- Header -->
   <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[
-        { label: 'Agile', href: '/agile' },
-        { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
-        { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.badge },
-        { label: job.title, colorClass: LEVEL.job.badge },
-      ]} />
-    </div>
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
+      { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.badge },
+      { label: job.title, colorClass: LEVEL.job.badge },
+    ]} />
 
     <div class="space-y-1 min-w-0">
       <h1 class="text-2xl font-bold">{job.title}</h1>

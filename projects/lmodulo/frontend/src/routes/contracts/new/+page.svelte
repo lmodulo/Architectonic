@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import Breadcrumb from '$lib/components/crm/Breadcrumb.svelte';
   import { FileText, FileSignature, Shield, LayoutTemplate, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { PageData } from './$types';
 
@@ -91,34 +92,54 @@
   }
 </script>
 
-<div class="max-w-3xl mx-auto flex flex-col gap-6">
-  <div class="flex items-center gap-2 text-sm text-base-content/60">
-    <a href="/contracts" class="hover:text-base-content">Contracts</a>
-    <ChevronRight class="size-3" />
-    <span>New Contract</span>
-  </div>
+<div class="space-y-4 -mt-6">
 
-  <!-- Step indicator -->
-  <ul class="steps w-full">
-    <li class="step {step >= 1 ? 'step-primary' : ''}">Template</li>
-    <li class="step {step >= 2 ? 'step-primary' : ''}">Details</li>
-    <li class="step {step >= 3 ? 'step-primary' : ''}">Content</li>
-  </ul>
+  <Breadcrumb crumbs={[{ label: 'Contracts', href: '/contracts' }, { label: 'New Contract' }]} />
 
-  <!-- Step 1: Template picker -->
-  {#if step === 1}
-    <div class="flex flex-col gap-4">
-      <h2 class="font-semibold text-lg">Choose a starting point</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {#each data.templates as t}
-          {@const Icon = TYPE_ICONS[t.type] ?? LayoutTemplate}
-          <button
-            type="button"
-            class="card card-bordered p-4 text-left transition-all {selectedTemplateId === t.id ? 'border-primary bg-primary/5' : 'hover:border-base-content/30'}"
-            onclick={() => pickTemplate(t.id)}
-          >
-            <div class="flex items-start gap-3">
-              <Icon class="size-5 mt-0.5 {selectedTemplateId === t.id ? 'text-primary' : 'text-base-content/60'}" />
+  <div class="card bg-base-100 border border-base-300 rounded-box overflow-hidden shadow-sm">
+
+    <!-- Wizard header -->
+    <div class="flex items-center justify-between gap-4 px-6 py-4 bg-base-200 border-b border-base-300">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-wide opacity-40">New Contract</p>
+        <h1 class="font-semibold text-base leading-tight">
+          {step === 1 ? 'Choose a starting point' : step === 2 ? 'Contract details' : 'Review & edit content'}
+        </h1>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        {#each ['Template', 'Details', 'Content'] as label, i}
+          {@const n = i + 1}
+          {#if i > 0}
+            <div class="w-6 h-px {step > i ? 'bg-primary/60' : 'bg-base-300'}"></div>
+          {/if}
+          <div class="flex items-center gap-1.5">
+            <span class="size-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0
+              {step > n ? 'bg-success text-success-content' : step === n ? 'bg-primary text-primary-content' : 'bg-base-300 text-base-content/40'}">
+              {n}
+            </span>
+            <span class="text-xs hidden md:inline {step === n ? 'font-medium' : 'opacity-40'}">{label}</span>
+          </div>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Step body -->
+    <div class="p-6 space-y-4">
+
+      <!-- Step 1: Template picker -->
+      {#if step === 1}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {#each data.templates as t}
+            {@const Icon = TYPE_ICONS[t.type] ?? LayoutTemplate}
+            <button
+              type="button"
+              class="flex items-start gap-3 p-4 rounded-box border text-left transition-all
+                {selectedTemplateId === t.id
+                  ? 'border-primary bg-primary/10'
+                  : 'border-base-300 bg-base-200 hover:border-base-content/30'}"
+              onclick={() => pickTemplate(t.id)}
+            >
+              <Icon class="size-5 mt-0.5 shrink-0 {selectedTemplateId === t.id ? 'text-primary' : 'opacity-50'}" />
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                   <span class="font-medium text-sm">{t.name}</span>
@@ -126,117 +147,102 @@
                     <span class="badge badge-ghost badge-xs">Default</span>
                   {/if}
                 </div>
-                <p class="text-xs text-base-content/60 mt-0.5">{t.description || TYPE_DESCRIPTIONS[t.type] || ''}</p>
+                <p class="text-xs opacity-60 mt-0.5">{t.description || TYPE_DESCRIPTIONS[t.type] || ''}</p>
               </div>
-            </div>
-          </button>
-        {/each}
+            </button>
+          {/each}
 
-        <!-- Blank option -->
-        <button
-          type="button"
-          class="card card-bordered p-4 text-left transition-all {selectedTemplateId === 'blank' ? 'border-primary bg-primary/5' : 'hover:border-base-content/30'}"
-          onclick={() => pickTemplate(null)}
-        >
-          <div class="flex items-start gap-3">
-            <LayoutTemplate class="size-5 mt-0.5 {selectedTemplateId === 'blank' ? 'text-primary' : 'text-base-content/60'}" />
+          <button
+            type="button"
+            class="flex items-start gap-3 p-4 rounded-box border text-left transition-all
+              {selectedTemplateId === 'blank'
+                ? 'border-primary bg-primary/10'
+                : 'border-base-300 bg-base-200 hover:border-base-content/30'}"
+            onclick={() => pickTemplate(null)}
+          >
+            <LayoutTemplate class="size-5 mt-0.5 shrink-0 {selectedTemplateId === 'blank' ? 'text-primary' : 'opacity-50'}" />
             <div>
               <span class="font-medium text-sm">Blank Document</span>
-              <p class="text-xs text-base-content/60 mt-0.5">Start from scratch with no pre-filled content.</p>
+              <p class="text-xs opacity-60 mt-0.5">Start from scratch with no pre-filled content.</p>
             </div>
-          </div>
-        </button>
-      </div>
+          </button>
+        </div>
 
-      <div class="flex justify-end">
-        <button class="btn btn-primary" onclick={next}>
-          Continue
-          <ChevronRight class="size-4" />
-        </button>
-      </div>
-    </div>
+      <!-- Step 2: Metadata -->
+      {:else if step === 2}
+        {#if err}
+          <div class="alert alert-error text-sm p-3">{err}</div>
+        {/if}
 
-  <!-- Step 2: Metadata -->
-  {:else if step === 2}
-    <div class="flex flex-col gap-4">
-      <h2 class="font-semibold text-lg">Contract details</h2>
-
-      {#if err}
-        <div class="alert alert-error alert-sm text-sm">{err}</div>
-      {/if}
-
-      <label class="form-control">
-        <div class="label"><span class="label-text">Title <span class="text-error">*</span></span></div>
-        <input type="text" class="input input-bordered w-full" bind:value={title} placeholder="e.g. ACME Corp — MSA 2026" />
-      </label>
-
-      <label class="form-control">
-        <div class="label"><span class="label-text">Company</span></div>
-        <select class="select select-bordered w-full" bind:value={companyId}>
-          <option value="">— None —</option>
-          {#each data.companies as co}
-            <option value={co.id ?? co._id}>{co.name}</option>
-          {/each}
-        </select>
-      </label>
-
-      <div class="grid grid-cols-2 gap-3">
         <label class="form-control">
-          <div class="label"><span class="label-text">Contract Value</span></div>
-          <input type="number" class="input input-bordered w-full" bind:value={value} placeholder="0.00" min="0" step="0.01" />
+          <div class="label"><span class="label-text">Title <span class="text-error">*</span></span></div>
+          <input type="text" class="input input-bordered w-full" bind:value={title} placeholder="e.g. ACME Corp — MSA 2026" />
         </label>
+
         <label class="form-control">
-          <div class="label"><span class="label-text">Currency</span></div>
-          <select class="select select-bordered w-full" bind:value={currency}>
-            <option>USD</option><option>EUR</option><option>GBP</option><option>CAD</option><option>AUD</option>
+          <div class="label"><span class="label-text">Company</span></div>
+          <select class="select select-bordered w-full" bind:value={companyId}>
+            <option value="">— None —</option>
+            {#each data.companies as co}
+              <option value={co.id ?? co._id}>{co.name}</option>
+            {/each}
           </select>
         </label>
-      </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <label class="form-control">
-          <div class="label"><span class="label-text">Effective Date</span></div>
-          <input type="date" class="input input-bordered w-full" bind:value={effectiveDate} />
-        </label>
-        <label class="form-control">
-          <div class="label"><span class="label-text">Expiry Date</span></div>
-          <input type="date" class="input input-bordered w-full" bind:value={expiryDate} />
-        </label>
-      </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="form-control">
+            <div class="label"><span class="label-text">Contract Value</span></div>
+            <input type="number" class="input input-bordered w-full" bind:value={value} placeholder="0.00" min="0" step="0.01" />
+          </label>
+          <label class="form-control">
+            <div class="label"><span class="label-text">Currency</span></div>
+            <select class="select select-bordered w-full" bind:value={currency}>
+              <option>USD</option><option>EUR</option><option>GBP</option><option>CAD</option><option>AUD</option>
+            </select>
+          </label>
+        </div>
 
-      <div class="flex justify-between">
-        <button class="btn btn-ghost" onclick={() => step = 1}>
-          <ChevronLeft class="size-4" />
-          Back
-        </button>
-        <button class="btn btn-primary" onclick={next}>
-          Continue
-          <ChevronRight class="size-4" />
-        </button>
-      </div>
-    </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="form-control">
+            <div class="label"><span class="label-text">Effective Date</span></div>
+            <input type="date" class="input input-bordered w-full" bind:value={effectiveDate} />
+          </label>
+          <label class="form-control">
+            <div class="label"><span class="label-text">Expiry Date</span></div>
+            <input type="date" class="input input-bordered w-full" bind:value={expiryDate} />
+          </label>
+        </div>
 
-  <!-- Step 3: Content editor -->
-  {:else if step === 3}
-    <div class="flex flex-col gap-4">
-      <h2 class="font-semibold text-lg">Review &amp; edit content</h2>
-      <p class="text-sm text-base-content/60">Replace <code class="text-xs">{'{{variable}}'}</code> placeholders with your actual values.</p>
-
-      {#if err}
-        <div class="alert alert-error alert-sm text-sm">{err}</div>
+      <!-- Step 3: Content editor -->
+      {:else if step === 3}
+        {#if err}
+          <div class="alert alert-error text-sm p-3">{err}</div>
+        {/if}
+        <p class="text-sm opacity-60">Replace <code class="text-xs bg-base-200 px-1 py-0.5 rounded">{'{{variable}}'}</code> placeholders with your actual values.</p>
+        <MessageEditor bind:html={content} placeholder="Paste or type contract content here…" />
       {/if}
 
-      <MessageEditor bind:html={content} placeholder="Paste or type contract content here…" />
+    </div>
 
-      <div class="flex justify-between">
-        <button class="btn btn-ghost" onclick={() => step = 2}>
-          <ChevronLeft class="size-4" />
-          Back
+    <!-- Footer nav -->
+    <div class="flex justify-between items-center px-6 py-4 border-t border-base-300 bg-base-200">
+      {#if step > 1}
+        <button class="btn btn-ghost btn-sm" onclick={() => step = step - 1}>
+          <ChevronLeft class="size-4" /> Back
         </button>
+      {:else}
+        <div></div>
+      {/if}
+      {#if step < 3}
+        <button class="btn btn-primary btn-sm" onclick={next}>
+          Continue <ChevronRight class="size-4" />
+        </button>
+      {:else}
         <button class="btn btn-primary" onclick={save} disabled={saving}>
           {saving ? 'Creating…' : 'Create Contract'}
         </button>
-      </div>
+      {/if}
     </div>
-  {/if}
+
+  </div>
 </div>

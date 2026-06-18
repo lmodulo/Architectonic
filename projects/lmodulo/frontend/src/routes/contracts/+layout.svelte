@@ -35,7 +35,7 @@
     </div>
 
     <!-- Sub-navigation -->
-    <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-2">
+    <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-6">
       {#each navLinks as link}
         {#if !link.permission || hasPermission(data.user, link.permission, 'read')}
           <a
@@ -54,7 +54,7 @@
 
     <!-- Page content -->
     {#key page.url.pathname}
-      <div class="page-content">
+      <div class="page-content pt-6">
         {@render children()}
       </div>
     {/key}

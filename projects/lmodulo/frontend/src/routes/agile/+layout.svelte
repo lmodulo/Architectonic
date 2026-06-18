@@ -47,7 +47,7 @@
 
   <!-- Sub-navigation -->
   {#if hasPermission(data.user, 'agile_milestones', 'read')}
-    <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-2">
+    <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-6">
       {#each navLinks as link}
         <a
           href={link.href}
@@ -65,7 +65,7 @@
 
   <!-- Page content -->
   {#key page.url.pathname}
-    <div class="page-content">
+    <div class="page-content pt-6">
       {@render children()}
     </div>
   {/key}

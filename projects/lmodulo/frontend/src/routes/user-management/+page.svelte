@@ -9,6 +9,7 @@
   import Avatar from '$lib/components/Avatar.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
+  import UserSelect from '$lib/components/UserSelect.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -635,12 +636,14 @@
                     {#if addMemberTeamId === team.id}
                       <div class="space-y-2 pt-1">
                         <div class="flex items-center gap-2">
-                          <select class="select select-sm flex-1" bind:value={selectedUserId}>
-                            <option value="">Select a user…</option>
-                            {#each pickerUsers.filter(u => !detail.members.some(m => m.id === u.id)) as u}
-                              <option value={u.id}>{[u.firstName, u.lastName].filter(Boolean).join(' ') || u.username} ({u.email})</option>
-                            {/each}
-                          </select>
+                          <div class="flex-1">
+                            <UserSelect
+                              users={pickerUsers.filter(u => !detail.members.some(m => m.id === u.id))}
+                              bind:value={selectedUserId}
+                              placeholder="Select a user…"
+                              clearable
+                            />
+                          </div>
                           <button type="button" class="btn btn-primary btn-sm shrink-0"
                             disabled={!selectedUserId || addingMember}
                             onclick={() => addMember(team.id, selectedUserId)}>

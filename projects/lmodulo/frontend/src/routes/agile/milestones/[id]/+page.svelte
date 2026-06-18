@@ -141,16 +141,14 @@
 
 <svelte:head><title>{milestone.title} — Milestone</title></svelte:head>
 
-<div class="space-y-6">
+<div class="space-y-6 -mt-6">
 
   <!-- Header -->
   <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[
-        { label: 'Agile', href: '/agile' },
-        { label: milestone.title, colorClass: LEVEL.milestone.badge },
-      ]} />
-    </div>
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: milestone.title, colorClass: LEVEL.milestone.badge },
+    ]} />
 
     <div class="space-y-1 min-w-0">
       <h1 class="text-2xl font-bold leading-tight">{milestone.title}</h1>

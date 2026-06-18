@@ -140,11 +140,9 @@
 
 <svelte:head><title>{sub.name} — Folio</title></svelte:head>
 
-<div class="space-y-6 max-w-2xl">
+<div class="space-y-6 -mt-6">
   <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Subscriptions', href: '/folio/subscriptions' }, { label: sub.name }]} />
-    </div>
+    <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Subscriptions', href: '/folio/subscriptions' }, { label: sub.name }]} />
     <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold">{sub.name}</h1>

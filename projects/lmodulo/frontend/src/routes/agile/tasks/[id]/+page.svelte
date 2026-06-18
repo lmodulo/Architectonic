@@ -115,19 +115,17 @@
 
 <svelte:head><title>{task.title} — Task</title></svelte:head>
 
-<div class="space-y-6">
+<div class="space-y-6 -mt-6">
 
   <!-- Header -->
   <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[
-        { label: 'Agile', href: '/agile' },
-        { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
-        { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job?.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.badge },
-        { label: job?.title ?? 'Job', href: job?.jobNumber ? `/agile/jobs/JOB-${job.jobNumber}` : undefined, colorClass: LEVEL.job.badge },
-        { label: task.title, colorClass: LEVEL.task.badge },
-      ]} />
-    </div>
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
+      { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job?.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.badge },
+      { label: job?.title ?? 'Job', href: job?.jobNumber ? `/agile/jobs/JOB-${job.jobNumber}` : undefined, colorClass: LEVEL.job.badge },
+      { label: task.title, colorClass: LEVEL.task.badge },
+    ]} />
 
     <div class="space-y-1 min-w-0">
       <h1 class="text-2xl font-bold leading-tight">{task.title}</h1>

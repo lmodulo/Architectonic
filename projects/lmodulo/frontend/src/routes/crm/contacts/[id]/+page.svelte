@@ -89,7 +89,7 @@
 
 <svelte:head><title>{contact.firstName} {contact.lastName} — Nexus</title></svelte:head>
 
-<div class="space-y-6">
+<div class="space-y-6 -mt-6">
   <Breadcrumb {crumbs} />
 
   <div class="flex items-center justify-between gap-4">

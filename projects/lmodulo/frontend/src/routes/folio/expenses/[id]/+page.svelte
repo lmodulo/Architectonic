@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
-  import { ChevronRight, Pencil, Trash2, X, Check } from 'lucide-svelte';
+  import { Pencil, Trash2, X, Check } from 'lucide-svelte';
+  import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import { slide } from 'svelte/transition';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
@@ -150,13 +151,8 @@
 
 <svelte:head><title>{expense.expenseNumber} · Expenses · Folio</title></svelte:head>
 
-<div class="space-y-6">
-  <!-- Breadcrumb -->
-  <nav class="flex items-center gap-1 text-sm opacity-50">
-    <a href="/folio/expenses" class="hover:opacity-100">Expenses</a>
-    <ChevronRight class="size-3.5" />
-    <span class="font-mono">{expense.expenseNumber}</span>
-  </nav>
+<div class="space-y-6 -mt-6">
+  <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Expenses', href: '/folio/expenses' }, { label: expense.expenseNumber }]} />
 
   <!-- Header -->
   <div class="flex items-start justify-between gap-4">

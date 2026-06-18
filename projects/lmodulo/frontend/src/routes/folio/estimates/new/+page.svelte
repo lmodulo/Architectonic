@@ -35,11 +35,9 @@
 
 <svelte:head><title>New Estimate — Folio</title></svelte:head>
 
-<div class="space-y-6 max-w-2xl">
+<div class="space-y-6 max-w-2xl -mt-6">
   <div class="space-y-4">
-    <div class="pb-3 border-b border-base-300/60">
-      <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Estimates', href: '/folio/estimates' }, { label: 'New Estimate' }]} />
-    </div>
+    <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Estimates', href: '/folio/estimates' }, { label: 'New Estimate' }]} />
     <div class="space-y-1 min-w-0">
       <h1 class="text-2xl font-bold">New Estimate</h1>
     </div>
