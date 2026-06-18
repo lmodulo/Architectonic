@@ -3,16 +3,25 @@
   import { onMount } from 'svelte';
   import { Clock, Play, Square, Plus, ChevronLeft, ChevronRight, Timer, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
   import type { PageData } from './$types';
-  import { openLogTimePalette, getLastSavedEntry, getLastTimerStarted } from '$lib/stores/logTimePalette.svelte';
+  import { openLogTimePalette, getLastSavedEntry, getLastTimerStarted, getCachedTasks } from '$lib/stores/logTimePalette.svelte';
 
   let { data }: { data: PageData } = $props();
 
-  const { weekDates, user } = data;
-  let weekStart   = $state(data.weekStart);
+  const user      = data.user;
+  const weekStart = $derived(data.weekStart);
+  const weekDates = $derived(data.weekDates);
   let entries     = $state<any[]>(data.entries);
   let activeTimer = $state<{ entry: any; task: any } | null>(data.activeTimer);
-  const tasks: any[]              = data.tasks;
-  const taskMap: Record<string, any> = data.taskMap;
+  const tasks: any[] = data.tasks;
+  let taskMap = $state<Record<string, any>>(data.taskMap);
+
+  // Reset mutable state when navigating to a different week
+  $effect(() => {
+    weekStart; // reactive dependency — fires on navigation
+    entries     = data.entries;
+    activeTimer = data.activeTimer;
+    taskMap     = { ...data.taskMap };
+  });
 
   // ── Timer banner ──────────────────────────────────────────────
   let elapsedSeconds = $state(0);
@@ -161,7 +170,13 @@
       const res = await fetch('/api/agile/time-entries/timer/stop', { method: 'POST' });
       if (res.ok) {
         const stopped = await res.json();
-        if (weekDates.includes(stopped.date)) entries = [...entries, stopped];
+        if (weekDates.includes(stopped.date)) {
+          entries = [...entries, stopped];
+          if (stopped.taskId && !taskMap[stopped.taskId]) {
+            const t = getCachedTasks().find((t: any) => t.id === stopped.taskId);
+            if (t) taskMap = { ...taskMap, [stopped.taskId]: t };
+          }
+        }
         activeTimer = null;
       }
     } finally { timerStopping = false; }
@@ -193,12 +208,23 @@
     const saved = getLastSavedEntry();
     if (saved && weekDates.includes(saved.date) && !entries.find((e: any) => e.id === saved.id)) {
       entries = [...entries, saved];
+      if (saved.taskId && !taskMap[saved.taskId]) {
+        const t = getCachedTasks().find((t: any) => t.id === saved.taskId);
+        if (t) taskMap = { ...taskMap, [saved.taskId]: t };
+      }
     }
   });
 
   $effect(() => {
     const timerEntry = getLastTimerStarted();
-    if (timerEntry) activeTimer = { entry: timerEntry, task: taskMap[timerEntry.taskId] ?? null };
+    if (timerEntry) {
+      let task = taskMap[timerEntry.taskId] ?? null;
+      if (!task) {
+        task = getCachedTasks().find((t: any) => t.id === timerEntry.taskId) ?? null;
+        if (task) taskMap = { ...taskMap, [timerEntry.taskId]: task };
+      }
+      activeTimer = { entry: timerEntry, task };
+    }
   });
 </script>
 
@@ -389,14 +415,13 @@
           {/if}
           <div class="flex items-center gap-2">
             <span class="text-xs opacity-50 w-16 shrink-0">Duration</span>
-            <input
-              type="number"
-              class="input input-sm input-bordered w-20"
-              bind:value={cellAddMin}
-              min="15"
-              step="15"
-            />
-            <span class="text-xs opacity-40">min&nbsp;·&nbsp;{fmtMins(cellAddMin)}</span>
+            <div class="flex items-center gap-1 flex-1">
+              <button class="btn btn-xs btn-ghost font-mono" onclick={() => cellAddMin = Math.max(15, cellAddMin - 60)}>−1h</button>
+              <button class="btn btn-xs btn-ghost font-mono" onclick={() => cellAddMin = Math.max(15, cellAddMin - 15)}>−15m</button>
+              <span class="flex-1 text-center text-sm font-semibold tabular-nums">{fmtMins(cellAddMin)}</span>
+              <button class="btn btn-xs btn-ghost font-mono" onclick={() => cellAddMin = cellAddMin + 15}>+15m</button>
+              <button class="btn btn-xs btn-ghost font-mono" onclick={() => cellAddMin = cellAddMin + 60}>+1h</button>
+            </div>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs opacity-50 w-16 shrink-0">Note</span>

@@ -76,6 +76,20 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
   const taskMap: Record<string, any> = {};
   for (const t of tasks) taskMap[t.id] = t;
 
+  // Fetch tasks referenced by entries but missing from taskMap (e.g. not assigned to this user)
+  const missingIds = [...new Set(
+    entries.map((e: any) => e.taskId).filter((id: string) => id && !taskMap[id])
+  )] as string[];
+  if (missingIds.length) {
+    const missingTasks = await Promise.all(
+      missingIds.map((id: string) =>
+        fetch(`${API_URL}/agile/tasks/${id}`, { headers })
+          .then(r => r.ok ? r.json() : null).catch(() => null)
+      )
+    );
+    for (const t of missingTasks) if (t?.id) taskMap[t.id] = t;
+  }
+
   return {
     weekStart,
     weekDates,
