@@ -187,9 +187,9 @@
 <div class="space-y-5">
 
   <!-- Header -->
-  <div class="flex items-start justify-between gap-4">
+  <div class="page-heading flex items-center justify-between gap-4">
     <div class="flex items-start gap-3">
-      <CalendarRange class="size-6 opacity-60 shrink-0 mt-0.5" />
+      <CalendarRange class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold">Calendar Events</h1>
         <p class="text-sm opacity-60 mt-0.5">Events, announcements, and your personal schedule.</p>

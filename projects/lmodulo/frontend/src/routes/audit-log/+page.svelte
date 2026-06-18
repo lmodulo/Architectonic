@@ -93,8 +93,8 @@
 </svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-start gap-3">
-    <History class="size-6 opacity-60 shrink-0 mt-0.5" />
+  <div class="page-heading flex items-start gap-3">
+    <History class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold">Audit Log</h1>
       <p class="text-sm opacity-60 mt-0.5">Track actions taken by workspace members</p>

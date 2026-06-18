@@ -268,9 +268,9 @@
 
 <div class="flex flex-col gap-6">
   <!-- Page header -->
-  <div class="flex items-start justify-between gap-4">
+  <div class="page-heading flex items-center justify-between gap-4">
     <div class="flex items-start gap-2.5">
-      <FolderLock class="size-6 mt-0.5 shrink-0 opacity-80" />
+      <FolderLock class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold leading-none">Vault</h1>
         <p class="text-xs opacity-50 mt-0.5">Documents, policies, and reference materials</p>
@@ -444,16 +444,12 @@
         </table>
 
         {#if filtered.length > PAGE_SIZE}
-          <div class="flex items-center justify-between px-4 py-2 border-t border-base-300">
-            <span class="text-xs opacity-60">
-              {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
-            </span>
+          <div class="border-t border-base-300 px-4 py-2">
             <Pagination
-              count={filtered.length}
+              total={filtered.length}
               pageSize={PAGE_SIZE}
-              page={currentPage}
-              onPageChange={(e: { page: number }) => (currentPage = e.page)}
-              siblingCount={1}
+              currentPage={currentPage}
+              onPage={(n) => (currentPage = n)}
             />
           </div>
         {/if}

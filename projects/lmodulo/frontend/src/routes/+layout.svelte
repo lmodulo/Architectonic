@@ -417,9 +417,9 @@
       {/if}
 
       <!-- Page content -->
-      <main bind:this={mainEl} class="flex-1 overflow-auto" onscroll={closeCard}>
+      <main bind:this={mainEl} class="flex-1 overflow-y-auto overflow-x-hidden" onscroll={closeCard}>
         {#key pathname}
-          <div class="container mx-auto p-6 max-w-5xl page-content transition-[opacity,filter] duration-200 {showOverlay ? 'opacity-40 blur-[1px]' : ''}">
+          <div class="container mx-auto px-6 pb-6 max-w-5xl page-content transition-[opacity,filter] duration-200 {showOverlay ? 'opacity-40 blur-[1px]' : ''}">
             {@render children()}
           </div>
         {/key}

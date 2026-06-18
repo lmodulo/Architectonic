@@ -104,7 +104,32 @@ nav.tab-scroll {
 }
 */
 
+/* ── Page heading banner ────────────────────────────────────────────────────── */
+.page-heading {
+  position: relative;
+  isolation: isolate;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  color: var(--color-accent-content);
+}
+
+.page-heading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -9999px;
+  right: -9999px;
+  background: var(--color-accent);
+  z-index: -1;
+}
+
 /* ── Surface depth ─────────────────────────────────────────────────────────── */
+.card,
+.bg-base-200.border-base-300 {
+  border-width: var(--border);
+}
+
 .card,
 .bg-base-200.border-base-300 {
   box-shadow:
@@ -119,7 +144,6 @@ nav.tab-scroll {
    Full variable reference: https://daisyui.com/docs/themes/
    ─────────────────────────────────────────────────────────────────────────── */
 [data-theme="lmodulo"] {
-  name: "light";
   default: false;
   prefersdark: false;
   color-scheme: "dark";
@@ -148,7 +172,7 @@ nav.tab-scroll {
   --radius-box: 0rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
-  --border: 1px;
+  --border: 2px;
   --depth: 1;
   --noise: 1;
 }

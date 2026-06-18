@@ -1,5 +1,6 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
+  import { CircleUser } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import AvatarCropper from '$lib/components/AvatarCropper.svelte';
   import type { PageData, ActionData } from './$types';
@@ -13,6 +14,8 @@
   let username  = $state(data.user?.username  ?? '');
   let email     = $state(data.user?.email     ?? '');
   let phone     = $state(data.user?.phone     ?? '');
+
+  let activeTab = $state<'profile' | 'avatar' | 'teams'>('profile');
 
   // ── Avatar state ──────────────────────────────────────────────────────
   let localAvatarUrl   = $state(data.user?.avatarUrl   ?? '');
@@ -100,32 +103,48 @@
   <title>Profile</title>
 </svelte:head>
 
-<div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 max-w-3xl">
+<div class="flex flex-col gap-6 max-w-2xl">
 
-  <!-- ── Left column ────────────────────────────────────────────────── -->
-  <div class="space-y-6">
-    <h1 class="text-2xl font-bold">Profile</h1>
+  <!-- Page heading -->
+  <div class="page-heading flex items-start gap-3">
+    <CircleUser class="size-6 shrink-0 mt-0.5" />
+    <div>
+      <h1 class="text-2xl font-bold leading-none">Profile</h1>
+      <p class="text-xs opacity-60 mt-0.5">Account information · Avatar · Teams</p>
+    </div>
+  </div>
 
-    <!-- ── My Teams card ───────────────────────────────────────────── -->
+  <!-- Tabs -->
+  <nav class="tab-scroll flex gap-1 border-b border-base-300 -mb-6">
+    <button type="button"
+      class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+        {activeTab === 'profile' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
+      onclick={() => (activeTab = 'profile')}>
+      Profile
+    </button>
+    <button type="button"
+      class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+        {activeTab === 'avatar' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
+      onclick={() => (activeTab = 'avatar')}>
+      Avatar
+    </button>
     {#if myTeams.length > 0}
-      <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-3">
-        <h2 class="text-lg font-semibold">My Teams</h2>
-        <ul class="space-y-2">
-          {#each myTeams as team}
-            <li class="flex items-center justify-between">
-              <span class="font-medium">{team.name}</span>
-              {#if team.description}
-                <span class="text-sm text-base-content/50">{team.description}</span>
-              {/if}
-            </li>
-          {/each}
-        </ul>
-      </div>
+    <button type="button"
+      class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+        {activeTab === 'teams' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
+      onclick={() => (activeTab = 'teams')}>
+      Teams
+    </button>
     {/if}
+  </nav>
 
-    <!-- ── Account info card ─────────────────────────────────────────── -->
-    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
-      <h2 class="text-lg font-semibold">Account Information</h2>
+  <!-- Tab content -->
+  <div class="pt-6">
+
+    <!-- ── Profile tab ─────────────────────────────────────────────── -->
+    {#if activeTab === 'profile'}
+    <div class="bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
+      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Account Information</p>
 
       {#if form?.success}
         <div role="alert" class="alert alert-success text-sm">Profile updated successfully.</div>
@@ -160,12 +179,11 @@
         <button type="submit" class="btn btn-primary w-full">Save Changes</button>
       </form>
     </div>
-  </div>
 
-  <!-- ── Right column — Avatar ──────────────────────────────────────── -->
-  <div class="lg:sticky lg:top-6 lg:self-start">
-    <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
-      <h2 class="text-lg font-semibold">Avatar</h2>
+    <!-- ── Avatar tab ──────────────────────────────────────────────── -->
+    {:else if activeTab === 'avatar'}
+    <div class="bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
+      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Avatar</p>
 
       {#if avatarError}
         <div role="alert" class="alert alert-error text-sm">{avatarError}</div>
@@ -179,11 +197,8 @@
       </div>
 
       {#if cropSrc}
-
         <AvatarCropper src={cropSrc} onApply={onCropApply} onCancel={onCropCancel} />
-
       {:else}
-
         <div role="tablist" class="tabs tabs-box">
           <button role="tab" type="button" class="tab {avatarTab === 'photo' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'photo')}>
             Photo
@@ -215,7 +230,6 @@
               </button>
             {/if}
           </div>
-
         {:else}
           <div class="space-y-4">
             <div class="grid grid-cols-6 gap-2">
@@ -246,9 +260,29 @@
             </button>
           </div>
         {/if}
-
       {/if}
     </div>
-  </div>
 
+    <!-- ── Teams tab ───────────────────────────────────────────────── -->
+    {:else if activeTab === 'teams'}
+    <div class="bg-base-200 border border-base-300 rounded-box p-6 space-y-4">
+      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">My Teams</p>
+      {#if myTeams.length > 0}
+        <ul class="divide-y divide-base-300">
+          {#each myTeams as team}
+            <li class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+              <span class="font-medium">{team.name}</span>
+              {#if team.description}
+                <span class="text-sm opacity-50">{team.description}</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="text-sm opacity-50">You are not a member of any teams.</p>
+      {/if}
+    </div>
+    {/if}
+
+  </div>
 </div>

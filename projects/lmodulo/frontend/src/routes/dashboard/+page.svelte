@@ -468,9 +468,9 @@
 <div class="space-y-10 pb-4">
 
   <!-- Header -->
-  <div class="flex items-end justify-between gap-4">
+  <div class="page-heading flex items-end justify-between gap-4">
     <div class="flex items-start gap-3">
-      <CircleGauge class="size-6 opacity-60 shrink-0 mt-0.5" />
+      <CircleGauge class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p class="text-sm opacity-50 mt-0.5">

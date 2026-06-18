@@ -3,7 +3,7 @@
   let { crumbs }: { crumbs: Crumb[] } = $props();
 </script>
 
-<nav aria-label="Breadcrumb" class="flex items-center gap-1 text-xs w-full bg-base-200 border border-base-300 rounded-none px-4 py-2">
+<nav aria-label="Breadcrumb" class="flex items-center gap-1 text-xs w-full border border-base-300 rounded-none px-4 py-2" style="background-color: var(--color-base-300);">
   {#each crumbs as crumb, i}
     {#if i > 0}
       <span class="opacity-30 select-none">›</span>

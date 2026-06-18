@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronUp, ChevronDown, ChevronsUpDown, Users } from 'lucide-svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
@@ -342,31 +342,39 @@
   <title>User Management</title>
 </svelte:head>
 
-<div class="space-y-6">
-  <h1 class="text-2xl font-bold">User Management</h1>
+<div class="flex flex-col gap-6">
+  <div class="page-heading flex items-start gap-3">
+    <Users class="size-6 shrink-0 mt-0.5" />
+    <div>
+      <h1 class="text-2xl font-bold leading-none">User Management</h1>
+      <p class="text-xs opacity-60 mt-0.5">Users · Roles · Teams</p>
+    </div>
+  </div>
 
   {#if data.error}
     <aside class="alert alert-error p-3 rounded text-sm">{data.error}</aside>
   {/if}
 
   <!-- Tabs -->
-  <div use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300">
+  <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-6">
     {#if data.canReadUsers}
       <button type="button"
-        class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'users' ? 'bg-primary text-primary-content rounded-t' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50 rounded-t'}"
+        class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors {activeTab === 'users' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         onclick={() => setTab('users')}>Users</button>
     {/if}
     {#if data.canReadRoles}
       <button type="button"
-        class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'roles' ? 'bg-primary text-primary-content rounded-t' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50 rounded-t'}"
+        class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors {activeTab === 'roles' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         onclick={() => setTab('roles')}>Roles</button>
     {/if}
     {#if data.canReadTeams}
       <button type="button"
-        class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'teams' ? 'bg-primary text-primary-content rounded-t' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50 rounded-t'}"
+        class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors {activeTab === 'teams' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         onclick={() => setTab('teams')}>Teams</button>
     {/if}
-  </div>
+  </nav>
+
+  <div class="pt-6">
 
   <!-- ── Users tab ─────────────────────────────────────────────────────────── -->
   {#if activeTab === 'users'}
@@ -552,7 +560,7 @@
     </div>
   {/if}
 
-  <!-- ── Teams tab ─────────────────────────────────────────────────────────── -->
+  <!-- ── Teams tab ──────────────────────────────────────────────────────── -->
   {#if activeTab === 'teams'}
     <div class="space-y-4">
       <div class="flex items-center gap-3">
@@ -675,6 +683,8 @@
       <Pagination total={teamsTotal} pageSize={PAGE_SIZE} currentPage={teamsPage} onPage={gotoTeamsPage} />
     </div>
   {/if}
+
+  </div><!-- end pt-6 wrapper -->
 </div>
 
 <!-- Invite User modal -->

@@ -24,11 +24,11 @@
 
 <div data-no-anim class="flex flex-col gap-6">
   <!-- Page header -->
-  <div class="flex items-start gap-3">
-    <Receipt class="size-6 opacity-60 shrink-0 mt-0.5" />
+  <div class="page-heading flex items-start gap-3">
+    <Receipt class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold leading-none">Folio</h1>
-      <p class="text-xs opacity-50 mt-0.5">Invoices · Estimates · Subscriptions · Expenses</p>
+      <p class="text-xs opacity-60 mt-0.5">Invoices · Estimates · Subscriptions · Expenses</p>
     </div>
   </div>
 

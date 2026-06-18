@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
+  import { Settings } from 'lucide-svelte';
   import LogoIcon from '$lib/components/LogoIcon.svelte';
   import type { PageData } from './$types';
 
@@ -141,177 +142,187 @@
     finally { savingBrandName = false; }
   }
 
-  // Filter out brand settings from the generic table (managed in the Brand card above)
+  // Filter out brand settings from the generic table (managed in the Brand tab)
   const genericSettings = $derived(data.settings.filter(s => s.key !== 'brand.name' && s.key !== 'brand.logo'));
+
+  let activeTab = $state<'general' | 'brand'>('general');
 </script>
 
-<div class="space-y-6">
-  <div>
-    <h1 class="text-xl font-bold">Settings</h1>
-    <p class="text-sm opacity-60 mt-1">Application-wide configuration. Changes take effect immediately.</p>
+<div class="flex flex-col gap-6">
+
+  <!-- Page heading -->
+  <div class="page-heading flex items-start gap-3">
+    <Settings class="size-6 shrink-0 mt-0.5" />
+    <div>
+      <h1 class="text-2xl font-bold leading-none">Settings</h1>
+      <p class="text-xs opacity-60 mt-0.5">Application-wide configuration · Changes take effect immediately</p>
+    </div>
   </div>
 
-  <!-- Brand card -->
-  <div class="card bg-base-200 p-5 space-y-4">
-    <div>
-      <h2 class="font-semibold text-sm">Brand</h2>
-      <p class="text-xs opacity-50 mt-0.5">Any combination is allowed. Only fields with values display in the nav.</p>
-    </div>
+  <!-- Tabs -->
+  <nav class="tab-scroll flex gap-1 border-b border-base-300 -mb-6">
+    <button type="button"
+      class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+        {activeTab === 'general' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
+      onclick={() => (activeTab = 'general')}>
+      General
+    </button>
+    <button type="button"
+      class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
+        {activeTab === 'brand' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
+      onclick={() => (activeTab = 'brand')}>
+      Brand
+    </button>
+  </nav>
 
-    {#if brandError}<aside class="alert alert-error p-3 rounded text-sm">{brandError}</aside>{/if}
+  <!-- Tab content -->
+  <div class="pt-6">
 
-    <!-- Brand Name -->
-    <div class="space-y-1">
-      <p class="text-xs font-medium opacity-70">Brand Name</p>
-      {#if editingBrandName}
-        <div class="flex items-center gap-2">
-          <input
-            type="text"
-            class="input text-sm flex-1"
-            placeholder="e.g. Acme Corp"
-            bind:value={brandNameInput}
-          />
-          <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={savingBrandName} onclick={saveBrandName}>
-            {savingBrandName ? 'Saving…' : 'Save'}
-          </button>
-          <button type="button" class="btn btn-ghost btn-sm shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>Cancel</button>
-        </div>
-      {:else}
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-mono opacity-80 flex-1">{currentBrandName || '—'}</span>
-          {#if canEdit}
-            <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick={startBrandNameEdit}>Edit</button>
-            {#if currentBrandName}
-              <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={savingBrandName} onclick={clearBrandName}>Clear</button>
+    <!-- ── General tab ──────────────────────────────────────────────── -->
+    {#if activeTab === 'general'}
+    <div class="bg-base-200 border border-base-300 rounded-box divide-y divide-base-300 overflow-hidden">
+      {#each genericSettings as setting (setting.key)}
+        <div class="flex items-start gap-4 px-5 py-4">
+
+          <!-- Label + description -->
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium">{setting.label}</p>
+            <p class="text-xs opacity-50 mt-0.5">{setting.description}</p>
+            <p class="text-xs opacity-30 mt-1 font-mono">{setting.key}</p>
+          </div>
+
+          <!-- Value / edit area -->
+          <div class="flex items-center gap-2 shrink-0">
+            {#if editingKey === setting.key}
+              <div class="flex items-center gap-2">
+                {#if setting.type === 'boolean'}
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      class="checkbox"
+                      checked={editValue as boolean}
+                      onchange={e => (editValue = (e.target as HTMLInputElement).checked)}
+                    />
+                    <span class="text-sm">{editValue ? 'Enabled' : 'Disabled'}</span>
+                  </label>
+                {:else if setting.type === 'select' && setting.options}
+                  <select
+                    class="select text-sm"
+                    value={editValue as string}
+                    onchange={e => (editValue = (e.target as HTMLSelectElement).value)}
+                  >
+                    {#each setting.options as opt}
+                      <option value={opt}>{opt}</option>
+                    {/each}
+                  </select>
+                {:else}
+                  <input
+                    type={setting.type === 'number' ? 'number' : 'text'}
+                    class="input text-sm w-48"
+                    value={editValue as string}
+                    oninput={e => (editValue = setting.type === 'number' ? Number((e.target as HTMLInputElement).value) : (e.target as HTMLInputElement).value)}
+                  />
+                {/if}
+                {#if saveError}
+                  <span class="text-xs text-error">{saveError}</span>
+                {/if}
+                <button type="button" class="btn btn-primary btn-sm" disabled={saving} onclick={() => save(setting.key)}>
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" disabled={saving} onclick={cancelEdit}>Cancel</button>
+              </div>
+            {:else}
+              <span class="text-sm font-mono opacity-80">
+                {#if setting.type === 'boolean'}
+                  <span class="badge {setting.value ? 'badge-success' : 'badge-neutral'} text-xs">
+                    {setting.value ? 'Enabled' : 'Disabled'}
+                  </span>
+                {:else}
+                  {setting.value}
+                {/if}
+              </span>
+              {#if canEdit}
+                <button type="button" class="btn btn-ghost btn-sm" onclick={() => startEdit(setting)}>Edit</button>
+              {/if}
             {/if}
-          {/if}
+          </div>
+
         </div>
+      {/each}
+
+      {#if !genericSettings.length}
+        <p class="px-5 py-8 text-sm opacity-50 text-center">No settings found.</p>
       {/if}
     </div>
 
-    <!-- Logo -->
-    <div class="space-y-1">
-      <p class="text-xs font-medium opacity-70">Logo</p>
-      <div class="flex items-center gap-4">
-        <div class="size-12 shrink-0 flex items-center justify-center rounded border border-base-300 overflow-hidden bg-base-100">
-          {#if currentLogo}
-            <img src={currentLogo} alt="Brand logo" class="size-full object-contain p-1" />
-          {:else}
-            <LogoIcon class="size-6 text-base-content/40" />
-          {/if}
-        </div>
-        <div class="flex-1 space-y-2">
-          {#if canEdit}
-            <div class="flex items-center gap-2 flex-wrap">
-              <input type="file" class="input text-sm flex-1 min-w-0" accept="image/*" bind:files={logoFiles} />
-              <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={uploading || !logoFiles?.length} onclick={uploadLogo}>
-                {uploading ? 'Uploading…' : 'Upload'}
-              </button>
-              {#if currentLogo}
-                <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={uploading} onclick={removeLogo}>Remove</button>
+    <!-- ── Brand tab ─────────────────────────────────────────────────── -->
+    {:else if activeTab === 'brand'}
+    <div class="bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
+      <div>
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Brand</p>
+        <p class="text-xs opacity-50 mt-1">Any combination is allowed. Only fields with values display in the nav.</p>
+      </div>
+
+      {#if brandError}<aside class="alert alert-error p-3 rounded text-sm">{brandError}</aside>{/if}
+
+      <!-- Brand Name -->
+      <div class="space-y-2">
+        <p class="text-sm font-medium">Brand Name</p>
+        {#if editingBrandName}
+          <div class="flex items-center gap-2">
+            <input
+              type="text"
+              class="input text-sm flex-1"
+              placeholder="e.g. Acme Corp"
+              bind:value={brandNameInput}
+            />
+            <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={savingBrandName} onclick={saveBrandName}>
+              {savingBrandName ? 'Saving…' : 'Save'}
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>Cancel</button>
+          </div>
+        {:else}
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-mono opacity-80 flex-1">{currentBrandName || '—'}</span>
+            {#if canEdit}
+              <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick={startBrandNameEdit}>Edit</button>
+              {#if currentBrandName}
+                <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={savingBrandName} onclick={clearBrandName}>Clear</button>
               {/if}
-            </div>
-          {/if}
-          <p class="text-xs opacity-50">Square PNG or SVG recommended, at least 64×64px.</p>
+            {/if}
+          </div>
+        {/if}
+      </div>
+
+      <!-- Logo -->
+      <div class="space-y-2">
+        <p class="text-sm font-medium">Logo</p>
+        <div class="flex items-center gap-4">
+          <div class="size-14 shrink-0 flex items-center justify-center rounded-box border border-base-300 overflow-hidden bg-base-100">
+            {#if currentLogo}
+              <img src={currentLogo} alt="Brand logo" class="size-full object-contain p-1" />
+            {:else}
+              <LogoIcon class="size-6 text-base-content/40" />
+            {/if}
+          </div>
+          <div class="flex-1 space-y-2">
+            {#if canEdit}
+              <div class="flex items-center gap-2 flex-wrap">
+                <input type="file" class="input text-sm flex-1 min-w-0" accept="image/*" bind:files={logoFiles} />
+                <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={uploading || !logoFiles?.length} onclick={uploadLogo}>
+                  {uploading ? 'Uploading…' : 'Upload'}
+                </button>
+                {#if currentLogo}
+                  <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={uploading} onclick={removeLogo}>Remove</button>
+                {/if}
+              </div>
+            {/if}
+            <p class="text-xs opacity-50">Square PNG or SVG recommended, at least 64×64px.</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="card bg-base-200 divide-y divide-base-300">
-    {#each genericSettings as setting (setting.key)}
-      <div class="flex items-start gap-4 px-5 py-4">
-
-        <!-- Label + description -->
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium">{setting.label}</p>
-          <p class="text-xs opacity-50 mt-0.5">{setting.description}</p>
-          <p class="text-xs opacity-30 mt-1 font-mono">{setting.key}</p>
-        </div>
-
-        <!-- Value / edit area -->
-        <div class="flex items-center gap-2 shrink-0">
-          {#if editingKey === setting.key}
-            <!-- Editing -->
-            <div class="flex items-center gap-2">
-              {#if setting.type === 'boolean'}
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    class="checkbox"
-                    checked={editValue as boolean}
-                    onchange={e => (editValue = (e.target as HTMLInputElement).checked)}
-                  />
-                  <span class="text-sm">{editValue ? 'Enabled' : 'Disabled'}</span>
-                </label>
-              {:else if setting.type === 'select' && setting.options}
-                <select
-                  class="select text-sm"
-                  value={editValue as string}
-                  onchange={e => (editValue = (e.target as HTMLSelectElement).value)}
-                >
-                  {#each setting.options as opt}
-                    <option value={opt}>{opt}</option>
-                  {/each}
-                </select>
-              {:else}
-                <input
-                  type={setting.type === 'number' ? 'number' : 'text'}
-                  class="input text-sm w-48"
-                  value={editValue as string}
-                  oninput={e => (editValue = setting.type === 'number' ? Number((e.target as HTMLInputElement).value) : (e.target as HTMLInputElement).value)}
-                />
-              {/if}
-
-              {#if saveError}
-                <span class="text-xs text-error">{saveError}</span>
-              {/if}
-
-              <button
-                type="button"
-                class="btn btn-primary btn-sm"
-                disabled={saving}
-                onclick={() => save(setting.key)}
-              >
-                {saving ? 'Saving…' : 'Save'}
-              </button>
-              <button
-                type="button"
-                class="btn btn-ghost btn-sm"
-                disabled={saving}
-                onclick={cancelEdit}
-              >
-                Cancel
-              </button>
-            </div>
-          {:else}
-            <!-- Display -->
-            <span class="text-sm font-mono opacity-80">
-              {#if setting.type === 'boolean'}
-                <span class="badge {setting.value ? 'badge-success' : 'badge-neutral'} text-xs">
-                  {setting.value ? 'Enabled' : 'Disabled'}
-                </span>
-              {:else}
-                {setting.value}
-              {/if}
-            </span>
-            {#if canEdit}
-              <button
-                type="button"
-                class="btn btn-ghost btn-sm"
-                onclick={() => startEdit(setting)}
-              >
-                Edit
-              </button>
-            {/if}
-          {/if}
-        </div>
-
-      </div>
-    {/each}
-
-    {#if !genericSettings.length}
-      <p class="px-5 py-8 text-sm opacity-50 text-center">No settings found.</p>
     {/if}
+
   </div>
 </div>

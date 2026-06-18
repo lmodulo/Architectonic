@@ -3,6 +3,7 @@
   import { page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
   import { Plus, Building2, DollarSign, FileSignature, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -43,6 +44,9 @@
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(v);
   }
 
+  const PAGE_SIZE = 25;
+  let currentPage = $state(1);
+
   let sortField = $state('updatedAt');
   let sortDir   = $state<'asc' | 'desc'>('desc');
 
@@ -66,6 +70,9 @@
       return 0;
     });
   });
+
+  const paged = $derived(sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+  $effect(() => { data.filter; sortField; sortDir; currentPage = 1; });
 
   function setFilter(value: string) {
     const params = new URLSearchParams(page.url.searchParams);
@@ -130,7 +137,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each sorted as c}
+          {#each paged as c}
             <tr
               class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
               onclick={() => goto(`/contracts/${c.id}`)}
@@ -169,6 +176,16 @@
           {/each}
         </tbody>
       </table>
+      {#if sorted.length > PAGE_SIZE}
+        <div class="border-t border-base-300 px-4 py-2">
+          <Pagination
+            total={sorted.length}
+            pageSize={PAGE_SIZE}
+            currentPage={currentPage}
+            onPage={(n) => (currentPage = n)}
+          />
+        </div>
+      {/if}
     </div>
   {/if}
 </div>

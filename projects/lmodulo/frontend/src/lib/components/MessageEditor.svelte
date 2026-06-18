@@ -4,6 +4,9 @@
   import StarterKit from '@tiptap/starter-kit';
   import Underline from '@tiptap/extension-underline';
   import Placeholder from '@tiptap/extension-placeholder';
+  import Link from '@tiptap/extension-link';
+  import { UrlParserExtension } from '$lib/extensions/UrlParserExtension';
+  import { defaultParsers } from '$lib/extensions/editorParsers';
   import {
     Bold, Italic, UnderlineIcon, List, ListOrdered,
     TextQuote, Undo, Redo
@@ -24,6 +27,8 @@
         StarterKit,
         Underline,
         Placeholder.configure({ placeholder }),
+        Link.configure({ openOnClick: false }),
+        UrlParserExtension.configure({ parsers: defaultParsers }),
       ],
       content: html,
       onUpdate: ({ editor: e }) => {
@@ -141,6 +146,7 @@
     height: 0;
   }
   :global(.tiptap:focus) { outline: none; }
+  :global(.tiptap a) { color: var(--color-primary); text-decoration: underline; cursor: pointer; }
   :global(.tiptap ul)  { list-style: disc;    padding-left: 1.5rem; }
   :global(.tiptap ol)  { list-style: decimal; padding-left: 1.5rem; }
   :global(.tiptap blockquote) {
