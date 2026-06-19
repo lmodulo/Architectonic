@@ -3,14 +3,14 @@
   import {
     Menu as MenuIcon, LogOut, X, User, Users,
     Settings, ChevronRight, ChevronDown, HelpCircle,
-    Mail, Bell
+    Mail, Bell, Pin, PinOff
   } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import GlobalSearch from '$lib/components/GlobalSearch.svelte';
   import { navItems, isNavGroup, isSeparator } from '$lib/config/nav';
   import { navigating, page } from '$app/state';
   import { beforeNavigate, afterNavigate } from '$app/navigation';
-  import { tick } from 'svelte';
+  import { tick, onMount } from 'svelte';
   import { fade } from 'svelte/transition';
   import { hasPermission } from '$lib/permissions';
   import { scrollStore } from '$lib/stores/scroll';
@@ -36,6 +36,13 @@
 
   let sidebarOpen = $state(false);
   let sidebarExpanded = $state(false);
+  let sidebarPinned = $state(true);
+
+  onMount(() => {
+    const saved = localStorage.getItem('nav-pinned');
+    sidebarPinned = saved === null ? true : saved === 'true';
+    if (sidebarPinned) sidebarExpanded = true;
+  });
   const pathname = $derived(page.url.pathname);
   let logoutForm: HTMLFormElement = $state()!;
   let unreadCount = $state(data.unreadCount ?? 0);
@@ -116,8 +123,14 @@
     sidebarOpen = false;
   }
 
-  function onAsideMouseEnter() { sidebarExpanded = true; }
-  function onAsideMouseLeave() { sidebarExpanded = false; }
+  function togglePin() {
+    sidebarPinned = !sidebarPinned;
+    localStorage.setItem('nav-pinned', String(sidebarPinned));
+    if (!sidebarPinned) sidebarExpanded = false;
+  }
+
+  function onAsideMouseEnter() { if (!sidebarPinned) sidebarExpanded = true; }
+  function onAsideMouseLeave() { if (!sidebarPinned) sidebarExpanded = false; }
 </script>
 
 <svelte:head>
@@ -193,6 +206,19 @@
           aria-label="Close navigation"
         >
           <X class="size-4" />
+        </button>
+        <button
+          type="button"
+          class="hidden lg:flex btn btn-ghost btn-sm btn-square shrink-0 transition-opacity duration-150
+                 {sidebarExpanded ? 'opacity-40 hover:opacity-100' : 'opacity-0 pointer-events-none'}"
+          onclick={togglePin}
+          aria-label={sidebarPinned ? 'Unpin navigation' : 'Pin navigation'}
+        >
+          {#if sidebarPinned}
+            <PinOff class="size-3.5" />
+          {:else}
+            <Pin class="size-3.5" />
+          {/if}
         </button>
       </div>
 

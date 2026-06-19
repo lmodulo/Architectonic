@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import {
     ArrowLeft, Download, Upload, Pencil, Check, X, Clock, FileText,
-    File, Trash2, Save, SquarePen
+    File as FileIcon, Trash2, Save, SquarePen
   } from 'lucide-svelte';
   import Modal from '$lib/components/Modal.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
@@ -10,6 +10,7 @@
   import type { PageData } from './$types';
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
+  import TurndownService from 'turndown';
   import { fade } from 'svelte/transition';
 
   let { data }: { data: PageData } = $props();
@@ -104,8 +105,10 @@
     rawSaving = true;
     rawError  = '';
     try {
+      const td = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-', codeBlockStyle: 'fenced' });
+      const markdown = td.turndown(rawEditorHtml);
       const filename = currentVersion?.originalName ?? `${doc.name}.md`;
-      const blob = new Blob([rawEditorHtml], { type: 'text/markdown; charset=utf-8' });
+      const blob = new Blob([markdown], { type: 'text/markdown; charset=utf-8' });
       const file = new File([blob], filename, { type: 'text/markdown' });
       const fd = new FormData();
       fd.append('file', file);
@@ -118,7 +121,7 @@
         currentVersionId = vData.currentVersionId ?? null;
       }
       await loadPreview();
-    } catch { rawError = 'Network error'; }
+    } catch (err) { rawError = err instanceof Error ? err.message : 'Network error'; }
     finally { rawSaving = false; }
   }
 
@@ -239,7 +242,7 @@
 
 <div class="flex flex-col gap-6">
   <!-- Back + actions header -->
-  <div class="flex items-start justify-between gap-4">
+  <div class="page-heading flex items-start justify-between gap-4">
     <div class="flex items-center gap-3">
       <a href="/vault" class="btn btn-ghost btn-square btn-sm"><ArrowLeft class="size-4" /></a>
       <div>
@@ -268,7 +271,7 @@
             </button>
           {:else}
             <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openEditRaw}>
-              <SquarePen class="size-4" /><span class="hidden sm:inline">Edit Raw</span>
+              <SquarePen class="size-4" /><span class="hidden sm:inline">Edit Document</span>
             </button>
           {/if}
         {/if}
@@ -329,7 +332,7 @@
           {/if}
         {:else}
           <div class="flex flex-col items-center gap-3 py-16 opacity-30">
-            <File class="size-12" />
+            <FileIcon class="size-12" />
             <p class="text-sm">No preview available</p>
           </div>
         {/if}

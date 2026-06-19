@@ -4,7 +4,7 @@
 //   lofi · pastel · fantasy · wireframe · black · luxury · dracula · cmyk · autumn ·
 //   business · acid · lemonade · night · coffee · winter · dim · nord · sunset
 // Custom themes (defined in src/app.css): lmodulo
-export const APP_THEME = 'black';
+export const APP_THEME = 'lmodulo';
 
 export type FontStack = {
   family: string;   // font name as it appears in the CDN, e.g. 'Fraunces'
