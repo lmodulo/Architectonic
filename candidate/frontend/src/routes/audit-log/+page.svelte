@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { Search, ChevronDown } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
@@ -10,18 +11,18 @@
 
   const PAGE_SIZE = 20;
 
-  const ACTION_CATEGORIES = [
-    { value: '',           label: 'All Actions'  },
-    { value: 'auth',       label: 'Auth'         },
-    { value: 'user',       label: 'Users'        },
-    { value: 'role',       label: 'Roles'        },
-    { value: 'team',       label: 'Teams'        },
-    { value: 'workspace',  label: 'Workspace'    },
-    { value: 'message',    label: 'Messages'     },
-    { value: 'automation', label: 'Automation'   },
-    { value: 'event',      label: 'Events'       },
-    { value: 'settings',   label: 'Settings'     },
-  ];
+  const ACTION_CATEGORIES = $derived([
+    { value: '',           label: m.audit_cat_all()        },
+    { value: 'auth',       label: m.audit_cat_auth()       },
+    { value: 'user',       label: m.audit_cat_users()      },
+    { value: 'role',       label: m.audit_cat_roles()      },
+    { value: 'team',       label: m.audit_cat_teams()      },
+    { value: 'workspace',  label: m.audit_cat_workspace()  },
+    { value: 'message',    label: m.audit_cat_messages()   },
+    { value: 'automation', label: m.audit_cat_automation() },
+    { value: 'event',      label: m.audit_cat_events()     },
+    { value: 'settings',   label: m.audit_cat_settings()   },
+  ]);
 
   const CATEGORY_BADGE: Record<string, string> = {
     auth:       'badge-primary',
@@ -83,11 +84,11 @@
 </script>
 
 <svelte:head>
-  <title>Audit Log</title>
+  <title>{m.audit_title()}</title>
 </svelte:head>
 
 <div class="space-y-6">
-  <PageHeader title="Audit Log" subtitle="Track actions taken by workspace members" />
+  <PageHeader title={m.audit_title()} subtitle={m.audit_subtitle()} />
 
   {#if data.error}
     <div role="alert" class="alert alert-error text-sm">{data.error}</div>
@@ -98,7 +99,7 @@
       <Search class="size-4 opacity-50" />
       <input
         type="search"
-        placeholder="Search by username…"
+        placeholder={m.audit_search()}
         class="grow"
         bind:value={q}
         onkeydown={(e) => e.key === 'Enter' && applyFilters()}
@@ -111,18 +112,18 @@
       {/each}
     </select>
 
-    <button type="button" class="btn btn-primary" onclick={applyFilters}>Apply</button>
+    <button type="button" class="btn btn-primary" onclick={applyFilters}>{m.common_apply()}</button>
   </div>
 
   <div class="card bg-base-100 border border-base-200 overflow-hidden">
     <table class="table table-sm">
       <thead>
         <tr>
-          <th>Timestamp</th>
-          <th>Actor</th>
-          <th>Action</th>
-          <th>Resource</th>
-          <th>IP</th>
+          <th>{m.audit_col_timestamp()}</th>
+          <th>{m.audit_col_actor()}</th>
+          <th>{m.audit_col_action()}</th>
+          <th>{m.audit_col_resource()}</th>
+          <th>{m.audit_col_ip()}</th>
           <th></th>
         </tr>
       </thead>
@@ -166,7 +167,7 @@
                 <button
                   type="button"
                   class="btn btn-ghost btn-square btn-xs"
-                  aria-label="{expanded.has(entry.id) ? 'Collapse' : 'Expand'} details"
+                  aria-label="{expanded.has(entry.id) ? m.audit_collapse() : m.audit_expand()} details"
                   onclick={() => toggleMeta(entry.id)}
                 >
                   <ChevronDown class="size-3.5 transition-transform duration-150 {expanded.has(entry.id) ? 'rotate-180' : ''}" />
@@ -183,7 +184,7 @@
           {/if}
         {:else}
           <tr>
-            <td colspan="6" class="text-center opacity-50 py-8 text-sm">No audit entries found.</td>
+            <td colspan="6" class="text-center opacity-50 py-8 text-sm">{m.audit_no_entries()}</td>
           </tr>
         {/each}
       </tbody>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
+  import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
@@ -29,12 +30,12 @@
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        saveError = (d as { message?: string }).message ?? 'Save failed';
+        saveError = (d as { message?: string }).message ?? m.errors_save_failed();
         return;
       }
       saveOk = true;
       await invalidateAll();
-    } catch { saveError = 'Network error'; }
+    } catch { saveError = m.errors_network_error(); }
     finally { saving = false; }
   }
 
@@ -57,12 +58,12 @@
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        addError = (d as { message?: string }).message ?? 'Failed to add member';
+        addError = (d as { message?: string }).message ?? m.errors_add_failed();
         return;
       }
       addEmail = '';
       await invalidateAll();
-    } catch { addError = 'Network error'; }
+    } catch { addError = m.errors_network_error(); }
     finally { addLoading = false; }
   }
 
@@ -83,25 +84,25 @@
   }
 </script>
 
-<PageHeader title="Workspace Settings" />
+<PageHeader title={m.workspace_settings_title()} />
 
 <!-- Tabs -->
 <div class="tabs tabs-bordered mb-6">
   <button
     class="tab {activeTab === 'general' ? 'tab-active' : ''}"
     onclick={() => (activeTab = 'general')}
-  >General</button>
+  >{m.workspace_settings_general()}</button>
   <button
     class="tab {activeTab === 'members' ? 'tab-active' : ''}"
     onclick={() => (activeTab = 'members')}
-  >Members</button>
+  >{m.workspace_settings_members()}</button>
 </div>
 
 {#if activeTab === 'general'}
   <div class="card bg-base-200 max-w-xl">
     <div class="card-body gap-4">
       <div class="form-control">
-        <label class="label" for="ws-name"><span class="label-text">Name</span></label>
+        <label class="label" for="ws-name"><span class="label-text">{m.common_name()}</span></label>
         <input
           id="ws-name"
           type="text"
@@ -111,7 +112,7 @@
         />
       </div>
       <div class="form-control">
-        <label class="label" for="ws-desc"><span class="label-text">Description</span></label>
+        <label class="label" for="ws-desc"><span class="label-text">{m.common_description()}</span></label>
         <textarea
           id="ws-desc"
           class="textarea textarea-bordered"
@@ -124,12 +125,12 @@
         <p class="text-error text-sm">{saveError}</p>
       {/if}
       {#if saveOk}
-        <p class="text-success text-sm">Saved.</p>
+        <p class="text-success text-sm">{m.workspace_settings_saved()}</p>
       {/if}
       {#if canUpdate}
         <div class="card-actions justify-end">
           <button class="btn btn-primary btn-sm" onclick={saveGeneral} disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? m.common_saving() : m.common_save()}
           </button>
         </div>
       {/if}
@@ -145,20 +146,20 @@
         <table class="table table-sm">
           <thead>
             <tr>
-              <th>Member</th>
-              <th>Role</th>
+              <th>{m.workspace_settings_member()}</th>
+              <th>{m.user_mgmt_col_role()}</th>
               {#if canUpdate}<th></th>{/if}
             </tr>
           </thead>
           <tbody>
-            {#each (data.members ?? []) as m (m.id)}
+            {#each (data.members ?? []) as member (member.id)}
               <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
                 <td>
                   <div class="flex items-center gap-2">
-                    <Avatar user={m} size="xs" />
+                    <Avatar user={member} size="xs" />
                     <div>
-                      <p class="font-medium text-sm">{m.firstName} {m.lastName}</p>
-                      <p class="text-xs opacity-50">{m.email}</p>
+                      <p class="font-medium text-sm">{member.firstName} {member.lastName}</p>
+                      <p class="text-xs opacity-50">{member.email}</p>
                     </div>
                   </div>
                 </td>
@@ -166,24 +167,24 @@
                   {#if canUpdate}
                     <select
                       class="select select-sm select-bordered"
-                      value={m.role}
-                      onchange={e => changeRole(m.id, (e.target as HTMLSelectElement).value)}
+                      value={member.role}
+                      onchange={e => changeRole(member.id, (e.target as HTMLSelectElement).value)}
                     >
                       {#each ROLES as r}
                         <option value={r}>{r}</option>
                       {/each}
                     </select>
                   {:else}
-                    <span class="badge badge-sm badge-ghost">{m.role}</span>
+                    <span class="badge badge-sm badge-ghost">{member.role}</span>
                   {/if}
                 </td>
                 {#if canUpdate}
                   <td class="text-right">
-                    {#if m.id !== data.user?.id}
+                    {#if member.id !== data.user?.id}
                       <button
                         class="btn btn-ghost btn-xs text-error"
-                        onclick={() => removeMember(m.id)}
-                      >Remove</button>
+                        onclick={() => removeMember(member.id)}
+                      >{m.common_remove()}</button>
                     {/if}
                   </td>
                 {/if}
@@ -198,12 +199,12 @@
     {#if canUpdate}
       <div class="card bg-base-200">
         <div class="card-body gap-4">
-          <h3 class="font-semibold">Add Member</h3>
+          <h3 class="font-semibold">{m.workspace_settings_add_member()}</h3>
           <div class="flex gap-2 flex-wrap">
             <input
               type="email"
               class="input input-bordered input-sm flex-1 min-w-48"
-              placeholder="Email address"
+              placeholder={m.workspace_settings_email()}
               bind:value={addEmail}
             />
             <select class="select select-bordered select-sm" bind:value={addRole}>
@@ -216,7 +217,7 @@
               onclick={addMember}
               disabled={addLoading || !addEmail.trim()}
             >
-              {addLoading ? 'Adding…' : 'Add'}
+              {addLoading ? m.common_adding() : m.common_add()}
             </button>
           </div>
           {#if addError}

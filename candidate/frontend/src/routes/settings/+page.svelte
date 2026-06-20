@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
+  import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import LogoIcon from '$lib/components/LogoIcon.svelte';
   import type { PageData } from './$types';
@@ -36,12 +37,12 @@
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        saveError = (d as { message?: string }).message ?? 'Save failed';
+        saveError = (d as { message?: string }).message ?? m.errors_save_failed();
         return;
       }
       editingKey = null;
       await invalidateAll();
-    } catch { saveError = 'Network error'; }
+    } catch { saveError = m.errors_network_error(); }
     finally { saving = false; }
   }
 
@@ -61,10 +62,10 @@
     fd.append('file', logoFiles[0]);
     try {
       const res = await fetch('/api/settings/logo', { method: 'POST', body: fd });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); brandError = b.message ?? 'Upload failed'; return; }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); brandError = b.message ?? m.errors_upload_failed(); return; }
       logoFiles = null;
       await invalidateAll();
-    } catch { brandError = 'Network error'; }
+    } catch { brandError = m.errors_network_error(); }
     finally { uploading = false; }
   }
 
@@ -75,9 +76,9 @@
         method: 'PATCH', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ value: '' })
       });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); brandError = b.message ?? 'Remove failed'; return; }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); brandError = b.message ?? m.errors_remove_failed(); return; }
       await invalidateAll();
-    } catch { brandError = 'Network error'; }
+    } catch { brandError = m.errors_network_error(); }
     finally { uploading = false; }
   }
 
@@ -95,10 +96,10 @@
         fetch('/api/settings/brand.name', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ value: brandNameInput }) }),
         fetch('/api/settings/brand.logo', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ value: '' }) })
       ]);
-      if (!nameRes.ok || !logoRes.ok) { brandError = 'Save failed'; return; }
+      if (!nameRes.ok || !logoRes.ok) { brandError = m.errors_save_failed(); return; }
       editingBrandName = false;
       await invalidateAll();
-    } catch { brandError = 'Network error'; }
+    } catch { brandError = m.errors_network_error(); }
     finally { savingBrandName = false; }
   }
 
@@ -106,23 +107,31 @@
     savingBrandName = true; brandError = '';
     try {
       const res = await fetch('/api/settings/brand.name', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ value: '' }) });
-      if (!res.ok) { brandError = 'Clear failed'; return; }
+      if (!res.ok) { brandError = m.errors_clear_failed(); return; }
       await invalidateAll();
-    } catch { brandError = 'Network error'; }
+    } catch { brandError = m.errors_network_error(); }
     finally { savingBrandName = false; }
   }
 
   const genericSettings = $derived(data.settings.filter(s => s.key !== 'brand.name' && s.key !== 'brand.logo'));
+
+  const LANGUAGE_NAMES: Record<string, string> = {
+    en: 'English', es: 'Spanish', fr: 'French', de: 'German',
+    pt: 'Portuguese', it: 'Italian', nl: 'Dutch', ja: 'Japanese',
+    zh: 'Chinese', ko: 'Korean', ar: 'Arabic'
+  };
+
+  function langLabel(code: string) { return LANGUAGE_NAMES[code] ?? code; }
 </script>
 
 <div class="space-y-6">
-  <PageHeader title="Settings" subtitle="Application-wide configuration. Changes take effect immediately." />
+  <PageHeader title={m.settings_title()} subtitle={m.settings_subtitle()} />
 
   <!-- Brand card -->
   <div class="card bg-base-100 border border-base-200 p-5 space-y-4">
     <div>
-      <h2 class="font-semibold text-sm">Brand</h2>
-      <p class="text-xs opacity-50 mt-0.5">Choose one: Brand Name (text) or Logo (image). Setting one clears the other.</p>
+      <h2 class="font-semibold text-sm">{m.settings_brand()}</h2>
+      <p class="text-xs opacity-50 mt-0.5">{m.settings_brand_hint()}</p>
     </div>
 
     {#if brandError}
@@ -131,22 +140,22 @@
 
     <!-- Brand Name -->
     <div class="space-y-1">
-      <p class="text-xs font-medium opacity-70">Brand Name</p>
+      <p class="text-xs font-medium opacity-70">{m.settings_brand_name()}</p>
       {#if editingBrandName}
         <div class="flex items-center gap-2">
           <input type="text" class="input input-bordered input-sm flex-1" placeholder="e.g. Acme Corp" bind:value={brandNameInput} />
           <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={savingBrandName} onclick={saveBrandName}>
-            {savingBrandName ? 'Saving…' : 'Save'}
+            {savingBrandName ? m.common_saving() : m.common_save()}
           </button>
-          <button type="button" class="btn btn-ghost btn-sm shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>Cancel</button>
+          <button type="button" class="btn btn-ghost btn-sm shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>{m.common_cancel()}</button>
         </div>
       {:else}
         <div class="flex items-center gap-2">
           <span class="text-sm font-mono opacity-80 flex-1">{currentBrandName || '—'}</span>
           {#if canEdit}
-            <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick={startBrandNameEdit}>Edit</button>
+            <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick={startBrandNameEdit}>{m.common_edit()}</button>
             {#if currentBrandName}
-              <button type="button" class="btn btn-outline btn-error btn-sm shrink-0" disabled={savingBrandName} onclick={clearBrandName}>Clear</button>
+              <button type="button" class="btn btn-outline btn-error btn-sm shrink-0" disabled={savingBrandName} onclick={clearBrandName}>{m.common_clear()}</button>
             {/if}
           {/if}
         </div>
@@ -155,7 +164,7 @@
 
     <!-- Logo -->
     <div class="space-y-1">
-      <p class="text-xs font-medium opacity-70">Logo</p>
+      <p class="text-xs font-medium opacity-70">{m.settings_logo()}</p>
       <div class="flex items-center gap-4">
         <div class="size-12 shrink-0 flex items-center justify-center rounded-lg border border-base-300 overflow-hidden bg-base-200">
           {#if currentLogo}
@@ -169,14 +178,14 @@
             <div class="flex items-center gap-2 flex-wrap">
               <input type="file" class="file-input file-input-bordered file-input-sm flex-1 min-w-0" accept="image/*" bind:files={logoFiles} />
               <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={uploading || !logoFiles?.length} onclick={uploadLogo}>
-                {uploading ? 'Uploading…' : 'Upload'}
+                {uploading ? m.common_uploading() : m.common_upload()}
               </button>
               {#if currentLogo}
-                <button type="button" class="btn btn-outline btn-error btn-sm shrink-0" disabled={uploading} onclick={removeLogo}>Remove</button>
+                <button type="button" class="btn btn-outline btn-error btn-sm shrink-0" disabled={uploading} onclick={removeLogo}>{m.common_remove()}</button>
               {/if}
             </div>
           {/if}
-          <p class="text-xs opacity-50">Square PNG or SVG recommended, at least 64×64px.</p>
+          <p class="text-xs opacity-50">{m.settings_logo_hint()}</p>
         </div>
       </div>
     </div>
@@ -199,13 +208,13 @@
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" class="checkbox" checked={editValue as boolean}
                     onchange={e => (editValue = (e.target as HTMLInputElement).checked)} />
-                  <span class="text-sm">{editValue ? 'Enabled' : 'Disabled'}</span>
+                  <span class="text-sm">{editValue ? m.common_enabled() : m.common_disabled()}</span>
                 </label>
               {:else if setting.type === 'select' && setting.options}
                 <select class="select select-bordered select-sm" value={editValue as string}
                   onchange={e => (editValue = (e.target as HTMLSelectElement).value)}>
                   {#each setting.options as opt}
-                    <option value={opt}>{opt}</option>
+                    <option value={opt}>{setting.key === 'app.language' ? langLabel(opt) : opt}</option>
                   {/each}
                 </select>
               {:else}
@@ -222,22 +231,24 @@
               {/if}
 
               <button type="button" class="btn btn-primary btn-sm" disabled={saving} onclick={() => save(setting.key)}>
-                {saving ? 'Saving…' : 'Save'}
+                {saving ? m.common_saving() : m.common_save()}
               </button>
-              <button type="button" class="btn btn-ghost btn-sm" disabled={saving} onclick={cancelEdit}>Cancel</button>
+              <button type="button" class="btn btn-ghost btn-sm" disabled={saving} onclick={cancelEdit}>{m.common_cancel()}</button>
             </div>
           {:else}
             <span class="text-sm font-mono opacity-80">
               {#if setting.type === 'boolean'}
                 <span class="badge {setting.value ? 'badge-success' : 'badge-ghost'} text-xs">
-                  {setting.value ? 'Enabled' : 'Disabled'}
+                  {setting.value ? m.common_enabled() : m.common_disabled()}
                 </span>
+              {:else if setting.key === 'app.language'}
+                {langLabel(setting.value as string)}
               {:else}
                 {setting.value}
               {/if}
             </span>
             {#if canEdit}
-              <button type="button" class="btn btn-ghost btn-sm" onclick={() => startEdit(setting)}>Edit</button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick={() => startEdit(setting)}>{m.common_edit()}</button>
             {/if}
           {/if}
         </div>
@@ -245,7 +256,7 @@
     {/each}
 
     {#if !genericSettings.length}
-      <p class="px-5 py-8 text-sm opacity-50 text-center">No settings found.</p>
+      <p class="px-5 py-8 text-sm opacity-50 text-center">{m.settings_no_settings()}</p>
     {/if}
   </div>
 </div>

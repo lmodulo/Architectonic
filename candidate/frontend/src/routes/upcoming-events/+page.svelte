@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -42,19 +43,19 @@
   }, []);
 </script>
 
-<svelte:head><title>Upcoming Events</title></svelte:head>
+<svelte:head><title>{m.events_title()}</title></svelte:head>
 
 <div class="max-w-3xl mx-auto px-4 py-10 space-y-10">
 
   <div>
-    <h1 class="text-3xl font-bold">Upcoming Events</h1>
-    <p class="text-sm opacity-60 mt-1">Events scheduled over the next 12 months.</p>
+    <h1 class="text-3xl font-bold">{m.events_title()}</h1>
+    <p class="text-sm opacity-60 mt-1">{m.events_subtitle()}</p>
   </div>
 
   {#if groups.length === 0}
     <div class="card bg-base-100 border border-base-200 p-10 text-center space-y-2">
-      <p class="text-lg font-semibold opacity-50">No upcoming events scheduled.</p>
-      <p class="text-sm opacity-40">Check back soon.</p>
+      <p class="text-lg font-semibold opacity-50">{m.events_none()}</p>
+      <p class="text-sm opacity-40">{m.events_check_back()}</p>
     </div>
   {:else}
     {#each groups as group}

@@ -2,6 +2,7 @@
   import { invalidate, invalidateAll } from '$app/navigation';
   import { onMount } from 'svelte';
   import { Reply } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
@@ -44,7 +45,7 @@
   const threadId = $derived(messages[0]?.threadId ?? '');
 
   async function sendReply() {
-    if (!replyBody.trim() || replyBody === '<p></p>') { error = 'Reply body is required'; return; }
+    if (!replyBody.trim() || replyBody === '<p></p>') { error = m.messages_reply_required(); return; }
     sending = true; error = '';
     try {
       const res = await fetch(`/api/messages/${threadId}/reply`, {
@@ -54,14 +55,14 @@
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        error = (d as { message?: string }).message ?? 'Send failed';
+        error = (d as { message?: string }).message ?? m.errors_send_failed();
         return;
       }
       replyBody = '';
       replyOpen = false;
       await Promise.all([invalidate('app:unread'), invalidateAll()]);
     } catch {
-      error = 'Network error';
+      error = m.errors_network_error();
     } finally {
       sending = false;
     }
@@ -74,7 +75,7 @@
   {#if messages.length > 0}
     <div class="px-6 py-3 border-b border-base-300 shrink-0">
       <h1 class="text-base font-semibold truncate">{messages[0].subject}</h1>
-      <p class="text-xs opacity-50 mt-0.5">{messages.length} message{messages.length !== 1 ? 's' : ''}</p>
+      <p class="text-xs opacity-50 mt-0.5">{m.messages_count({ count: messages.length })}</p>
     </div>
   {/if}
 
@@ -113,7 +114,7 @@
             type="button"
             class="btn btn-ghost"
             onclick={() => { replyOpen = false; replyBody = ''; error = ''; }}
-          >Cancel</button>
+          >{m.common_cancel()}</button>
           <button
             type="button"
             class="btn btn-primary"
@@ -121,7 +122,7 @@
             onclick={sendReply}
           >
             <Reply class="size-4" />
-            {sending ? 'Sending…' : 'Reply'}
+            {sending ? m.common_sending() : m.messages_reply()}
           </button>
         </div>
       </div>
@@ -132,7 +133,7 @@
         onclick={() => (replyOpen = true)}
       >
         <Reply class="size-4" />
-        Reply
+        {m.messages_reply()}
       </button>
     {/if}
   </div>

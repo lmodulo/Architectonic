@@ -2,6 +2,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import type { Plugin } from 'vite';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 function themeHotReload(): Plugin {
 	return {
@@ -21,7 +22,8 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
-		themeHotReload()
+		themeHotReload(),
+		paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide' })
 	],
 	server: {
 		proxy: {

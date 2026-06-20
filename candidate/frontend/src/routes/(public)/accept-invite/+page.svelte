@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import AuthShell from '$lib/components/AuthShell.svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import type { ActionData, PageData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -11,17 +12,17 @@
 </script>
 
 <svelte:head>
-  <title>Accept Invitation</title>
+  <title>{m.auth_invite_title()}</title>
 </svelte:head>
 
-<AuthShell title="Accept Invitation" subtitle="Set your username and password to activate your account." brandName={data.brandName} brandLogo={data.brandLogo}>
+<AuthShell title={m.auth_invite_title()} subtitle={m.auth_invite_subtitle()} brandName={data.brandName} brandLogo={data.brandLogo}>
 
   {#if !data.token}
     <div role="alert" class="alert alert-error text-sm">
-      Invalid invitation link. Please contact your administrator.
+      {m.auth_invite_invalid()}
     </div>
     <div class="flex items-center justify-center text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
-      <a href="/login" class="link">← Back to Sign In</a>
+      <a href="/login" class="link">{m.common_back_to_sign_in()}</a>
     </div>
   {:else}
     {#if form?.error}
@@ -32,7 +33,7 @@
       <input type="hidden" name="token" value={data.token} />
 
       <label class="flex flex-col gap-1">
-        <span>Username</span>
+        <span>{m.common_username()}</span>
         <input
           class="input"
           type="text"
@@ -46,7 +47,7 @@
       </label>
 
       <label class="flex flex-col gap-1">
-        <span>Password</span>
+        <span>{m.common_password()}</span>
         <input
           class="input"
           type="password"
@@ -60,7 +61,7 @@
       </label>
 
       <label class="flex flex-col gap-1">
-        <span>Confirm Password</span>
+        <span>{m.auth_reset_confirm_password()}</span>
         <input
           class="input {mismatch ? 'input-error' : ''}"
           type="password"
@@ -71,17 +72,17 @@
           placeholder="••••••••"
         />
         {#if mismatch}
-          <span class="text-xs text-error">Passwords do not match</span>
+          <span class="text-xs text-error">{m.auth_reset_mismatch()}</span>
         {/if}
       </label>
 
       <button type="submit" class="btn btn-primary" disabled={mismatch}>
-        Activate Account
+        {m.auth_invite_button()}
       </button>
     </form>
 
     <div class="flex items-center justify-center text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
-      <a href="/login" class="link">← Back to Sign In</a>
+      <a href="/login" class="link">{m.common_back_to_sign_in()}</a>
     </div>
   {/if}
 

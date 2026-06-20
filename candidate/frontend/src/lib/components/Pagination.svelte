@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let {
     count,
@@ -53,7 +54,7 @@
     class="join-item btn btn-sm btn-ghost"
     disabled={page <= 1}
     onclick={() => go(1)}
-    aria-label="First page"
+    aria-label={m.pagination_first()}
   ><ChevronFirst class="size-4" /></button>
 
   <button
@@ -61,7 +62,7 @@
     class="join-item btn btn-sm btn-ghost"
     disabled={page <= 1}
     onclick={() => go(page - 1)}
-    aria-label="Previous page"
+    aria-label={m.pagination_prev()}
   ><ChevronLeft class="size-4" /></button>
 
   {#each pages as p (p.key)}
@@ -81,7 +82,7 @@
     class="join-item btn btn-sm btn-ghost"
     disabled={page >= totalPages}
     onclick={() => go(page + 1)}
-    aria-label="Next page"
+    aria-label={m.pagination_next()}
   ><ChevronRight class="size-4" /></button>
 
   <button
@@ -89,6 +90,6 @@
     class="join-item btn btn-sm btn-ghost"
     disabled={page >= totalPages}
     onclick={() => go(totalPages)}
-    aria-label="Last page"
+    aria-label={m.pagination_last()}
   ><ChevronLast class="size-4" /></button>
 </div>

@@ -46,6 +46,14 @@ const DEFAULT_SETTINGS = [
     type: 'boolean',
     label: 'AI Assistant',
     description: 'Show the AI chat assistant panel for authenticated users'
+  },
+  {
+    key: 'app.language',
+    value: 'en',
+    type: 'select',
+    label: 'Default Language',
+    description: 'Default language for the application interface (English is the system default)',
+    options: ['en', 'es', 'fr', 'de', 'pt', 'it', 'nl', 'ja', 'zh', 'ko', 'ar']
   }
 ];
 

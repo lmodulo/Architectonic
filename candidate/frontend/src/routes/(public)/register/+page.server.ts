@@ -18,7 +18,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, cookies }) => {
+  default: async ({ request, cookies, url }) => {
     const form     = await request.formData();
     const username = form.get('username') as string;
     const email    = form.get('email')    as string;
@@ -60,7 +60,7 @@ export const actions: Actions = {
           path:     '/',
           httpOnly: true,
           sameSite: 'lax',
-          secure:   process.env.NODE_ENV === 'production',
+          secure:   url.protocol === 'https:',
           maxAge:   60 * 60 * 24 * 7
         });
       }

@@ -1,22 +1,134 @@
 @import "tailwindcss";
+
+/* ── Active theme ─────────────────────────────────────────────────────────────
+   Change APP_THEME in src/lib/config/theme.ts to switch.
+   Built-in options: light · dark · cupcake · bumblebee · emerald · corporate ·
+     synthwave · retro · cyberpunk · valentine · halloween · garden · forest ·
+     aqua · lofi · pastel · fantasy · wireframe · black · luxury · dracula ·
+     cmyk · autumn · business · acid · lemonade · night · coffee · winter ·
+     dim · nord · sunset
+   Custom options: defined in lmodulo-theme.css (copy to build your own)
+   ─────────────────────────────────────────────────────────────────────────── */
 @plugin "daisyui" {
-  themes: false;
+  themes: light, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro,
+          cyberpunk, valentine, halloween, garden, forest, aqua, lofi, pastel,
+          fantasy, wireframe, black, luxury, dracula, cmyk, autumn,
+          acid, lemonade, night, coffee, winter, dim, nord, sunset;
+}
+
+/* ── svelte-select theme ─────────────────────────────────────────────────── */
+.svelte-select {
+  --background: var(--color-base-100);
+  --border: 1px solid color-mix(in srgb, var(--color-base-content) 18%, transparent);
+  --border-hover: 1px solid color-mix(in srgb, var(--color-base-content) 35%, transparent);
+  --border-radius: var(--radius-field, 0.5rem);
+  --input-color: var(--color-base-content);
+  --placeholder-color: var(--color-base-content);
+  --placeholder-opacity: 0.38;
+  --chevron-color: var(--color-base-content);
+  --clear-select-color: var(--color-base-content);
+  --item-color: var(--color-base-content);
+  --item-hover-bg: var(--color-base-300);
+  --item-hover-color: var(--color-base-content);
+  --item-is-active-bg: var(--color-primary);
+  --item-is-active-color: var(--color-primary-content);
+  --multi-item-bg: var(--color-base-300);
+  --multi-item-color: var(--color-base-content);
+  --list-background: var(--color-base-200);
+  --list-border: 1px solid color-mix(in srgb, var(--color-base-content) 12%, transparent);
+  --list-border-radius: var(--radius-box, 0.75rem);
+  --list-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --list-z-index: 9999;
+  --height: 2.5rem;
+  --font-size: 0.875rem;
 }
 
 /* dark: utilities activate when data-theme="business" is set */
 @custom-variant dark (&:where([data-theme=business], [data-theme=business] *));
 
-/* Custom project theme */
+/* Custom project theme (defined in lmodulo-theme.css) */
 @import "../lmodulo-theme.css";
 
+/* ── Font defaults (built-in DaisyUI themes don't set --display/--body) ─────── */
+:root {
+  --display: ui-serif, Georgia, serif;
+  --body:    ui-sans-serif, system-ui, sans-serif;
+  --mono:    ui-monospace, SFMono-Regular, monospace;
+}
+
 body {
-  font-family: var(--font-sans);
+  font-family: var(--body);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
+  font-family: var(--display);
 }
 
-.card {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 24px 56px rgba(0, 0, 0, 0.4);
+h1 { font-size: 1.75rem;  line-height: 1.15; font-weight: 700; }
+h2 { font-size: 1.5rem;   line-height: 1.2;  font-weight: 600; }
+h3 { font-size: 1.25rem;  line-height: 1.25; font-weight: 600; }
+h4 { font-size: 1.125rem; line-height: 1.3;  font-weight: 500; }
+h5 { font-size: 1rem;     line-height: 1.4;  font-weight: 500; }
+h6 { font-size: 0.875rem; line-height: 1.5;  font-weight: 500; }
+
+.tab-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+nav.tab-scroll {
+  border-bottom-width: 4px;
+}
+.tab-scroll::-webkit-scrollbar { display: none; }
+
+.table-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.table-scroll::-webkit-scrollbar { display: none; }
+
+.select {
+  padding-inline-end: 2.5rem;
+  min-width: max-content;
+}
+
+.table thead tr {
+  background: var(--color-neutral);
+}
+
+.table thead tr th {
+  padding-inline: 1rem;
+  color: white;
+}
+
+/* ── Page heading banner ────────────────────────────────────────────────────── */
+.page-heading {
+  position: relative;
+  isolation: isolate;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  color: var(--color-accent-content);
+}
+
+.page-heading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -9999px;
+  right: -9999px;
+  background: var(--color-accent);
+  z-index: -1;
+}
+
+/* ── Surface depth ─────────────────────────────────────────────────────────── */
+.card,
+.bg-base-200.border-base-300 {
+  border-width: var(--border);
+}
+
+.card,
+.bg-base-200.border-base-300 {
+  box-shadow:
+    0 0 8px 2px color-mix(in srgb, var(--color-base-300) 20%, transparent),
+    inset 0 0 16px color-mix(in srgb, var(--color-base-100) 50%, transparent);
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import AvatarCropper from '$lib/components/AvatarCropper.svelte';
@@ -56,12 +57,12 @@
       fd.append('file', blob, 'avatar.jpg');
       const res = await fetch('/api/auth/avatar', { method: 'POST', body: fd });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { avatarError = (d as { message?: string }).message ?? 'Upload failed'; return; }
+      if (!res.ok) { avatarError = (d as { message?: string }).message ?? m.errors_upload_failed(); return; }
       localAvatarUrl = (d as { url: string }).url;
-      avatarSuccess = 'Photo updated.';
+      avatarSuccess = m.profile_photo_updated();
       fileInput.value = '';
       await invalidateAll();
-    } catch { avatarError = 'Network error'; }
+    } catch { avatarError = m.errors_network_error(); }
     finally { avatarUploading = false; }
   }
 
@@ -71,11 +72,11 @@
     avatarUploading = true; avatarError = ''; avatarSuccess = '';
     try {
       const res = await fetch('/api/auth/avatar', { method: 'DELETE' });
-      if (!res.ok) { avatarError = 'Remove failed'; return; }
+      if (!res.ok) { avatarError = m.errors_remove_failed(); return; }
       localAvatarUrl = '';
-      avatarSuccess = 'Photo removed.';
+      avatarSuccess = m.profile_photo_removed();
       await invalidateAll();
-    } catch { avatarError = 'Network error'; }
+    } catch { avatarError = m.errors_network_error(); }
     finally { avatarUploading = false; }
   }
 
@@ -87,24 +88,24 @@
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ avatarColor: localAvatarColor }),
       });
-      if (!res.ok) { avatarError = 'Save failed'; return; }
-      avatarSuccess = 'Color saved.';
+      if (!res.ok) { avatarError = m.errors_save_failed(); return; }
+      avatarSuccess = m.profile_color_saved();
       await invalidateAll();
-    } catch { avatarError = 'Network error'; }
+    } catch { avatarError = m.errors_network_error(); }
     finally { colorSaving = false; }
   }
 </script>
 
 <svelte:head>
-  <title>Profile</title>
+  <title>{m.profile_title()}</title>
 </svelte:head>
 
 <div class="max-w-lg space-y-6">
-  <PageHeader title="Profile" />
+  <PageHeader title={m.profile_title()} />
 
   <!-- ── Avatar card ─────────────────────────────────────────────────── -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
-    <h2 class="text-lg font-semibold">Avatar</h2>
+    <h2 class="text-lg font-semibold">{m.profile_avatar()}</h2>
 
     {#if avatarError}
       <div role="alert" class="alert alert-error text-sm">{avatarError}</div>
@@ -125,10 +126,10 @@
 
       <div role="tablist" class="tabs tabs-box">
         <button role="tab" type="button" class="tab {avatarTab === 'photo' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'photo')}>
-          Photo
+          {m.profile_photo()}
         </button>
         <button role="tab" type="button" class="tab {avatarTab === 'color' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'color')}>
-          Color
+          {m.profile_color()}
         </button>
       </div>
 
@@ -141,7 +142,7 @@
             disabled={avatarUploading}
             onclick={() => fileInput.click()}
           >
-            {localAvatarUrl ? 'Change Photo' : 'Upload Photo'}
+            {localAvatarUrl ? m.profile_change_photo() : m.profile_upload_photo()}
           </button>
           {#if localAvatarUrl}
             <button
@@ -150,7 +151,7 @@
               disabled={avatarUploading}
               onclick={removeAvatar}
             >
-              Remove Photo
+              {m.profile_remove_photo()}
             </button>
           {/if}
         </div>
@@ -181,7 +182,7 @@
             disabled={colorSaving}
             onclick={saveColor}
           >
-            {colorSaving ? 'Saving…' : 'Save Color'}
+            {colorSaving ? m.common_saving() : m.profile_save_color()}
           </button>
         </div>
       {/if}
@@ -192,7 +193,7 @@
   <!-- ── My Teams card ─────────────────────────────────────────────────── -->
   {#if data.myTeams && data.myTeams.length > 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-3">
-      <h2 class="text-lg font-semibold">My Teams</h2>
+      <h2 class="text-lg font-semibold">{m.profile_my_teams()}</h2>
       <ul class="space-y-2">
         {#each data.myTeams as team}
           <li class="flex items-center justify-between gap-3">
@@ -203,7 +204,7 @@
               {/if}
             </div>
             <span class="badge badge-ghost text-xs shrink-0">
-              {team.memberCount} {team.memberCount === 1 ? 'member' : 'members'}
+              {m.profile_members_count({ count: team.memberCount })}
             </span>
           </li>
         {/each}
@@ -213,10 +214,10 @@
 
   <!-- ── Account info card ───────────────────────────────────────────── -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
-    <h2 class="text-lg font-semibold">Account Information</h2>
+    <h2 class="text-lg font-semibold">{m.profile_account_info()}</h2>
 
     {#if form?.success}
-      <div role="alert" class="alert alert-success text-sm">Profile updated successfully.</div>
+      <div role="alert" class="alert alert-success text-sm">{m.profile_updated()}</div>
     {/if}
     {#if form?.error}
       <div role="alert" class="alert alert-error text-sm">{form.error}</div>
@@ -225,27 +226,27 @@
     <form method="POST" class="space-y-4">
       <div class="grid grid-cols-2 gap-4">
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">First Name</span>
+          <span class="text-sm font-medium">{m.common_first_name()}</span>
           <input type="text" name="firstName" class="input" bind:value={firstName} maxlength="50" autocomplete="given-name" placeholder="Jane" />
         </label>
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Last Name</span>
+          <span class="text-sm font-medium">{m.common_last_name()}</span>
           <input type="text" name="lastName" class="input" bind:value={lastName} maxlength="50" autocomplete="family-name" placeholder="Doe" />
         </label>
       </div>
       <label class="flex flex-col gap-1">
-        <span class="text-sm font-medium">Username</span>
+        <span class="text-sm font-medium">{m.common_username()}</span>
         <input type="text" name="username" class="input" bind:value={username} minlength="2" maxlength="50" required />
       </label>
       <label class="flex flex-col gap-1">
-        <span class="text-sm font-medium">Email</span>
+        <span class="text-sm font-medium">{m.common_email()}</span>
         <input type="email" name="email" class="input" bind:value={email} required />
       </label>
       <label class="flex flex-col gap-1">
-        <span class="text-sm font-medium">Phone</span>
+        <span class="text-sm font-medium">{m.common_phone()}</span>
         <input type="tel" name="phone" class="input" bind:value={phone} maxlength="30" placeholder="+1 555 000 0000" autocomplete="tel" />
       </label>
-      <button type="submit" class="btn btn-primary w-full">Save Changes</button>
+      <button type="submit" class="btn btn-primary w-full">{m.common_save_changes()}</button>
     </form>
   </div>
 </div>

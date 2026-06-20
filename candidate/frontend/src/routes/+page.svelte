@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import MarketingNav from '$lib/components/MarketingNav.svelte';
   import Logo from '$lib/components/Logo.svelte';
   import { brand } from '$lib/config/logo';
@@ -39,27 +40,27 @@
   let fadeRefs: (Element | undefined)[] = $state(Array(30).fill(undefined));
 
   // ── Data ──────────────────────────────────────────────────────────
-  const features = [
-    { icon: '🔐', title: 'Secure Authentication', body: 'Login and registration with bcrypt hashing, server-side session validation on every request, and redirect guards.' },
-    { icon: '🗄️', title: 'Session Management',    body: 'MongoDB-backed sessions via connect-mongo with configurable TTL, signed HTTP-only cookies, and auto cleanup.' },
-    { icon: '🎨', title: 'UI Component System',    body: 'DaisyUI v5 with Tailwind v4 — buttons, badges, cards, forms, navigation, and a custom branded theme.' },
-    { icon: '🐳', title: 'Docker Dev Stack',        body: 'One command brings up SvelteKit, Fastify, and MongoDB with bind-mount hot reload and health-checked startup order.' },
-    { icon: '⚡', title: 'Type-Safe API',           body: 'Fastify v5 with TypeScript, JSON Schema request validation, plugin encapsulation, and a structured route layout.' },
-    { icon: '🚀', title: 'Production Ready',        body: 'Separate dev and prod Docker configs, environment-aware security settings, and health endpoints built in.' }
-  ];
+  const features = $derived([
+    { icon: '🔐', title: m.landing_feature_auth_title(),    body: m.landing_feature_auth_body()    },
+    { icon: '🗄️', title: m.landing_feature_session_title(), body: m.landing_feature_session_body() },
+    { icon: '🎨', title: m.landing_feature_ui_title(),      body: m.landing_feature_ui_body()      },
+    { icon: '🐳', title: m.landing_feature_docker_title(),  body: m.landing_feature_docker_body()  },
+    { icon: '⚡', title: m.landing_feature_api_title(),     body: m.landing_feature_api_body()     },
+    { icon: '🚀', title: m.landing_feature_prod_title(),    body: m.landing_feature_prod_body()    },
+  ]);
 
-  const stats = [
-    { value: '10k+',   label: 'Developers' },
-    { value: '< 5min', label: 'Setup Time' },
-    { value: '100%',   label: 'TypeScript' },
-    { value: 'MIT',    label: 'License'    }
-  ];
+  const stats = $derived([
+    { value: '10k+',   label: m.landing_stat_developers() },
+    { value: '< 5min', label: m.landing_stat_setup()      },
+    { value: '100%',   label: m.landing_stat_typescript() },
+    { value: 'MIT',    label: m.landing_stat_license()    },
+  ]);
 
-  const steps = [
-    { num: '01', title: 'Clone the repo',       body: 'One git clone pulls the entire scaffold — API, frontend, and database all configured and ready.' },
-    { num: '02', title: 'Set your env vars',     body: 'Copy .env.example, add a session secret and Mongo URI. Everything else has sensible defaults.' },
-    { num: '03', title: 'Deploy anywhere',       body: 'Docker Compose for local dev. Drop the same image into any cloud provider for production.' }
-  ];
+  const steps = $derived([
+    { num: '01', title: m.landing_step1_title(), body: m.landing_step1_body() },
+    { num: '02', title: m.landing_step2_title(), body: m.landing_step2_body() },
+    { num: '03', title: m.landing_step3_title(), body: m.landing_step3_body() },
+  ]);
 
   const buttons = [
     { label: 'Primary',   cls: 'btn btn-primary'             },
@@ -67,7 +68,7 @@
     { label: 'Outlined',  cls: 'btn btn-outline btn-primary' },
     { label: 'Error',     cls: 'btn btn-outline btn-error'   },
     { label: 'Success',   cls: 'btn btn-success'             },
-    { label: 'Warning',   cls: 'btn btn-warning'             }
+    { label: 'Warning',   cls: 'btn btn-warning'             },
   ];
 
   const badges = [
@@ -76,56 +77,56 @@
     { label: 'success',   cls: 'badge badge-success'   },
     { label: 'warning',   cls: 'badge badge-warning'   },
     { label: 'error',     cls: 'badge badge-error'     },
-    { label: 'neutral',   cls: 'badge badge-neutral'   }
+    { label: 'neutral',   cls: 'badge badge-neutral'   },
   ];
 
-  const alerts = [
-    { type: 'alert-success', label: 'Success', msg: 'Your changes have been saved successfully.' },
-    { type: 'alert-warning', label: 'Warning', msg: 'This action will affect all team members.' },
-    { type: 'alert-error',   label: 'Error',   msg: 'Connection failed. Please try again.' }
-  ];
+  const alerts = $derived([
+    { type: 'alert-success', label: m.landing_alert_success_label(), msg: m.landing_alert_success_msg() },
+    { type: 'alert-warning', label: m.landing_alert_warning_label(), msg: m.landing_alert_warning_msg() },
+    { type: 'alert-error',   label: m.landing_alert_error_label(),   msg: m.landing_alert_error_msg()   },
+  ]);
 
-  const testimonials = [
-    { quote: 'Saved me two weeks of boilerplate. Auth, roles, and a polished UI all wired before I wrote a single line of business logic.', name: 'Alex Rivera',  role: 'Senior Engineer',    initials: 'AR', hue: 'var(--color-primary-500)'   },
-    { quote: "The RBAC system is exactly what I needed. Per-route guards and component-level permission checks that actually work.", name: 'Sam Chen',    role: 'Fullstack Developer',  initials: 'SC', hue: 'var(--color-secondary-500)' },
-    { quote: "Best scaffold I've tried. SvelteKit + Fastify is a killer combo and the DaisyUI themes are gorgeous out of the box.", name: 'Jamie Brooks', role: 'Indie Hacker',         initials: 'JB', hue: 'var(--color-tertiary-500)'  }
-  ];
+  const testimonials = $derived([
+    { quote: m.landing_testimonial_alex_quote(),  name: m.landing_testimonial_alex_name(),  role: m.landing_testimonial_alex_role(),  initials: 'AR', hue: 'var(--color-primary-500)'   },
+    { quote: m.landing_testimonial_sam_quote(),   name: m.landing_testimonial_sam_name(),   role: m.landing_testimonial_sam_role(),   initials: 'SC', hue: 'var(--color-secondary-500)' },
+    { quote: m.landing_testimonial_jamie_quote(), name: m.landing_testimonial_jamie_name(), role: m.landing_testimonial_jamie_role(), initials: 'JB', hue: 'var(--color-tertiary-500)'  },
+  ]);
 
-  const plans = [
+  const plans = $derived([
     {
-      name: 'Starter',
-      price: 'Free',
-      period: 'forever',
-      desc: 'Everything you need to launch a project.',
+      name: m.landing_plan_starter_name(),
+      price: m.landing_plan_starter_price(),
+      period: m.landing_plan_starter_period(),
+      desc: m.landing_plan_starter_desc(),
       badge: null,
-      features: ['Full source code', 'Auth & session management', 'SvelteKit + Fastify', 'Docker dev stack', 'MIT License'],
-      cta: 'Clone Now',
+      features: [m.landing_feat_full_source(), m.landing_feat_auth(), m.landing_feat_stack(), m.landing_feat_docker(), m.landing_feat_mit()],
+      cta: m.landing_plan_starter_cta(),
       href: '/login',
       highlight: false
     },
     {
-      name: 'Pro',
-      price: '$12',
-      period: 'per month',
-      desc: 'Advanced features for growing applications.',
-      badge: 'Most Popular',
-      features: ['Everything in Starter', 'RBAC roles & permissions', 'Admin dashboard', 'Manage Users UI', 'Priority support'],
-      cta: 'Get Started',
+      name: m.landing_plan_pro_name(),
+      price: m.landing_plan_pro_price(),
+      period: m.landing_plan_pro_period(),
+      desc: m.landing_plan_pro_desc(),
+      badge: m.landing_plan_pro_badge(),
+      features: [m.landing_feat_everything_starter(), m.landing_feat_rbac(), m.landing_feat_dashboard(), m.landing_feat_users_ui(), m.landing_feat_priority()],
+      cta: m.landing_plan_pro_cta(),
       href: '/login',
       highlight: true
     },
     {
-      name: 'Team',
-      price: '$49',
-      period: 'per month',
-      desc: 'Built for teams that ship fast.',
+      name: m.landing_plan_team_name(),
+      price: m.landing_plan_team_price(),
+      period: m.landing_plan_team_period(),
+      desc: m.landing_plan_team_desc(),
       badge: null,
-      features: ['Everything in Pro', 'Unlimited team seats', 'Custom branding', 'Audit logging', 'SLA guarantee'],
-      cta: 'Contact Sales',
+      features: [m.landing_feat_everything_pro(), m.landing_feat_unlimited(), m.landing_feat_branding(), m.landing_feat_audit(), m.landing_feat_sla()],
+      cta: m.landing_plan_team_cta(),
       href: '/login',
       highlight: false
-    }
-  ];
+    },
+  ]);
 
   const stack = [
     'SvelteKit 2', 'Svelte 5', 'Fastify 5', 'MongoDB 7',
@@ -189,20 +190,19 @@
       <Logo />
     </div>
 
-    <span class="badge badge-primary badge-outline mb-6">Production-ready scaffold</span>
+    <span class="badge badge-primary badge-outline mb-6">{m.landing_badge()}</span>
 
     <h1 class="hero-headline">
       {brand.description}
     </h1>
 
     <p class="hero-sub">
-      A full-stack SvelteKit + Fastify scaffold with authentication, RBAC, session management,
-      MongoDB, and a polished DaisyUI — clone it and start shipping.
+      {m.landing_hero_sub()}
     </p>
 
     <div class="flex flex-wrap gap-4 justify-center">
-      <a href="/login" class="btn btn-primary btn-lg">Get Started Free</a>
-      <a href="/login" class="btn btn-outline btn-primary btn-lg">Sign In</a>
+      <a href="/login" class="btn btn-primary btn-lg">{m.landing_cta_primary()}</a>
+      <a href="/login" class="btn btn-outline btn-primary btn-lg">{m.marketing_nav_sign_in()}</a>
     </div>
   </div>
 </section>
@@ -224,8 +224,8 @@
   <div class="section-inner">
 
     <div class="fade-el text-center space-y-3" bind:this={fadeRefs[1]}>
-      <h2 class="section-heading">Everything wired up on day one</h2>
-      <p class="section-sub">No boilerplate hunting. Every layer is configured and connected.</p>
+      <h2 class="section-heading">{m.landing_features_heading()}</h2>
+      <p class="section-sub">{m.landing_features_sub()}</p>
     </div>
 
     <div class="features-grid">
@@ -250,8 +250,8 @@
   <div class="section-inner">
 
     <div class="fade-el text-center space-y-3" bind:this={fadeRefs[9]}>
-      <h2 class="section-heading-alt">Up and running in three steps</h2>
-      <p class="section-sub-alt">From zero to authenticated app in under five minutes.</p>
+      <h2 class="section-heading-alt">{m.landing_steps_heading()}</h2>
+      <p class="section-sub-alt">{m.landing_steps_sub()}</p>
     </div>
 
     <div class="steps-grid fade-el" bind:this={fadeRefs[10]}>
@@ -272,15 +272,15 @@
   <div class="section-inner">
 
     <div class="fade-el text-center space-y-3" bind:this={fadeRefs[11]}>
-      <h2 class="section-heading">UI components included</h2>
-      <p class="section-sub">DaisyUI v5 ships dozens of pre-styled, themeable components ready to use.</p>
+      <h2 class="section-heading">{m.landing_components_heading()}</h2>
+      <p class="section-sub">{m.landing_components_sub()}</p>
     </div>
 
     <div class="showcase-grid fade-el" bind:this={fadeRefs[12]}>
 
       <!-- Buttons -->
       <div class="showcase-card">
-        <p class="showcase-label">Buttons</p>
+        <p class="showcase-label">{m.landing_showcase_buttons()}</p>
         <div class="flex flex-wrap gap-2">
           {#each buttons as b}
             <button type="button" class="{b.cls} btn-sm">{b.label}</button>
@@ -290,7 +290,7 @@
 
       <!-- Badges -->
       <div class="showcase-card">
-        <p class="showcase-label">Badges</p>
+        <p class="showcase-label">{m.landing_showcase_badges()}</p>
         <div class="flex flex-wrap gap-2">
           {#each badges as b}
             <span class={b.cls}>{b.label}</span>
@@ -300,7 +300,7 @@
 
       <!-- Alerts -->
       <div class="showcase-card col-span-full">
-        <p class="showcase-label">Alerts</p>
+        <p class="showcase-label">{m.landing_showcase_alerts()}</p>
         <div class="space-y-2">
           {#each alerts as a}
             <div class="alert {a.type} p-3 text-sm flex items-center gap-2">
@@ -313,14 +313,14 @@
 
       <!-- Card -->
       <div class="showcase-card">
-        <p class="showcase-label">Card</p>
+        <p class="showcase-label">{m.landing_showcase_card()}</p>
         <div class="card bg-base-100 border border-base-200 overflow-hidden text-sm">
-          <header class="bg-primary text-primary-content px-4 py-3 font-semibold">Card Header</header>
+          <header class="bg-primary text-primary-content px-4 py-3 font-semibold">{m.landing_showcase_card_header()}</header>
           <div class="p-4 space-y-2 opacity-80">
-            <p>Card body with any content — text, forms, tables, or nested components.</p>
+            <p>{m.landing_showcase_card_body()}</p>
             <div class="flex gap-2 pt-1">
-              <button type="button" class="btn btn-sm btn-primary">Action</button>
-              <button type="button" class="btn btn-sm btn-ghost">Cancel</button>
+              <button type="button" class="btn btn-sm btn-primary">{m.landing_showcase_action()}</button>
+              <button type="button" class="btn btn-sm btn-ghost">{m.common_cancel()}</button>
             </div>
           </div>
         </div>
@@ -328,12 +328,12 @@
 
       <!-- Progress -->
       <div class="showcase-card">
-        <p class="showcase-label">Progress</p>
+        <p class="showcase-label">{m.landing_showcase_progress()}</p>
         <div class="space-y-3">
           {#each [
-            { label: 'Storage',    pct: 72, cls: 'bg-primary'   },
-            { label: 'Bandwidth',  pct: 45, cls: 'bg-secondary' },
-            { label: 'API Quota',  pct: 91, cls: 'bg-error'     }
+            { label: m.landing_showcase_storage(),   pct: 72, cls: 'bg-primary'   },
+            { label: m.landing_showcase_bandwidth(),  pct: 45, cls: 'bg-secondary' },
+            { label: m.landing_showcase_api_quota(),  pct: 91, cls: 'bg-error'     }
           ] as row}
             <div class="space-y-1">
               <div class="flex justify-between text-xs opacity-50">
@@ -357,8 +357,8 @@
   <div class="section-inner">
 
     <div class="fade-el text-center space-y-3" bind:this={fadeRefs[13]}>
-      <h2 class="section-heading-alt">The stack</h2>
-      <p class="section-sub-alt">Modern, opinionated, and fully typed end to end.</p>
+      <h2 class="section-heading-alt">{m.landing_stack_heading()}</h2>
+      <p class="section-sub-alt">{m.landing_stack_sub()}</p>
     </div>
 
     <div class="fade-el stack-grid" bind:this={fadeRefs[14]}>
@@ -375,8 +375,8 @@
   <div class="section-inner">
 
     <div class="fade-el text-center space-y-3" bind:this={fadeRefs[15]}>
-      <h2 class="section-heading">Trusted by developers</h2>
-      <p class="section-sub">What people are saying after shipping with {brand.text}.</p>
+      <h2 class="section-heading">{m.landing_testimonials_heading()}</h2>
+      <p class="section-sub">{m.landing_testimonials_sub({ brandName: brand.text })}</p>
     </div>
 
     <div class="testimonials-grid fade-el" bind:this={fadeRefs[16]}>
@@ -402,8 +402,8 @@
   <div class="section-inner">
 
     <div class="fade-el text-center space-y-3" bind:this={fadeRefs[17]}>
-      <h2 class="section-heading-alt">Simple, transparent pricing</h2>
-      <p class="section-sub-alt">Start free. Scale when you're ready.</p>
+      <h2 class="section-heading-alt">{m.landing_pricing_heading()}</h2>
+      <p class="section-sub-alt">{m.landing_pricing_sub()}</p>
     </div>
 
     <div class="pricing-grid fade-el" bind:this={fadeRefs[18]}>
@@ -442,9 +442,9 @@
 <!-- ── CTA ────────────────────────────────────────────────────────── -->
 <section class="section-cta">
   <div class="fade-el section-inner text-center space-y-6" bind:this={fadeRefs[19]}>
-    <h2 class="cta-heading">Ready to build something?</h2>
-    <p class="cta-sub">Create your account and have a running authenticated app in minutes.</p>
-    <a href="/login" class="btn btn-primary btn-lg">Start Building</a>
+    <h2 class="cta-heading">{m.landing_cta_heading()}</h2>
+    <p class="cta-sub">{m.landing_cta_sub()}</p>
+    <a href="/login" class="btn btn-primary btn-lg">{m.landing_cta_start()}</a>
   </div>
 </section>
 
@@ -453,7 +453,7 @@
   <div class="footer-brand">
     <Logo />
   </div>
-  <p class="footer-copy">MIT License</p>
+  <p class="footer-copy">{m.landing_footer_license()}</p>
 </footer>
 
 <style>

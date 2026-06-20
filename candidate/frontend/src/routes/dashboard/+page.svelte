@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import {
@@ -21,13 +22,13 @@
   interface SectionConfig { id: string; visible: boolean; items?: ItemConfig[]; }
   interface DashboardLayout { sections: SectionConfig[]; }
 
-  const SECTION_LABELS: Record<string, string> = {
-    kpi:           'KPI Cards',
-    charts:        'Charts',
-    'sales-table': 'Sales Records',
-    calendar:      'Order Calendar',
-    widgets:       'Module Widgets',
-  };
+  const SECTION_LABELS = $derived<Record<string, string>>({
+    kpi:           m.dashboard_section_kpi(),
+    charts:        m.dashboard_section_charts(),
+    'sales-table': m.dashboard_section_sales(),
+    calendar:      m.dashboard_section_calendar(),
+    widgets:       m.dashboard_section_widgets(),
+  });
 
   const ITEM_LABELS: Record<string, Record<string, string>> = {
     kpi: {
@@ -133,12 +134,12 @@
 
   const fmt = (n: number) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
 
-  const KPI_DEFS = [
-    { id: 'revenue',    label: 'Total Revenue',  value: fmt(totalRevenue),    sub: '90-day period',       icon: DollarSign,   color: 'primary'   },
-    { id: 'orders',     label: 'Total Orders',   value: String(totalOrders),  sub: 'across all regions',  icon: ShoppingCart, color: 'secondary' },
-    { id: 'avg-order',  label: 'Avg Order Value',value: fmt(avgOrder),        sub: 'per transaction',     icon: TrendingUp,   color: 'success'   },
-    { id: 'top-region', label: 'Top Region',     value: topRegion,            sub: 'by order volume',     icon: MapPin,       color: 'warning'   },
-  ];
+  const KPI_DEFS = $derived([
+    { id: 'revenue',    label: m.dashboard_kpi_total_revenue(), value: fmt(totalRevenue),    sub: m.dashboard_kpi_sub_period(),      icon: DollarSign,   color: 'primary'   },
+    { id: 'orders',     label: m.dashboard_kpi_total_orders(),  value: String(totalOrders),  sub: m.dashboard_kpi_sub_regions(),     icon: ShoppingCart, color: 'secondary' },
+    { id: 'avg-order',  label: m.dashboard_kpi_avg_order(),     value: fmt(avgOrder),        sub: m.dashboard_kpi_sub_transaction(), icon: TrendingUp,   color: 'success'   },
+    { id: 'top-region', label: m.dashboard_kpi_top_region(),    value: topRegion,            sub: m.dashboard_kpi_sub_volume(),      icon: MapPin,       color: 'warning'   },
+  ]);
 
   // ── Chart datasets ─────────────────────────────────────────────────
   const dailyData = Array.from({ length: 30 }, (_, i) => {
@@ -322,8 +323,8 @@
   }
 
   async function saveEvent() {
-    if (!eventForm.title.trim()) { eventError = 'Title is required'; return; }
-    if (!eventForm.startDate)    { eventError = 'Start date is required'; return; }
+    if (!eventForm.title.trim()) { eventError = m.errors_title_required(); return; }
+    if (!eventForm.startDate)    { eventError = m.errors_start_date_required(); return; }
     eventLoading = true;
     eventError   = '';
     const body = {
@@ -342,7 +343,7 @@
       }
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        eventError = (d as { message?: string }).message ?? 'Save failed';
+        eventError = (d as { message?: string }).message ?? m.errors_save_failed();
         return;
       }
       const saved = await res.json();
@@ -361,7 +362,7 @@
       }
       eventModalOpen = false;
     } catch {
-      eventError = 'Network error';
+      eventError = m.errors_network_error();
     } finally {
       eventLoading = false;
     }
@@ -374,14 +375,14 @@
       const res = await fetch(`/api/events/${editingEventId}`, { method: 'DELETE' });
       if (res.status !== 204 && !res.ok) {
         const d = await res.json().catch(() => ({}));
-        eventError = (d as { message?: string }).message ?? 'Delete failed';
+        eventError = (d as { message?: string }).message ?? m.errors_delete_failed();
         return;
       }
       events = events.filter(e => e.id !== editingEventId);
       eventDeleteConfirm = false;
       eventModalOpen     = false;
     } catch {
-      eventError = 'Network error';
+      eventError = m.errors_network_error();
     } finally {
       eventLoading = false;
     }
@@ -536,22 +537,22 @@
   });
 </script>
 
-<svelte:head><title>Dashboard</title></svelte:head>
+<svelte:head><title>{m.dashboard_title()}</title></svelte:head>
 
 <div class="space-y-6">
 
   <!-- Header row with Edit Layout toggle -->
   <div class="flex items-start justify-between gap-4">
-    <PageHeader title="Dashboard">Welcome back, <strong>{data.user?.firstName ?? data.user?.username}</strong> — last 90 days of sales activity</PageHeader>
+    <PageHeader title={m.dashboard_title()}>{m.dashboard_welcome({ firstName: data.user?.firstName ?? data.user?.username ?? '' })}</PageHeader>
     <button
       type="button"
       class="btn btn-sm shrink-0 mt-1 {editMode ? 'btn-success' : 'btn-ghost border border-base-300'}"
       onclick={() => { editMode = !editMode; }}
     >
       {#if editMode}
-        <Check class="size-4" /> Done
+        <Check class="size-4" /> {m.dashboard_done()}
       {:else}
-        <LayoutDashboard class="size-4" /> Edit Layout
+        <LayoutDashboard class="size-4" /> {m.dashboard_edit_layout()}
       {/if}
     </button>
   </div>
@@ -562,15 +563,12 @@
       transition:fade={{ duration: 150 }}
       class="flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-xl bg-primary/8 border border-primary/20 text-sm"
     >
-      <span class="flex-1 opacity-65 text-xs">
-        Drag <GripVertical class="size-3.5 inline-block opacity-70" /> to reorder sections and cards &middot;
-        Click <Eye class="size-3.5 inline-block opacity-70" /> to show/hide &middot; Changes save automatically
-      </span>
+      <span class="flex-1 opacity-65 text-xs">{m.dashboard_edit_hint()}</span>
       <span class="text-xs {saveStatus === 'saved' ? 'text-success' : saveStatus === 'error' ? 'text-error' : 'opacity-40'}">
-        {#if saveStatus === 'saving'}Saving…{:else if saveStatus === 'saved'}Saved ✓{:else if saveStatus === 'error'}Save failed{/if}
+        {#if saveStatus === 'saving'}{m.common_saving()}{:else if saveStatus === 'saved'}{m.dashboard_saved()}{:else if saveStatus === 'error'}{m.errors_save_failed()}{/if}
       </span>
       <button type="button" class="btn btn-ghost btn-xs gap-1 opacity-60 hover:opacity-100" onclick={resetLayout}>
-        <RotateCcw class="size-3" /> Reset
+        <RotateCcw class="size-3" /> {m.common_reset()}
       </button>
     </div>
   {/if}
@@ -692,7 +690,7 @@
                   {/if}
 
                   {#if item.id === 'daily-revenue'}
-                    <h2 class="text-sm font-semibold opacity-70">Daily Revenue — Last 30 Days</h2>
+                    <h2 class="text-sm font-semibold opacity-70">{m.dashboard_chart_daily_revenue()}</h2>
                     <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
                       {#each [0.25, 0.5, 0.75, 1] as frac}
                         <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
@@ -708,7 +706,7 @@
                     </svg>
 
                   {:else if item.id === 'product-revenue'}
-                    <h2 class="text-sm font-semibold opacity-70">Revenue by Product</h2>
+                    <h2 class="text-sm font-semibold opacity-70">{m.dashboard_chart_revenue_product()}</h2>
                     <svg viewBox="0 0 460 165" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
                       {#each bars as b, i}
                         <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
@@ -719,7 +717,7 @@
                     </svg>
 
                   {:else if item.id === 'region-orders'}
-                    <h2 class="text-sm font-semibold opacity-70">Orders by Region</h2>
+                    <h2 class="text-sm font-semibold opacity-70">{m.dashboard_chart_orders_region()}</h2>
                     <div class="flex items-center gap-6">
                       <svg viewBox="0 0 180 180" width="180" height="180" class="shrink-0" aria-hidden="true">
                         {#each segs as seg}
@@ -742,7 +740,7 @@
                     </div>
 
                   {:else if item.id === 'monthly-revenue'}
-                    <h2 class="text-sm font-semibold opacity-70">Monthly Revenue — Last 12 Months</h2>
+                    <h2 class="text-sm font-semibold opacity-70">{m.dashboard_chart_monthly_revenue()}</h2>
                     <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
                       {#each [0.25, 0.5, 0.75, 1] as frac}
                         <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
@@ -762,17 +760,17 @@
           <!-- ── Sales Table ─────────────────────────────────────── -->
           {:else if section.id === 'sales-table'}
             <div class="space-y-3">
-              <h2 class="text-lg font-semibold">Sales Records</h2>
+              <h2 class="text-lg font-semibold">{m.dashboard_section_sales()}</h2>
               <label class="input input-bordered flex items-center gap-2">
                 <Search class="size-4 opacity-50 shrink-0" />
-                <input type="search" class="grow" placeholder="Search by ID, product, region, or status…" bind:value={query} />
+                <input type="search" class="grow" placeholder={m.dashboard_sales_search()} bind:value={query} />
               </label>
               <div class="card bg-base-100 border border-base-200 overflow-hidden">
                 <table class="table table-sm">
                   <thead>
                     <tr>
-                      <th>Order</th><th>Date</th><th>Product</th><th>Region</th>
-                      <th class="text-right">Units</th><th class="text-right">Revenue</th><th>Status</th>
+                      <th>{m.dashboard_col_order()}</th><th>{m.dashboard_col_date()}</th><th>{m.dashboard_col_product()}</th><th>{m.dashboard_col_region()}</th>
+                      <th class="text-right">{m.dashboard_col_units()}</th><th class="text-right">{m.dashboard_col_revenue()}</th><th>{m.dashboard_col_status()}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -787,7 +785,7 @@
                         <td><span class="badge text-xs {STATUS_CLS[row.status] ?? ''}">{row.status}</span></td>
                       </tr>
                     {:else}
-                      <tr><td colspan="7" class="px-4 py-8 text-center opacity-50">No records found.</td></tr>
+                      <tr><td colspan="7" class="px-4 py-8 text-center opacity-50">{m.dashboard_no_records()}</td></tr>
                     {/each}
                   </tbody>
                 </table>
@@ -803,13 +801,13 @@
           <!-- ── Order Calendar ──────────────────────────────────── -->
           {:else if section.id === 'calendar'}
             <div class="space-y-3">
-              <h2 class="text-lg font-semibold">Order Calendar</h2>
+              <h2 class="text-lg font-semibold">{m.dashboard_section_calendar()}</h2>
               <div class="flex items-center gap-3">
                 <div class="relative flex-1">
                   <label class="input input-bordered flex items-center gap-2">
                     <Search class="size-4 opacity-50 shrink-0" />
                     <input
-                      type="search" class="grow" placeholder="Search events by title…" autocomplete="off"
+                      type="search" class="grow" placeholder={m.dashboard_calendar_search()} autocomplete="off"
                       bind:value={eventQuery}
                       onfocus={() => (eventSearchOpen = true)}
                       onblur={() => setTimeout(() => (eventSearchOpen = false), 150)}
@@ -834,22 +832,22 @@
                 </div>
                 {#if hasPermission(data.user, 'events', 'create')}
                   <button type="button" class="btn btn-primary whitespace-nowrap" onclick={openNewEvent}>
-                    <Plus class="size-4" /> New Event
+                    <Plus class="size-4" /> {m.dashboard_new_event()}
                   </button>
                 {/if}
               </div>
               <div class="card bg-base-100 border border-base-200 overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-3 border-b border-base-200">
-                  <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={prevMonth} aria-label="Previous month">
+                  <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={prevMonth} aria-label={m.dashboard_prev_month()}>
                     <ChevronLeft class="size-4"/>
                   </button>
                   <span class="font-semibold text-sm">{calLabel}</span>
-                  <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={nextMonth} aria-label="Next month">
+                  <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={nextMonth} aria-label={m.dashboard_next_month()}>
                     <ChevronRight class="size-4"/>
                   </button>
                 </div>
                 <div class="grid grid-cols-7 border-b border-base-200">
-                  {#each ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as dow}
+                  {#each [m.dashboard_day_sun(), m.dashboard_day_mon(), m.dashboard_day_tue(), m.dashboard_day_wed(), m.dashboard_day_thu(), m.dashboard_day_fri(), m.dashboard_day_sat()] as dow}
                     <div class="px-2 py-2 text-center text-xs font-semibold opacity-50 uppercase tracking-wide">{dow}</div>
                   {/each}
                 </div>
@@ -896,7 +894,7 @@
               {/each}
             {:else if editMode}
               <div class="card bg-base-100 border border-base-200 border-dashed px-6 py-8 text-center opacity-40 text-sm">
-                Module Widgets — no widgets configured
+                {m.dashboard_no_widgets()}
               </div>
             {/if}
           {/if}
@@ -913,14 +911,14 @@
   <div
     transition:fade={{ duration: 200 }}
     class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true" aria-label="{editingEventId ? 'Edit Event' : 'New Event'}"
+    role="dialog" aria-modal="true" aria-label={editingEventId ? m.dashboard_event_edit_title() : m.dashboard_new_event()}
   >
     <div
       transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
       class="card bg-base-100 border border-base-200 w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
     >
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-200 shrink-0">
-        <h2 class="text-lg font-semibold">{editingEventId ? 'Edit Event' : 'New Event'}</h2>
+        <h2 class="text-lg font-semibold">{editingEventId ? m.dashboard_event_edit_title() : m.dashboard_new_event()}</h2>
         <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={() => (eventModalOpen = false)} aria-label="Close">
           <X class="size-5" />
         </button>
@@ -930,41 +928,41 @@
           <div role="alert" class="alert alert-error text-sm">{eventError}</div>
         {/if}
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
-          <input id="ev-title" type="text" class="input input-bordered w-full" placeholder="Event title" bind:value={eventForm.title} maxlength="200" />
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">{m.dashboard_event_field_title()}</label>
+          <input id="ev-title" type="text" class="input input-bordered w-full" placeholder={m.dashboard_event_title_placeholder()} bind:value={eventForm.title} maxlength="200" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">{m.dashboard_event_field_start()}</label>
             <input id="ev-start" type="date" class="input input-bordered w-full" bind:value={eventForm.startDate} />
           </div>
           <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">{m.dashboard_event_field_end()}</label>
             <input id="ev-end" type="date" class="input input-bordered w-full" bind:value={eventForm.endDate}
               disabled={eventForm.singleDay} min={eventForm.startDate} />
           </div>
         </div>
         <label class="flex items-center gap-2 cursor-pointer select-none">
           <input type="checkbox" class="checkbox" bind:checked={eventForm.singleDay} />
-          <span class="text-sm">Single-day event</span>
+          <span class="text-sm">{m.dashboard_event_single_day()}</span>
         </label>
         <div class="space-y-1">
-          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
-          <MessageEditor bind:html={eventForm.content} placeholder="Event description…" />
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.dashboard_event_field_desc()}</p>
+          <MessageEditor bind:html={eventForm.content} placeholder={m.dashboard_event_desc_placeholder()} />
         </div>
       </div>
       <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-base-200 shrink-0">
         <div>
           {#if editingEventId && hasPermission(data.user, 'events', 'delete')}
             <button type="button" class="btn btn-outline btn-error" disabled={eventLoading} onclick={() => (eventDeleteConfirm = true)}>
-              Delete this event
+              {m.dashboard_event_delete_btn()}
             </button>
           {/if}
         </div>
         <div class="flex gap-3">
-          <button type="button" class="btn btn-ghost" onclick={() => (eventModalOpen = false)}>Cancel</button>
+          <button type="button" class="btn btn-ghost" onclick={() => (eventModalOpen = false)}>{m.common_cancel()}</button>
           <button type="button" class="btn btn-primary" disabled={eventLoading} onclick={saveEvent}>
-            {eventLoading ? 'Saving…' : 'Save'}
+            {eventLoading ? m.common_saving() : m.common_save()}
           </button>
         </div>
       </footer>
@@ -984,18 +982,16 @@
       class="card bg-base-100 border border-base-200 w-full max-w-sm shadow-xl mx-4"
     >
       <div class="p-6 space-y-3">
-        <h2 class="text-lg font-semibold">Delete event?</h2>
-        <p class="text-sm opacity-70">
-          "<strong>{eventForm.title}</strong>" will be permanently removed. This cannot be undone.
-        </p>
+        <h2 class="text-lg font-semibold">{m.dashboard_event_confirm_delete()}</h2>
+        <p class="text-sm opacity-70">{m.dashboard_event_confirm_delete_body({ title: eventForm.title })}</p>
         {#if eventError}
           <div role="alert" class="alert alert-error text-sm">{eventError}</div>
         {/if}
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn btn-ghost" onclick={() => (eventDeleteConfirm = false)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (eventDeleteConfirm = false)}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-error" disabled={eventLoading} onclick={confirmDeleteEvent}>
-          {eventLoading ? 'Deleting…' : 'Delete'}
+          {eventLoading ? m.common_deleting() : m.common_delete()}
         </button>
       </footer>
     </div>

@@ -2,6 +2,7 @@
   import { Bell, Mail, ShieldCheck, Users, ShoppingCart, Package } from 'lucide-svelte';
   import type { AppNotification } from '$lib/stores/notifications.svelte';
   import type { Component } from 'svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { notification, onclick }: {
     notification: AppNotification;
@@ -20,12 +21,12 @@
   function timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime();
     const mins  = Math.floor(diff / 60_000);
-    if (mins < 1)   return 'just now';
-    if (mins < 60)  return `${mins}m ago`;
+    if (mins < 1)   return m.time_just_now();
+    if (mins < 60)  return m.time_mins_ago({ count: mins });
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return m.time_hours_ago({ count: hours });
     const days  = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return m.time_days_ago({ count: days });
   }
 
   const Icon = $derived(iconFor(notification.type));

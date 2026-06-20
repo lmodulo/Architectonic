@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import MarketingNav from './MarketingNav.svelte';
 
   let { children, title, subtitle, brandName, brandLogo }: {
@@ -23,7 +24,7 @@
       <div class="auth-head">
         <div class="auth-eyebrow">
           <span class="auth-dot"></span>
-          {brandName ?? 'Application'}
+          {brandName ?? m.auth_shell_application()}
         </div>
         <h1 class="auth-title">{title}</h1>
         {#if subtitle}

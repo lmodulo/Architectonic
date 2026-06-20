@@ -2,6 +2,7 @@
   import { goto, invalidate, invalidateAll } from '$app/navigation';
   import { Send, X } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import type { LayoutData } from '../$types';
 
   let { data }: { data: LayoutData } = $props();
@@ -48,9 +49,9 @@
   }
 
   async function send() {
-    if (!toIds.length) { error = 'Add at least one recipient'; return; }
-    if (!subject.trim()) { error = 'Subject is required'; return; }
-    if (!body.trim() || body === '<p></p>') { error = 'Message body is required'; return; }
+    if (!toIds.length) { error = m.messages_compose_no_recipient(); return; }
+    if (!subject.trim()) { error = m.messages_compose_subject_required(); return; }
+    if (!body.trim() || body === '<p></p>') { error = m.messages_compose_body_required(); return; }
 
     sending = true; error = '';
     try {
@@ -61,26 +62,26 @@
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        error = (d as { message?: string }).message ?? 'Send failed';
+        error = (d as { message?: string }).message ?? m.errors_send_failed();
         return;
       }
       const { threadId } = await res.json();
       await Promise.all([invalidate('app:unread'), invalidateAll()]);
       goto(`/messages/${threadId}`);
     } catch {
-      error = 'Network error';
+      error = m.errors_network_error();
     } finally {
       sending = false;
     }
   }
 </script>
 
-<svelte:head><title>New Message</title></svelte:head>
+<svelte:head><title>{m.messages_compose_title()}</title></svelte:head>
 
 <div class="max-w-2xl mx-auto p-6 space-y-4">
   <div class="flex items-center justify-between">
-    <h1 class="text-lg font-semibold">New Message</h1>
-    <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label="Cancel"><X class="size-5" /></a>
+    <h1 class="text-lg font-semibold">{m.messages_compose_title()}</h1>
+    <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label={m.common_cancel()}><X class="size-5" /></a>
   </div>
 
   {#if error}
@@ -89,7 +90,7 @@
 
   <!-- To field -->
   <div class="space-y-1">
-    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">To</label>
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.messages_compose_to()}</label>
     <div class="flex flex-wrap gap-1.5 items-center border border-base-300 rounded px-2 py-1.5 min-h-[2.5rem]">
       {#each toIds as id}
         <span class="badge badge-primary badge-soft text-xs flex items-center gap-1">
@@ -102,7 +103,7 @@
       <input
         type="text"
         class="flex-1 min-w-32 bg-transparent text-sm outline-none"
-        placeholder="Type a username…"
+        placeholder={m.messages_compose_to_placeholder()}
         list="user-list"
         bind:value={toInput}
         onkeydown={handleToKey}
@@ -121,12 +122,12 @@
 
   <!-- Subject -->
   <div class="space-y-1">
-    <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="subject">Subject</label>
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="subject">{m.messages_compose_subject()}</label>
     <input
       id="subject"
       type="text"
       class="input w-full"
-      placeholder="Subject"
+      placeholder={m.messages_compose_subject()}
       bind:value={subject}
       maxlength="200"
     />
@@ -134,14 +135,14 @@
 
   <!-- Body -->
   <div class="space-y-1">
-    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Message</label>
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.messages_compose_body()}</label>
     <MessageEditor bind:html={body} />
   </div>
 
   <div class="flex justify-end">
     <button type="button" class="btn btn-primary" disabled={sending} onclick={send}>
       <Send class="size-4" />
-      {sending ? 'Sending…' : 'Send'}
+      {sending ? m.common_sending() : m.common_send()}
     </button>
   </div>
 </div>

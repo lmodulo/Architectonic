@@ -2,6 +2,7 @@
   import { page } from '$app/state';
   import { goto, invalidateAll } from '$app/navigation';
   import { SquarePen, Inbox, Send, Archive } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import MessageListItem from '$lib/components/MessageListItem.svelte';
   import type { LayoutData } from './$types';
@@ -78,7 +79,7 @@
 
   <!-- Header -->
   <div class="shrink-0">
-    <PageHeader title="Messages" subtitle="Inbox, sent mail, and archived conversations" />
+    <PageHeader title={m.messages_title()} subtitle={m.messages_subtitle()} />
   </div>
 
   <!-- Two-panel shell -->
@@ -91,13 +92,13 @@
     <div class="px-3 py-3 border-b border-base-300">
       <a href="/messages/compose" class="btn btn-primary w-full">
         <SquarePen class="size-4" />
-        <span>Compose</span>
+        <span>{m.messages_compose()}</span>
       </a>
     </div>
 
     <!-- Tabs -->
     <div class="flex border-b border-base-300 shrink-0">
-      {#each ([['inbox', 'Inbox', Inbox], ['sent', 'Sent', Send], ['archived', 'Archive', Archive]] as const) as [tab, label, Icon]}
+      {#each ([['inbox', m.messages_inbox(), Inbox], ['sent', m.messages_sent(), Send], ['archived', m.messages_archive(), Archive]] as const) as [tab, label, Icon]}
         <button
           type="button"
           class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors
@@ -113,9 +114,9 @@
     <!-- Thread list -->
     <div class="flex-1 overflow-y-auto">
       {#if loading}
-        <p class="text-xs text-center opacity-40 mt-8">Loading…</p>
+        <p class="text-xs text-center opacity-40 mt-8">{m.common_loading()}</p>
       {:else if listData.length === 0}
-        <p class="text-xs text-center opacity-40 mt-8">No messages</p>
+        <p class="text-xs text-center opacity-40 mt-8">{m.messages_none()}</p>
       {:else}
         {#each listData as thread (thread.threadId)}
           <MessageListItem
@@ -135,7 +136,7 @@
               disabled={loadingMore}
               onclick={loadMore}
             >
-              {loadingMore ? 'Loading…' : 'Load more'}
+              {loadingMore ? m.common_loading() : m.common_load_more()}
             </button>
           </div>
         {/if}

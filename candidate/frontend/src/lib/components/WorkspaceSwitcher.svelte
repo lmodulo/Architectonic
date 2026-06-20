@@ -1,6 +1,7 @@
 <script lang="ts">
   import { ChevronDown, Check, Building2 } from 'lucide-svelte';
   import { invalidateAll } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages.js';
 
   interface Workspace { id: string; name: string; slug: string; role: string; }
 
@@ -37,7 +38,7 @@
       disabled={switching}
     >
       <Building2 class="size-4 shrink-0 opacity-60" />
-      <span class="flex-1 text-left truncate">{current?.name ?? 'Workspace'}</span>
+      <span class="flex-1 text-left truncate">{current?.name ?? m.workspace_switcher_fallback()}</span>
       <ChevronDown class="size-3 opacity-40 transition-transform duration-200 {open ? 'rotate-180' : ''}" />
     </button>
 
@@ -46,7 +47,7 @@
         type="button"
         class="fixed inset-0 z-10"
         onclick={() => (open = false)}
-        aria-label="Close workspace picker"
+        aria-label={m.workspace_switcher_close()}
         tabindex="-1"
       ></button>
       <ul class="absolute left-0 right-0 z-20 mt-1 py-1 bg-base-200 border border-base-300 rounded shadow-lg">

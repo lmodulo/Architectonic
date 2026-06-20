@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { src, onApply, onCancel }: {
     src: string;
@@ -135,7 +136,7 @@
 </script>
 
 <div class="space-y-3">
-  <p class="text-xs text-center opacity-40">Drag to reposition · Slider to zoom</p>
+  <p class="text-xs text-center opacity-40">{m.cropper_hint()}</p>
 
   <div class="flex justify-center">
     <canvas
@@ -156,7 +157,7 @@
 
   {#if loaded}
     <div class="flex items-center gap-3">
-      <span class="text-xs opacity-40 shrink-0">Zoom</span>
+      <span class="text-xs opacity-40 shrink-0">{m.cropper_zoom()}</span>
       <input
         type="range"
         class="range range-primary range-xs flex-1"
@@ -170,7 +171,7 @@
   {/if}
 
   <div class="flex justify-end gap-2 pt-1">
-    <button type="button" class="btn btn-ghost btn-sm" onclick={onCancel}>Cancel</button>
-    <button type="button" class="btn btn-primary btn-sm" onclick={apply}>Apply</button>
+    <button type="button" class="btn btn-ghost btn-sm" onclick={onCancel}>{m.common_cancel()}</button>
+    <button type="button" class="btn btn-primary btn-sm" onclick={apply}>{m.cropper_apply()}</button>
   </div>
 </div>

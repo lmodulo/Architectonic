@@ -2,6 +2,7 @@
   import { enhance } from '$app/forms';
   import AuthShell from '$lib/components/AuthShell.svelte';
   import { page } from '$app/state';
+  import { m } from '$lib/paraglide/messages.js';
   import type { ActionData, PageData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -10,20 +11,20 @@
 </script>
 
 <svelte:head>
-  <title>Sign In</title>
+  <title>{m.auth_sign_in_title()}</title>
 </svelte:head>
 
-<AuthShell title="Sign In" subtitle="Welcome back." brandName={data.brandName} brandLogo={data.brandLogo}>
+<AuthShell title={m.auth_sign_in_title()} subtitle={m.auth_sign_in_subtitle()} brandName={data.brandName} brandLogo={data.brandLogo}>
 
   {#if resetSuccess}
     <div role="alert" class="alert alert-success text-sm">
-      Password reset successfully. Sign in with your new password.
+      {m.auth_password_reset_success()}
     </div>
   {/if}
 
   {#if inviteSuccess}
     <div role="alert" class="alert alert-success text-sm">
-      Account activated! Sign in with your new credentials.
+      {m.auth_account_activated()}
     </div>
   {/if}
 
@@ -33,7 +34,7 @@
 
   <form method="POST" use:enhance class="space-y-4">
     <label class="flex flex-col gap-1">
-      <span>Email</span>
+      <span>{m.common_email()}</span>
       <input
         class="input"
         type="email"
@@ -46,7 +47,7 @@
     </label>
 
     <label class="flex flex-col gap-1">
-      <span>Password</span>
+      <span>{m.common_password()}</span>
       <input
         class="input"
         type="password"
@@ -58,14 +59,14 @@
     </label>
 
     <button type="submit" class="btn btn-primary">
-      Sign In
+      {m.auth_sign_in_button()}
     </button>
   </form>
 
   <div class="flex items-center justify-center gap-2.5 text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
-    <a href="/forgot-password" class="link">Forgot password?</a>
+    <a href="/forgot-password" class="link">{m.auth_forgot_password()}</a>
     <span>·</span>
-    <a href="/register" class="link">Create account</a>
+    <a href="/register" class="link">{m.auth_create_account()}</a>
   </div>
 
 </AuthShell>

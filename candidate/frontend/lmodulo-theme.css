@@ -1,7 +1,5 @@
 [data-theme='business'] {
-  default: false;
-  prefersdark: false;
-  color-scheme: "dark";
+  color-scheme: dark;
   --color-base-100: oklch(0% 0 0);
   --color-base-200: oklch(19% 0 0);
   --color-base-300: oklch(22% 0 0);
@@ -30,8 +28,4 @@
   --border: 1px;
   --depth: 0;
   --noise: 0;
-
-  /* ── Typography ─────────────────────────────────────────────────────── */
-  --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-heading: 'Space Grotesk', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }

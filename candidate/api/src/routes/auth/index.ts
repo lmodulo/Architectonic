@@ -6,7 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
 import { checkDuplicateUser } from '../../lib/users.js';
-import { sendPasswordResetEmail } from '../../lib/email.js';
+import { sendPasswordResetEmail } from '../../lib/email/index.js';
 import { logAudit } from '../../lib/audit.js';
 
 const __filename = fileURLToPath(import.meta.url);

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
+  import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import type { PageData } from './$types';
 
@@ -117,9 +118,9 @@
   }
 
   async function save() {
-    if (!ruleName.trim())  { modalError = 'Name is required';          return; }
-    if (!triggerEvent)     { modalError = 'Trigger event is required'; return; }
-    if (!actions.length)   { modalError = 'At least one action';       return; }
+    if (!ruleName.trim())  { modalError = m.errors_name_required();    return; }
+    if (!triggerEvent)     { modalError = m.errors_trigger_required(); return; }
+    if (!actions.length)   { modalError = m.errors_action_required();  return; }
 
     saving = true; modalError = '';
     try {
@@ -140,13 +141,13 @@
 
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        modalError = (d as { message?: string }).message ?? 'Save failed';
+        modalError = (d as { message?: string }).message ?? m.errors_save_failed();
         return;
       }
 
       showModal = false;
       await invalidateAll();
-    } catch { modalError = 'Network error'; }
+    } catch { modalError = m.errors_network_error(); }
     finally { saving = false; }
   }
 
@@ -161,7 +162,7 @@
   }
 
   async function deleteRule(rule: Rule) {
-    if (!confirm(`Delete rule "${rule.name}"?`)) return;
+    if (!confirm(m.automation_delete_confirm({ name: rule.name }))) return;
     await fetch(`/api/automation/${rule.id}`, { method: 'DELETE' });
     await invalidateAll();
   }
@@ -181,24 +182,24 @@
 
 <div class="space-y-6">
   <div class="flex items-center justify-between">
-    <PageHeader title="Automation" subtitle="Event-driven rules that connect modules and trigger actions." />
+    <PageHeader title={m.automation_title()} subtitle={m.automation_subtitle()} />
     {#if canCreate}
-      <button type="button" class="btn btn-primary btn-sm" onclick={openCreate}>New Rule</button>
+      <button type="button" class="btn btn-primary btn-sm" onclick={openCreate}>{m.automation_new_rule()}</button>
     {/if}
   </div>
 
   <!-- Rules table -->
   <div class="card bg-base-100 border border-base-200 overflow-hidden">
     {#if data.rules.length === 0}
-      <p class="px-5 py-10 text-sm opacity-50 text-center">No automation rules yet.</p>
+      <p class="px-5 py-10 text-sm opacity-50 text-center">{m.automation_no_rules()}</p>
     {:else}
       <table class="table table-sm w-full">
         <thead>
           <tr class="text-xs opacity-50">
-            <th>Name</th>
-            <th>Trigger</th>
-            <th class="text-center">Actions</th>
-            <th class="text-center">Status</th>
+            <th>{m.automation_col_name()}</th>
+            <th>{m.automation_col_trigger()}</th>
+            <th class="text-center">{m.automation_col_actions()}</th>
+            <th class="text-center">{m.automation_col_status()}</th>
             <th></th>
           </tr>
         </thead>
@@ -223,12 +224,12 @@
               </td>
               <td class="text-right">
                 <div class="flex items-center justify-end gap-1">
-                  <button type="button" class="btn btn-ghost btn-xs" onclick={() => openLogs(rule)}>Logs</button>
+                  <button type="button" class="btn btn-ghost btn-xs" onclick={() => openLogs(rule)}>{m.automation_col_logs()}</button>
                   {#if canEdit}
-                    <button type="button" class="btn btn-ghost btn-xs" onclick={() => openEdit(rule)}>Edit</button>
+                    <button type="button" class="btn btn-ghost btn-xs" onclick={() => openEdit(rule)}>{m.common_edit()}</button>
                   {/if}
                   {#if canDelete}
-                    <button type="button" class="btn btn-ghost btn-xs text-error" onclick={() => deleteRule(rule)}>Delete</button>
+                    <button type="button" class="btn btn-ghost btn-xs text-error" onclick={() => deleteRule(rule)}>{m.common_delete()}</button>
                   {/if}
                 </div>
               </td>
@@ -244,17 +245,17 @@
 {#if showModal}
   <div class="modal modal-open">
     <div class="modal-box max-w-2xl space-y-5 overflow-y-auto max-h-[90vh]">
-      <h3 class="font-semibold text-base">{editingId ? 'Edit Rule' : 'New Rule'}</h3>
+      <h3 class="font-semibold text-base">{editingId ? m.automation_modal_edit_rule() : m.automation_new_rule()}</h3>
 
       <!-- Name -->
       <div class="form-control space-y-1">
-        <label class="label py-0"><span class="label-text text-xs font-medium">Rule Name</span></label>
+        <label class="label py-0"><span class="label-text text-xs font-medium">{m.automation_rule_name()}</span></label>
         <input type="text" class="input input-bordered input-sm w-full" placeholder="e.g. Welcome new customer" bind:value={ruleName} />
       </div>
 
       <!-- Trigger event -->
       <div class="form-control space-y-1">
-        <label class="label py-0"><span class="label-text text-xs font-medium">Trigger Event</span></label>
+        <label class="label py-0"><span class="label-text text-xs font-medium">{m.automation_trigger_event()}</span></label>
         <select class="select select-bordered select-sm w-full" bind:value={triggerEvent}>
           {#each data.meta.triggerEvents as ev}
             <option value={ev}>{TRIGGER_LABELS[ev] ?? ev}</option>
@@ -265,8 +266,8 @@
       <!-- Conditions -->
       <div class="space-y-2">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-medium opacity-70">Conditions <span class="opacity-50">(all must match)</span></span>
-          <button type="button" class="btn btn-ghost btn-xs" onclick={addCondition}>+ Add</button>
+          <span class="text-xs font-medium opacity-70">{m.automation_conditions()}</span>
+          <button type="button" class="btn btn-ghost btn-xs" onclick={addCondition}>{m.automation_add_condition()}</button>
         </div>
         {#each conditions as cond, i}
           <div class="flex items-center gap-2">
@@ -281,15 +282,15 @@
           </div>
         {/each}
         {#if conditions.length === 0}
-          <p class="text-xs opacity-40 italic">No conditions — rule fires on every matching event.</p>
+          <p class="text-xs opacity-40 italic">{m.automation_no_conditions()}</p>
         {/if}
       </div>
 
       <!-- Actions -->
       <div class="space-y-3">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-medium opacity-70">Actions</span>
-          <button type="button" class="btn btn-ghost btn-xs" onclick={addAction}>+ Add</button>
+          <span class="text-xs font-medium opacity-70">{m.automation_col_actions()}</span>
+          <button type="button" class="btn btn-ghost btn-xs" onclick={addAction}>{m.automation_add_condition()}</button>
         </div>
         {#each actions as action, i}
           <div class="card bg-base-200 p-3 space-y-2">
@@ -324,9 +325,9 @@
       {/if}
 
       <div class="modal-action pt-0">
-        <button type="button" class="btn btn-ghost btn-sm" disabled={saving} onclick={closeModal}>Cancel</button>
+        <button type="button" class="btn btn-ghost btn-sm" disabled={saving} onclick={closeModal}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-primary btn-sm" disabled={saving} onclick={save}>
-          {saving ? 'Saving…' : 'Save Rule'}
+          {saving ? m.common_saving() : m.automation_save_rule()}
         </button>
       </div>
     </div>
@@ -339,14 +340,14 @@
   <div class="modal modal-open">
     <div class="modal-box max-w-xl space-y-4 overflow-y-auto max-h-[90vh]">
       <div class="flex items-center justify-between">
-        <h3 class="font-semibold text-base">Logs — {logsRuleName}</h3>
-        <button type="button" class="btn btn-ghost btn-xs" onclick={closeLogs}>Close</button>
+        <h3 class="font-semibold text-base">{m.automation_logs_title({ name: logsRuleName })}</h3>
+        <button type="button" class="btn btn-ghost btn-xs" onclick={closeLogs}>{m.common_close()}</button>
       </div>
 
       {#if logsLoading}
-        <p class="text-sm opacity-50 text-center py-4">Loading…</p>
+        <p class="text-sm opacity-50 text-center py-4">{m.common_loading()}</p>
       {:else if logs.length === 0}
-        <p class="text-sm opacity-50 text-center py-4">No executions yet.</p>
+        <p class="text-sm opacity-50 text-center py-4">{m.automation_no_executions()}</p>
       {:else}
         <div class="space-y-2">
           {#each logs as log (log.id)}

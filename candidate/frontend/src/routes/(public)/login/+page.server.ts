@@ -5,7 +5,7 @@ import type { Actions } from './$types';
 const API_URL = env.API_URL ?? 'http://localhost:4000';
 
 export const actions: Actions = {
-  default: async ({ request, cookies }) => {
+  default: async ({ request, cookies, url }) => {
     const form     = await request.formData();
     const email    = form.get('email')    as string;
     const password = form.get('password') as string;
@@ -41,7 +41,7 @@ export const actions: Actions = {
           path:     '/',
           httpOnly: true,
           sameSite: 'lax',
-          secure:   process.env.NODE_ENV === 'production',
+          secure:   url.protocol === 'https:',
           maxAge:   60 * 60 * 24 * 7
         });
       }

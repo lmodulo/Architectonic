@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Avatar from './Avatar.svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { Mail, Phone, Users } from 'lucide-svelte';
   import { isOpen, getPopX, getPopY, isAbove, getUser, isLoading, closeCard, handleDocClick } from '$lib/stores/userCard.svelte';
 
@@ -56,7 +57,7 @@
           </div>
         {/if}
         {#if isLoading()}
-          <p class="text-xs opacity-30 pl-5">Loading…</p>
+          <p class="text-xs opacity-30 pl-5">{m.common_loading()}</p>
         {:else if u.teams?.length}
           <div class="flex items-start gap-2 text-xs">
             <Users class="size-3 opacity-40 shrink-0 mt-0.5" />

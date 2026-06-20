@@ -8,6 +8,7 @@
     Bold, Italic, UnderlineIcon, List, ListOrdered,
     TextQuote, Undo, Redo
   } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { html = $bindable(''), placeholder = 'Write your message…' }: {
     html: string;
@@ -51,19 +52,19 @@
     <button type="button"
       class="btn btn-ghost btn-square btn-xs {active('bold') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBold().run())}
-      aria-label="Bold" title="Bold"
+      aria-label={m.editor_bold()} title={m.editor_bold()}
     ><Bold class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-square btn-xs {active('italic') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleItalic().run())}
-      aria-label="Italic" title="Italic"
+      aria-label={m.editor_italic()} title={m.editor_italic()}
     ><Italic class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-square btn-xs {active('underline') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleUnderline().run())}
-      aria-label="Underline" title="Underline"
+      aria-label={m.editor_underline()} title={m.editor_underline()}
     ><UnderlineIcon class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-content/20 mx-1"></span>
@@ -71,13 +72,13 @@
     <button type="button"
       class="btn btn-ghost btn-square btn-xs {active('bulletList') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBulletList().run())}
-      aria-label="Bullet list" title="Bullet list"
+      aria-label={m.editor_bullet_list()} title={m.editor_bullet_list()}
     ><List class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-square btn-xs {active('orderedList') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleOrderedList().run())}
-      aria-label="Ordered list" title="Ordered list"
+      aria-label={m.editor_ordered_list()} title={m.editor_ordered_list()}
     ><ListOrdered class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-content/20 mx-1"></span>
@@ -85,7 +86,7 @@
     <button type="button"
       class="btn btn-ghost btn-square btn-xs {active('blockquote') ? 'btn-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBlockquote().run())}
-      aria-label="Blockquote" title="Blockquote"
+      aria-label={m.editor_blockquote()} title={m.editor_blockquote()}
     ><TextQuote class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-content/20 mx-1"></span>
@@ -93,13 +94,13 @@
     <button type="button"
       class="btn btn-ghost btn-square btn-xs"
       onmousedown={cmd(() => editor?.chain().undo().run())}
-      aria-label="Undo" title="Undo"
+      aria-label={m.editor_undo()} title={m.editor_undo()}
     ><Undo class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-square btn-xs"
       onmousedown={cmd(() => editor?.chain().redo().run())}
-      aria-label="Redo" title="Redo"
+      aria-label={m.editor_redo()} title={m.editor_redo()}
     ><Redo class="size-3.5" /></button>
   </div>
 
