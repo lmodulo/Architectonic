@@ -1,5 +1,6 @@
-import { redirect } from '@sveltejs/kit';
-
-export function load() {
-  redirect(302, '/login');
-}
+// import { redirect } from '@sveltejs/kit';
+//
+// Uncomment to redirect all visitors from the landing page to login:
+// export function load() {
+//   redirect(302, '/login');
+// }

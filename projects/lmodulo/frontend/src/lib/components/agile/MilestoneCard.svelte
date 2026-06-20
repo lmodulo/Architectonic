@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Milestone, Calendar, Layers, Building2 } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { STATUS_COLOR, PRIORITY_COLOR, fmtDateRange, completionColor } from '$lib/utils/agile';
   import type { AgileMilestone } from '$lib/utils/agile';
 
@@ -49,7 +50,7 @@
   <!-- Progress bar -->
   <div class="space-y-1">
     <div class="flex items-center justify-between text-xs">
-      <span class="opacity-60">Progress</span>
+      <span class="opacity-60">{m.agile_milestone_progress()}</span>
       <span class="font-semibold" style="color:{barClr}">{pct}%</span>
     </div>
     <div class="w-full h-2 rounded-full bg-base-300 overflow-hidden">

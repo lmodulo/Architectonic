@@ -1,5 +1,6 @@
 <script lang="ts">
   import EventTypeBadge from './EventTypeBadge.svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { fmtDateRange, fmtShortRange, typePreset, type CalendarEvent } from '$lib/utils/calendarEvents';
   import { MapPin, User } from 'lucide-svelte';
 
@@ -43,13 +44,13 @@
       {#if !compact && event.ownerName}
         <p class="text-xs opacity-40 flex items-center gap-1 mt-0.5">
           <User class="size-3 shrink-0" />
-          by {event.ownerName}
+          {m.event_card_by()} {event.ownerName}
           {#if event.visibility === 'public'}
-            · public
+            · {m.event_card_public()}
           {:else if event.visibility === 'shared' && event.sharedWith && event.sharedWith.length > 0}
-            · shared with {event.sharedWith.length} {event.sharedWith.length === 1 ? 'person' : 'people'}
+            · {m.event_card_shared()} {event.sharedWith.length} {event.sharedWith.length === 1 ? m.event_card_person() : m.event_card_people()}
           {:else if event.visibility === 'private'}
-            · private
+            · {m.event_card_private()}
           {/if}
         </p>
       {/if}

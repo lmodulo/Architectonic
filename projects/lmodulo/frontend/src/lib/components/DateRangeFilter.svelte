@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { DateRange } from '$lib/utils/dashboard';
+  import { m } from '$lib/paraglide/messages.js';
 
   type Preset = 'all' | '7d' | '30d' | '90d' | 'custom';
 
@@ -10,11 +11,11 @@
   let rawFrom = $state('');
   let rawTo   = $state('');
 
-  const PRESETS: [Preset, string][] = [
-    ['all',  'All'],
-    ['7d',   '7d' ],
-    ['30d',  '30d'],
-    ['90d',  '90d'],
+  const PRESETS: [Preset, () => string][] = [
+    ['all',  () => m.date_range_all()],
+    ['7d',   () => m.date_range_7d() ],
+    ['30d',  () => m.date_range_30d()],
+    ['90d',  () => m.date_range_90d()],
   ];
 
   function pick(p: Preset) {
@@ -47,12 +48,12 @@
       onclick={() => pick(p)}
       class="px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide transition-all
         {preset === p && !open ? 'bg-base-300 opacity-80' : 'opacity-25 hover:opacity-60'}"
-    >{label}</button>
+    >{label()}</button>
   {/each}
   <button
     type="button"
     onclick={() => pick('custom')}
-    title="Custom range"
+    title={m.date_range_custom()}
     class="px-1.5 py-0.5 rounded text-[10px] font-semibold leading-none transition-all
       {preset === 'custom' || open ? 'bg-base-300 opacity-80' : 'opacity-25 hover:opacity-60'}"
   >···</button>
@@ -61,16 +62,16 @@
   <div class="absolute right-0 top-full mt-1.5 z-30 bg-base-200 border border-base-300 rounded-box p-3 shadow-md w-44">
     <div class="space-y-2.5">
       <div>
-        <p class="text-[9px] font-semibold uppercase tracking-widest opacity-40 mb-1">From</p>
+        <p class="text-[9px] font-semibold uppercase tracking-widest opacity-40 mb-1">{m.date_range_from()}</p>
         <input type="date" bind:value={rawFrom} class="input input-xs w-full" />
       </div>
       <div>
-        <p class="text-[9px] font-semibold uppercase tracking-widest opacity-40 mb-1">To</p>
+        <p class="text-[9px] font-semibold uppercase tracking-widest opacity-40 mb-1">{m.date_range_to()}</p>
         <input type="date" bind:value={rawTo} class="input input-xs w-full" />
       </div>
       <div class="flex gap-1.5">
-        <button type="button" onclick={applyCustom} class="btn btn-xs btn-primary flex-1">Apply</button>
-        <button type="button" onclick={() => open = false} class="btn btn-xs flex-1">Cancel</button>
+        <button type="button" onclick={applyCustom} class="btn btn-xs btn-primary flex-1">{m.common_apply()}</button>
+        <button type="button" onclick={() => open = false} class="btn btn-xs flex-1">{m.common_cancel()}</button>
       </div>
     </div>
   </div>

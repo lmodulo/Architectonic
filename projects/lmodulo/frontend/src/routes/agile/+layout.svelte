@@ -2,21 +2,22 @@
   import { page } from '$app/state';
   import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, ClipboardList, BarChart2, ListChecks, Clock, Milestone } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
+  import { m } from '$lib/paraglide/messages.js';
   import type { LayoutData } from './$types';
   import { dragScroll } from '$lib/actions/dragScroll';
 
   let { data, children }: { data: LayoutData; children: any } = $props();
 
-  const navLinks = [
-    { href: '/agile',          label: 'Overview',  icon: LayoutGrid    },
-    { href: '/agile/board',    label: 'Board',     icon: KanbanSquare  },
-    { href: '/agile/plan',     label: 'Plan',      icon: ClipboardList },
-    { href: '/agile/timeline', label: 'Timeline',  icon: GanttChart    },
-    { href: '/agile/calendar', label: 'Calendar',  icon: CalendarDays  },
-    { href: '/agile/reports',   label: 'Reports',   icon: BarChart2     },
-    { href: '/agile/my-tasks',  label: 'My Tasks',  icon: ListChecks    },
-    { href: '/agile/time',      label: 'Time',      icon: Clock         },
-  ];
+  const navLinks = $derived([
+    { href: '/agile',          label: m.agile_tab_overview(),  icon: LayoutGrid    },
+    { href: '/agile/board',    label: m.agile_tab_board(),     icon: KanbanSquare  },
+    { href: '/agile/plan',     label: m.agile_tab_plan(),      icon: ClipboardList },
+    { href: '/agile/timeline', label: m.agile_tab_timeline(),  icon: GanttChart    },
+    { href: '/agile/calendar', label: m.agile_tab_calendar(),  icon: CalendarDays  },
+    { href: '/agile/reports',  label: m.agile_tab_reports(),   icon: BarChart2     },
+    { href: '/agile/my-tasks', label: m.agile_tab_my_tasks(),  icon: ListChecks    },
+    { href: '/agile/time',     label: m.agile_tab_time(),      icon: Clock         },
+  ]);
 
   const overviewPrefixes = ['/agile/milestones', '/agile/sprints', '/agile/jobs', '/agile/tasks'];
 
@@ -40,8 +41,8 @@
   <div class="page-heading flex items-start gap-3">
     <Milestone class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-2xl font-bold leading-none">Agile</h1>
-      <p class="text-xs opacity-60 mt-0.5">Milestones · Sprints · Jobs · Tasks</p>
+      <h1 class="text-2xl font-bold leading-none">{m.agile_title()}</h1>
+      <p class="text-xs opacity-60 mt-0.5">{m.agile_subtitle()}</p>
     </div>
   </div>
 

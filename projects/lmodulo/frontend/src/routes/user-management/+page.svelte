@@ -11,6 +11,7 @@
   import Pagination from '$lib/components/Pagination.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
   import type { PageData } from './$types';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -339,15 +340,15 @@
 </script>
 
 <svelte:head>
-  <title>User Management</title>
+  <title>{m.user_mgmt_title()}</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6">
   <div class="page-heading flex items-start gap-3">
     <Users class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-2xl font-bold leading-none">User Management</h1>
-      <p class="text-xs opacity-60 mt-0.5">Users · Roles · Teams</p>
+      <h1 class="text-2xl font-bold leading-none">{m.user_mgmt_title()}</h1>
+      <p class="text-xs opacity-60 mt-0.5">{m.user_mgmt_subtitle()}</p>
     </div>
   </div>
 
@@ -360,17 +361,17 @@
     {#if data.canReadUsers}
       <button type="button"
         class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors {activeTab === 'users' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
-        onclick={() => setTab('users')}>Users</button>
+        onclick={() => setTab('users')}>{m.user_mgmt_tab_users()}</button>
     {/if}
     {#if data.canReadRoles}
       <button type="button"
         class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors {activeTab === 'roles' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
-        onclick={() => setTab('roles')}>Roles</button>
+        onclick={() => setTab('roles')}>{m.user_mgmt_tab_roles()}</button>
     {/if}
     {#if data.canReadTeams}
       <button type="button"
         class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors {activeTab === 'teams' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
-        onclick={() => setTab('teams')}>Teams</button>
+        onclick={() => setTab('teams')}>{m.user_mgmt_tab_teams()}</button>
     {/if}
   </nav>
 
@@ -382,11 +383,11 @@
       <div class="flex items-center gap-3">
         <label class="input flex items-center gap-2 flex-1">
           <Search class="size-4 shrink-0 opacity-50" />
-          <input type="search" placeholder="Search by name or email…" class="grow" bind:value={query} oninput={onUsersQueryInput} autocomplete="off" />
+          <input type="search" placeholder={m.user_mgmt_search_users()} class="grow" bind:value={query} oninput={onUsersQueryInput} autocomplete="off" />
         </label>
         {#if hasPermission(data.user, 'users', 'create')}
           <button type="button" class="btn btn-primary shrink-0" onclick={openNewUser}>
-            <UserPlus class="size-4" /> <span>Invite User</span>
+            <UserPlus class="size-4" /> <span>{m.user_mgmt_invite_user()}</span>
           </button>
         {/if}
       </div>
@@ -408,10 +409,10 @@
                   </button>
                 </th>
               {/snippet}
-              {@render sortTh('Name', 'name')}
-              {@render sortTh('Email', 'email')}
-              {@render sortTh('Role', 'role')}
-              {@render sortTh('Joined', 'createdAt')}
+              {@render sortTh(m.user_mgmt_col_name(), 'name')}
+              {@render sortTh(m.user_mgmt_col_email(), 'email')}
+              {@render sortTh(m.user_mgmt_col_role(), 'role')}
+              {@render sortTh(m.user_mgmt_col_joined(), 'createdAt')}
               <th></th>
             </tr>
           </thead>
@@ -425,7 +426,7 @@
                       {#if user.status === 'pending'}
                         <div class="flex items-center gap-2">
                           <span class="font-medium opacity-50 italic">{user.email}</span>
-                          <span class="badge badge-warning badge-sm">Pending</span>
+                          <span class="badge badge-warning badge-sm">{m.user_mgmt_col_pending()}</span>
                         </div>
                       {:else if user.firstName || user.lastName}
                         <div class="font-medium">{[user.firstName, user.lastName].filter(Boolean).join(' ')}</div>
@@ -455,7 +456,7 @@
                 </td>
               </tr>
             {:else}
-              <tr><td colspan="5" class="px-4 py-8 text-center text-base-content/50">No users found.</td></tr>
+              <tr><td colspan="5" class="px-4 py-8 text-center text-base-content/50">{m.user_mgmt_no_users()}</td></tr>
             {/each}
           </tbody>
         </table>
@@ -507,25 +508,25 @@
             </div>
           {/if}
         {:else}
-          <div class="px-4 py-8 text-center text-base-content/50 text-sm">No roles found.</div>
+          <div class="px-4 py-8 text-center text-base-content/50 text-sm">{m.user_mgmt_no_roles()}</div>
         {/each}
       </div>
 
       {#if data.canAssign && roleUsers.length > 0}
         <div class="space-y-3">
-          <h2 class="text-lg font-semibold">User Assignments</h2>
+          <h2 class="text-lg font-semibold">{m.user_mgmt_assignments()}</h2>
           <label class="input flex items-center gap-2">
             <Search class="size-4 shrink-0 opacity-50" />
-            <input type="search" placeholder="Search by name or email…" class="grow" bind:value={userQuery} oninput={onRolesQueryInput} />
+            <input type="search" placeholder={m.user_mgmt_search_users()} class="grow" bind:value={userQuery} oninput={onRolesQueryInput} />
           </label>
           <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
             <div use:dragScroll class="table-scroll">
             <table class="table table-sm">
               <thead>
                 <tr class="bg-base-300/30">
-                  <th>User</th>
-                  <th>Email</th>
-                  <th>Role</th>
+                  <th>{m.user_mgmt_col_user()}</th>
+                  <th>{m.user_mgmt_col_email()}</th>
+                  <th>{m.user_mgmt_col_role()}</th>
                 </tr>
               </thead>
               <tbody>
@@ -566,12 +567,12 @@
       <div class="flex items-center gap-3">
         <label class="input flex items-center gap-2 flex-1">
           <Search class="size-4 shrink-0 opacity-50" />
-          <input type="search" placeholder="Search teams…" class="grow" bind:value={teamQuery} oninput={onTeamsQueryInput} />
+          <input type="search" placeholder={m.user_mgmt_search_teams()} class="grow" bind:value={teamQuery} oninput={onTeamsQueryInput} />
         </label>
         {#if data.canCreateTeam}
           <button type="button" class="btn btn-primary shrink-0"
             onclick={() => { newTeamForm = { name: '', description: '' }; newTeamError = ''; newTeamOpen = true; }}>
-            <Plus class="size-4" /> <span>New Team</span>
+            <Plus class="size-4" /> <span>{m.user_mgmt_new_team()}</span>
           </button>
         {/if}
       </div>
@@ -594,7 +595,7 @@
                   {/if}
                 </div>
                 <span class="badge badge-ghost text-xs ml-auto shrink-0">
-                  {team.memberCount ?? 0} {(team.memberCount ?? 0) === 1 ? 'member' : 'members'}
+                  {m.user_mgmt_members_count({ count: team.memberCount ?? 0 })}
                 </span>
               </button>
               <div class="flex items-center gap-1 shrink-0">
@@ -637,7 +638,7 @@
                       {/each}
                     </ul>
                   {:else}
-                    <p class="text-sm text-base-content/50">No members yet.</p>
+                    <p class="text-sm text-base-content/50">{m.user_mgmt_no_members()}</p>
                   {/if}
 
                   {#if data.canUpdateTeam}
@@ -646,20 +647,20 @@
                         <div class="flex items-center gap-2">
                           <div class="flex-1">
                             <UserSelect
-                              users={pickerUsers.filter(u => !detail.members.some(m => m.id === u.id))}
+                              users={pickerUsers.filter(u => !detail.members.some(mem => mem.id === u.id))}
                               bind:value={selectedUserId}
-                              placeholder="Select a user…"
+                              placeholder={m.user_mgmt_select_user()}
                               clearable
                             />
                           </div>
                           <button type="button" class="btn btn-primary btn-sm shrink-0"
                             disabled={!selectedUserId || addingMember}
                             onclick={() => addMember(team.id, selectedUserId)}>
-                            {addingMember ? 'Adding…' : 'Add'}
+                            {addingMember ? m.common_adding() : m.common_add()}
                           </button>
                           <button type="button" class="btn btn-ghost btn-sm shrink-0"
                             onclick={() => { addMemberTeamId = null; selectedUserId = ''; addMemberError = ''; }}>
-                            Cancel
+                            {m.common_cancel()}
                           </button>
                         </div>
                         {#if addMemberError}<p class="text-xs text-error">{addMemberError}</p>{/if}
@@ -667,7 +668,7 @@
                     {:else}
                       <button type="button" class="btn btn-ghost btn-sm"
                         onclick={() => { addMemberTeamId = team.id; selectedUserId = ''; addMemberError = ''; loadPickerUsers(); }}>
-                        <UserPlus class="size-4" /> Add Member
+                        <UserPlus class="size-4" /> {m.user_mgmt_add_member()}
                       </button>
                     {/if}
                   {/if}
@@ -676,7 +677,7 @@
             {/if}
           </div>
         {:else}
-          <div class="px-4 py-8 text-center text-base-content/50 text-sm">No teams found.</div>
+          <div class="px-4 py-8 text-center text-base-content/50 text-sm">{m.user_mgmt_no_teams()}</div>
         {/each}
       </div>
 
@@ -691,7 +692,7 @@
 {#if newUserOpen}
   <Modal size="md" label="Invite user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-        <h2 class="text-lg font-semibold">Invite User</h2>
+        <h2 class="text-lg font-semibold">{m.user_mgmt_modal_invite()}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
@@ -718,12 +719,12 @@
             {/each}
           </select>
         </div>
-        <p class="text-sm text-base-content/50">An invitation email will be sent. The user sets their own username and password.</p>
+        <p class="text-sm text-base-content/50">{m.user_mgmt_invitation_notice()}</p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (newUserOpen = false)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (newUserOpen = false)}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-primary" disabled={creating} onclick={submitInvite}>
-          {creating ? 'Sending…' : 'Send Invitation'}
+          {creating ? m.common_sending() : m.user_mgmt_send_invitation()}
         </button>
       </footer>
   </Modal>
@@ -733,7 +734,7 @@
 {#if editTarget}
   <Modal size="md" label="Edit user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-        <h2 class="text-lg font-semibold">Edit User</h2>
+        <h2 class="text-lg font-semibold">{m.user_mgmt_modal_edit_user()}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTarget = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
@@ -762,9 +763,9 @@
         </div>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (editTarget = null)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (editTarget = null)}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-primary" disabled={saving} onclick={submitEdit}>
-          {saving ? 'Saving…' : 'Save Changes'}
+          {saving ? m.common_saving() : m.common_save_changes()}
         </button>
       </footer>
   </Modal>
@@ -774,17 +775,17 @@
 {#if deleteTarget}
   <Modal size="sm" label="Delete user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-        <h2 class="text-lg font-semibold">Delete User</h2>
+        <h2 class="text-lg font-semibold">{m.user_mgmt_modal_delete_user()}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-3 overflow-y-auto flex-1">
         {#if deleteError}<aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>{/if}
-        <p class="text-sm">Are you sure you want to delete <span class="font-semibold">{deleteTarget.username}</span>? This action cannot be undone.</p>
+        <p class="text-sm">{m.user_mgmt_delete_user_confirm({ username: deleteTarget.username })}</p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-error" disabled={deleting} onclick={confirmDelete}>
-          {deleting ? 'Deleting…' : 'Delete'}
+          {deleting ? m.common_deleting() : m.common_delete()}
         </button>
       </footer>
   </Modal>
@@ -794,7 +795,7 @@
 {#if newTeamOpen}
   <Modal size="md" label="New team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-        <h2 class="text-lg font-semibold">New Team</h2>
+        <h2 class="text-lg font-semibold">{m.user_mgmt_modal_new_team()}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newTeamOpen = false)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
@@ -809,9 +810,9 @@
         </div>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (newTeamOpen = false)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (newTeamOpen = false)}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-primary" disabled={creatingTeam} onclick={submitNewTeam}>
-          {creatingTeam ? 'Creating…' : 'Create Team'}
+          {creatingTeam ? m.common_creating() : m.user_mgmt_create_team()}
         </button>
       </footer>
   </Modal>
@@ -821,7 +822,7 @@
 {#if editTeam}
   <Modal size="md" label="Edit team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-        <h2 class="text-lg font-semibold">Edit Team</h2>
+        <h2 class="text-lg font-semibold">{m.user_mgmt_modal_edit_team()}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTeam = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
@@ -836,9 +837,9 @@
         </div>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (editTeam = null)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (editTeam = null)}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-primary" disabled={savingTeam} onclick={submitEditTeam}>
-          {savingTeam ? 'Saving…' : 'Save Changes'}
+          {savingTeam ? m.common_saving() : m.common_save_changes()}
         </button>
       </footer>
   </Modal>
@@ -848,17 +849,17 @@
 {#if deleteTeam}
   <Modal size="sm" label="Delete team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-        <h2 class="text-lg font-semibold">Delete Team</h2>
+        <h2 class="text-lg font-semibold">{m.user_mgmt_modal_delete_team()}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTeam = null)} aria-label="Close"><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-3 overflow-y-auto flex-1">
         {#if deleteTeamError}<aside class="alert alert-error p-3 rounded text-sm">{deleteTeamError}</aside>{/if}
-        <p class="text-sm">Are you sure you want to delete <span class="font-semibold">{deleteTeam.name}</span>? This action cannot be undone.</p>
+        <p class="text-sm">{m.user_mgmt_delete_team_confirm({ teamName: deleteTeam.name })}</p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-        <button type="button" class="btn btn-ghost" onclick={() => (deleteTeam = null)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (deleteTeam = null)}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-error" disabled={deletingTeam} onclick={confirmDeleteTeam}>
-          {deletingTeam ? 'Deleting…' : 'Delete'}
+          {deletingTeam ? m.common_deleting() : m.common_delete()}
         </button>
       </footer>
   </Modal>

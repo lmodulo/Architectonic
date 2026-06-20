@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Phone, Mail, CalendarDays, MonitorPlay, FileText, CheckSquare, CheckCircle } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { ACTIVITY_TYPE_COLOR, fmtDate, fmtCurrency, type CrmActivity } from '$lib/utils/crm';
 
   const ICONS: Record<string, any> = {
@@ -46,7 +47,7 @@
     <button
       type="button"
       class="btn btn-ghost btn-xs btn-square shrink-0 opacity-40 hover:opacity-100"
-      title="Mark complete"
+      title={m.crm_activity_complete()}
       onclick={() => onComplete!(activity.id)}
     >
       <CheckCircle class="size-4" />

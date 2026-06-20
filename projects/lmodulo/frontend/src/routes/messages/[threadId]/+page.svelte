@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidate, invalidateAll } from '$app/navigation';
   import { onMount } from 'svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { Reply, Paperclip, FileText, X } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
@@ -70,7 +71,7 @@
   }
 
   async function sendReply() {
-    if (!replyBody.trim() || replyBody === '<p></p>') { error = 'Reply body is required'; return; }
+    if (!replyBody.trim() || replyBody === '<p></p>') { error = m.messages_reply_required(); return; }
     sending = true; error = '';
     try {
       const res = await fetch(`/api/messages/${threadId}/reply`, {
@@ -195,7 +196,7 @@
               type="button"
               class="btn btn-ghost"
               onclick={() => { replyOpen = false; replyBody = ''; replyFiles = []; error = ''; }}
-            >Cancel</button>
+            >{m.common_cancel()}</button>
             <button
               type="button"
               class="btn btn-primary"
@@ -203,7 +204,7 @@
               onclick={sendReply}
             >
               <Reply class="size-4" />
-              {sending ? 'Sending…' : 'Reply'}
+              {sending ? m.common_sending() : m.messages_reply()}
             </button>
           </div>
         </div>
@@ -215,7 +216,7 @@
         onclick={() => (replyOpen = true)}
       >
         <Reply class="size-4" />
-        Reply
+        {m.messages_reply()}
       </button>
     {/if}
   </div>

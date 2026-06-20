@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { eventsForDay, typePillClass, type CalendarEvent } from '$lib/utils/calendarEvents';
 
   let {
@@ -49,18 +50,18 @@
 
   <!-- Nav -->
   <div class="flex items-center justify-between px-5 py-3 border-b border-base-300">
-    <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={prevMonth} aria-label="Previous month">
+    <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={prevMonth} aria-label={m.event_cal_prev_month()}>
       <ChevronLeft class="size-4" />
     </button>
     <span class="font-semibold text-sm">{calLabel}</span>
-    <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={nextMonth} aria-label="Next month">
+    <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={nextMonth} aria-label={m.event_cal_next_month()}>
       <ChevronRight class="size-4" />
     </button>
   </div>
 
   <!-- DOW header -->
   <div class="grid grid-cols-7 border-b border-base-300">
-    {#each ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as dow}
+    {#each [m.event_cal_sun(), m.event_cal_mon(), m.event_cal_tue(), m.event_cal_wed(), m.event_cal_thu(), m.event_cal_fri(), m.event_cal_sat()] as dow}
       <div class="px-2 py-2 text-center text-xs font-semibold opacity-50 uppercase tracking-wide">{dow}</div>
     {/each}
   </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages.js';
   import { dragScroll } from '$lib/actions/dragScroll';
   import { Search, ChevronDown, ChevronUp, ChevronsUpDown, History } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
@@ -123,7 +124,7 @@
       {/each}
     </select>
 
-    <button type="button" class="btn btn-primary" onclick={applyFilters}>Apply</button>
+    <button type="button" class="btn btn-primary" onclick={applyFilters}>{m.common_apply()}</button>
   </div>
 
   <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">

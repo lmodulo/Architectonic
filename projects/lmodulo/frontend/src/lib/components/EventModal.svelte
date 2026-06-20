@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
+  import { m } from '$lib/paraglide/messages.js';
   import { cubicOut } from 'svelte/easing';
   import { X } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
@@ -110,10 +111,10 @@
   });
 
   async function save() {
-    if (!form.title.trim()) { err = 'Title is required'; return; }
-    if (!form.startDate)    { err = 'Start date is required'; return; }
+    if (!form.title.trim()) { err = m.event_title_required(); return; }
+    if (!form.startDate)    { err = m.event_start_required(); return; }
     if (!event && recurrence.enabled && !recurrence.until) {
-      err = 'Recurrence end date is required'; return;
+      err = m.event_recur_end_required(); return;
     }
     loading = true; err = '';
     const baseEnd = form.singleDay ? form.startDate : (form.endDate || form.startDate);
@@ -137,7 +138,7 @@
     try {
       await onSave(body);
     } catch (e: unknown) {
-      err = e instanceof Error ? e.message : 'Save failed';
+      err = e instanceof Error ? e.message : m.errors_save_failed();
     } finally {
       loading = false;
     }
@@ -148,7 +149,7 @@
     try {
       await onDelete();
     } catch (e: unknown) {
-      err = e instanceof Error ? e.message : 'Delete failed';
+      err = e instanceof Error ? e.message : m.errors_delete_failed();
     } finally {
       loading = false;
     }
@@ -156,9 +157,9 @@
 </script>
 
 {#if open}
-  <Modal size="lg" label={event ? 'Edit Event' : 'New Event'}>
+  <Modal size="lg" label={event ? m.event_edit_title() : m.event_new_title()}>
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-        <h2 class="text-lg font-semibold">{event ? 'Edit Event' : 'New Event'}</h2>
+        <h2 class="text-lg font-semibold">{event ? m.event_edit_title() : m.event_new_title()}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={onClose} aria-label="Close">
           <X class="size-5" />
         </button>
@@ -171,20 +172,20 @@
 
         <!-- Title -->
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">Title</label>
-          <input id="ev-title" type="text" class="input w-full" placeholder="Event title"
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">{m.event_title_field()}</label>
+          <input id="ev-title" type="text" class="input w-full" placeholder={m.event_title_field()}
             bind:value={form.title} maxlength="200" />
         </div>
 
         <!-- Share with -->
         {#if users.filter(u => u.id !== selfId()).length > 0}
           <div class="space-y-1">
-            <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Share with</p>
+            <p class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.event_share()}</p>
             <UserSelect
               {users}
               excludeId={selfId()}
               multiple
-              placeholder="Search people…"
+              placeholder={m.event_share_search()}
               bind:value={sharedWith}
             />
           </div>
@@ -193,7 +194,7 @@
         <!-- Type + Status row -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-type">Type</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-type">{m.event_type()}</label>
             <select id="ev-type" class="select w-full" bind:value={form.eventType}>
               {#each KNOWN_TYPES as t}
                 <option value={t}>{typeLabel(t)}</option>
@@ -201,11 +202,11 @@
             </select>
           </div>
           <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-status">Status</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-status">{m.event_status()}</label>
             <select id="ev-status" class="select w-full" bind:value={form.status}>
-              <option value="active">Active</option>
-              <option value="draft">Draft</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="active">{m.event_status_active()}</option>
+              <option value="draft">{m.event_status_draft()}</option>
+              <option value="cancelled">{m.event_status_cancelled()}</option>
             </select>
           </div>
         </div>
@@ -213,11 +214,11 @@
         <!-- Dates -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">Start Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">{m.event_start_date()}</label>
             <input id="ev-start" type="date" class="input w-full" bind:value={form.startDate} />
           </div>
           <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">End Date</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">{m.event_end_date()}</label>
             <input id="ev-end" type="date" class="input w-full" bind:value={form.endDate}
               disabled={form.singleDay} min={form.startDate} />
           </div>
@@ -227,11 +228,11 @@
         {#if !form.allDay}
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start-time">Start Time</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start-time">{m.event_start_time()}</label>
             <input id="ev-start-time" type="time" class="input w-full" bind:value={startTime} />
           </div>
           <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end-time">End Time</label>
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end-time">{m.event_end_time()}</label>
             <input id="ev-end-time" type="time" class="input w-full" bind:value={endTime} />
           </div>
         </div>
@@ -241,11 +242,11 @@
         <div class="flex gap-6">
           <label class="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" class="checkbox" bind:checked={form.singleDay} />
-            <span class="text-sm">Single-day</span>
+            <span class="text-sm">{m.event_single_day()}</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" class="checkbox" bind:checked={form.allDay} />
-            <span class="text-sm">All day</span>
+            <span class="text-sm">{m.event_all_day()}</span>
           </label>
         </div>
 
@@ -254,22 +255,22 @@
         <div class="space-y-3 border-l-2 border-base-300 pl-4">
           <label class="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" class="checkbox" bind:checked={recurrence.enabled} />
-            <span class="text-sm font-medium">Repeat event</span>
+            <span class="text-sm font-medium">{m.event_repeat()}</span>
           </label>
           {#if recurrence.enabled}
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1">
-              <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-freq">Frequency</label>
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-freq">{m.event_frequency()}</label>
               <select id="ev-freq" class="select w-full" bind:value={recurrence.frequency}>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="biweekly">Bi-weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
+                <option value="daily">{m.event_freq_daily()}</option>
+                <option value="weekly">{m.event_freq_weekly()}</option>
+                <option value="biweekly">{m.event_freq_biweekly()}</option>
+                <option value="monthly">{m.event_freq_monthly()}</option>
+                <option value="yearly">{m.event_freq_yearly()}</option>
               </select>
             </div>
             <div class="space-y-1">
-              <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-until">Until</label>
+              <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-until">{m.event_until()}</label>
               <input id="ev-until" type="date" class="input w-full"
                 bind:value={recurrence.until} min={form.startDate} />
             </div>
@@ -280,32 +281,32 @@
 
         <!-- Visibility -->
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-vis">Visibility</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-vis">{m.event_visibility()}</label>
           <select id="ev-vis" class="select w-full" bind:value={form.visibility}>
-            <option value="private">Private — only you</option>
-            <option value="shared">Shared — you + selected people above</option>
-            <option value="public">Public — everyone (including public calendar)</option>
+            <option value="private">{m.event_vis_private()}</option>
+            <option value="shared">{m.event_vis_shared()}</option>
+            <option value="public">{m.event_vis_public()}</option>
           </select>
         </div>
 
         <!-- Location -->
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-loc">Location</label>
-          <input id="ev-loc" type="text" class="input w-full" placeholder="Optional location"
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-loc">{m.event_location()}</label>
+          <input id="ev-loc" type="text" class="input w-full" placeholder={m.event_location_placeholder()}
             bind:value={form.location} />
         </div>
 
         <!-- Tags -->
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-tags">Tags</label>
-          <input id="ev-tags" type="text" class="input w-full" placeholder="Comma-separated tags"
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-tags">{m.event_tags()}</label>
+          <input id="ev-tags" type="text" class="input w-full" placeholder={m.event_tags_placeholder()}
             bind:value={form.tags} />
         </div>
 
         <!-- Content -->
         <div class="space-y-1">
-          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
-          <MessageEditor bind:html={form.content} placeholder="Event description…" />
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.event_desc()}</p>
+          <MessageEditor bind:html={form.content} placeholder={m.event_desc_placeholder()} />
         </div>
       </div>
 
@@ -314,14 +315,14 @@
           {#if event && hasPermission(user, 'calendar_events', 'delete')}
             <button type="button" class="btn btn-error btn-soft" disabled={loading}
               onclick={() => (deletePrompt = true)}>
-              Delete
+              {m.common_delete()}
             </button>
           {/if}
         </div>
         <div class="flex gap-3">
-          <button type="button" class="btn btn-ghost" onclick={onClose}>Cancel</button>
+          <button type="button" class="btn btn-ghost" onclick={onClose}>{m.common_cancel()}</button>
           <button type="button" class="btn btn-primary" disabled={loading} onclick={save}>
-            {loading ? 'Saving…' : 'Save'}
+            {loading ? m.common_saving() : m.common_save()}
           </button>
         </div>
       </footer>
@@ -340,18 +341,18 @@
       class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4"
     >
       <div class="p-6 space-y-3">
-        <h2 class="text-lg font-semibold">Delete event?</h2>
+        <h2 class="text-lg font-semibold">{m.event_delete_confirm()}</h2>
         <p class="text-sm opacity-70">
-          "<strong>{form.title}</strong>" will be permanently removed. This cannot be undone.
+          {m.event_delete_body({ title: form.title })}
         </p>
         {#if err}
           <aside class="alert alert-error p-3 rounded text-sm">{err}</aside>
         {/if}
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn btn-ghost" onclick={() => (deletePrompt = false)}>Cancel</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (deletePrompt = false)}>{m.common_cancel()}</button>
         <button type="button" class="btn btn-error" disabled={loading} onclick={confirmDelete}>
-          {loading ? 'Deleting…' : 'Delete'}
+          {loading ? m.common_deleting() : m.common_delete()}
         </button>
       </footer>
     </div>

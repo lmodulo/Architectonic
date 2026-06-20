@@ -2,6 +2,7 @@
   import { enhance } from '$app/forms';
   import { Settings } from 'lucide-svelte';
   import type { PageData, ActionData } from './$types';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -11,19 +12,19 @@
     quiet: { enabled: boolean; start: string; end: string; timezone: string };
   } | null;
 
-  const KNOWN_TYPES = [
-    { type: 'message.received',          label: 'New message received',        group: 'Messages' },
-    { type: 'message.reply',             label: 'Reply to your message',       group: 'Messages' },
-    { type: 'auth.password',             label: 'Password changed',            group: 'Account'  },
-    { type: 'role.changed',              label: 'Role / permissions updated',  group: 'Account'  },
-    { type: 'agile_task.assigned',       label: 'Task assigned to you',        group: 'Tasks'    },
-    { type: 'agile_task.status_changed', label: 'Task status changed',         group: 'Tasks'    },
-    { type: 'agile_job.status_changed',  label: 'Job status changed',          group: 'Jobs'     },
-    { type: 'agile_job.comment',         label: 'New comment on a job',        group: 'Jobs'     },
-    { type: 'agile_sprint.status_changed', label: 'Sprint status changed',     group: 'Sprints'  },
-  ];
+  const KNOWN_TYPES = $derived([
+    { type: 'message.received',          label: m.notifications_prefs_new_message(),   group: m.notifications_prefs_messages() },
+    { type: 'message.reply',             label: m.notifications_prefs_reply(),          group: m.notifications_prefs_messages() },
+    { type: 'auth.password',             label: m.notifications_prefs_password_changed(), group: m.notifications_prefs_account() },
+    { type: 'role.changed',              label: m.notifications_prefs_role_updated(),   group: m.notifications_prefs_account() },
+    { type: 'agile_task.assigned',       label: m.notifications_prefs_task_assigned(),  group: m.notifications_prefs_tasks()    },
+    { type: 'agile_task.status_changed', label: m.notifications_prefs_task_status(),    group: m.notifications_prefs_tasks()    },
+    { type: 'agile_job.status_changed',  label: m.notifications_prefs_job_status(),     group: m.notifications_prefs_jobs()     },
+    { type: 'agile_job.comment',         label: m.notifications_prefs_job_comment(),    group: m.notifications_prefs_jobs()     },
+    { type: 'agile_sprint.status_changed', label: m.notifications_prefs_sprint_status(), group: m.notifications_prefs_sprints() },
+  ]);
 
-  const groups = [...new Set(KNOWN_TYPES.map(t => t.group))];
+  const groups = $derived([...new Set(KNOWN_TYPES.map(t => t.group))]);
 
   let emailEnabled  = $state(prefs?.channels.email   ?? false);
   let quietEnabled  = $state(prefs?.quiet.enabled    ?? false);
@@ -48,18 +49,18 @@
 </script>
 
 <svelte:head>
-  <title>Notification Preferences</title>
+  <title>{m.notifications_prefs_title()}</title>
 </svelte:head>
 
 <div class="space-y-8 max-w-xl">
   <div class="flex items-center gap-2">
     <Settings class="size-5 text-primary" />
-    <h1 class="text-xl font-semibold">Notification Preferences</h1>
+    <h1 class="text-xl font-semibold">{m.notifications_prefs_title()}</h1>
   </div>
 
   {#if form?.success}
     <div class="alert alert-success text-sm px-4 py-2 rounded-box">
-      Preferences saved.
+      {m.notifications_prefs_saved()}
     </div>
   {/if}
   {#if form?.error}
@@ -72,10 +73,10 @@
 
     <!-- Channels -->
     <section class="card bg-base-200 border border-base-300 p-4 space-y-3">
-      <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Delivery Channels</h2>
+      <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">{m.notifications_prefs_channels()}</h2>
       <label class="flex items-center gap-3 text-sm">
         <input type="checkbox" class="checkbox" checked disabled />
-        <span>Push (in-app, always on)</span>
+        <span>{m.notifications_prefs_push()}</span>
       </label>
       <label class="flex items-center gap-3 text-sm">
         <input
@@ -84,17 +85,17 @@
           class="checkbox"
           bind:checked={emailEnabled}
         />
-        <span>Email digest (15-minute batches)</span>
+        <span>{m.notifications_prefs_email()}</span>
       </label>
     </section>
 
     <!-- Muted types -->
     <section class="card bg-base-200 border border-base-300 p-4 space-y-4">
-      <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Notification Types</h2>
-      <p class="text-xs opacity-50">Uncheck to silence a notification type.</p>
+      <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">{m.notifications_prefs_types()}</h2>
+      <p class="text-xs opacity-50">{m.notifications_prefs_types_hint()}</p>
 
-      {#each muted as m}
-        <input type="hidden" name="muted" value={m} />
+      {#each muted as mutedType}
+        <input type="hidden" name="muted" value={mutedType} />
       {/each}
 
       {#each groups as group}
@@ -117,7 +118,7 @@
 
     <!-- Quiet hours -->
     <section class="card bg-base-200 border border-base-300 p-4 space-y-4">
-      <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">Quiet Hours</h2>
+      <h2 class="text-sm font-semibold uppercase tracking-wide opacity-60">{m.notifications_prefs_quiet()}</h2>
       <label class="flex items-center gap-3 text-sm">
         <input
           type="checkbox"
@@ -125,13 +126,13 @@
           class="checkbox"
           bind:checked={quietEnabled}
         />
-        <span>Enable do-not-disturb window</span>
+        <span>{m.notifications_prefs_dnd()}</span>
       </label>
 
       {#if quietEnabled}
         <div class="grid grid-cols-2 gap-4">
           <label class="space-y-1">
-            <span class="text-xs opacity-60">Start</span>
+            <span class="text-xs opacity-60">{m.notifications_prefs_start()}</span>
             <input
               type="time"
               name="quiet_start"
@@ -140,7 +141,7 @@
             />
           </label>
           <label class="space-y-1">
-            <span class="text-xs opacity-60">End</span>
+            <span class="text-xs opacity-60">{m.notifications_prefs_end()}</span>
             <input
               type="time"
               name="quiet_end"
@@ -150,7 +151,7 @@
           </label>
         </div>
         <label class="space-y-1">
-          <span class="text-xs opacity-60">Timezone</span>
+          <span class="text-xs opacity-60">{m.notifications_prefs_timezone()}</span>
           <select name="quiet_timezone" class="select text-sm" bind:value={quietTimezone}>
             {#each TIMEZONES as tz}
               <option value={tz}>{tz}</option>
@@ -165,8 +166,8 @@
     </section>
 
     <div class="flex items-center gap-3">
-      <button type="submit" class="btn btn-primary">Save Preferences</button>
-      <a href="/notifications" class="btn btn-ghost">Back</a>
+      <button type="submit" class="btn btn-primary">{m.notifications_prefs_save()}</button>
+      <a href="/notifications" class="btn btn-ghost">{m.notifications_prefs_back()}</a>
     </div>
 
   </form>

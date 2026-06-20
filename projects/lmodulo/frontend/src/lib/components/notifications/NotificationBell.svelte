@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Bell } from 'lucide-svelte';
   import { goto } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages.js';
   import {
     getUnreadCount,
     getNotifications,
@@ -48,7 +49,7 @@
 >
   <summary
     class="btn btn-ghost btn-sm btn-square relative"
-    aria-label="Notifications"
+    aria-label={m.notifications_title()}
   >
     <Bell class="size-5" />
     {#if count > 0}
@@ -62,14 +63,14 @@
 
     <!-- Header -->
     <div class="flex items-center justify-between px-3 py-2 border-b border-base-300">
-      <span class="text-sm font-semibold">Notifications</span>
+      <span class="text-sm font-semibold">{m.notifications_title()}</span>
       {#if count > 0}
         <button
           type="button"
           class="text-xs text-primary hover:underline"
           onclick={handleMarkAll}
         >
-          Mark all read
+          {m.notifications_mark_all_read()}
         </button>
       {/if}
     </div>
@@ -77,9 +78,9 @@
     <!-- List -->
     <div class="max-h-80 overflow-y-auto">
       {#if loading}
-        <div class="px-4 py-6 text-center text-sm opacity-50">Loading…</div>
+        <div class="px-4 py-6 text-center text-sm opacity-50">{m.common_loading()}</div>
       {:else if items.length === 0}
-        <div class="px-4 py-6 text-center text-sm opacity-50">No notifications</div>
+        <div class="px-4 py-6 text-center text-sm opacity-50">{m.notifications_none()}</div>
       {:else}
         {#each items as n (n._id)}
           <NotificationItem notification={n} onclick={handleItem} />
@@ -94,7 +95,7 @@
         class="text-xs text-primary hover:underline"
         onclick={() => detailsEl?.removeAttribute('open')}
       >
-        View all notifications →
+        {m.notifications_view_all()}
       </a>
     </div>
 

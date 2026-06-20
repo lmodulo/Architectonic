@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { AgileSprint, AgileTask } from '$lib/utils/agile';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { sprint, tasks }: { sprint: AgileSprint; tasks: AgileTask[] } = $props();
 
@@ -126,7 +127,7 @@
 </style>
 
 {#if chart}
-  <svg viewBox="0 0 {VW} {VH}" width="100%" class="block" aria-label="Sprint burndown chart">
+  <svg viewBox="0 0 {VW} {VH}" width="100%" class="block" aria-label={m.agile_burndown_title()}>
     <!-- gridlines + Y labels -->
     {#each yTicks as tick}
       <line x1={PL} y1={tick.yPos} x2={VW - PR} y2={tick.yPos} stroke="currentColor" stroke-opacity="0.08" />
@@ -158,7 +159,7 @@
       x2={xp(chart.todayIdx)} y2={PT + CH}
       stroke="var(--color-warning)" stroke-width="1" stroke-dasharray="3 3" stroke-opacity="0.7"
     />
-    <text x={xp(chart.todayIdx)} y={PT - 5} font-size="8" text-anchor="middle" fill="var(--color-warning)" fill-opacity="0.8">today</text>
+    <text x={xp(chart.todayIdx)} y={PT - 5} font-size="8" text-anchor="middle" fill="var(--color-warning)" fill-opacity="0.8">{m.agile_burndown_today()}</text>
 
     <!-- Current remaining dot -->
     {#if chart.actual[chart.todayIdx] !== null}
@@ -172,13 +173,13 @@
   <div class="flex gap-5 text-[10px] opacity-40 mt-0.5">
     <span class="flex items-center gap-1.5">
       <svg width="18" height="8" aria-hidden="true"><line x1="0" y1="4" x2="18" y2="4" stroke="currentColor" stroke-dasharray="5 4" stroke-width="1.5"/></svg>
-      Ideal
+      {m.agile_burndown_ideal()}
     </span>
     <span class="flex items-center gap-1.5">
       <svg width="18" height="8" aria-hidden="true"><line x1="0" y1="4" x2="18" y2="4" stroke="var(--color-primary)" stroke-width="2"/></svg>
-      Actual
+      {m.agile_burndown_actual()}
     </span>
   </div>
 {:else}
-  <p class="text-sm opacity-40 text-center py-6">Set sprint start and end dates to view burndown.</p>
+  <p class="text-sm opacity-40 text-center py-6">{m.agile_burndown_set_dates()}</p>
 {/if}

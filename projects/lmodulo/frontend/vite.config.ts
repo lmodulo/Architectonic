@@ -2,6 +2,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import type { Plugin } from 'vite';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 // Tailwind v4 consumes @import directives internally before Vite can register
 // lmodulo-theme.css in its module graph. This plugin explicitly watches the
@@ -24,7 +25,8 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
-		themeHotReload()
+		themeHotReload(),
+		paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide' })
 	],
 	server: {
 		proxy: {

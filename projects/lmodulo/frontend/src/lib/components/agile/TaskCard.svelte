@@ -1,5 +1,6 @@
 <script lang="ts">
   import { GripVertical, Clock, AlertCircle, Copy } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { STATUS_COLOR, PRIORITY_COLOR, fmtEffort, fmtDate } from '$lib/utils/agile';
   import type { AgileTask } from '$lib/utils/agile';
 
@@ -46,7 +47,7 @@
     <span class="badge text-[10px] {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
     {#if isBlocked}
       <span class="flex items-center gap-0.5 text-[10px] text-error">
-        <AlertCircle class="size-2.5" /> Blocked
+        <AlertCircle class="size-2.5" /> {m.agile_task_blocked()}
       </span>
     {/if}
   </div>

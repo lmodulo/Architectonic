@@ -4,6 +4,7 @@
   import { Settings } from 'lucide-svelte';
   import LogoIcon from '$lib/components/LogoIcon.svelte';
   import type { PageData } from './$types';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -154,8 +155,8 @@
   <div class="page-heading flex items-start gap-3">
     <Settings class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-2xl font-bold leading-none">Settings</h1>
-      <p class="text-xs opacity-60 mt-0.5">Application-wide configuration · Changes take effect immediately</p>
+      <h1 class="text-2xl font-bold leading-none">{m.settings_title()}</h1>
+      <p class="text-xs opacity-60 mt-0.5">{m.settings_subtitle()}</p>
     </div>
   </div>
 
@@ -165,13 +166,13 @@
       class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
         {activeTab === 'general' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
       onclick={() => (activeTab = 'general')}>
-      General
+      {m.settings_tab_general()}
     </button>
     <button type="button"
       class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
         {activeTab === 'brand' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
       onclick={() => (activeTab = 'brand')}>
-      Brand
+      {m.settings_tab_brand()}
     </button>
   </nav>
 
@@ -227,9 +228,9 @@
                   <span class="text-xs text-error">{saveError}</span>
                 {/if}
                 <button type="button" class="btn btn-primary btn-sm" disabled={saving} onclick={() => save(setting.key)}>
-                  {saving ? 'Saving…' : 'Save'}
+                  {saving ? m.common_saving() : m.common_save()}
                 </button>
-                <button type="button" class="btn btn-ghost btn-sm" disabled={saving} onclick={cancelEdit}>Cancel</button>
+                <button type="button" class="btn btn-ghost btn-sm" disabled={saving} onclick={cancelEdit}>{m.common_cancel()}</button>
               </div>
             {:else}
               <span class="text-sm font-mono opacity-80">
@@ -242,7 +243,7 @@
                 {/if}
               </span>
               {#if canEdit}
-                <button type="button" class="btn btn-ghost btn-sm" onclick={() => startEdit(setting)}>Edit</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick={() => startEdit(setting)}>{m.common_edit()}</button>
               {/if}
             {/if}
           </div>
@@ -251,7 +252,7 @@
       {/each}
 
       {#if !genericSettings.length}
-        <p class="px-5 py-8 text-sm opacity-50 text-center">No settings found.</p>
+        <p class="px-5 py-8 text-sm opacity-50 text-center">{m.settings_no_settings()}</p>
       {/if}
     </div>
 
@@ -259,35 +260,35 @@
     {:else if activeTab === 'brand'}
     <div class="bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
       <div>
-        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Brand</p>
-        <p class="text-xs opacity-50 mt-1">Any combination is allowed. Only fields with values display in the nav.</p>
+        <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.settings_brand()}</p>
+        <p class="text-xs opacity-50 mt-1">{m.settings_brand_hint()}</p>
       </div>
 
       {#if brandError}<aside class="alert alert-error p-3 rounded text-sm">{brandError}</aside>{/if}
 
       <!-- Brand Name -->
       <div class="space-y-2">
-        <p class="text-sm font-medium">Brand Name</p>
+        <p class="text-sm font-medium">{m.settings_brand_name()}</p>
         {#if editingBrandName}
           <div class="flex items-center gap-2">
             <input
               type="text"
               class="input text-sm flex-1"
-              placeholder="e.g. Acme Corp"
+              placeholder={m.settings_brand_name_placeholder()}
               bind:value={brandNameInput}
             />
             <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={savingBrandName} onclick={saveBrandName}>
-              {savingBrandName ? 'Saving…' : 'Save'}
+              {savingBrandName ? m.common_saving() : m.common_save()}
             </button>
-            <button type="button" class="btn btn-ghost btn-sm shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>Cancel</button>
+            <button type="button" class="btn btn-ghost btn-sm shrink-0" disabled={savingBrandName} onclick={cancelBrandNameEdit}>{m.common_cancel()}</button>
           </div>
         {:else}
           <div class="flex items-center gap-2">
             <span class="text-sm font-mono opacity-80 flex-1">{currentBrandName || '—'}</span>
             {#if canEdit}
-              <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick={startBrandNameEdit}>Edit</button>
+              <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick={startBrandNameEdit}>{m.common_edit()}</button>
               {#if currentBrandName}
-                <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={savingBrandName} onclick={clearBrandName}>Clear</button>
+                <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={savingBrandName} onclick={clearBrandName}>{m.common_clear()}</button>
               {/if}
             {/if}
           </div>
@@ -296,7 +297,7 @@
 
       <!-- Logo -->
       <div class="space-y-2">
-        <p class="text-sm font-medium">Logo</p>
+        <p class="text-sm font-medium">{m.settings_logo()}</p>
         <div class="flex items-center gap-4">
           <div class="size-14 shrink-0 flex items-center justify-center rounded-box border border-base-300 overflow-hidden bg-base-100">
             {#if currentLogo}
@@ -310,14 +311,14 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <input type="file" class="input text-sm flex-1 min-w-0" accept="image/*" bind:files={logoFiles} />
                 <button type="button" class="btn btn-primary btn-sm shrink-0" disabled={uploading || !logoFiles?.length} onclick={uploadLogo}>
-                  {uploading ? 'Uploading…' : 'Upload'}
+                  {uploading ? m.common_uploading() : m.common_upload()}
                 </button>
                 {#if currentLogo}
-                  <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={uploading} onclick={removeLogo}>Remove</button>
+                  <button type="button" class="btn btn-soft btn-error btn-sm shrink-0" disabled={uploading} onclick={removeLogo}>{m.common_remove()}</button>
                 {/if}
               </div>
             {/if}
-            <p class="text-xs opacity-50">Square PNG or SVG recommended, at least 64×64px.</p>
+            <p class="text-xs opacity-50">{m.settings_logo_hint()}</p>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { Editor } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import Underline from '@tiptap/extension-underline';
@@ -12,7 +13,7 @@
     TextQuote, Undo, Redo
   } from 'lucide-svelte';
 
-  let { html = $bindable(''), placeholder = 'Write your message…' }: {
+  let { html = $bindable(''), placeholder = m.editor_placeholder() }: {
     html: string;
     placeholder?: string;
   } = $props();
@@ -56,19 +57,19 @@
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('bold') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBold().run())}
-      aria-label="Bold" title="Bold"
+      aria-label={m.editor_bold()} title={m.editor_bold()}
     ><Bold class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('italic') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleItalic().run())}
-      aria-label="Italic" title="Italic"
+      aria-label={m.editor_italic()} title={m.editor_italic()}
     ><Italic class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('underline') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleUnderline().run())}
-      aria-label="Underline" title="Underline"
+      aria-label={m.editor_underline()} title={m.editor_underline()}
     ><UnderlineIcon class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
@@ -76,19 +77,19 @@
     <button type="button"
       class="btn btn-ghost btn-sm px-2 text-xs font-bold {active('heading', { level: 1 }) ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleHeading({ level: 1 }).run())}
-      aria-label="Heading 1" title="Heading 1"
+      aria-label={m.editor_h1()} title={m.editor_h1()}
     >H1</button>
 
     <button type="button"
       class="btn btn-ghost btn-sm px-2 text-xs font-bold {active('heading', { level: 2 }) ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleHeading({ level: 2 }).run())}
-      aria-label="Heading 2" title="Heading 2"
+      aria-label={m.editor_h2()} title={m.editor_h2()}
     >H2</button>
 
     <button type="button"
       class="btn btn-ghost btn-sm px-2 text-xs font-bold {active('heading', { level: 3 }) ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleHeading({ level: 3 }).run())}
-      aria-label="Heading 3" title="Heading 3"
+      aria-label={m.editor_h3()} title={m.editor_h3()}
     >H3</button>
 
     <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
@@ -96,13 +97,13 @@
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('bulletList') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBulletList().run())}
-      aria-label="Bullet list" title="Bullet list"
+      aria-label={m.editor_bullet_list()} title={m.editor_bullet_list()}
     ><List class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('orderedList') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleOrderedList().run())}
-      aria-label="Ordered list" title="Ordered list"
+      aria-label={m.editor_ordered_list()} title={m.editor_ordered_list()}
     ><ListOrdered class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
@@ -110,7 +111,7 @@
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('blockquote') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBlockquote().run())}
-      aria-label="Blockquote" title="Blockquote"
+      aria-label={m.editor_blockquote()} title={m.editor_blockquote()}
     ><TextQuote class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
@@ -118,13 +119,13 @@
     <button type="button"
       class="btn btn-ghost btn-sm btn-square"
       onmousedown={cmd(() => editor?.chain().undo().run())}
-      aria-label="Undo" title="Undo"
+      aria-label={m.editor_undo()} title={m.editor_undo()}
     ><Undo class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-sm btn-square"
       onmousedown={cmd(() => editor?.chain().redo().run())}
-      aria-label="Redo" title="Redo"
+      aria-label={m.editor_redo()} title={m.editor_redo()}
     ><Redo class="size-3.5" /></button>
   </div>
 

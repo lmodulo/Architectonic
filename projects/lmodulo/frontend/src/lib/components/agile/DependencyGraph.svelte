@@ -1,6 +1,7 @@
 <script lang="ts">
   import { STATUS_COLOR } from '$lib/utils/agile';
   import type { AgileJob } from '$lib/utils/agile';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { jobs = [] }: { jobs: AgileJob[] } = $props();
 
@@ -84,10 +85,10 @@
 </script>
 
 {#if jobs.length === 0}
-  <p class="text-sm opacity-40 text-center py-8">No jobs in this sprint</p>
+  <p class="text-sm opacity-40 text-center py-8">{m.agile_dep_graph_empty()}</p>
 {:else}
   <div class="overflow-x-auto">
-    <svg viewBox="0 0 {W} {H}" width="100%" height={H} class="block" aria-label="Dependency graph">
+    <svg viewBox="0 0 {W} {H}" width="100%" height={H} class="block" aria-label={m.agile_dep_graph_title()}>
       <!-- Edges -->
       {#each layout().edges as e}
         <line x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}

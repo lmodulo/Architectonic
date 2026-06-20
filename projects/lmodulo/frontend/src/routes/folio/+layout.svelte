@@ -2,19 +2,20 @@
   import { page } from '$app/state';
   import { LayoutGrid, FileText, RefreshCw, ClipboardList, Receipt, BarChart2 } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
+  import { m } from '$lib/paraglide/messages.js';
   import type { LayoutData } from './$types';
   import { dragScroll } from '$lib/actions/dragScroll';
 
   let { data, children }: { data: LayoutData; children: any } = $props();
 
-  const navLinks = [
-    { href: '/folio',               label: 'Overview',      icon: LayoutGrid,    permission: null },
-    { href: '/folio/invoices',      label: 'Invoices',      icon: FileText,      permission: null },
-    { href: '/folio/estimates',     label: 'Estimates',     icon: ClipboardList, permission: 'finance_estimates' },
-    { href: '/folio/subscriptions', label: 'Subscriptions', icon: RefreshCw,     permission: 'finance_subscriptions' },
-    { href: '/folio/expenses',      label: 'Expenses',      icon: Receipt,       permission: 'finance_expenses' },
-    { href: '/folio/reports',       label: 'Reports',       icon: BarChart2,      permission: 'finance_reports' },
-  ];
+  const navLinks = $derived([
+    { href: '/folio',               label: m.folio_tab_overview(),       icon: LayoutGrid,    permission: null },
+    { href: '/folio/invoices',      label: m.folio_tab_invoices(),       icon: FileText,      permission: null },
+    { href: '/folio/estimates',     label: m.folio_tab_estimates(),      icon: ClipboardList, permission: 'finance_estimates' },
+    { href: '/folio/subscriptions', label: m.folio_tab_subscriptions(),  icon: RefreshCw,     permission: 'finance_subscriptions' },
+    { href: '/folio/expenses',      label: m.folio_tab_expenses(),       icon: Receipt,       permission: 'finance_expenses' },
+    { href: '/folio/reports',       label: m.folio_tab_reports(),        icon: BarChart2,     permission: 'finance_reports' },
+  ]);
 
   const isActive = (href: string) =>
     href === '/folio'
@@ -27,8 +28,8 @@
   <div class="page-heading flex items-start gap-3">
     <Receipt class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-2xl font-bold leading-none">Folio</h1>
-      <p class="text-xs opacity-60 mt-0.5">Invoices · Estimates · Subscriptions · Expenses</p>
+      <h1 class="text-2xl font-bold leading-none">{m.folio_title()}</h1>
+      <p class="text-xs opacity-60 mt-0.5">{m.folio_subtitle()}</p>
     </div>
   </div>
 

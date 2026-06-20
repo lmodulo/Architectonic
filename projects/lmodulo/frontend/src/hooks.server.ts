@@ -1,6 +1,8 @@
 import { redirect } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
 import { env } from '$env/dynamic/private';
 import { hasPermission } from '$lib/permissions';
+import { paraglideMiddleware } from '$lib/paraglide/server.js';
 import type { Handle } from '@sveltejs/kit';
 import type { Action } from '$lib/permissions';
 
@@ -42,7 +44,10 @@ const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = 
   '/vault':        { resource: 'vault_documents',  action: 'read' }
 };
 
-export const handle: Handle = async ({ event, resolve }) => {
+const paraglideHandle: Handle = ({ event, resolve }) =>
+  paraglideMiddleware(event.request, () => resolve(event));
+
+const authHandle: Handle = async ({ event, resolve }) => {
   const sessionCookie = event.cookies.get('session');
 
   event.locals.user = null;
@@ -103,3 +108,5 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   return resolve(event);
 };
+
+export const handle = sequence(paraglideHandle, authHandle);

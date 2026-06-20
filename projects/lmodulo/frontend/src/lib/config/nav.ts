@@ -4,9 +4,10 @@ import {
   FolderKanban, FileText, ClipboardList, FileSignature, History, FolderLock,
 } from 'lucide-svelte';
 import type { Component } from 'svelte';
+import { m } from '$lib/paraglide/messages.js';
 
 export interface NavItem {
-  label:         string;
+  label:         () => string;
   href:          string;
   icon:          Component;
   permission?:   { resource: string; action: string };
@@ -15,7 +16,7 @@ export interface NavItem {
 }
 
 export interface NavGroup {
-  label:    string;
+  label:    () => string;
   icon:     Component;
   children: NavItem[];
 }
@@ -34,20 +35,20 @@ export function isSeparator(entry: NavEntry): entry is NavSeparator {
 
 export const navItems: NavEntry[] = [
   // Staff-only items (hidden from customers via customerOnly filter)
-  { label: 'Dashboard',     href: '/dashboard',       icon: CircleGauge },
-  { label: 'Agile', href: '/agile',           icon: Milestone,       matchPrefix: true, permission: { resource: 'agile_milestones', action: 'read' } },
-  { label: 'Nexus',         href: '/crm',             icon: Handshake,       matchPrefix: true, permission: { resource: 'crm_contacts',      action: 'read' } },
-  { label: 'Folio',         href: '/folio',           icon: Receipt,         matchPrefix: true, permission: { resource: 'finance_invoices',   action: 'read' } },
-  { label: 'Contracts',     href: '/contracts',       icon: FileSignature,   matchPrefix: true, permission: { resource: 'contracts',          action: 'read' } },
-  { label: 'Calendar',      href: '/calendar-events', icon: CalendarRange,   matchPrefix: true },
-  { label: 'Vault',        href: '/vault',            icon: FolderLock,      matchPrefix: true, permission: { resource: 'vault_documents', action: 'read' } },
-  { label: 'Audit Log',    href: '/audit-log',       icon: History,         permission: { resource: 'audit', action: 'read' } },
+  { label: () => m.nav_dashboard(),     href: '/dashboard',       icon: CircleGauge },
+  { label: () => m.nav_agile(),         href: '/agile',           icon: Milestone,       matchPrefix: true, permission: { resource: 'agile_milestones', action: 'read' } },
+  { label: () => m.nav_nexus(),         href: '/crm',             icon: Handshake,       matchPrefix: true, permission: { resource: 'crm_contacts',      action: 'read' } },
+  { label: () => m.nav_folio(),         href: '/folio',           icon: Receipt,         matchPrefix: true, permission: { resource: 'finance_invoices',   action: 'read' } },
+  { label: () => m.nav_contracts(),     href: '/contracts',       icon: FileSignature,   matchPrefix: true, permission: { resource: 'contracts',          action: 'read' } },
+  { label: () => m.nav_calendar(),      href: '/calendar-events', icon: CalendarRange,   matchPrefix: true },
+  { label: () => m.nav_vault(),         href: '/vault',           icon: FolderLock,      matchPrefix: true, permission: { resource: 'vault_documents', action: 'read' } },
+  { label: () => m.nav_audit_log(),     href: '/audit-log',       icon: History,         permission: { resource: 'audit', action: 'read' } },
 
   // Customer-only items
-  { label: 'Client Portal', href: '/client-portal',           icon: LayoutDashboard, customerOnly: true },
-  { label: 'Projects',      href: '/client-portal/projects',  icon: FolderKanban,    customerOnly: true, matchPrefix: true },
-  { label: 'Invoices',      href: '/client-portal/invoices',  icon: FileText,        customerOnly: true, matchPrefix: true },
-  { label: 'Estimates',     href: '/client-portal/estimates', icon: ClipboardList,   customerOnly: true, matchPrefix: true },
-  { label: 'Tickets',       href: '/client-portal/tickets',   icon: Ticket,          customerOnly: true, matchPrefix: true },
-  { label: 'Payments',      href: '/payments',                icon: CreditCard,      customerOnly: true },
+  { label: () => m.nav_client_portal(), href: '/client-portal',           icon: LayoutDashboard, customerOnly: true },
+  { label: () => m.nav_projects(),      href: '/client-portal/projects',  icon: FolderKanban,    customerOnly: true, matchPrefix: true },
+  { label: () => m.nav_invoices(),      href: '/client-portal/invoices',  icon: FileText,        customerOnly: true, matchPrefix: true },
+  { label: () => m.nav_estimates(),     href: '/client-portal/estimates', icon: ClipboardList,   customerOnly: true, matchPrefix: true },
+  { label: () => m.nav_tickets(),       href: '/client-portal/tickets',   icon: Ticket,          customerOnly: true, matchPrefix: true },
+  { label: () => m.nav_payments(),      href: '/payments',                icon: CreditCard,      customerOnly: true },
 ];

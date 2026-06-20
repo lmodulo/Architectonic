@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import MarketingNav from '$lib/components/MarketingNav.svelte';
   import Logo from '$lib/components/Logo.svelte';
   import type { PageData } from './$types';
@@ -12,35 +13,35 @@
   let mouseY   = $state(-9999);
   let latticeCanvas: HTMLCanvasElement | undefined = $state();
 
-  const features = [
-    { num: '01', title: 'Auth & Sessions',       body: 'Login, registration, and password reset behind a polished dark-themed AuthShell. bcrypt hashing, HTTP-only signed session cookies, server-side validation, and registration gating via the settings store.' },
-    { num: '02', title: 'Role-Based Access',      body: 'Six seeded roles — owner, admin, lead, contributor, viewer, customer. Per-route Fastify preHandlers, component-level permission checks, and a full roles management UI. Add a resource by appending to a JSON file.' },
-    { num: '03', title: 'In-App Messaging',        body: 'A full email-style thread system — inbox, sent, archive, unread badges, and Tiptap rich-text composition. Ships ready to extend.' },
-    { num: '04', title: 'Avatar & UI Shell',       body: 'Canvas-based avatar crop and upload with initials and colour-picker fallback. Collapsible sidebar shell with animated accordion groups and a profile footer — built on DaisyUI v5 and Tailwind v4.' },
-    { num: '05', title: 'Docker Dev Stack',        body: 'One command stands up SvelteKit, Fastify, and MongoDB with health-checked startup sequencing. Production uses the same compose file minus the dev overlay.' },
-    { num: '06', title: 'CLI Module System',       body: 'arch.js merges nav entries, routes, permissions, and env vars from each module manifest into the scaffold — collision-checked before any write.' },
-  ];
+  const features = $derived([
+    { num: '01', title: m.landing_feat01_title(), body: m.landing_feat01_body() },
+    { num: '02', title: m.landing_feat02_title(), body: m.landing_feat02_body() },
+    { num: '03', title: m.landing_feat03_title(), body: m.landing_feat03_body() },
+    { num: '04', title: m.landing_feat04_title(), body: m.landing_feat04_body() },
+    { num: '05', title: m.landing_feat05_title(), body: m.landing_feat05_body() },
+    { num: '06', title: m.landing_feat06_title(), body: m.landing_feat06_body() },
+  ]);
 
-  const stackGroups = [
-    { label: 'Frontend',  items: ['SvelteKit 2', 'Svelte 5 Runes', 'TypeScript', 'Tailwind v4', 'DaisyUI v5'] },
-    { label: 'Backend',   items: ['Fastify 5', 'MongoDB 7', 'TypeScript', 'connect-mongo', 'bcryptjs'] },
-    { label: 'Tooling',   items: ['Docker Compose', 'Vite', 'Node 22', 'ESLint', 'Prettier'] },
-    { label: 'Extras',    items: ['Ollama AI chat', 'Tiptap rich text', 'Avatar upload & crop', 'Audit logging'] },
-  ];
+  const stackGroups = $derived([
+    { label: m.landing_stack_frontend(), items: ['SvelteKit 2', 'Svelte 5 Runes', 'TypeScript', 'Tailwind v4', 'DaisyUI v5'] },
+    { label: m.landing_stack_backend(),  items: ['Fastify 5', 'MongoDB 7', 'TypeScript', 'connect-mongo', 'bcryptjs'] },
+    { label: m.landing_stack_tooling(),  items: ['Docker Compose', 'Vite', 'Node 22', 'ESLint', 'Prettier'] },
+    { label: m.landing_stack_extras(),   items: ['Ollama AI chat', 'Tiptap rich text', 'Avatar upload & crop', 'Audit logging'] },
+  ]);
 
-  const steps = [
-    { num: '01', title: 'Clone the repository',  body: 'One git clone pulls the entire scaffold — API, frontend, and database configured and wired together.' },
-    { num: '02', title: 'Set two env vars',       body: 'Copy .env.example, set a session secret and Mongo URI. Everything else runs on sensible defaults.' },
-    { num: '03', title: 'Bring up the stack',     body: 'docker compose up — SvelteKit, Fastify, and MongoDB start in the correct order, health-checked.' },
-    { num: '04', title: 'Start building',          body: 'Auth is wired, RBAC is live, the dashboard is seeded. Write your first feature in minutes, not days.' },
-  ];
+  const steps = $derived([
+    { num: '01', title: m.landing_step01_title(), body: m.landing_step01_body() },
+    { num: '02', title: m.landing_step02_title(), body: m.landing_step02_body() },
+    { num: '03', title: m.landing_step03_title(), body: m.landing_step03_body() },
+    { num: '04', title: m.landing_step04_title(), body: m.landing_step04_body() },
+  ]);
 
-  const stats = [
-    { value: '< 5 min', label: 'to a running app'      },
-    { value: '100%',    label: 'TypeScript coverage'    },
-    { value: '3',       label: 'services, one command'  },
-    { value: 'MIT',     label: 'open source license'    },
-  ];
+  const stats = $derived([
+    { value: '< 5 min', label: m.landing_stat_time()     },
+    { value: '100%',    label: m.landing_stat_ts()       },
+    { value: '3',       label: m.landing_stat_services() },
+    { value: 'MIT',     label: m.landing_stat_license()  },
+  ]);
 
   onMount(() => {
     const onScroll = () => {
@@ -117,8 +118,10 @@
       buildLattice();
     }
 
-    // Colors — drift across the primary purple hue range (270–310 deg)
-    const HUE_A = 302, HUE_B = 268, HUE_SPAN = HUE_A - HUE_B;
+    // Colors — drift across the accent hue from the active theme
+    const accentRaw = getComputedStyle(canvas).getPropertyValue('--color-accent').trim();
+    const accentHue = parseFloat(accentRaw.match(/oklch\s*\(\s*[\d.%]+\s+[\d.]+\s+([\d.]+)/i)?.[1] ?? '304');
+    const HUE_A = accentHue + 17, HUE_B = accentHue - 17, HUE_SPAN = HUE_A - HUE_B;
 
     function nodeColor(h: number, n: LNode, time: number) {
       const crest  = Math.max(0, h);
@@ -258,17 +261,15 @@
   <div class="hero-content">
     <div class="eyebrow">
       <span class="eyebrow-dot"></span>
-      Full-Stack SvelteKit Scaffold · MIT License
+      {m.landing_eyebrow()}
     </div>
 
     <h1 class="display-heading">
-      Stop scaffolding.<br><em>Start shipping.</em>
+      {m.landing_headline_1()}<br><em>{m.landing_headline_2()}</em>
     </h1>
 
     <p class="hero-tagline">
-      Authentication, RBAC, sessions, in-app messaging, avatar management,
-      and a collapsible sidebar UI — all pre-wired before you write a
-      single line of business logic.
+      {m.landing_tagline()}
     </p>
 
     <div class="hero-meta">
@@ -283,9 +284,9 @@
 
     <div class="hero-actions">
       <a href="https://github.com/lmodulo/Architectonic" target="_blank" rel="noopener" class="btn btn-primary">
-        View on GitHub →
+        {m.landing_github()}
       </a>
-      <a href="/login" class="hero-ghost-btn">Sign In</a>
+      <a href="/login" class="hero-ghost-btn">{m.landing_sign_in()}</a>
     </div>
   </div>
 
@@ -298,28 +299,22 @@
 
     <div class="sec-head reveal">
       <span class="sec-num">§01</span>
-      <span class="sec-label">Overview</span>
+      <span class="sec-label">{m.landing_sec01_label()}</span>
       <div class="sec-rule"></div>
     </div>
 
     <div class="overview-layout reveal">
       <div class="overview-copy">
         <h2 class="sec-heading">
-          Every layer configured.<br>Nothing left to wire.
+          {m.landing_sec01_heading()}
         </h2>
         <p class="sec-sub">
-          Architectonic eliminates the boilerplate between your idea and a
-          running application. Clone the scaffold, set two environment
-          variables, and you're building features — not plumbing auth,
-          debugging sessions, or hand-wiring permissions.
+          {m.landing_sec01_body1()}
         </p>
         <p class="sec-sub" style="margin-top:0.75rem;">
-          A build-time module system extends the scaffold without manual
-          wiring. Each module declares its nav entries, routes, permissions,
-          and env vars in a manifest — <code class="inline-code">arch.js create</code>
-          merges them in, collision-checked, before any file is written.
+          {m.landing_sec01_body2()}
         </p>
-        <a href="/login" class="btn btn-outline btn-primary mt-6">Start Building →</a>
+        <a href="/login" class="btn btn-outline btn-primary mt-6">{m.landing_sec01_cta()}</a>
       </div>
 
       <div class="stats-cluster">
@@ -341,7 +336,7 @@
 
     <div class="sec-head reveal">
       <span class="sec-num">§02</span>
-      <span class="sec-label">What Ships By Default</span>
+      <span class="sec-label">{m.landing_sec02_label()}</span>
       <div class="sec-rule"></div>
     </div>
 
@@ -364,7 +359,7 @@
 
     <div class="sec-head reveal">
       <span class="sec-num">§03</span>
-      <span class="sec-label">Stack</span>
+      <span class="sec-label">{m.landing_sec03_label()}</span>
       <div class="sec-rule"></div>
     </div>
 
@@ -393,7 +388,7 @@
 
     <div class="sec-head reveal">
       <span class="sec-num">§04</span>
-      <span class="sec-label">How It Works</span>
+      <span class="sec-label">{m.landing_sec04_label()}</span>
       <div class="sec-rule"></div>
     </div>
 
@@ -423,15 +418,14 @@
 
     <div class="sec-head reveal">
       <span class="sec-num">§05</span>
-      <span class="sec-label">Get Started</span>
+      <span class="sec-label">{m.landing_sec05_label()}</span>
       <div class="sec-rule"></div>
     </div>
 
     <div class="cta-body reveal">
-      <h2 class="cta-heading">Clone it. Configure it.<br>Ship something real.</h2>
+      <h2 class="cta-heading">{m.landing_cta_heading()}</h2>
       <p class="cta-sub">
-        Full source code, MIT licensed. Auth, RBAC, messaging, and the
-        module system — yours on day one, no license fees, no vendor lock-in.
+        {m.landing_cta_body()}
       </p>
       <div class="cta-code-block">
         <code>git clone https://github.com/lmodulo/Architectonic</code>
@@ -439,9 +433,9 @@
       <div class="flex gap-4 flex-wrap">
         <a href="https://github.com/lmodulo/Architectonic" target="_blank" rel="noopener"
            class="btn btn-primary btn-lg">
-          View on GitHub
+          {m.landing_github_plain()}
         </a>
-        <a href="/login" class="btn btn-outline btn-primary btn-lg">Sign In</a>
+        <a href="/login" class="btn btn-outline btn-primary btn-lg">{m.landing_sign_in()}</a>
       </div>
     </div>
 
@@ -452,7 +446,7 @@
 <footer class="lp-footer">
   <div class="footer-inner">
     <Logo />
-    <span class="footer-copy">MIT License · {new Date().getFullYear()}</span>
+    <span class="footer-copy">{m.landing_footer_mit()} · {new Date().getFullYear()}</span>
   </div>
 </footer>
 
@@ -461,16 +455,16 @@
 <style>
   /* ── Tokens ──────────────────────────────────────────────────────── */
   .lp-root {
-    --lp-bg-solid:   oklch(8% 0.006 265deg);
-    --lp-alt-solid:  oklch(10% 0.006 265deg);
-    --lp-bg:         color-mix(in oklch, oklch(8%  0.006 265deg) 86%, transparent);
-    --lp-alt-bg:     color-mix(in oklch, oklch(10% 0.006 265deg) 88%, transparent);
-    --lp-border:     rgba(255, 255, 255, 0.07);
-    --lp-border-md:  rgba(255, 255, 255, 0.12);
-    --lp-text:       #e6e2d8;
-    --lp-muted:      rgba(230, 226, 216, 0.48);
-    --lp-dim:        rgba(230, 226, 216, 0.22);
-    --lp-card-bg:    rgba(255, 255, 255, 0.03);
+    --lp-bg-solid:   var(--color-base-100);
+    --lp-alt-solid:  var(--color-base-200);
+    --lp-bg:         color-mix(in oklch, var(--color-base-100) 86%, transparent);
+    --lp-alt-bg:     color-mix(in oklch, var(--color-base-200) 88%, transparent);
+    --lp-border:     color-mix(in oklch, var(--color-base-content) 7%, transparent);
+    --lp-border-md:  color-mix(in oklch, var(--color-base-content) 12%, transparent);
+    --lp-text:       var(--color-base-content);
+    --lp-muted:      color-mix(in oklch, var(--color-base-content) 48%, transparent);
+    --lp-dim:        color-mix(in oklch, var(--color-base-content) 22%, transparent);
+    --lp-card-bg:    color-mix(in oklch, var(--color-base-200) 40%, transparent);
 
     background: var(--lp-bg-solid);
     min-height: 100dvh;
@@ -495,9 +489,9 @@
     background: radial-gradient(
       ellipse 80% 70% at 50% 50%,
       transparent 25%,
-      rgba(8, 8, 11, 0.5) 65%,
-      rgba(8, 8, 11, 0.92) 88%,
-      #08080b 100%
+      color-mix(in oklch, var(--color-base-100) 50%, transparent) 65%,
+      color-mix(in oklch, var(--color-base-100) 92%, transparent) 88%,
+      var(--color-base-100) 100%
     );
   }
 
@@ -798,7 +792,7 @@
   }
 
   .feat-card {
-    background: color-mix(in oklch, oklch(10% 0.006 265deg) 88%, transparent);
+    background: color-mix(in oklch, var(--color-base-200) 88%, transparent);
     padding: 2rem 1.75rem;
     display: flex;
     flex-direction: column;
@@ -808,7 +802,7 @@
   }
   .feat-card:hover {
     border-left-color: var(--color-primary);
-    background: color-mix(in oklch, var(--color-primary) 5%, oklch(10% 0.006 265deg));
+    background: color-mix(in oklch, var(--color-primary) 5%, var(--color-base-200));
   }
 
   .feat-num {

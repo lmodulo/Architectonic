@@ -5,6 +5,7 @@
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
   import type { LayoutData } from '../$types';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data }: { data: LayoutData } = $props();
 
@@ -36,9 +37,9 @@
   }
 
   async function send() {
-    if (!toIds.length) { error = 'Add at least one recipient'; return; }
-    if (!subject.trim()) { error = 'Subject is required'; return; }
-    if (!body.trim() || body === '<p></p>') { error = 'Message body is required'; return; }
+    if (!toIds.length) { error = m.messages_compose_no_recipient(); return; }
+    if (!subject.trim()) { error = m.messages_compose_subject_required(); return; }
+    if (!body.trim() || body === '<p></p>') { error = m.messages_compose_body_required(); return; }
 
     sending = true; error = '';
     try {
@@ -70,14 +71,14 @@
   }
 </script>
 
-<svelte:head><title>New Message</title></svelte:head>
+<svelte:head><title>{m.messages_compose_title()}</title></svelte:head>
 
 <input bind:this={fileInput} type="file" class="hidden" onchange={onFileSelect} />
 
 <div class="p-6 space-y-4">
   <div class="flex items-center justify-between">
-    <h1 class="text-lg font-semibold">New Message</h1>
-    <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label="Cancel"><X class="size-5" /></a>
+    <h1 class="text-lg font-semibold">{m.messages_compose_title()}</h1>
+    <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label="{m.common_cancel()}"><X class="size-5" /></a>
   </div>
 
   {#if error}
@@ -86,18 +87,18 @@
 
   <!-- To field -->
   <div class="space-y-1">
-    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">To</label>
-    <UserSelect users={allUsers} multiple placeholder="Type a name…" bind:value={toIds} />
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.messages_compose_to()}</label>
+    <UserSelect users={allUsers} multiple placeholder={m.messages_compose_to_placeholder()} bind:value={toIds} />
   </div>
 
   <!-- Subject -->
   <div class="space-y-1">
-    <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="subject">Subject</label>
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="subject">{m.messages_compose_subject()}</label>
     <input
       id="subject"
       type="text"
       class="input w-full"
-      placeholder="Subject"
+      placeholder={m.messages_compose_subject()}
       bind:value={subject}
       maxlength="200"
     />
@@ -105,7 +106,7 @@
 
   <!-- Body -->
   <div class="space-y-1">
-    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Message</label>
+    <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.messages_compose_body()}</label>
     <MessageEditor bind:html={body} />
   </div>
 
@@ -137,11 +138,11 @@
       aria-label="Attach file"
     >
       <Paperclip class="size-4" />
-      Attach
+      {m.client_portal_attach()}
     </button>
     <button type="button" class="btn btn-primary" disabled={sending} onclick={send}>
       <Send class="size-4" />
-      {sending ? 'Sending…' : 'Send'}
+      {sending ? m.common_sending() : m.common_send()}
     </button>
   </div>
 </div>

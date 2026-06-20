@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { MessageSquare, Send, Pencil, Trash2, X, Check } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { hasPermission } from '$lib/permissions';
   import UserNameLink from '$lib/components/UserNameLink.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
@@ -39,11 +40,11 @@
   function timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime();
     const mins = Math.floor(diff / 60_000);
-    if (mins < 1)  return 'just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1)  return m.time_just_now();
+    if (mins < 60) return m.time_mins_ago({ count: mins });
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24)  return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
+    if (hrs < 24)  return m.time_hours_ago({ count: hrs });
+    return m.time_days_ago({ count: Math.floor(hrs / 24) });
   }
 
   function feedQs(): string {
@@ -113,11 +114,11 @@
 
 <div class="space-y-4">
   {#if loading}
-    <p class="text-xs opacity-40 text-center py-4">Loading…</p>
+    <p class="text-xs opacity-40 text-center py-4">{m.common_loading()}</p>
   {:else if comments.length === 0}
     <div class="flex flex-col items-center gap-1 py-6 opacity-35">
       <MessageSquare class="size-5" />
-      <p class="text-xs">No comments yet</p>
+      <p class="text-xs">{m.agile_comment_none()}</p>
     </div>
   {:else}
     <div class="space-y-4">
@@ -135,7 +136,7 @@
                       type="button"
                       class="btn btn-ghost btn-xs btn-square"
                       onclick={() => { editingId = c.id; editText = c.text; }}
-                      aria-label="Edit comment"
+                      aria-label={m.agile_comment_edit()}
                     >
                       <Pencil class="size-3" />
                     </button>
@@ -144,7 +145,7 @@
                     type="button"
                     class="btn btn-ghost btn-xs btn-square text-error"
                     onclick={() => deleteComment(c.id)}
-                    aria-label="Delete comment"
+                    aria-label={m.agile_comment_delete()}
                   >
                     <Trash2 class="size-3" />
                   </button>
@@ -184,7 +185,7 @@
       <textarea
         class="textarea textarea-sm flex-1 text-sm resize-none"
         rows="2"
-        placeholder="Add a comment… (Ctrl+Enter to post)"
+        placeholder={m.agile_comment_placeholder()}
         bind:value={newText}
         onkeydown={handleKey}
       ></textarea>
@@ -193,7 +194,7 @@
         class="btn btn-primary btn-sm self-end"
         onclick={post}
         disabled={posting || !newText.trim()}
-        aria-label="Post comment"
+        aria-label={m.agile_comment_post()}
       >
         <Send class="size-3.5" />
       </button>

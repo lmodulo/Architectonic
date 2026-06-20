@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { AgileMilestone, AgileSprint } from '$lib/utils/agile';
   import { goto } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages.js';
 
   let {
     milestones = [],
@@ -104,7 +105,7 @@
     width="100%"
     height={totalH}
     class="block font-sans"
-    aria-label="Gantt chart"
+    aria-label={m.agile_gantt_title()}
   >
     <!-- Header background -->
     <rect x="0" y="0" width={width} height={HEADER_H} fill="currentColor" fill-opacity="0.04"/>
@@ -168,13 +169,13 @@
     {#if todayX >= LABEL_W && todayX <= width}
       <line x1={todayX} x2={todayX} y1={0} y2={totalH}
         stroke="var(--color-error)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
-      <text x={todayX + 3} y={totalH - 4} font-size="9" fill="var(--color-error)" opacity="0.8">Today</text>
+      <text x={todayX + 3} y={totalH - 4} font-size="9" fill="var(--color-error)" opacity="0.8">{m.agile_burndown_today()}</text>
     {/if}
 
     <!-- Legend -->
     <rect x={LABEL_W + PAD} y={8} width={12} height={8} rx="2" fill="var(--color-primary)" fill-opacity="0.85"/>
-    <text x={LABEL_W + PAD + 16} y={16} font-size="9" fill="currentColor" fill-opacity="0.6">Milestone</text>
+    <text x={LABEL_W + PAD + 16} y={16} font-size="9" fill="currentColor" fill-opacity="0.6">{m.agile_gantt_milestone()}</text>
     <rect x={LABEL_W + PAD + 80} y={8} width={12} height={8} rx="2" fill="var(--color-secondary)" fill-opacity="0.55"/>
-    <text x={LABEL_W + PAD + 96} y={16} font-size="9" fill="currentColor" fill-opacity="0.6">Sprint</text>
+    <text x={LABEL_W + PAD + 96} y={16} font-size="9" fill="currentColor" fill-opacity="0.6">{m.agile_gantt_sprint()}</text>
   </svg>
 </div>

@@ -2,6 +2,7 @@
   import { page } from '$app/state';
   import { FileSignature, LayoutTemplate } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
+  import { m } from '$lib/paraglide/messages.js';
   import { dragScroll } from '$lib/actions/dragScroll';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -10,10 +11,10 @@
 
   const isSignPage = $derived(page.url.pathname.startsWith('/contracts/sign/'));
 
-  const navLinks = [
-    { href: '/contracts',           label: 'All Contracts', icon: FileSignature,  permission: null },
-    { href: '/contracts/templates', label: 'Templates',     icon: LayoutTemplate, permission: 'contract_templates' as const },
-  ];
+  const navLinks = $derived([
+    { href: '/contracts',           label: m.contracts_tab_all(),       icon: FileSignature,  permission: null },
+    { href: '/contracts/templates', label: m.contracts_tab_templates(), icon: LayoutTemplate, permission: 'contract_templates' as const },
+  ]);
 
   const isActive = (href: string) =>
     href === '/contracts'
@@ -29,8 +30,8 @@
     <div class="page-heading flex items-start gap-3">
       <FileSignature class="size-6 shrink-0 mt-0.5" />
       <div>
-        <h1 class="text-2xl font-bold leading-none">Contracts</h1>
-        <p class="text-xs opacity-60 mt-0.5">Agreements · Templates</p>
+        <h1 class="text-2xl font-bold leading-none">{m.contracts_title()}</h1>
+        <p class="text-xs opacity-60 mt-0.5">{m.contracts_subtitle()}</p>
       </div>
     </div>
 

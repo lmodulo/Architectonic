@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Bell, BellOff, BellRing } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { typeLabel } from '$lib/utils/calendarEvents';
 
   type Sub = {
@@ -99,7 +100,7 @@
   <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-center gap-3 text-sm">
     <Bell class="size-4 opacity-50" />
     <span class="opacity-70">
-      <a href="/login" class="link link-primary">Sign in</a> to subscribe to event notifications.
+      <a href="/login" class="link link-primary">{m.event_sub_sign_in()}</a>
     </span>
   </div>
 
@@ -113,10 +114,10 @@
       <div class="flex items-center gap-2">
         {#if sub.subscribed}
           <BellRing class="size-4 text-primary" />
-          <span class="font-medium text-sm">Subscribed to notifications</span>
+          <span class="font-medium text-sm">{m.event_sub_subscribed()}</span>
         {:else}
           <BellOff class="size-4 opacity-50" />
-          <span class="font-medium text-sm opacity-70">Not subscribed</span>
+          <span class="font-medium text-sm opacity-70">{m.event_sub_not_subscribed()}</span>
         {/if}
       </div>
       <button
@@ -125,7 +126,7 @@
         disabled={loading}
         onclick={toggleSubscription}
       >
-        {sub.subscribed ? 'Unsubscribe' : 'Subscribe'}
+        {sub.subscribed ? m.event_sub_unsubscribe() : m.event_sub_subscribe()}
       </button>
     </div>
 
@@ -137,7 +138,7 @@
       <!-- Event types -->
       {#if eventTypes.length > 0}
         <div class="space-y-2">
-          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Notify me about</p>
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.event_sub_notify_about()}</p>
           <div class="flex flex-wrap gap-3">
             {#each eventTypes as type}
               <label class="flex items-center gap-2 cursor-pointer select-none text-sm">
@@ -157,7 +158,7 @@
                 checked={sub.eventTypes.length === 0}
                 onchange={() => { if (sub) sub.eventTypes = []; }}
               />
-              All types
+              {m.event_sub_all_types()}
             </label>
           </div>
         </div>
@@ -165,15 +166,15 @@
 
       <!-- Triggers -->
       <div class="space-y-2">
-        <p class="text-xs font-medium opacity-60 uppercase tracking-wide">When to notify</p>
+        <p class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.event_sub_when()}</p>
         <div class="space-y-2">
           <label class="flex items-center gap-2 cursor-pointer select-none text-sm">
             <input type="checkbox" class="checkbox" bind:checked={sub.notifyOn.newEvent} />
-            When a new event is created
+            {m.event_sub_new_event()}
           </label>
           <label class="flex items-center gap-2 cursor-pointer select-none text-sm">
             <input type="checkbox" class="checkbox" bind:checked={sub.notifyOn.reminder} />
-            Reminder before event starts
+            {m.event_sub_reminder()}
           </label>
           {#if sub.notifyOn.reminder}
             <div class="pl-6 flex items-center gap-2 text-sm">
@@ -181,7 +182,7 @@
                 type="number" class="input w-20 text-sm" min="0" max="30"
                 bind:value={sub.notifyOn.reminderDays}
               />
-              <span class="opacity-70">day(s) before</span>
+              <span class="opacity-70">{m.event_sub_days_before()}</span>
             </div>
           {/if}
         </div>
@@ -189,19 +190,19 @@
 
       <!-- Email -->
       <div class="space-y-2">
-        <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Channels</p>
+        <p class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.event_sub_channels()}</p>
         <label class="flex items-center gap-2 cursor-pointer select-none text-sm">
           <input type="checkbox" class="checkbox" bind:checked={sub.channels.email} />
-          Also send email notifications
+          {m.event_sub_email()}
         </label>
       </div>
 
       <div class="flex items-center justify-end gap-3">
         {#if saved}
-          <span class="text-sm text-success">Saved</span>
+          <span class="text-sm text-success">{m.event_sub_saved()}</span>
         {/if}
         <button type="button" class="btn btn-sm btn-primary" disabled={loading} onclick={save}>
-          {loading ? 'Saving…' : 'Save preferences'}
+          {loading ? m.common_saving() : m.event_sub_save()}
         </button>
       </div>
     {/if}

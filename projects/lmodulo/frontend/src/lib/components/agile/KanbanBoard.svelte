@@ -2,6 +2,7 @@
   import TaskCard from './TaskCard.svelte';
   import { TASK_STATUSES } from '$lib/utils/agile';
   import type { AgileTask } from '$lib/utils/agile';
+  import { m } from '$lib/paraglide/messages.js';
 
   let {
     tasks,
@@ -25,13 +26,13 @@
     return localTasks.filter(t => t.status === status);
   }
 
-  const COLUMN_LABELS: Record<string, string> = {
-    Backlog:      'Backlog',
-    Ready:        'Ready',
-    'In Progress':'In Progress',
-    Blocked:      'Blocked',
-    Review:       'Review',
-    Done:         'Done',
+  const COLUMN_LABELS: Record<string, () => string> = {
+    Backlog:      () => m.agile_kanban_backlog(),
+    Ready:        () => m.agile_kanban_ready(),
+    'In Progress':() => m.agile_kanban_in_progress(),
+    Blocked:      () => m.agile_kanban_blocked(),
+    Review:       () => m.agile_kanban_review(),
+    Done:         () => m.agile_kanban_done(),
   };
 
   const COLUMN_COLOR: Record<string, string> = {
@@ -97,7 +98,7 @@
       <div class="card bg-base-200 border border-base-300 rounded-box px-3 py-2 border-t-2 {COLUMN_COLOR[status] ?? 'border-t-base-content/30'}
         {dropTarget === status ? 'ring-2 ring-primary/50' : ''}">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold">{COLUMN_LABELS[status]}</span>
+          <span class="text-xs font-semibold">{COLUMN_LABELS[status]?.()}</span>
           <span class="badge badge-ghost text-[10px] min-w-[20px] text-center">{columnTasks.length}</span>
         </div>
       </div>
@@ -117,7 +118,7 @@
         {/each}
         {#if columnTasks.length === 0}
           <div class="text-xs opacity-30 py-2">
-            {dropTarget === status ? 'Drop here' : 'No tasks'}
+            {dropTarget === status ? m.agile_kanban_drop() : m.agile_kanban_no_tasks()}
           </div>
         {/if}
       </div>

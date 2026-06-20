@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages.js';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import Avatar from './Avatar.svelte';
@@ -60,7 +61,7 @@
           </div>
         {/if}
         {#if isLoading()}
-          <p class="text-xs opacity-30 pl-5">Loading…</p>
+          <p class="text-xs opacity-30 pl-5">{m.user_card_loading()}</p>
         {:else if u.teams?.length}
           <div class="flex items-start gap-2 text-xs">
             <Users class="size-3 opacity-40 shrink-0 mt-0.5" />
@@ -81,7 +82,7 @@
             onclick={() => { const id = u.id; closeCard(); goto(`/messages/compose?to=${id}`); }}
           >
             <MessageSquare class="size-3.5 opacity-60" />
-            Message
+            {m.user_card_message()}
           </button>
         </div>
       {/if}

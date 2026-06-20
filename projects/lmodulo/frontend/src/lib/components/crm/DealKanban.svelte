@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { X } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { DEAL_STAGES, fmtCurrency, type CrmDeal } from '$lib/utils/crm';
   import DealCard from './DealCard.svelte';
   import Modal from '$lib/components/Modal.svelte';
@@ -117,7 +118,7 @@
 
       {#if (byStage[stage]?.length ?? 0) === 0}
         <div class="flex-1 flex items-start justify-center text-xs opacity-30 pt-3">
-          Drop here
+          {m.crm_kanban_drop()}
         </div>
       {/if}
     </div>
@@ -126,32 +127,32 @@
 
 <!-- Closed Lost reason modal -->
 {#if lostModalOpen}
-  <Modal size="sm" label="Mark as Closed Lost">
+  <Modal size="sm" label={m.crm_deal_mark_lost()}>
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-      <h2 class="text-base font-semibold">Reason for closing</h2>
+      <h2 class="text-base font-semibold">{m.crm_deal_lost_reason()}</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (lostModalOpen = false)}>
         <X class="size-5" />
       </button>
     </header>
     <div class="p-6 space-y-3">
-      <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="lost-reason">Lost reason *</label>
+      <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="lost-reason">{m.crm_deal_lost_reason_label()}</label>
       <input
         id="lost-reason"
         type="text"
         class="input w-full"
-        placeholder="e.g. Budget constraints, went with competitor…"
+        placeholder={m.crm_deal_lost_placeholder()}
         bind:value={lostReason}
       />
     </div>
     <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
-      <button type="button" class="btn btn-ghost btn-sm" onclick={() => (lostModalOpen = false)}>Cancel</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick={() => (lostModalOpen = false)}>{m.common_cancel()}</button>
       <button
         type="button"
         class="btn btn-error btn-sm"
         disabled={!lostReason.trim() || saving}
         onclick={confirmLost}
       >
-        {saving ? 'Saving…' : 'Confirm Lost'}
+        {saving ? m.common_saving() : m.crm_deal_confirm_lost()}
       </button>
     </footer>
   </Modal>

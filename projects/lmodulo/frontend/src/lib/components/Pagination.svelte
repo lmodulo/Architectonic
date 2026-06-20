@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { total, pageSize, currentPage, onPage, class: cls = '' }: {
     total: number;
@@ -32,8 +33,8 @@
     <span class="text-xs opacity-50">{startItem}–{endItem} of {total}</span>
     {#if totalPages > 1}
       <div class="join">
-        <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => onPage(1)}><ChevronFirst class="size-3" /></button>
-        <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => onPage(currentPage - 1)}><ChevronLeft class="size-3" /></button>
+        <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => onPage(1)} aria-label={m.pagination_first()}><ChevronFirst class="size-3" /></button>
+        <button class="join-item btn btn-xs" disabled={currentPage === 1} onclick={() => onPage(currentPage - 1)} aria-label={m.pagination_prev()}><ChevronLeft class="size-3" /></button>
         {#each pages as p}
           {#if p.type === 'ellipsis'}
             <button class="join-item btn btn-xs btn-disabled">…</button>
@@ -41,8 +42,8 @@
             <button class="join-item btn btn-xs {p.value === currentPage ? 'btn-active' : ''}" onclick={() => onPage(p.value)}>{p.value}</button>
           {/if}
         {/each}
-        <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => onPage(currentPage + 1)}><ChevronRight class="size-3" /></button>
-        <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => onPage(totalPages)}><ChevronLast class="size-3" /></button>
+        <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => onPage(currentPage + 1)} aria-label={m.pagination_next()}><ChevronRight class="size-3" /></button>
+        <button class="join-item btn btn-xs" disabled={currentPage === totalPages} onclick={() => onPage(totalPages)} aria-label={m.pagination_last()}><ChevronLast class="size-3" /></button>
       </div>
     {/if}
   </div>

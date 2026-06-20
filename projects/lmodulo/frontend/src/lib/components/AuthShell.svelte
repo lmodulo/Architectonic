@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import MarketingNav from './MarketingNav.svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { children, title, subtitle, brandName, brandLogo, hideSignIn = false }: {
     children: Snippet;
@@ -24,7 +25,7 @@
       <div class="auth-head">
         <div class="auth-eyebrow">
           <span class="auth-dot"></span>
-          {brandName ?? 'Application'}
+          {brandName ?? m.auth_shell_application()}
         </div>
         <h1 class="auth-title">{title}</h1>
         {#if subtitle}
@@ -43,7 +44,7 @@
 <style>
   .auth-page {
     min-height: 100svh;
-    background: oklch(8% 0.006 265deg);
+    background: var(--color-base-100);
     display: flex;
     flex-direction: column;
     position: relative;
@@ -66,7 +67,7 @@
     transform: translate(-50%, -50%);
     width: min(700px, 100vw);
     height: 480px;
-    background: radial-gradient(ellipse, oklch(55% 0.22 305deg / 0.065) 0%, transparent 68%);
+    background: radial-gradient(ellipse, color-mix(in oklch, var(--color-primary) 10%, transparent) 0%, transparent 68%);
     pointer-events: none;
     z-index: 1;
   }
@@ -84,17 +85,17 @@
   .auth-card {
     width: 100%;
     max-width: 26rem;
-    background: rgba(255, 255, 255, 0.025);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0.875rem;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 24px 56px rgba(0, 0, 0, 0.4);
+    background: color-mix(in oklch, var(--color-base-200) 40%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-base-content) 8%, transparent);
+    border-radius: var(--radius-box);
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--color-base-content) 3%, transparent), 0 24px 56px oklch(0% 0 0 / 0.4);
     display: flex;
     flex-direction: column;
   }
 
   .auth-head {
     padding: 2.25rem 2.25rem 1.75rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid color-mix(in oklch, var(--color-base-content) 7%, transparent);
     display: flex;
     flex-direction: column;
     gap: 0.625rem;
@@ -108,7 +109,7 @@
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(230, 226, 216, 0.4);
+    color: color-mix(in oklch, var(--color-base-content) 40%, transparent);
   }
 
   .auth-dot {
@@ -129,13 +130,13 @@
     font-size: 1.625rem;
     font-weight: 700;
     letter-spacing: -0.025em;
-    color: #e6e2d8;
+    color: var(--color-base-content);
     line-height: 1.2;
   }
 
   .auth-sub {
     font-size: 0.875rem;
-    color: rgba(230, 226, 216, 0.45);
+    color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
     line-height: 1.5;
   }
 
@@ -149,14 +150,14 @@
   :global(.auth-body label span) {
     font-size: 0.8125rem;
     font-weight: 500;
-    color: rgba(230, 226, 216, 0.65);
+    color: color-mix(in oklch, var(--color-base-content) 65%, transparent);
     letter-spacing: 0.01em;
   }
 
   :global(.auth-body .input) {
-    background: rgba(255, 255, 255, 0.04) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: #e6e2d8 !important;
+    background: color-mix(in oklch, var(--color-base-200) 50%, transparent) !important;
+    border-color: color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+    color: var(--color-base-content) !important;
     transition: border-color 150ms;
   }
 
@@ -166,6 +167,6 @@
   }
 
   :global(.auth-body .input::placeholder) {
-    color: rgba(230, 226, 216, 0.2) !important;
+    color: color-mix(in oklch, var(--color-base-content) 20%, transparent) !important;
   }
 </style>

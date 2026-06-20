@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Paperclip, Trash2, FileText, UploadCloud } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { fmtDate } from '$lib/utils/agile';
   import type { AgileAttachment } from '$lib/utils/agile';
 
@@ -108,7 +109,7 @@
 
 <div class="space-y-2">
   {#if attachments.length === 0}
-    <p class="text-xs opacity-40 text-center py-2">No attachments yet.</p>
+    <p class="text-xs opacity-40 text-center py-2">{m.attachment_none()}</p>
   {:else}
     <ul class="space-y-1.5">
       {#each attachments as att (att.name)}
@@ -123,7 +124,7 @@
               type="button"
               class="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100 shrink-0"
               onclick={() => removeAttachment(att.name)}
-              aria-label="Remove {att.name}"
+              aria-label="{m.attachment_remove()} {att.name}"
             >
               <Trash2 class="size-3.5" />
             </button>
@@ -149,11 +150,11 @@
   >
     <UploadCloud class="size-6 mx-auto mb-1.5 {dragOver ? 'text-primary' : 'opacity-40'}" />
     {#if uploading}
-      <p class="text-xs font-medium">Uploading…</p>
+      <p class="text-xs font-medium">{m.attachment_uploading()}</p>
     {:else if dragOver}
-      <p class="text-xs font-semibold">Drop to upload</p>
+      <p class="text-xs font-semibold">{m.attachment_drop()}</p>
     {:else}
-      <p class="text-xs font-medium">Drop a file here or <span class="underline">click to browse</span></p>
+      <p class="text-xs font-medium">{m.attachment_drop_or()} <span class="underline">{m.attachment_browse()}</span></p>
     {/if}
   </button>
 
@@ -161,11 +162,11 @@
     {@const safe = pendingFile.name.replace(/[^a-zA-Z0-9._-]/g, '_') || 'file'}
     <aside class="rounded border border-warning/40 bg-warning/10 p-3 text-sm space-y-2">
       <p class="opacity-80">
-        A file named <code class="text-xs bg-base-300 px-1 rounded">{safe}</code> already exists and will be replaced.
+        A file named <code class="text-xs bg-base-300 px-1 rounded">{safe}</code> {m.attachment_exists()}
       </p>
       <div class="flex gap-2">
-        <button type="button" class="btn btn-warning btn-xs" onclick={confirmReplace}>Replace</button>
-        <button type="button" class="btn btn-ghost btn-xs" onclick={cancelPending}>Cancel</button>
+        <button type="button" class="btn btn-warning btn-xs" onclick={confirmReplace}>{m.attachment_replace()}</button>
+        <button type="button" class="btn btn-ghost btn-xs" onclick={cancelPending}>{m.common_cancel()}</button>
       </div>
     </aside>
   {/if}

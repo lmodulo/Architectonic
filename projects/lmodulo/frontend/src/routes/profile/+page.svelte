@@ -4,6 +4,7 @@
   import Avatar from '$lib/components/Avatar.svelte';
   import AvatarCropper from '$lib/components/AvatarCropper.svelte';
   import type { PageData, ActionData } from './$types';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -62,7 +63,7 @@
       const d = await res.json().catch(() => ({}));
       if (!res.ok) { avatarError = (d as { message?: string }).message ?? 'Upload failed'; return; }
       localAvatarUrl = (d as { url: string }).url;
-      avatarSuccess = 'Photo updated.';
+      avatarSuccess = m.profile_photo_updated();
       fileInput.value = '';
       await invalidateAll();
     } catch { avatarError = 'Network error'; }
@@ -77,7 +78,7 @@
       const res = await fetch('/api/auth/avatar', { method: 'DELETE' });
       if (!res.ok) { avatarError = 'Remove failed'; return; }
       localAvatarUrl = '';
-      avatarSuccess = 'Photo removed.';
+      avatarSuccess = m.profile_photo_removed();
       await invalidateAll();
     } catch { avatarError = 'Network error'; }
     finally { avatarUploading = false; }
@@ -92,7 +93,7 @@
         body: JSON.stringify({ avatarColor: localAvatarColor }),
       });
       if (!res.ok) { avatarError = 'Save failed'; return; }
-      avatarSuccess = 'Color saved.';
+      avatarSuccess = m.profile_color_saved();
       await invalidateAll();
     } catch { avatarError = 'Network error'; }
     finally { colorSaving = false; }
@@ -100,7 +101,7 @@
 </script>
 
 <svelte:head>
-  <title>Profile</title>
+  <title>{m.profile_title()}</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6 max-w-2xl">
@@ -109,8 +110,8 @@
   <div class="page-heading flex items-start gap-3">
     <CircleUser class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-2xl font-bold leading-none">Profile</h1>
-      <p class="text-xs opacity-60 mt-0.5">Account information · Avatar · Teams</p>
+      <h1 class="text-2xl font-bold leading-none">{m.profile_title()}</h1>
+      <p class="text-xs opacity-60 mt-0.5">{m.profile_subtitle()}</p>
     </div>
   </div>
 
@@ -120,20 +121,20 @@
       class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
         {activeTab === 'profile' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
       onclick={() => (activeTab = 'profile')}>
-      Profile
+      {m.profile_tab_profile()}
     </button>
     <button type="button"
       class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
         {activeTab === 'avatar' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
       onclick={() => (activeTab = 'avatar')}>
-      Avatar
+      {m.profile_tab_avatar()}
     </button>
     {#if myTeams.length > 0}
     <button type="button"
       class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors
         {activeTab === 'teams' ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
       onclick={() => (activeTab = 'teams')}>
-      Teams
+      {m.profile_tab_teams()}
     </button>
     {/if}
   </nav>
@@ -144,10 +145,10 @@
     <!-- ── Profile tab ─────────────────────────────────────────────── -->
     {#if activeTab === 'profile'}
     <div class="bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
-      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Account Information</p>
+      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.profile_account_info()}</p>
 
       {#if form?.success}
-        <div role="alert" class="alert alert-success text-sm">Profile updated successfully.</div>
+        <div role="alert" class="alert alert-success text-sm">{m.profile_updated()}</div>
       {/if}
       {#if form?.error}
         <div role="alert" class="alert alert-error text-sm">{form.error}</div>
@@ -176,14 +177,14 @@
           <span class="text-sm font-medium">Phone</span>
           <input type="tel" name="phone" class="input" bind:value={phone} maxlength="30" placeholder="+1 555 000 0000" autocomplete="tel" />
         </label>
-        <button type="submit" class="btn btn-primary w-full">Save Changes</button>
+        <button type="submit" class="btn btn-primary w-full">{m.common_save_changes()}</button>
       </form>
     </div>
 
     <!-- ── Avatar tab ──────────────────────────────────────────────── -->
     {:else if activeTab === 'avatar'}
     <div class="bg-base-200 border border-base-300 rounded-box p-6 space-y-5">
-      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Avatar</p>
+      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.profile_avatar()}</p>
 
       {#if avatarError}
         <div role="alert" class="alert alert-error text-sm">{avatarError}</div>
@@ -201,10 +202,10 @@
       {:else}
         <div role="tablist" class="tabs tabs-box">
           <button role="tab" type="button" class="tab {avatarTab === 'photo' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'photo')}>
-            Photo
+            {m.profile_photo()}
           </button>
           <button role="tab" type="button" class="tab {avatarTab === 'color' ? 'tab-active' : ''}" onclick={() => (avatarTab = 'color')}>
-            Color
+            {m.profile_color()}
           </button>
         </div>
 
@@ -217,7 +218,7 @@
               disabled={avatarUploading}
               onclick={() => fileInput.click()}
             >
-              {localAvatarUrl ? 'Change Photo' : 'Upload Photo'}
+              {localAvatarUrl ? m.profile_change_photo() : m.profile_upload_photo()}
             </button>
             {#if localAvatarUrl}
               <button
@@ -226,7 +227,7 @@
                 disabled={avatarUploading}
                 onclick={removeAvatar}
               >
-                Remove Photo
+                {m.profile_remove_photo()}
               </button>
             {/if}
           </div>
@@ -256,7 +257,7 @@
               disabled={colorSaving}
               onclick={saveColor}
             >
-              {colorSaving ? 'Saving…' : 'Save Color'}
+              {colorSaving ? m.common_saving() : m.profile_save_color()}
             </button>
           </div>
         {/if}
@@ -266,7 +267,7 @@
     <!-- ── Teams tab ───────────────────────────────────────────────── -->
     {:else if activeTab === 'teams'}
     <div class="bg-base-200 border border-base-300 rounded-box p-6 space-y-4">
-      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">My Teams</p>
+      <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.profile_my_teams()}</p>
       {#if myTeams.length > 0}
         <ul class="divide-y divide-base-300">
           {#each myTeams as team}
@@ -279,7 +280,7 @@
           {/each}
         </ul>
       {:else}
-        <p class="text-sm opacity-50">You are not a member of any teams.</p>
+        <p class="text-sm opacity-50">{m.profile_no_teams()}</p>
       {/if}
     </div>
     {/if}

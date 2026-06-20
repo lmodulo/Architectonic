@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Search, Loader2 } from 'lucide-svelte';
   import { goto } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages.js';
 
   interface Result {
     _id: string;
@@ -18,14 +19,14 @@
     deals: Result[];
   }
 
-  const GROUPS: { key: keyof Results; label: string; href: (id: string) => string; badge: string }[] = [
-    { key: 'milestones', label: 'Milestones', href: id => `/agile/milestones/${id}`, badge: 'badge-primary' },
-    { key: 'sprints',    label: 'Sprints',    href: id => `/agile/sprints/${id}`,    badge: 'badge-secondary' },
-    { key: 'jobs',       label: 'Jobs',       href: id => `/agile/jobs/${id}`,       badge: 'badge-accent' },
-    { key: 'tasks',      label: 'Tasks',      href: id => `/agile/tasks/${id}`,      badge: 'badge-neutral' },
-    { key: 'contacts',   label: 'Contacts',   href: id => `/crm/contacts/${id}`,     badge: 'badge-info' },
-    { key: 'companies',  label: 'Companies',  href: id => `/crm/companies/${id}`,    badge: 'badge-success' },
-    { key: 'deals',      label: 'Deals',      href: id => `/crm/deals/${id}`,        badge: 'badge-warning' },
+  const GROUPS: { key: keyof Results; label: () => string; href: (id: string) => string; badge: string }[] = [
+    { key: 'milestones', label: () => m.search_milestones(), href: id => `/agile/milestones/${id}`, badge: 'badge-primary' },
+    { key: 'sprints',    label: () => m.search_sprints(),    href: id => `/agile/sprints/${id}`,    badge: 'badge-secondary' },
+    { key: 'jobs',       label: () => m.search_jobs(),       href: id => `/agile/jobs/${id}`,       badge: 'badge-accent' },
+    { key: 'tasks',      label: () => m.search_tasks(),      href: id => `/agile/tasks/${id}`,      badge: 'badge-neutral' },
+    { key: 'contacts',   label: () => m.search_contacts(),   href: id => `/crm/contacts/${id}`,     badge: 'badge-info' },
+    { key: 'companies',  label: () => m.search_companies(),  href: id => `/crm/companies/${id}`,    badge: 'badge-success' },
+    { key: 'deals',      label: () => m.search_deals(),      href: id => `/crm/deals/${id}`,        badge: 'badge-warning' },
   ];
 
   let query = $state('');
@@ -141,7 +142,7 @@
       oninput={onInput}
       onkeydown={onKeydown}
       type="search"
-      placeholder="Search…"
+      placeholder={m.search_placeholder()}
       autocomplete="off"
       class="grow bg-transparent text-sm outline-none"
     />
@@ -150,12 +151,12 @@
   {#if open && results}
     <div class="absolute top-full mt-1 left-0 right-0 z-50 bg-base-200 border border-base-300 rounded-lg shadow-lg overflow-hidden max-h-[420px] overflow-y-auto">
       {#if !hasResults(results)}
-        <p class="px-4 py-3 text-sm opacity-50">No results for "{query}"</p>
+        <p class="px-4 py-3 text-sm opacity-50">{m.search_no_results()} "{query}"</p>
       {:else}
         {#each GROUPS as group}
           {#if results[group.key].length > 0}
             <div>
-              <p class="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider opacity-40">{group.label}</p>
+              <p class="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider opacity-40">{group.label()}</p>
               {#each results[group.key] as item, itemIdx}
                 {@const flatIdx = groupStartIndices[group.key] + itemIdx}
                 <button
@@ -164,7 +165,7 @@
                   class="flex items-center gap-2 w-full px-3 py-2 text-left transition-colors {flatIdx === cursor ? 'bg-base-300/60' : 'hover:bg-base-300/60'}"
                   onclick={() => navigate(group.href(item._id))}
                 >
-                  <span class="badge badge-xs {group.badge} shrink-0">{group.label.slice(0, 1)}</span>
+                  <span class="badge badge-xs {group.badge} shrink-0">{group.label().slice(0, 1)}</span>
                   <span class="text-sm truncate flex-1">{item.title}</span>
                   {#if item.status}
                     <span class="text-xs opacity-40 shrink-0">{item.status}</span>

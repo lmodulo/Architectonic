@@ -8,6 +8,7 @@
   import { fmtCurrency, donutSegs, funnelPolygons } from '$lib/utils/dashboard';
   import { Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw, CircleGauge } from 'lucide-svelte';
   import { fade } from 'svelte/transition';
+  import { m } from '$lib/paraglide/messages.js';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -19,13 +20,13 @@
   interface SectionConfig { id: string; visible: boolean; items?: ItemConfig[]; }
   interface DashboardLayout { sections: SectionConfig[]; }
 
-  const SECTION_LABELS: Record<string, string> = {
-    agile:     'Agile',
-    nexus:     'Nexus',
-    folio:     'Folio',
-    contracts: 'Contracts',
-    calendar:  'Calendar',
-  };
+  const SECTION_LABELS = $derived<Record<string, string>>({
+    agile:     m.nav_agile(),
+    nexus:     m.nav_nexus(),
+    folio:     m.nav_folio(),
+    contracts: m.nav_contracts(),
+    calendar:  m.nav_calendar(),
+  });
 
   const ITEM_LABELS: Record<string, Record<string, string>> = {
     agile:     { 'kpi-strip': 'KPI Strip', 'task-status': 'Task Status Chart', 'milestones-sprints': 'Milestones & Sprints' },
@@ -463,7 +464,7 @@
   function leaveDonut(tt: DonutTT) { tt.v = false; }
 </script>
 
-<svelte:head><title>Dashboard</title></svelte:head>
+<svelte:head><title>{m.dashboard_title()}</title></svelte:head>
 
 <div class="space-y-10 pb-4">
 
@@ -472,9 +473,9 @@
     <div class="flex items-start gap-3">
       <CircleGauge class="size-6 shrink-0 mt-0.5" />
       <div>
-        <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <h1 class="text-2xl font-bold tracking-tight">{m.dashboard_title()}</h1>
         <p class="text-sm opacity-50 mt-0.5">
-          Welcome back, <span class="opacity-100 font-medium">{data.user?.firstName ?? data.user?.username}</span>
+          {m.dashboard_welcome({ firstName: data.user?.firstName ?? data.user?.username ?? '' })}
         </p>
       </div>
     </div>
@@ -488,9 +489,9 @@
         onclick={() => { editMode = !editMode; }}
       >
         {#if editMode}
-          <Check class="size-4" /> Done
+          <Check class="size-4" /> {m.dashboard_done()}
         {:else}
-          <LayoutDashboard class="size-4" /> Edit Layout
+          <LayoutDashboard class="size-4" /> {m.dashboard_edit_layout()}
         {/if}
       </button>
     </div>
@@ -503,14 +504,13 @@
       class="flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-xl bg-primary/8 border border-primary/20 text-sm"
     >
       <span class="flex-1 opacity-65 text-xs">
-        Drag <GripVertical class="size-3.5 inline-block opacity-70" /> to reorder sections &middot;
-        Click <Eye class="size-3.5 inline-block opacity-70" /> to show/hide sections and visualizations &middot; Changes save automatically
+        {m.dashboard_edit_hint()}
       </span>
       <span class="text-xs {saveStatus === 'saved' ? 'text-success' : saveStatus === 'error' ? 'text-error' : 'opacity-40'}">
-        {#if saveStatus === 'saving'}Saving…{:else if saveStatus === 'saved'}Saved ✓{:else if saveStatus === 'error'}Save failed{/if}
+        {#if saveStatus === 'saving'}{m.dashboard_saving()}{:else if saveStatus === 'saved'}{m.dashboard_saved()}{:else if saveStatus === 'error'}{m.dashboard_save_failed()}{/if}
       </span>
       <button type="button" class="btn btn-ghost btn-xs gap-1 opacity-60 hover:opacity-100" onclick={resetLayout}>
-        <RotateCcw class="size-3" /> Reset
+        <RotateCcw class="size-3" /> {m.dashboard_reset()}
       </button>
     </div>
   {/if}
@@ -588,18 +588,18 @@
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-primary opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Agile</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_agile()}</h2>
                 </div>
                 <div class="flex items-center gap-3">
                   <DateRangeFilter bind:value={agileRange} />
-                  <a href="/agile" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+                  <a href="/agile" class="text-xs opacity-40 hover:opacity-80 transition-opacity">{m.common_open()}</a>
                 </div>
               </div>
               {:else}
               <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-primary opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Agile</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_agile()}</h2>
                 </div>
                 <DateRangeFilter bind:value={agileRange} />
               </div>
@@ -609,45 +609,45 @@
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 kpi-strip">
                 {#if isPriv}
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Tasks</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_tasks()}</p>
                     <p class="text-2xl font-bold mt-1">{tasks.length}</p>
-                    <p class="text-xs opacity-40 mt-0.5">{activeSprints} active sprint{activeSprints !== 1 ? 's' : ''}</p>
+                    <p class="text-xs opacity-40 mt-0.5">{m.dashboard_active_sprints({ count: activeSprints })}</p>
                   </div>
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Done</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_done()}</p>
                     <p class="text-2xl font-bold mt-1 text-success">{donePct}%</p>
                     <p class="text-xs opacity-40 mt-0.5">{doneCount} of {tasks.length}</p>
                   </div>
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Blocked</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_blocked()}</p>
                     <p class="text-2xl font-bold mt-1 {blockedCount > 0 ? 'text-error' : ''}">{blockedCount}</p>
-                    <p class="text-xs opacity-40 mt-0.5">{milestones.length} milestone{milestones.length !== 1 ? 's' : ''}</p>
+                    <p class="text-xs opacity-40 mt-0.5">{m.dashboard_milestones_count({ count: milestones.length })}</p>
                   </div>
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Overdue</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_overdue()}</p>
                     <p class="text-2xl font-bold mt-1 {agileOverdue > 0 ? 'text-warning' : ''}">{agileOverdue}</p>
-                    <p class="text-xs opacity-40 mt-0.5">past due date</p>
+                    <p class="text-xs opacity-40 mt-0.5">{m.dashboard_kpi_past_due()}</p>
                   </div>
                 {:else}
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">My Tasks</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_my_tasks()}</p>
                     <p class="text-2xl font-bold mt-1">{myTasks.length}</p>
-                    <p class="text-xs opacity-40 mt-0.5">assigned</p>
+                    <p class="text-xs opacity-40 mt-0.5">{m.dashboard_kpi_assigned()}</p>
                   </div>
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">In Progress</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_in_progress()}</p>
                     <p class="text-2xl font-bold mt-1 text-primary">{myTasks.filter(t => t.status === 'In Progress').length}</p>
-                    <p class="text-xs opacity-40 mt-0.5">active now</p>
+                    <p class="text-xs opacity-40 mt-0.5">{m.dashboard_kpi_active_now()}</p>
                   </div>
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Done</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_done()}</p>
                     <p class="text-2xl font-bold mt-1 text-success">{myTasks.filter(t => t.status === 'Done').length}</p>
-                    <p class="text-xs opacity-40 mt-0.5">completed</p>
+                    <p class="text-xs opacity-40 mt-0.5">{m.dashboard_kpi_completed()}</p>
                   </div>
                   <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Overdue</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_overdue()}</p>
                     <p class="text-2xl font-bold mt-1 {agileOverdue > 0 ? 'text-warning' : ''}">{agileOverdue}</p>
-                    <p class="text-xs opacity-40 mt-0.5">need attention</p>
+                    <p class="text-xs opacity-40 mt-0.5">{m.dashboard_kpi_attention()}</p>
                   </div>
                 {/if}
               </div>
@@ -658,7 +658,7 @@
 
                 {#if itemVisible('agile', 'task-status')}
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Task Status</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">{m.dashboard_task_status()}</p>
                   <div class="flex items-center gap-6">
                     <div class="relative shrink-0"
                       bind:this={taskTtEl}
@@ -675,7 +675,7 @@
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
                       {/if}
                       <text x="90" y="84" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor">{tasks.length}</text>
-                      <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">total tasks</text>
+                      <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">{m.dashboard_total_tasks()}</text>
                     </svg>
                     {#if taskTt.v}
                       <div class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
@@ -704,7 +704,7 @@
                 <div class="bg-base-200 border border-base-300 rounded-box p-5 space-y-5">
                   {#if activeMilestones.length > 0}
                   <div class="space-y-3">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Active Milestones</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_active_milestones()}</p>
                     {#each activeMilestones as m}
                       {@const pct = Math.round(m.completionPct ?? 0)}
                       <a href="/agile/milestones/{m.id}" class="block group">
@@ -721,7 +721,7 @@
                   {/if}
                   {#if sprintBars.length > 0}
                   <div class="space-y-2.5">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Sprint Progress</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_sprint_progress()}</p>
                     {#each sprintBars as sprint}
                       {@const pct = Math.round(sprint.completionPct ?? 0)}
                       {@const done = sprint.status === 'Completed'}
@@ -754,18 +754,18 @@
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-secondary opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Nexus</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_nexus()}</h2>
                 </div>
                 <div class="flex items-center gap-3">
                   <DateRangeFilter bind:value={nexusRange} />
-                  <a href="/crm" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+                  <a href="/crm" class="text-xs opacity-40 hover:opacity-80 transition-opacity">{m.common_open()}</a>
                 </div>
               </div>
               {:else}
               <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-secondary opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Nexus</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_nexus()}</h2>
                 </div>
                 <DateRangeFilter bind:value={nexusRange} />
               </div>
@@ -774,24 +774,24 @@
               {#if itemVisible('nexus', 'kpi-strip')}
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 kpi-strip">
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Pipeline</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_pipeline()}</p>
                   <p class="text-2xl font-bold mt-1">{fmtCurrency(pipelineVal)}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{openDeals.length} open deal{openDeals.length !== 1 ? 's' : ''}</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_open_deals({ count: openDeals.length })}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Closing Soon</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_closing_soon()}</p>
                   <p class="text-2xl font-bold mt-1 {closingSoon > 0 ? 'text-warning' : ''}">{closingSoon}</p>
-                  <p class="text-xs opacity-40 mt-0.5">within 30 days</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_within_30_days()}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Contacts</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_contacts()}</p>
                   <p class="text-2xl font-bold mt-1">{contactsTotal}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{companiesTotal} compan{companiesTotal !== 1 ? 'ies' : 'y'}</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_companies_count({ count: companiesTotal })}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Win Rate</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_win_rate()}</p>
                   <p class="text-2xl font-bold mt-1 {winRate !== null ? (winRate >= 50 ? 'text-success' : winRate < 25 ? 'text-error' : '') : ''}">{winRate !== null ? `${winRate}%` : '—'}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{wonDeals} won · {closedDeals.length - wonDeals} lost</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_won_lost({ won: wonDeals, lost: closedDeals.length - wonDeals })}</p>
                 </div>
               </div>
               {/if}
@@ -800,7 +800,7 @@
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {#if itemVisible('nexus', 'pipeline') && funnelSegs.length > 0}
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Deal Pipeline</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">{m.dashboard_deal_pipeline()}</p>
                   <div class="flex items-start gap-5">
                     <svg viewBox="0 0 200 240" width="130" height="156" class="shrink-0" aria-hidden="true">
                       {#each funnelSegs as seg, i}
@@ -824,7 +824,7 @@
                 {/if}
                 {#if itemVisible('nexus', 'activity') && crmActivities.length > 0}
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-3">Activity Volume</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-3">{m.dashboard_activity_volume()}</p>
                   <ActivityVolumeChart activities={crmActivities} />
                 </div>
                 {/if}
@@ -839,18 +839,18 @@
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-success opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Folio</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_folio()}</h2>
                 </div>
                 <div class="flex items-center gap-3">
                   <DateRangeFilter bind:value={folioRange} />
-                  <a href="/folio" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+                  <a href="/folio" class="text-xs opacity-40 hover:opacity-80 transition-opacity">{m.common_open()}</a>
                 </div>
               </div>
               {:else}
               <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-success opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Folio</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_folio()}</h2>
                 </div>
                 <DateRangeFilter bind:value={folioRange} />
               </div>
@@ -859,29 +859,29 @@
               {#if itemVisible('folio', 'kpi-strip')}
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 kpi-strip">
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Revenue</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_revenue()}</p>
                   <p class="text-2xl font-bold mt-1">{fmtCurrency(totalBilled)}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{folioInvoices.length} invoice{folioInvoices.length !== 1 ? 's' : ''}</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_invoices_count({ count: folioInvoices.length })}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Collected</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_collected()}</p>
                   <p class="text-2xl font-bold mt-1 text-success">{fmtCurrency(totalPaid)}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{collectionRate}% rate</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_collection_rate({ rate: collectionRate })}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Outstanding</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_outstanding()}</p>
                   <p class="text-2xl font-bold mt-1 {totalOutstanding > 0 ? 'text-warning' : ''}">{fmtCurrency(totalOutstanding)}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{overdueInvCount > 0 ? `${overdueInvCount} overdue` : 'all current'}</p>
+                  <p class="text-xs opacity-40 mt-0.5">{overdueInvCount > 0 ? m.dashboard_overdue_count({ count: overdueInvCount }) : m.dashboard_all_current()}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Expenses</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_expenses()}</p>
                   <p class="text-2xl font-bold mt-1">{fmtCurrency(totalExpenses)}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{folioExpenses.length} item{folioExpenses.length !== 1 ? 's' : ''}</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_items_count({ count: folioExpenses.length })}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Net</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_net()}</p>
                   <p class="text-2xl font-bold mt-1 {netProfit >= 0 ? 'text-success' : 'text-error'}">{netProfit < 0 ? '-' : ''}{fmtCurrency(Math.abs(netProfit))}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{netProfit >= 0 ? 'profit' : 'loss'}</p>
+                  <p class="text-xs opacity-40 mt-0.5">{netProfit >= 0 ? m.dashboard_profit() : m.dashboard_loss()}</p>
                 </div>
               </div>
               {/if}
@@ -890,7 +890,7 @@
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {#if itemVisible('folio', 'inv-status')}
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Invoice Status</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">{m.dashboard_invoice_status()}</p>
                   <div class="flex items-center gap-6">
                     <div class="relative shrink-0"
                       bind:this={invTtEl}
@@ -907,7 +907,7 @@
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
                       {/if}
                       <text x="90" y="84" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor">{folioInvoices.length}</text>
-                      <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">invoices</text>
+                      <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">{m.dashboard_invoices_label()}</text>
                     </svg>
                     {#if invTt.v}
                       <div class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
@@ -935,7 +935,7 @@
                 {@const clients = topClients()}
                 {@const maxTotal = Math.max(...clients.map(c => c.total), 1)}
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Top Clients</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">{m.dashboard_top_clients()}</p>
                   <div class="space-y-3.5">
                     {#each clients as client}
                       <div class="space-y-1">
@@ -953,8 +953,8 @@
                     {/each}
                   </div>
                   <div class="flex items-center gap-4 mt-4 text-[10px] opacity-50">
-                    <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-success opacity-75 shrink-0"></span>Paid</span>
-                    <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-warning opacity-75 shrink-0"></span>Outstanding</span>
+                    <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-success opacity-75 shrink-0"></span>{m.dashboard_paid()}</span>
+                    <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-warning opacity-75 shrink-0"></span>{m.dashboard_outstanding()}</span>
                   </div>
                 </div>
                 {/if}
@@ -969,18 +969,18 @@
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-info opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Contracts</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_contracts()}</h2>
                 </div>
                 <div class="flex items-center gap-3">
                   <DateRangeFilter bind:value={contractsRange} />
-                  <a href="/contracts" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+                  <a href="/contracts" class="text-xs opacity-40 hover:opacity-80 transition-opacity">{m.common_open()}</a>
                 </div>
               </div>
               {:else}
               <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-info opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Contracts</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_contracts()}</h2>
                 </div>
                 <DateRangeFilter bind:value={contractsRange} />
               </div>
@@ -989,24 +989,24 @@
               {#if itemVisible('contracts', 'kpi-strip')}
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 kpi-strip">
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Active</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_active()}</p>
                   <p class="text-2xl font-bold mt-1">{activeContractCount}</p>
-                  <p class="text-xs opacity-40 mt-0.5">{contracts.length} total</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_contracts_total({ count: contracts.length })}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Value</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_value()}</p>
                   <p class="text-2xl font-bold mt-1">{contractTotalValue > 0 ? fmtCurrency(contractTotalValue) : '—'}</p>
-                  <p class="text-xs opacity-40 mt-0.5">executed contracts</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_executed_contracts()}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Pending</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_pending()}</p>
                   <p class="text-2xl font-bold mt-1 {pendingSignatureCount > 0 ? 'text-warning' : ''}">{pendingSignatureCount}</p>
-                  <p class="text-xs opacity-40 mt-0.5">awaiting signature</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_awaiting_signature()}</p>
                 </div>
                 <div class="bg-base-200 border border-base-300 rounded-box p-4">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">Expiring</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40">{m.dashboard_kpi_expiring()}</p>
                   <p class="text-2xl font-bold mt-1 {expiringSoonCount > 0 ? 'text-warning' : ''}">{expiringSoonCount}</p>
-                  <p class="text-xs opacity-40 mt-0.5">within 30 days</p>
+                  <p class="text-xs opacity-40 mt-0.5">{m.dashboard_within_30_days()}</p>
                 </div>
               </div>
               {/if}
@@ -1015,7 +1015,7 @@
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {#if itemVisible('contracts', 'con-status')}
                 <div class="bg-base-200 border border-base-300 rounded-box p-5">
-                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Contract Status</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">{m.dashboard_contract_status()}</p>
                   <div class="flex items-center gap-6">
                     <div class="relative shrink-0"
                       bind:this={contractTtEl}
@@ -1032,7 +1032,7 @@
                         <circle cx="90" cy="90" r="72" fill="none" stroke="currentColor" stroke-opacity="0.1" stroke-width="24"/>
                       {/if}
                       <text x="90" y="84" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor">{contracts.length}</text>
-                      <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">contracts</text>
+                      <text x="90" y="101" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.4">{m.dashboard_contracts_label()}</text>
                     </svg>
                     {#if contractTt.v}
                       <div class="pointer-events-none absolute z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap"
@@ -1060,7 +1060,7 @@
                   {#if expiringList().length > 0}
                   {@const expiring = expiringList()}
                   <div class="bg-base-200 border border-base-300 rounded-box p-5">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">Expiring Soon</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-widest opacity-40 mb-4">{m.dashboard_expiring_soon()}</p>
                     <div class="space-y-3.5">
                       {#each expiring as c}
                         {@const barColor = c.daysLeft < 14 ? 'var(--color-error)' : c.daysLeft < 30 ? 'var(--color-warning)' : 'var(--color-info)'}
@@ -1076,14 +1076,14 @@
                       {/each}
                     </div>
                     <div class="flex items-center gap-4 mt-4 text-[10px] opacity-50">
-                      <span class="flex items-center gap-1.5"><span class="size-2 rounded-full shrink-0" style="background:var(--color-info)"></span>30+ days</span>
-                      <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-warning shrink-0"></span>14-30 days</span>
-                      <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-error shrink-0"></span>&lt;14 days</span>
+                      <span class="flex items-center gap-1.5"><span class="size-2 rounded-full shrink-0" style="background:var(--color-info)"></span>{m.dashboard_30_plus_days()}</span>
+                      <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-warning shrink-0"></span>{m.dashboard_14_30_days()}</span>
+                      <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-error shrink-0"></span>{m.dashboard_lt14_days()}</span>
                     </div>
                   </div>
                   {:else}
                   <div class="bg-base-200 border border-base-300 rounded-box p-5 flex items-center justify-center">
-                    <p class="text-xs opacity-30">No contracts expiring within 90 days</p>
+                    <p class="text-xs opacity-30">{m.dashboard_no_expiring()}</p>
                   </div>
                   {/if}
                 {/if}
@@ -1099,14 +1099,14 @@
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2.5">
                     <span class="block w-0.5 h-4 rounded-full bg-accent opacity-80"></span>
-                    <h2 class="text-sm font-semibold">Calendar</h2>
+                    <h2 class="text-sm font-semibold">{m.nav_calendar()}</h2>
                   </div>
-                  <a href="/calendar-events" class="text-xs opacity-40 hover:opacity-80 transition-opacity">Open →</a>
+                  <a href="/calendar-events" class="text-xs opacity-40 hover:opacity-80 transition-opacity">{m.common_open()}</a>
                 </div>
                 {:else}
                 <div class="flex items-center gap-2.5">
                   <span class="block w-0.5 h-4 rounded-full bg-accent opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Calendar</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_calendar()}</h2>
                 </div>
                 {/if}
                 <div class="bg-base-200 border border-base-300 rounded-box overflow-hidden">
@@ -1140,9 +1140,9 @@
               <div class="bg-base-200 border border-base-300 border-dashed rounded-box p-5 text-center">
                 <div class="flex items-center gap-2.5 justify-center mb-2">
                   <span class="block w-0.5 h-4 rounded-full bg-accent opacity-80"></span>
-                  <h2 class="text-sm font-semibold">Calendar</h2>
+                  <h2 class="text-sm font-semibold">{m.nav_calendar()}</h2>
                 </div>
-                <p class="text-xs opacity-30">No upcoming events</p>
+                <p class="text-xs opacity-30">{m.dashboard_no_upcoming_events()}</p>
               </div>
               {/if}
             {/if}

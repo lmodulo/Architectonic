@@ -3,6 +3,7 @@
   import { Send, Paperclip, FileText, X, Mail, ChevronRight, LayoutDashboard } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import type { PageData } from './$types';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -48,8 +49,8 @@
   }
 
   async function send() {
-    if (!subject.trim())                    { sendError = 'Subject is required'; return; }
-    if (!body.trim() || body === '<p></p>') { sendError = 'Message body is required'; return; }
+    if (!subject.trim())                    { sendError = m.messages_compose_subject_required(); return; }
+    if (!body.trim() || body === '<p></p>') { sendError = m.messages_compose_body_required(); return; }
     if (!staffIds.length)                   { sendError = 'No staff recipients found'; return; }
 
     sending = true; sendError = '';
@@ -102,7 +103,7 @@
   }
 </script>
 
-<svelte:head><title>Client Portal</title></svelte:head>
+<svelte:head><title>{m.client_portal_title()}</title></svelte:head>
 
 <input bind:this={fileInput} type="file" class="hidden" onchange={onFileSelect} />
 
@@ -110,17 +111,17 @@
   <div class="flex items-start gap-3">
     <LayoutDashboard class="size-6 opacity-60 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-2xl font-bold">Client Portal</h1>
-      <p class="text-sm opacity-60 mt-0.5">Send a message to our team or view your conversation history.</p>
+      <h1 class="text-2xl font-bold">{m.client_portal_title()}</h1>
+      <p class="text-sm opacity-60 mt-0.5">{m.client_portal_subtitle()}</p>
     </div>
   </div>
 
   <!-- Compose -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
-    <h2 class="text-sm font-semibold">Message our team</h2>
+    <h2 class="text-sm font-semibold">{m.client_portal_compose()}</h2>
 
     {#if sendSuccess}
-      <aside class="alert alert-success p-3 rounded text-sm">Message sent!</aside>
+      <aside class="alert alert-success p-3 rounded text-sm">{m.client_portal_sent()}</aside>
     {/if}
     {#if sendError}
       <aside class="alert alert-error p-3 rounded text-sm">{sendError}</aside>
@@ -128,7 +129,7 @@
 
     <!-- Subject -->
     <div class="space-y-1">
-      <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="portal-subject">Subject</label>
+      <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="portal-subject">{m.client_portal_subject()}</label>
       <input
         id="portal-subject"
         type="text"
@@ -140,7 +141,7 @@
 
     <!-- Body -->
     <div class="space-y-1">
-      <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Message</label>
+      <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.client_portal_message()}</label>
       <MessageEditor bind:html={body} />
     </div>
 
@@ -162,23 +163,23 @@
     <div class="flex items-center justify-between">
       <button type="button" class="btn btn-ghost btn-sm gap-1.5 opacity-60 hover:opacity-100" onclick={() => fileInput.click()}>
         <Paperclip class="size-4" />
-        Attach
+        {m.client_portal_attach()}
       </button>
       <button type="button" class="btn btn-primary" disabled={sending} onclick={send}>
         <Send class="size-4" />
-        {sending ? 'Sending…' : 'Send'}
+        {sending ? m.client_portal_sending() : m.client_portal_send()}
       </button>
     </div>
   </div>
 
   <!-- Thread list -->
   <div class="space-y-2">
-    <h2 class="text-sm font-semibold">Conversation history</h2>
+    <h2 class="text-sm font-semibold">{m.client_portal_history()}</h2>
 
     {#if threads.length === 0}
       <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center">
         <Mail class="size-8 opacity-20 mx-auto mb-2" />
-        <p class="text-sm opacity-40">No messages yet.</p>
+        <p class="text-sm opacity-40">{m.client_portal_no_messages()}</p>
       </div>
     {:else}
       <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden divide-y divide-base-300">
@@ -210,7 +211,7 @@
           disabled={loadingMore}
           onclick={loadMore}
         >
-          {loadingMore ? 'Loading…' : 'Load more'}
+          {loadingMore ? m.common_loading() : m.common_load_more()}
         </button>
       {/if}
     {/if}

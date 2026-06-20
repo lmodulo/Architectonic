@@ -23,6 +23,7 @@
   import { isOpen as isPaletteOpen, openLogTimePalette, closeLogTimePalette } from '$lib/stores/logTimePalette.svelte';
   import { brand } from '$lib/config/logo';
   import { APP_THEME, APP_FONTS } from '$lib/config/theme';
+  import { m } from '$lib/paraglide/messages.js';
 
   const fontVars = [
     `--display:'${APP_FONTS.display.family}',${APP_FONTS.display.fallback}`,
@@ -64,13 +65,14 @@
     const pathname = page.url.pathname;
     for (const entry of navItems) {
       if (isNavGroup(entry) && entry.children.some(c => pathname.startsWith(c.href))) {
-        openGroups[entry.label] = true;
+        openGroups[entry.label()] = true;
       }
     }
   });
 
-  function toggleGroup(label: string) {
-    openGroups[label] = !openGroups[label];
+  function toggleGroup(labelFn: () => string) {
+    const key = labelFn();
+    openGroups[key] = !openGroups[key];
   }
 
   $effect(() => {
@@ -159,7 +161,7 @@
         type="button"
         class="fixed inset-0 z-20 bg-black/50 lg:hidden"
         onclick={closeSidebar}
-        aria-label="Close navigation"
+        aria-label={m.layout_close_nav()}
         tabindex="-1"
       ></button>
     {/if}
@@ -203,7 +205,7 @@
           type="button"
           class="btn btn-ghost btn-sm btn-square lg:hidden shrink-0"
           onclick={closeSidebar}
-          aria-label="Close navigation"
+          aria-label={m.layout_close_nav()}
         >
           <X class="size-4" />
         </button>
@@ -212,7 +214,7 @@
           class="hidden lg:flex btn btn-ghost btn-sm btn-square shrink-0 transition-opacity duration-150
                  {sidebarExpanded ? 'opacity-40 hover:opacity-100' : 'opacity-0 pointer-events-none'}"
           onclick={togglePin}
-          aria-label={sidebarPinned ? 'Unpin navigation' : 'Pin navigation'}
+          aria-label={sidebarPinned ? m.layout_unpin_nav() : m.layout_pin_nav()}
         >
           {#if sidebarPinned}
             <PinOff class="size-3.5" />
@@ -235,7 +237,7 @@
               <li><div class="border-t border-base-300/50 my-1"></div></li>
             {:else if isNavGroup(entry)}
               {@const anyChildActive = entry.children.some(c => pathname.startsWith(c.href))}
-              {@const isOpen = openGroups[entry.label] ?? false}
+              {@const isOpen = openGroups[entry.label()] ?? false}
               {@const GroupIcon = entry.icon}
               <li>
                 <button
@@ -244,7 +246,7 @@
                   onclick={() => toggleGroup(entry.label)}
                 >
                   <GroupIcon class="size-4 shrink-0" />
-                  <span class="flex-1 text-left whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label}</span>
+                  <span class="flex-1 text-left whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label()}</span>
                   {#if isOpen}
                     <ChevronDown class="size-3 opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}" />
                   {:else}
@@ -262,7 +264,7 @@
                           onclick={closeSidebar}
                         >
                           <ChildIcon class="size-3.5 shrink-0 opacity-70" />
-                          {child.label}
+                          {child.label()}
                         </a>
                       {/if}
                     {/each}
@@ -279,7 +281,7 @@
                     onclick={closeSidebar}
                   >
                     <Icon class="size-4 shrink-0" />
-                    <span class="text-sm flex-1 whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label}</span>
+                    <span class="text-sm flex-1 whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label()}</span>
                     {#if entry.href === '/agile'}
                       <kbd class="kbd kbd-xs opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">⌘K</kbd>
                     {/if}
@@ -321,7 +323,7 @@
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >
                 <User class="size-4 shrink-0" />
-                <span>Profile</span>
+                <span>{m.layout_profile()}</span>
               </a>
               {#if hasPermission(data.user, 'users', 'read') || hasPermission(data.user, 'roles', 'read')}
                 <a
@@ -330,7 +332,7 @@
                   onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
                   <Users class="size-4 shrink-0" />
-                  <span>User Management</span>
+                  <span>{m.layout_user_management()}</span>
                 </a>
               {/if}
               {#if hasPermission(data.user, 'settings', 'read')}
@@ -340,7 +342,7 @@
                   onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
                   <Settings class="size-4 shrink-0" />
-                  <span>Settings</span>
+                  <span>{m.layout_settings()}</span>
                 </a>
               {/if}
               <div class="border-t border-base-300/50 my-1"></div>
@@ -350,7 +352,7 @@
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >
                 <HelpCircle class="size-4 shrink-0" />
-                <span>Support</span>
+                <span>{m.layout_support()}</span>
               </a>
               <div class="border-t border-base-300/50 my-1"></div>
               <button
@@ -359,7 +361,7 @@
                 onclick={() => { closeSidebar(); profileOpen = false; logoutForm.requestSubmit(); }}
               >
                 <LogOut class="size-4 shrink-0" />
-                <span>Sign Out</span>
+                <span>{m.layout_sign_out()}</span>
               </button>
             </div>
           </div>
@@ -377,7 +379,7 @@
           type="button"
           class="btn btn-ghost btn-sm btn-square lg:hidden"
           onclick={() => (sidebarOpen = !sidebarOpen)}
-          aria-label="Toggle navigation"
+          aria-label={m.layout_toggle_nav()}
         >
           <MenuIcon class="size-5" />
         </button>
@@ -397,7 +399,7 @@
         {#if data.user?.role !== 'customer'}<GlobalSearch />{/if}
         <div class="w-px h-5 bg-base-300 shrink-0"></div>
         <div class="flex items-center gap-1">
-          <div class="tooltip tooltip-bottom" data-tip="Messages">
+          <div class="tooltip tooltip-bottom" data-tip={m.layout_messages()}>
             <a href="/messages" class="btn btn-ghost btn-sm btn-square relative">
               <Mail class="size-4" />
               {#if unreadCount > 0}
@@ -407,7 +409,7 @@
               {/if}
             </a>
           </div>
-          <div class="tooltip tooltip-bottom" data-tip="Notifications">
+          <div class="tooltip tooltip-bottom" data-tip={m.layout_notifications()}>
             <a href="/notifications" class="btn btn-ghost btn-sm btn-square relative">
               <Bell class="size-4" />
               {#if getUnreadCount() > 0}
@@ -437,7 +439,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <span class="text-sm font-medium">Loading…</span>
+            <span class="text-sm font-medium">{m.layout_loading()}</span>
           </div>
         </div>
       {/if}
@@ -465,7 +467,7 @@
   {/if}
 
 {:else}
-  {@render children()}
+  <div data-theme={APP_THEME} style={fontVars}>{@render children()}</div>
 {/if}
 
 <style>

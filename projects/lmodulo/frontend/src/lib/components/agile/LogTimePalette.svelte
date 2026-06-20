@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Search, X, ChevronLeft, Play } from 'lucide-svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import {
     getPrefillTaskId, getPrefillDate,
     getCachedTasks, areTasksFetched, setCachedTasks,
@@ -123,7 +124,7 @@
             autofocus
             type="text"
             class="flex-1 bg-transparent text-sm outline-none"
-            placeholder="Search tasks…"
+            placeholder={m.log_time_search()}
             bind:value={palQuery}
             onkeydown={onSearchKeydown}
           />
@@ -155,14 +156,14 @@
                 {/if}
               </div>
               {#if t.estimateHours}
-                <span class="text-[11px] opacity-30 shrink-0 mt-0.5">{t.estimateHours}h est.</span>
+                <span class="text-[11px] opacity-30 shrink-0 mt-0.5">{t.estimateHours}{m.log_time_est()}</span>
               {/if}
             </button>
           {:else}
             {#if !areTasksFetched()}
-              <p class="text-center py-8 text-sm opacity-40">Loading tasks…</p>
+              <p class="text-center py-8 text-sm opacity-40">{m.log_time_loading()}</p>
             {:else}
-              <p class="text-center py-8 text-sm opacity-40">No tasks match "{palQuery}"</p>
+              <p class="text-center py-8 text-sm opacity-40">{m.log_time_no_match()} "{palQuery}"</p>
             {/if}
           {/each}
         </div>
@@ -186,11 +187,11 @@
         <div class="space-y-3 pt-1">
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1">
-              <label class="text-xs opacity-50">Date</label>
+              <label class="text-xs opacity-50">{m.log_time_date()}</label>
               <input type="date" class="input input-sm input-bordered w-full" bind:value={palDate} />
             </div>
             <div class="space-y-1">
-              <label class="text-xs opacity-50">Duration</label>
+              <label class="text-xs opacity-50">{m.log_time_duration()}</label>
               <div class="flex items-center gap-1">
                 <button class="btn btn-xs btn-ghost font-mono" onclick={() => palMinutes = Math.max(15, palMinutes - 60)}>−1h</button>
                 <button class="btn btn-xs btn-ghost font-mono" onclick={() => palMinutes = Math.max(15, palMinutes - 15)}>−15m</button>
@@ -201,27 +202,27 @@
             </div>
           </div>
           <div class="space-y-1">
-            <label class="text-xs opacity-50">Note <span class="opacity-60">(optional)</span></label>
+            <label class="text-xs opacity-50">{m.log_time_note()} <span class="opacity-60">{m.log_time_optional()}</span></label>
             <input
               type="text"
               class="input input-sm input-bordered w-full"
-              placeholder="What did you work on?"
+              placeholder={m.log_time_worked_on()}
               bind:value={palNote}
             />
           </div>
           <div class="flex gap-2">
-            <button class="btn btn-sm btn-ghost flex-1" onclick={closeLogTimePalette}>Cancel</button>
+            <button class="btn btn-sm btn-ghost flex-1" onclick={closeLogTimePalette}>{m.common_cancel()}</button>
             <button
               class="btn btn-sm btn-primary flex-1"
               onclick={submitPalette}
               disabled={palSaving || palMinutes < 15}
-            >{palSaving ? 'Saving…' : 'Log time'}</button>
+            >{palSaving ? m.common_saving() : m.log_time_submit()}</button>
           </div>
           <div class="border-t border-base-300 pt-2">
             <button
               class="btn btn-sm btn-success btn-outline w-full"
               onclick={async () => { await startTimer(palTaskId); }}
-            ><Play class="size-3.5" />Start timer instead</button>
+            ><Play class="size-3.5" />{m.log_time_start_timer()}</button>
           </div>
         </div>
       {/if}

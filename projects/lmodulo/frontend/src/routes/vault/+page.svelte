@@ -6,6 +6,7 @@
   import Modal from '$lib/components/Modal.svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -28,7 +29,7 @@
   function childFolders(id: string) { return folders.filter(f => f.parentId === id); }
 
   function folderName(id: string | null) {
-    if (!id) return 'All Documents';
+    if (!id) return m.vault_all_documents();
     return folders.find(f => f.id === id)?.name ?? '—';
   }
 
@@ -171,7 +172,7 @@
       fd.append('tags', uploadForm.tags);
       fd.append('note', uploadForm.note);
       const res = await fetch('/api/vault/documents', { method: 'POST', body: fd });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); uploadError = (b as any).message ?? 'Upload failed'; return; }
+      if (!res.ok) { const b = await res.json().catch(() => ({})); uploadError = (b as any).message ?? m.errors_upload_failed(); return; }
       const created = await res.json();
       uploadOpen = false;
       await reloadDocs();
@@ -264,7 +265,7 @@
   }
 </script>
 
-<svelte:head><title>Vault</title></svelte:head>
+<svelte:head><title>{m.vault_title()}</title></svelte:head>
 
 <div class="flex flex-col gap-6">
   <!-- Page header -->
@@ -272,19 +273,19 @@
     <div class="flex items-start gap-2.5">
       <FolderLock class="size-6 shrink-0 mt-0.5" />
       <div>
-        <h1 class="text-2xl font-bold leading-none">Vault</h1>
-        <p class="text-xs opacity-50 mt-0.5">Documents, policies, and reference materials</p>
+        <h1 class="text-2xl font-bold leading-none">{m.vault_title()}</h1>
+        <p class="text-xs opacity-50 mt-0.5">{m.vault_subtitle()}</p>
       </div>
     </div>
     <div class="flex gap-2 shrink-0">
       {#if hasPermission(data.user, 'vault_folders', 'create')}
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openFolderCreate}>
-          <FolderPlus class="size-4" /><span class="hidden sm:inline">New Folder</span>
+          <FolderPlus class="size-4" /><span class="hidden sm:inline">{m.vault_new_folder()}</span>
         </button>
       {/if}
       {#if hasPermission(data.user, 'vault_documents', 'create')}
         <button type="button" class="btn btn-primary btn-sm gap-1" onclick={openUpload}>
-          <Upload class="size-4" /><span>Upload</span>
+          <Upload class="size-4" /><span>{m.common_upload()}</span>
         </button>
       {/if}
     </div>
@@ -300,7 +301,7 @@
         onclick={() => (selectedFolderId = null)}
       >
         <FolderOpen class="size-4 shrink-0" />
-        <span class="truncate">All Documents</span>
+        <span class="truncate">{m.vault_all_documents()}</span>
       </button>
 
       <div class="border-t border-base-300">
@@ -364,7 +365,7 @@
             {/if}
           </div>
         {:else}
-          <p class="text-xs opacity-40 px-3 py-2">No folders yet.</p>
+          <p class="text-xs opacity-40 px-3 py-2">{m.vault_no_folders()}</p>
         {/each}
       </div>
     </div>
@@ -374,7 +375,7 @@
       <div class="flex items-center gap-3">
         <label class="input input-bordered flex items-center gap-2 flex-1">
           <Search class="size-4 opacity-50" />
-          <input type="search" placeholder="Search by name or tag…" class="grow" bind:value={query} />
+          <input type="search" placeholder={m.vault_search()} class="grow" bind:value={query} />
         </label>
       </div>
 
@@ -382,11 +383,11 @@
         <table class="table table-sm">
           <thead>
             <tr>
-              <th>Name</th>
-              {#if selectedFolderId === null}<th>Folder</th>{/if}
-              <th>Visibility</th>
-              <th>Owner</th>
-              <th>Updated</th>
+              <th>{m.vault_col_name()}</th>
+              {#if selectedFolderId === null}<th>{m.vault_col_folder()}</th>{/if}
+              <th>{m.vault_col_visibility()}</th>
+              <th>{m.vault_col_owner()}</th>
+              <th>{m.vault_col_updated()}</th>
               <th></th>
             </tr>
           </thead>
@@ -436,7 +437,7 @@
             {:else}
               <tr>
                 <td colspan="6" class="text-center opacity-40 py-8 text-sm">
-                  {query ? 'No documents match your search.' : 'No documents in this folder yet.'}
+                  {query ? m.vault_no_results() : m.vault_no_documents()}
                 </td>
               </tr>
             {/each}
@@ -462,38 +463,38 @@
 {#if uploadOpen}
   <Modal size="md" label="Upload Document">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-      <h2 class="text-lg font-semibold">Upload Document</h2>
+      <h2 class="text-lg font-semibold">{m.vault_upload_title()}</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (uploadOpen = false)}><X class="size-5" /></button>
     </header>
     <div class="p-6 space-y-4 overflow-y-auto flex-1">
       {#if uploadError}<aside class="alert alert-error p-3 rounded text-sm">{uploadError}</aside>{/if}
 
       <div class="space-y-1">
-        <label class="text-xs font-medium opacity-60 uppercase tracking-wide">File *</label>
+        <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.vault_upload_file()}</label>
         <input type="file" class="file-input w-full" onchange={onFileChange} />
       </div>
 
       <div class="space-y-1">
-        <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Display Name *</label>
-        <input type="text" class="input w-full" bind:value={uploadForm.name} maxlength="200" placeholder="e.g. Safety Policy 2024" />
+        <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.vault_upload_name()}</label>
+        <input type="text" class="input w-full" bind:value={uploadForm.name} maxlength="200" placeholder={m.vault_upload_name_placeholder()} />
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Folder</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.vault_upload_folder()}</label>
           <select class="select w-full" bind:value={uploadForm.folderId}>
-            <option value="">None (root)</option>
+            <option value="">{m.vault_upload_no_folder()}</option>
             {#each folders as f}
               <option value={f.id}>{f.name}</option>
             {/each}
           </select>
         </div>
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Visibility</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.vault_upload_visibility()}</label>
           <select class="select w-full" bind:value={uploadForm.visibility}>
-            <option value="staff">Staff</option>
-            <option value="admin_only">Admin only</option>
-            <option value="customer">Customer-visible</option>
+            <option value="staff">{m.vault_vis_staff()}</option>
+            <option value="admin_only">{m.vault_vis_admin()}</option>
+            <option value="customer">{m.vault_vis_customer()}</option>
           </select>
         </div>
       </div>
@@ -519,9 +520,9 @@
       </div>
     </div>
     <footer class="flex justify-end gap-3 px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
-      <button type="button" class="btn btn-ghost" onclick={() => (uploadOpen = false)}>Cancel</button>
+      <button type="button" class="btn btn-ghost" onclick={() => (uploadOpen = false)}>{m.common_cancel()}</button>
       <button type="button" class="btn btn-primary" disabled={uploading} onclick={submitUpload}>
-        {uploading ? 'Uploading…' : 'Upload'}
+        {uploading ? m.common_uploading() : m.common_upload()}
       </button>
     </footer>
   </Modal>
@@ -531,39 +532,39 @@
 {#if folderOpen}
   <Modal size="sm" label="New Folder">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
-      <h2 class="text-lg font-semibold">New Folder</h2>
+      <h2 class="text-lg font-semibold">{m.vault_new_folder()}</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (folderOpen = false)}><X class="size-5" /></button>
     </header>
     <div class="p-6 space-y-4">
       {#if folderError}<aside class="alert alert-error p-3 rounded text-sm">{folderError}</aside>{/if}
       <div class="space-y-1">
-        <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Name *</label>
+        <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.vault_upload_name()}</label>
         <input type="text" class="input w-full" bind:value={folderForm.name} maxlength="200" placeholder="e.g. HR Policies" />
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Parent Folder</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.vault_upload_folder()}</label>
           <select class="select w-full" bind:value={folderForm.parentId}>
-            <option value="">None (root)</option>
+            <option value="">{m.vault_upload_no_folder()}</option>
             {#each folders as f}
               <option value={f.id}>{f.name}</option>
             {/each}
           </select>
         </div>
         <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Visibility</label>
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.vault_upload_visibility()}</label>
           <select class="select w-full" bind:value={folderForm.visibility}>
-            <option value="staff">Staff</option>
-            <option value="admin_only">Admin only</option>
-            <option value="customer">Customer-visible</option>
+            <option value="staff">{m.vault_vis_staff()}</option>
+            <option value="admin_only">{m.vault_vis_admin()}</option>
+            <option value="customer">{m.vault_vis_customer()}</option>
           </select>
         </div>
       </div>
     </div>
     <footer class="flex justify-end gap-3 px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
-      <button type="button" class="btn btn-ghost" onclick={() => (folderOpen = false)}>Cancel</button>
+      <button type="button" class="btn btn-ghost" onclick={() => (folderOpen = false)}>{m.common_cancel()}</button>
       <button type="button" class="btn btn-primary" disabled={folderSaving} onclick={submitFolder}>
-        {folderSaving ? 'Creating…' : 'Create Folder'}
+        {folderSaving ? m.common_creating() : m.vault_new_folder()}
       </button>
     </footer>
   </Modal>
@@ -581,9 +582,9 @@
       <p class="text-sm">Permanently delete <span class="font-semibold">{deleteTarget.name}</span> and all its versions? This cannot be undone.</p>
     </div>
     <footer class="flex justify-end gap-3 px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
-      <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>Cancel</button>
+      <button type="button" class="btn btn-ghost" onclick={() => (deleteTarget = null)}>{m.common_cancel()}</button>
       <button type="button" class="btn btn-error" disabled={deleting} onclick={confirmDelete}>
-        {deleting ? 'Deleting…' : 'Delete'}
+        {deleting ? m.common_deleting() : m.common_delete()}
       </button>
     </footer>
   </Modal>
@@ -601,9 +602,9 @@
       <p class="text-sm">Delete folder <span class="font-semibold">{deleteFolderTarget.name}</span>? The folder must be empty before it can be removed.</p>
     </div>
     <footer class="flex justify-end gap-3 px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
-      <button type="button" class="btn btn-ghost" onclick={() => (deleteFolderTarget = null)}>Cancel</button>
+      <button type="button" class="btn btn-ghost" onclick={() => (deleteFolderTarget = null)}>{m.common_cancel()}</button>
       <button type="button" class="btn btn-error btn-outline" disabled={deletingFolder} onclick={confirmDeleteFolder}>
-        {deletingFolder ? 'Deleting…' : 'Delete Folder'}
+        {deletingFolder ? m.common_deleting() : m.common_delete()}
       </button>
     </footer>
   </Modal>
