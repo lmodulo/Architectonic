@@ -109,7 +109,7 @@ export default async function companiesRoutes(app: FastifyInstance) {
     if (type)       match.type       = type;
     if (industry)   match.industry   = industry;
     if (assignedTo) match.assignedTo = parseOid(assignedTo, app);
-    if (search?.trim()) match.$text  = { $search: search.trim() };
+    if (search?.trim()) match.name = { $regex: search.trim(), $options: 'i' };
 
     const [docs, total] = await Promise.all([
       db.collection(COL).aggregate([

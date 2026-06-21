@@ -65,6 +65,8 @@
       if (res?.ok) {
         const d = await res.json();
         clientResults = (d.companies ?? []).map((c: any) => ({ id: c.id, name: c.name }));
+      } else {
+        console.error('[client search] status:', res?.status, await res?.text().catch(() => ''));
       }
     }, 250);
   }
