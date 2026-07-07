@@ -73,6 +73,12 @@ export default async function settingsRoutes(app: FastifyInstance) {
     return { brandName: map['brand.name'] || null, brandLogo: map['brand.logo'] || null };
   });
 
+  // GET /settings/theme — public: returns theme.mode without auth (needed for logged-out pages)
+  app.get('/theme', async () => {
+    const s = await app.mongo.db!.collection('settings').findOne({ key: 'theme.mode' });
+    return { mode: (s?.value as string) || 'lmodulo' };
+  });
+
   // GET /settings/:key — requireAuth only: individual settings readable by all authenticated users
   app.get<{ Params: { key: string } }>('/:key', {
     preHandler: app.requireAuth,

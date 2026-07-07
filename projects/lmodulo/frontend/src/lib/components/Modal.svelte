@@ -40,10 +40,12 @@
     background-color: var(--color-base-200);
     color: var(--color-base-content);
     border-radius: var(--radius-box, 1rem) var(--radius-box, 1rem) 0 0;
+    border-bottom-width: 0px;
   }
   .modal-inner :global(footer) {
     background-color: var(--color-base-200);
     color: var(--color-base-content);
     border-radius: 0 0 var(--radius-box, 1rem) var(--radius-box, 1rem);
+    border-top-width: 0px;
   }
 </style>
