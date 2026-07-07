@@ -176,7 +176,7 @@
           {/each}
         </tbody>
       </table>
-      {#if sorted.length > PAGE_SIZE}
+      {#if sorted.length > 0}
         <div class="border-t border-base-300 px-4 py-2">
           <Pagination
             total={sorted.length}

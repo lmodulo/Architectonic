@@ -55,7 +55,10 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
   app.get('/', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req) => {
     const db     = app.mongo.db!;
     const userId = req.session.userId!;
-    const { status, customerId } = req.query as Record<string, string>;
+    const {
+      status, customerId, limit = '25', skip = '0',
+      sort = 'nextBillingDate', sortDir = 'asc',
+    } = req.query as Record<string, string>;
 
     const user  = await db.collection('users').findOne({ _id: new ObjectId(userId) });
     const match: Record<string, unknown> = {};
@@ -68,13 +71,21 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
 
     if (status) match.status = status;
 
-    const docs = await db.collection(SUB_COL)
-      .find(match)
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .toArray();
+    const SORTABLE = new Set(['name', 'billingCycle', 'nextBillingDate', 'status']);
+    const sortField = SORTABLE.has(sort) ? sort : 'nextBillingDate';
+    const sortOrder = sortDir === 'desc' ? -1 : 1;
 
-    return { subscriptions: docs.map(d => mapSub(d as Record<string, unknown>)) };
+    const [docs, total] = await Promise.all([
+      db.collection(SUB_COL)
+        .find(match)
+        .sort({ [sortField]: sortOrder })
+        .skip(Number(skip))
+        .limit(Number(limit))
+        .toArray(),
+      db.collection(SUB_COL).countDocuments(match),
+    ]);
+
+    return { subscriptions: docs.map(d => mapSub(d as Record<string, unknown>)), total };
   });
 
   // POST /finance/subscriptions

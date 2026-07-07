@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { Users, FileText, Plus, Trash2, X } from 'lucide-svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -28,6 +29,10 @@
   const customers    = data.customers    as Customer[];
   const invoices     = data.invoices     as Invoice[];
   const expensesPaid = data.expensesPaid as number;
+
+  const PAGE_SIZE = 25;
+  let currentPage = $state(1);
+  const pagedCustomers = $derived(customers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
 
   function customerStats(customerId: string) {
     const invs    = invoices.filter(i => i.customerId === customerId);
@@ -174,7 +179,7 @@
             </tr>
           </thead>
           <tbody>
-            {#each customers as customer (customer.id)}
+            {#each pagedCustomers as customer (customer.id)}
               {@const stats = customerStats(customer.id)}
               <tr
                 class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
@@ -197,6 +202,17 @@
             {/each}
           </tbody>
         </table>
+
+        {#if customers.length > 0}
+          <div class="border-t border-base-300 px-4 py-2">
+            <Pagination
+              total={customers.length}
+              pageSize={PAGE_SIZE}
+              currentPage={currentPage}
+              onPage={(n) => (currentPage = n)}
+            />
+          </div>
+        {/if}
       </div>
     {/if}
   </div>

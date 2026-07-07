@@ -444,7 +444,7 @@
           </tbody>
         </table>
 
-        {#if filtered.length > PAGE_SIZE}
+        {#if filtered.length > 0}
           <div class="border-t border-base-300 px-4 py-2">
             <Pagination
               total={filtered.length}

@@ -24,8 +24,10 @@
 
   const subscriptions = $derived(data.subscriptions as Subscription[]);
   const customers     = $derived(data.customers     as Customer[]);
-  const filters       = $derived(data.filters       as { status: string });
+  const total         = $derived(data.total         as number);
+  const filters       = $derived(data.filters       as { status: string; skip: number; sort: string; sortDir: string });
 
+  const LIMIT    = 25;
   const STATUSES = ['', 'active', 'paused', 'cancelled'];
 
   const STATUS_CLASS: Record<string, string> = {
@@ -55,43 +57,37 @@
     return subtotal + taxAmount;
   }
 
-  let sortField = $state('nextBillingDate');
-  let sortDir   = $state<'asc' | 'desc'>('asc');
-
-  function toggleSort(field: string) {
-    if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-    else { sortField = field; sortDir = 'asc'; }
+  function buildUrl(overrides: Record<string, string | null>) {
+    const url = new URL(page.url);
+    for (const [k, v] of Object.entries(overrides)) {
+      if (v === null) url.searchParams.delete(k);
+      else            url.searchParams.set(k, v);
+    }
+    return url.toString();
   }
-
-  const sorted = $derived.by(() => {
-    return [...subscriptions].sort((a: any, b: any) => {
-      let av: any, bv: any;
-      if      (sortField === 'name')            { av = a.name ?? '';              bv = b.name ?? ''; }
-      else if (sortField === 'customer')        { av = customerName(a.customerId); bv = customerName(b.customerId); }
-      else if (sortField === 'billingCycle')    { av = a.billingCycle ?? '';       bv = b.billingCycle ?? ''; }
-      else if (sortField === 'nextBillingDate') { av = a.nextBillingDate ?? '';    bv = b.nextBillingDate ?? ''; }
-      else if (sortField === 'total')           { av = subTotal(a);               bv = subTotal(b); }
-      else if (sortField === 'status')          { av = a.status ?? '';            bv = b.status ?? ''; }
-      else return 0;
-      if (av < bv) return sortDir === 'asc' ? -1 : 1;
-      if (av > bv) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-  });
 
   function applyFilter(status: string) {
-    const url = new URL(page.url);
-    if (status) url.searchParams.set('status', status);
-    else        url.searchParams.delete('status');
-    goto(url.toString());
+    goto(buildUrl({ status: status || null, skip: null }));
   }
+
+  function applySort(field: string) {
+    const newDir = filters.sort === field && filters.sortDir === 'asc' ? 'desc' : 'asc';
+    goto(buildUrl({ sort: field, sortDir: newDir, skip: null }));
+  }
+
+  function pageUrl(newSkip: number) {
+    return buildUrl({ skip: String(newSkip) });
+  }
+
+  const currentPage = $derived(Math.floor(filters.skip / LIMIT) + 1);
+  const totalPages  = $derived(Math.ceil(total / LIMIT));
 </script>
 
 <svelte:head><title>Subscriptions — Folio</title></svelte:head>
 
 <div class="space-y-6">
   <div class="flex items-center justify-between gap-4">
-    <p class="text-sm opacity-60">{subscriptions.length} subscription{subscriptions.length !== 1 ? 's' : ''}</p>
+    <p class="text-sm opacity-60">{total} subscription{total !== 1 ? 's' : ''}</p>
     {#if hasPermission(data.user, 'finance_subscriptions', 'create')}
       <a href="/folio/subscriptions/new" class="btn btn-primary btn-sm">
         <Plus class="size-4" />
@@ -129,10 +125,10 @@
           <tr class="bg-base-300/30">
             {#snippet sortTh(label: string, field: string, cls = '')}
               <th class={cls}>
-                <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
+                <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => applySort(field)}>
                   {label}
-                  {#if sortField === field}
-                    {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                  {#if filters.sort === field}
+                    {#if filters.sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
                   {:else}
                     <ChevronsUpDown class="size-3 opacity-30" />
                   {/if}
@@ -140,24 +136,15 @@
               </th>
             {/snippet}
             {@render sortTh('Name', 'name')}
-            {@render sortTh('Customer', 'customer')}
+            <th>Customer</th>
             {@render sortTh('Billing Cycle', 'billingCycle')}
             {@render sortTh('Next Billing', 'nextBillingDate')}
-            <th class="text-right">
-              <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity ml-auto" onclick={() => toggleSort('total')}>
-                Total
-                {#if sortField === 'total'}
-                  {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
-                {:else}
-                  <ChevronsUpDown class="size-3 opacity-30" />
-                {/if}
-              </button>
-            </th>
+            <th class="text-right">Total</th>
             {@render sortTh('Status', 'status')}
           </tr>
         </thead>
         <tbody>
-          {#each sorted as sub (sub.id)}
+          {#each subscriptions as sub (sub.id)}
             <tr
               class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
               onclick={() => goto(`/folio/subscriptions/${sub.id}`)}
@@ -175,6 +162,50 @@
         </tbody>
       </table>
       </div>
+
+      {#if total > 0}
+        <div class="border-t border-base-300 px-4 py-2 flex items-center justify-between gap-4">
+          <span class="text-xs opacity-50">
+            {filters.skip + 1}–{Math.min(filters.skip + LIMIT, total)} of {total}
+          </span>
+          {#if totalPages > 1}
+            <div class="flex items-center gap-1">
+              <a
+                href={pageUrl(0)}
+                class="btn btn-ghost btn-xs {currentPage === 1 ? 'btn-disabled opacity-40' : ''}"
+                aria-disabled={currentPage === 1}
+              >«</a>
+              <a
+                href={pageUrl(Math.max(0, filters.skip - LIMIT))}
+                class="btn btn-ghost btn-sm {currentPage === 1 ? 'btn-disabled opacity-40' : ''}"
+                aria-disabled={currentPage === 1}
+              >← Prev</a>
+
+              {#each Array.from({ length: totalPages }, (_, i) => i + 1) as p}
+                {#if totalPages <= 7 || Math.abs(p - currentPage) <= 2 || p === 1 || p === totalPages}
+                  <a
+                    href={pageUrl((p - 1) * LIMIT)}
+                    class="btn btn-xs {p === currentPage ? 'btn-primary' : 'btn-ghost'}"
+                  >{p}</a>
+                {:else if Math.abs(p - currentPage) === 3}
+                  <span class="px-1 opacity-40 text-sm">…</span>
+                {/if}
+              {/each}
+
+              <a
+                href={pageUrl(filters.skip + LIMIT)}
+                class="btn btn-ghost btn-sm {currentPage === totalPages ? 'btn-disabled opacity-40' : ''}"
+                aria-disabled={currentPage === totalPages}
+              >Next →</a>
+              <a
+                href={pageUrl((totalPages - 1) * LIMIT)}
+                class="btn btn-ghost btn-xs {currentPage === totalPages ? 'btn-disabled opacity-40' : ''}"
+                aria-disabled={currentPage === totalPages}
+              >»</a>
+            </div>
+          {/if}
+        </div>
+      {/if}
     </div>
   {/if}
 </div>

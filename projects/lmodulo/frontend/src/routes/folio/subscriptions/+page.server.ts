@@ -10,18 +10,31 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
-  const status = url.searchParams.get('status') ?? '';
-  const qs     = status ? `?status=${status}` : '';
+  const status  = url.searchParams.get('status')  ?? '';
+  const skip    = url.searchParams.get('skip')    ?? '0';
+  const sort    = url.searchParams.get('sort')    ?? 'nextBillingDate';
+  const sortDir = url.searchParams.get('sortDir') ?? 'asc';
+
+  const qs = new URLSearchParams({ limit: '25', skip, sort, sortDir });
+  if (status) qs.set('status', status);
 
   const [subsRes, customersRes] = await Promise.allSettled([
-    fetch(`${API_URL}/finance/subscriptions${qs}`, { headers }),
+    fetch(`${API_URL}/finance/subscriptions?${qs}`, { headers }),
     fetch(`${API_URL}/finance/customers`, { headers }),
   ]);
 
-  const subscriptions = subsRes.status === 'fulfilled' && subsRes.value.ok
-    ? (await subsRes.value.json()).subscriptions ?? [] : [];
+  let subscriptions: unknown[] = [];
+  let total = 0;
+  if (subsRes.status === 'fulfilled' && subsRes.value.ok) {
+    const d = await subsRes.value.json();
+    subscriptions = d.subscriptions ?? [];
+    total         = d.total         ?? 0;
+  }
   const customers = customersRes.status === 'fulfilled' && customersRes.value.ok
     ? (await customersRes.value.json()).customers ?? [] : [];
 
-  return { user: locals.user, subscriptions, customers, filters: { status } };
+  return {
+    user: locals.user, subscriptions, total, customers,
+    filters: { status, skip: Number(skip), sort, sortDir },
+  };
 };

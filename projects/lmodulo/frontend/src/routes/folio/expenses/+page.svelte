@@ -243,28 +243,51 @@
         </tbody>
       </table>
       </div>
-    </div>
 
-    <!-- Pagination -->
-    {#if totalPages > 1}
-      <div class="flex items-center justify-between text-sm">
-        <span class="opacity-50">Page {currentPage} of {totalPages} · {total} total</span>
-        <div class="join">
-          {#if currentPage > 1}
-            <a href={pageUrl((currentPage - 2) * LIMIT)} class="join-item btn btn-sm">«</a>
-          {/if}
-          {#each Array.from({ length: totalPages }, (_, i) => i + 1) as p}
-            <a
-              href={pageUrl((p - 1) * LIMIT)}
-              class="join-item btn btn-sm {p === currentPage ? 'btn-active' : ''}"
-            >{p}</a>
-          {/each}
-          {#if currentPage < totalPages}
-            <a href={pageUrl(currentPage * LIMIT)} class="join-item btn btn-sm">»</a>
+      {#if total > 0}
+        <div class="border-t border-base-300 px-4 py-2 flex items-center justify-between gap-4">
+          <span class="text-xs opacity-50">
+            {filters.skip + 1}–{Math.min(filters.skip + LIMIT, total)} of {total}
+          </span>
+          {#if totalPages > 1}
+            <div class="flex items-center gap-1">
+              <a
+                href={pageUrl(0)}
+                class="btn btn-ghost btn-xs {currentPage === 1 ? 'btn-disabled opacity-40' : ''}"
+                aria-disabled={currentPage === 1}
+              >«</a>
+              <a
+                href={pageUrl(Math.max(0, filters.skip - LIMIT))}
+                class="btn btn-ghost btn-sm {currentPage === 1 ? 'btn-disabled opacity-40' : ''}"
+                aria-disabled={currentPage === 1}
+              >← Prev</a>
+
+              {#each Array.from({ length: totalPages }, (_, i) => i + 1) as p}
+                {#if totalPages <= 7 || Math.abs(p - currentPage) <= 2 || p === 1 || p === totalPages}
+                  <a
+                    href={pageUrl((p - 1) * LIMIT)}
+                    class="btn btn-xs {p === currentPage ? 'btn-primary' : 'btn-ghost'}"
+                  >{p}</a>
+                {:else if Math.abs(p - currentPage) === 3}
+                  <span class="px-1 opacity-40 text-sm">…</span>
+                {/if}
+              {/each}
+
+              <a
+                href={pageUrl(filters.skip + LIMIT)}
+                class="btn btn-ghost btn-sm {currentPage === totalPages ? 'btn-disabled opacity-40' : ''}"
+                aria-disabled={currentPage === totalPages}
+              >Next →</a>
+              <a
+                href={pageUrl((totalPages - 1) * LIMIT)}
+                class="btn btn-ghost btn-xs {currentPage === totalPages ? 'btn-disabled opacity-40' : ''}"
+                aria-disabled={currentPage === totalPages}
+              >»</a>
+            </div>
           {/if}
         </div>
-      </div>
-    {/if}
+      {/if}
+    </div>
   {/if}
 </div>
 
