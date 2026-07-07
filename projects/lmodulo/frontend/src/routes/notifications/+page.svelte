@@ -64,11 +64,15 @@
 </svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <h1 class="text-2xl font-bold">{m.notifications_title()}</h1>
+  <div class="page-heading flex items-center justify-between gap-4">
+    <div class="flex items-start gap-3">
+      <Bell class="size-6 shrink-0 mt-0.5" />
+      <div>
+        <h1 class="text-2xl font-bold leading-none">{m.notifications_title()}</h1>
+        <p class="text-xs opacity-60 mt-0.5">{m.notifications_subtitle()}</p>
+      </div>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 shrink-0">
       <a href="/notifications/settings" class="btn btn-ghost btn-sm">{m.notifications_preferences()}</a>
       {#if items.some(n => !n.read)}
         <button

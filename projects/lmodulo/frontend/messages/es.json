@@ -227,6 +227,7 @@
   "settings_no_settings": "No se encontraron configuraciones.",
 
   "notifications_title":          "Notificaciones",
+  "notifications_subtitle":       "Actividad y novedades de tu espacio de trabajo",
   "notifications_preferences":    "Preferencias",
   "notifications_mark_all_read":  "Marcar todo como leído",
   "notifications_tab_all":        "Todas",

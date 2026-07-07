@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { goto, invalidateAll } from '$app/navigation';
-  import { SquarePen, Inbox, Send, Archive } from 'lucide-svelte';
+  import { Mail, SquarePen, Inbox, Send, Archive } from 'lucide-svelte';
   import MessageListItem from '$lib/components/MessageListItem.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import type { LayoutData } from './$types';
@@ -77,9 +77,12 @@
 <div class="flex flex-col h-full overflow-hidden gap-4">
 
   <!-- Header -->
-  <div class="shrink-0">
-    <h1 class="text-2xl font-bold">{m.messages_title()}</h1>
-    <p class="text-sm opacity-60 mt-0.5">{m.messages_subtitle()}</p>
+  <div class="page-heading flex items-start gap-3 shrink-0">
+    <Mail class="size-6 shrink-0 mt-0.5" />
+    <div>
+      <h1 class="text-2xl font-bold leading-none">{m.messages_title()}</h1>
+      <p class="text-xs opacity-60 mt-0.5">{m.messages_subtitle()}</p>
+    </div>
   </div>
 
   <!-- Two-panel shell -->

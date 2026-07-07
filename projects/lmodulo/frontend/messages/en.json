@@ -227,6 +227,7 @@
   "settings_no_settings": "No settings found.",
 
   "notifications_title":          "Notifications",
+  "notifications_subtitle":       "Activity and updates across your workspace",
   "notifications_preferences":    "Preferences",
   "notifications_mark_all_read":  "Mark all read",
   "notifications_tab_all":        "All",
