@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/state';
-  import { Check, X, PenLine, RotateCcw, AlertTriangle, Clock, CheckCircle } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -162,7 +162,7 @@
       <!-- ── NOT FOUND ── -->
       {#if data.state === 'not_found'}
         <div class="card bg-base-100 shadow-sm p-8 text-center flex flex-col items-center gap-4">
-          <AlertTriangle class="size-12 text-error opacity-60" />
+          <Icon name="AlertTriangle" size={48} class="size-12 text-error opacity-60" />
           <h1 class="text-xl font-semibold">Signing link not found</h1>
           <p class="text-base-content/60 text-sm">This link is invalid or has been removed. Please contact the sender.</p>
         </div>
@@ -170,7 +170,7 @@
       <!-- ── EXPIRED ── -->
       {:else if data.state === 'expired'}
         <div class="card bg-base-100 shadow-sm p-8 text-center flex flex-col items-center gap-4">
-          <Clock class="size-12 text-warning opacity-60" />
+          <Icon name="Clock" size={48} class="size-12 text-warning opacity-60" />
           <h1 class="text-xl font-semibold">This signing link has expired</h1>
           <p class="text-base-content/60 text-sm">
             The link sent to <strong>{(data as any).signer?.email}</strong> is no longer valid.
@@ -181,7 +181,7 @@
       <!-- ── ALREADY SIGNED ── -->
       {:else if data.state === 'already_signed'}
         <div class="card bg-base-100 shadow-sm p-8 text-center flex flex-col items-center gap-4">
-          <CheckCircle class="size-12 text-success opacity-70" />
+          <Icon name="CheckCircle" size={48} class="size-12 text-success opacity-70" />
           <h1 class="text-xl font-semibold">Already signed</h1>
           <p class="text-base-content/60 text-sm">
             You already signed this contract
@@ -194,7 +194,7 @@
       <!-- ── DECLINED ── -->
       {:else if data.state === 'declined'}
         <div class="card bg-base-100 shadow-sm p-8 text-center flex flex-col items-center gap-4">
-          <X class="size-12 text-error opacity-60" />
+          <Icon name="X" size={48} class="size-12 text-error opacity-60" />
           <h1 class="text-xl font-semibold">Signing declined</h1>
           <p class="text-base-content/60 text-sm">You previously declined to sign this contract.</p>
         </div>
@@ -207,7 +207,7 @@
         <!-- Post-sign success state -->
         {#if signDone}
           <div class="card bg-base-100 shadow-sm p-8 text-center flex flex-col items-center gap-4">
-            <CheckCircle class="size-12 text-success opacity-70" />
+            <Icon name="CheckCircle" size={48} class="size-12 text-success opacity-70" />
             <h1 class="text-xl font-semibold">Signature recorded</h1>
             <p class="text-base-content/60 text-sm">
               Thank you, <strong>{signer.name}</strong>. Your signature was recorded on <strong>{signedAt}</strong>.
@@ -218,7 +218,7 @@
         <!-- Post-decline success state -->
         {:else if declineDone}
           <div class="card bg-base-100 shadow-sm p-8 text-center flex flex-col items-center gap-4">
-            <X class="size-12 text-error opacity-60" />
+            <Icon name="X" size={48} class="size-12 text-error opacity-60" />
             <h1 class="text-xl font-semibold">Signing declined</h1>
             <p class="text-base-content/60 text-sm">
               You have declined to sign <strong>{contract.title}</strong>.
@@ -250,7 +250,7 @@
             <div class="card bg-base-100 shadow-sm p-6 flex flex-col gap-4">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <PenLine class="size-4 text-base-content/60" />
+                  <Icon name="PenLine" size={16} class="size-4 text-base-content/60" />
                   <h2 class="font-medium text-sm">Draw your signature</h2>
                 </div>
                 <button
@@ -259,7 +259,7 @@
                   onclick={clearCanvas}
                   title="Clear"
                 >
-                  <RotateCcw class="size-3" /> Clear
+                  <Icon name="RotateCcw" size={12} class="size-3" /> Clear
                 </button>
               </div>
 
@@ -302,7 +302,7 @@
                   class="btn btn-ghost btn-sm text-error"
                   onclick={() => showDecline = true}
                 >
-                  <X class="size-4" /> Decline to Sign
+                  <Icon name="X" size={16} class="size-4" /> Decline to Sign
                 </button>
                 <button
                   type="button"
@@ -310,7 +310,7 @@
                   onclick={submitSignature}
                   disabled={signing}
                 >
-                  <Check class="size-4" />
+                  <Icon name="Check" size={16} class="size-4" />
                   {signing ? 'Submitting…' : 'Sign Document'}
                 </button>
               </div>
@@ -320,7 +320,7 @@
           {:else}
             <div class="card bg-base-100 shadow-sm p-6 flex flex-col gap-4">
               <h2 class="font-medium text-sm text-error flex items-center gap-2">
-                <X class="size-4" /> Decline to Sign
+                <Icon name="X" size={16} class="size-4" /> Decline to Sign
               </h2>
               <p class="text-sm text-base-content/60">
                 You are declining to sign <strong>{contract.title}</strong>. The sender will be notified.

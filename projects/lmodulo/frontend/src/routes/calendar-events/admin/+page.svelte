@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, Search, LayoutList, Calendar } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import EventCalendarGrid from '$lib/components/EventCalendarGrid.svelte';
   import EventCard          from '$lib/components/EventCard.svelte';
@@ -104,7 +104,7 @@
     </div>
     {#if hasPermission(data.user, 'calendar_events', 'create')}
       <button type="button" class="btn btn-primary" onclick={openNew}>
-        <Plus class="size-4" /> New Event
+        <Icon name="Plus" size={16} class="size-4" /> New Event
       </button>
     {/if}
   </div>
@@ -112,7 +112,7 @@
   <!-- Filters -->
   <div class="flex flex-wrap items-center gap-3">
     <label class="input flex items-center gap-2 flex-1 min-w-48">
-      <Search class="size-4 opacity-50" />
+      <Icon name="Search" size={16} class="size-4 opacity-50" />
       <input type="search" class="grow" placeholder="Search events…" bind:value={query} />
     </label>
 
@@ -140,12 +140,12 @@
         type="button"
         class="join-item btn btn-sm {view === 'calendar' ? 'btn-primary' : 'btn-ghost'}"
         onclick={() => (view = 'calendar')} aria-label="Calendar view"
-      ><Calendar class="size-4" /></button>
+      ><Icon name="Calendar" size={16} class="size-4" /></button>
       <button
         type="button"
         class="join-item btn btn-sm {view === 'list' ? 'btn-primary' : 'btn-ghost'}"
         onclick={() => (view = 'list')} aria-label="List view"
-      ><LayoutList class="size-4" /></button>
+      ><Icon name="LayoutList" size={16} class="size-4" /></button>
     </div>
   </div>
 

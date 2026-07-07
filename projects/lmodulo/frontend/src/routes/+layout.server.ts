@@ -19,7 +19,7 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
-  const [unreadCount, chatEnabled, brandName, brandLogo] = await Promise.all([
+  const [unreadCount, chatEnabled, brandName, brandLogo, iconLibrary] = await Promise.all([
     fetch(`${API_URL}/messages/unread-count`, { headers })
       .then(r => r.ok ? r.json() : { count: 0 })
       .then((d: { count: number }) => d.count)
@@ -35,8 +35,12 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
     fetch(`${API_URL}/settings/brand.logo`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then((d: { value?: unknown } | null) => (d?.value as string) || null)
-      .catch(() => null)
+      .catch(() => null),
+    fetch(`${API_URL}/settings/theme.icon_library`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { value?: unknown } | null) => (d?.value as string) || 'lucide')
+      .catch(() => 'lucide')
   ]);
 
-  return { user: locals.user, unreadCount, chatEnabled, appName, brandName, brandLogo };
+  return { user: locals.user, unreadCount, chatEnabled, appName, brandName, brandLogo, iconLibrary };
 };

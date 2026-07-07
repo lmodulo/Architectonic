@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, AlertCircle, CheckCircle, Clock, TrendingUp, Flag } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -130,7 +130,7 @@
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
     {#if isAdmin}
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-primary/15"><TrendingUp class="size-4 text-primary"/></div>
+        <div class="p-2 rounded-lg bg-primary/15"><Icon name="TrendingUp" size={16} class="size-4 text-primary"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Avg Completion</p>
           <p class="text-2xl font-bold">{avgCompletion}%</p>
@@ -138,7 +138,7 @@
         </div>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-error/15"><AlertCircle class="size-4 text-error"/></div>
+        <div class="p-2 rounded-lg bg-error/15"><Icon name="AlertCircle" size={16} class="size-4 text-error"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Blocked Tasks</p>
           <p class="text-2xl font-bold">{blockedCount}</p>
@@ -146,7 +146,7 @@
         </div>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-success/15"><CheckCircle class="size-4 text-success"/></div>
+        <div class="p-2 rounded-lg bg-success/15"><Icon name="CheckCircle" size={16} class="size-4 text-success"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Tasks Done</p>
           <p class="text-2xl font-bold">{doneCount}</p>
@@ -154,7 +154,7 @@
         </div>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-warning/15"><Clock class="size-4 text-warning"/></div>
+        <div class="p-2 rounded-lg bg-warning/15"><Icon name="Clock" size={16} class="size-4 text-warning"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Total Effort</p>
           <p class="text-2xl font-bold">{fmtEffort(totalAct)}</p>
@@ -163,7 +163,7 @@
       </div>
     {:else if isLead}
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-primary/15"><TrendingUp class="size-4 text-primary"/></div>
+        <div class="p-2 rounded-lg bg-primary/15"><Icon name="TrendingUp" size={16} class="size-4 text-primary"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Active Milestones</p>
           <p class="text-2xl font-bold">{milestones.filter(m => m.status === 'Active').length}</p>
@@ -171,7 +171,7 @@
         </div>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-error/15"><AlertCircle class="size-4 text-error"/></div>
+        <div class="p-2 rounded-lg bg-error/15"><Icon name="AlertCircle" size={16} class="size-4 text-error"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Blocked</p>
           <p class="text-2xl font-bold">{blockedCount}</p>
@@ -179,7 +179,7 @@
         </div>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-success/15"><CheckCircle class="size-4 text-success"/></div>
+        <div class="p-2 rounded-lg bg-success/15"><Icon name="CheckCircle" size={16} class="size-4 text-success"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Completed</p>
           <p class="text-2xl font-bold">{doneCount}</p>
@@ -190,7 +190,7 @@
     {:else}
       <!-- Contributor / Viewer: personal dashboard -->
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-primary/15"><Clock class="size-4 text-primary"/></div>
+        <div class="p-2 rounded-lg bg-primary/15"><Icon name="Clock" size={16} class="size-4 text-primary"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">My Tasks</p>
           <p class="text-2xl font-bold">{myTasks.length}</p>
@@ -198,7 +198,7 @@
         </div>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-success/15"><CheckCircle class="size-4 text-success"/></div>
+        <div class="p-2 rounded-lg bg-success/15"><Icon name="CheckCircle" size={16} class="size-4 text-success"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Done</p>
           <p class="text-2xl font-bold">{myTasks.filter((t: any) => t.status === 'Done').length}</p>
@@ -206,7 +206,7 @@
         </div>
       </div>
       <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-        <div class="p-2 rounded-lg bg-error/15"><AlertCircle class="size-4 text-error"/></div>
+        <div class="p-2 rounded-lg bg-error/15"><Icon name="AlertCircle" size={16} class="size-4 text-error"/></div>
         <div>
           <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Blocked</p>
           <p class="text-2xl font-bold">{myTasks.filter((t: any) => t.status === 'Blocked').length}</p>
@@ -237,7 +237,7 @@
         </select>
         {#if hasPermission(data.user, 'agile_milestones', 'create')}
           <button class="btn btn-primary btn-sm" onclick={openModal}>
-            <Plus class="size-4" /> New Milestone
+            <Icon name="Plus" size={16} class="size-4" /> New Milestone
           </button>
         {/if}
       </div>
@@ -245,7 +245,7 @@
 
     {#if visible.length === 0}
       <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center opacity-50">
-        <Flag class="size-8 opacity-40 mx-auto mb-2" />
+        <Icon name="Flag" size={24} class="size-8 opacity-40 mx-auto mb-2" />
         <p class="text-sm">No milestones yet.{#if hasPermission(data.user, 'agile_milestones', 'create')} Create one to get started.{/if}</p>
       </div>
     {:else}
@@ -268,7 +268,7 @@
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Milestone</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-          <X class="size-5" />
+          <Icon name="X" size={20} class="size-5" />
         </button>
       </header>
 
@@ -327,7 +327,7 @@
           {#if form.clientId}
             <div class="flex items-center gap-2">
               <span class="badge badge-outline text-sm px-3 py-1">{form.clientName}</span>
-              <button type="button" class="btn btn-ghost btn-xs" onclick={clearClient}><X class="size-3" /></button>
+              <button type="button" class="btn btn-ghost btn-xs" onclick={clearClient}><Icon name="X" size={12} class="size-3" /></button>
             </div>
           {:else}
             <div class="relative">

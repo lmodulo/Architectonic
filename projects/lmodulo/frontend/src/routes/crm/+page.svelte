@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { TrendingUp, Users, Building2, Calendar, DollarSign } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -33,7 +33,7 @@
   <!-- KPI row -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg bg-primary/15"><TrendingUp class="size-4 text-primary"/></div>
+      <div class="p-2 rounded-lg bg-primary/15"><Icon name="TrendingUp" size={16} class="size-4 text-primary"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Open Deals</p>
         <p class="text-2xl font-bold">{openDeals.length}</p>
@@ -41,7 +41,7 @@
       </div>
     </div>
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg bg-success/15"><DollarSign class="size-4 text-success"/></div>
+      <div class="p-2 rounded-lg bg-success/15"><Icon name="DollarSign" size={16} class="size-4 text-success"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Closed Won</p>
         <p class="text-2xl font-bold">{wonDeals.length}</p>
@@ -49,7 +49,7 @@
       </div>
     </div>
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg bg-accent/15"><Calendar class="size-4 text-accent"/></div>
+      <div class="p-2 rounded-lg bg-accent/15"><Icon name="Calendar" size={16} class="size-4 text-accent"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Activities This Week</p>
         <p class="text-2xl font-bold">{weekActs.length}</p>
@@ -57,7 +57,7 @@
       </div>
     </div>
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg bg-secondary/15"><Building2 class="size-4 text-secondary"/></div>
+      <div class="p-2 rounded-lg bg-secondary/15"><Icon name="Building2" size={16} class="size-4 text-secondary"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Pipeline Stages</p>
         <p class="text-2xl font-bold">{DEAL_STAGES.length - 2}</p>

@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { Phone, Mail, CalendarDays, MonitorPlay, FileText, CheckSquare, CheckCircle } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { ACTIVITY_TYPE_COLOR, fmtDate, fmtCurrency, type CrmActivity } from '$lib/utils/crm';
 
-  const ICONS: Record<string, any> = {
-    Call: Phone, Email: Mail, Meeting: CalendarDays,
-    Demo: MonitorPlay, Note: FileText, Task: CheckSquare,
+  const ICONS: Record<string, string> = {
+    Call: 'Phone', Email: 'Mail', Meeting: 'CalendarDays',
+    Demo: 'MonitorPlay', Note: 'FileText', Task: 'CheckSquare',
   };
 
   let {
@@ -16,13 +16,13 @@
     onComplete?: (id: string) => void;
   } = $props();
 
-  const Icon = $derived(ICONS[activity.type] ?? FileText);
+  const activityIconName = $derived(ICONS[activity.type] ?? 'FileText');
   const done = $derived(!!activity.completedAt);
 </script>
 
 <div class="flex items-start gap-3 py-2.5 border-b border-base-300/50 last:border-0">
   <div class="mt-0.5 p-1.5 rounded-lg bg-base-300/50 shrink-0">
-    <Icon class="size-3.5 opacity-60" />
+    <Icon name={activityIconName} size={14} class="size-3.5 opacity-60" />
   </div>
   <div class="flex-1 min-w-0">
     <div class="flex items-center gap-2 flex-wrap">
@@ -50,9 +50,9 @@
       title={m.crm_activity_complete()}
       onclick={() => onComplete!(activity.id)}
     >
-      <CheckCircle class="size-4" />
+      <Icon name="CheckCircle" size={16} class="size-4" />
     </button>
   {:else if done}
-    <CheckCircle class="size-4 shrink-0 text-success opacity-60 mt-0.5" />
+    <Icon name="CheckCircle" size={16} class="size-4 shrink-0 text-success opacity-60 mt-0.5" />
   {/if}
 </div>

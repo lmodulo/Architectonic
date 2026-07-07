@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, Activity } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -90,7 +90,7 @@
       </select>
       {#if hasPermission(data.user, 'crm_activities', 'create')}
         <button class="btn btn-primary btn-sm" onclick={openModal}>
-          <Plus class="size-4" /> Log Activity
+          <Icon name="Plus" size={16} class="size-4" /> Log Activity
         </button>
       {/if}
     </div>
@@ -98,7 +98,7 @@
 
   {#if activities.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center opacity-50">
-      <Activity class="size-8 opacity-40 mx-auto mb-2" />
+      <Icon name="Activity" size={32} class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No activities yet.{#if hasPermission(data.user, 'crm_activities', 'create')} Log one to get started.{/if}</p>
     </div>
   {:else}
@@ -119,7 +119,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">Log Activity</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
     <div class="p-6 space-y-4 overflow-y-auto flex-1">

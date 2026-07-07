@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Paperclip, Trash2, FileText, UploadCloud } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { fmtDate } from '$lib/utils/agile';
   import type { AgileAttachment } from '$lib/utils/agile';
@@ -114,7 +114,7 @@
     <ul class="space-y-1.5">
       {#each attachments as att (att.name)}
         <li class="flex items-center gap-2 text-sm p-2 rounded bg-base-300/40 hover:bg-base-300/60 transition-colors">
-          <FileText class="size-4 shrink-0 opacity-50" />
+          <Icon name="FileText" size={16} class="size-4 shrink-0 opacity-50" />
           <a href={att.url} target="_blank" rel="noreferrer" class="flex-1 truncate font-medium hover:underline">{att.name}</a>
           {#if att.uploadedAt}
             <span class="text-xs opacity-40 shrink-0">{fmtDate(att.uploadedAt)}</span>
@@ -126,7 +126,7 @@
               onclick={() => removeAttachment(att.name)}
               aria-label="{m.attachment_remove()} {att.name}"
             >
-              <Trash2 class="size-3.5" />
+              <Icon name="Trash2" size={14} class="size-3.5" />
             </button>
           {/if}
         </li>
@@ -148,7 +148,7 @@
     onclick={openPicker}
     disabled={uploading}
   >
-    <UploadCloud class="size-6 mx-auto mb-1.5 {dragOver ? 'text-primary' : 'opacity-40'}" />
+    <Icon name="UploadCloud" size={24} class="size-6 mx-auto mb-1.5 {dragOver ? 'text-primary' : 'opacity-40'}" />
     {#if uploading}
       <p class="text-xs font-medium">{m.attachment_uploading()}</p>
     {:else if dragOver}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Bell, BellOff, BellRing } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { typeLabel } from '$lib/utils/calendarEvents';
 
@@ -98,7 +98,7 @@
 
 {#if !isLoggedIn}
   <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-center gap-3 text-sm">
-    <Bell class="size-4 opacity-50" />
+    <Icon name="Bell" size={16} class="size-4 opacity-50" />
     <span class="opacity-70">
       <a href="/login" class="link link-primary">{m.event_sub_sign_in()}</a>
     </span>
@@ -113,10 +113,10 @@
     <div class="flex items-center justify-between gap-4">
       <div class="flex items-center gap-2">
         {#if sub.subscribed}
-          <BellRing class="size-4 text-primary" />
+          <Icon name="BellRing" size={16} class="size-4 text-primary" />
           <span class="font-medium text-sm">{m.event_sub_subscribed()}</span>
         {:else}
-          <BellOff class="size-4 opacity-50" />
+          <Icon name="BellOff" size={16} class="size-4 opacity-50" />
           <span class="font-medium text-sm opacity-70">{m.event_sub_not_subscribed()}</span>
         {/if}
       </div>

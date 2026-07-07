@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, Layers, Calendar, Clock, CheckCircle, Trash2, Building2, Pencil } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -173,7 +173,7 @@
         <span class="badge text-xs {STATUS_COLOR[milestone.status] ?? 'badge-ghost'}">{milestone.status}</span>
         {#if milestone.clientId}
           <a href="/crm/companies/{milestone.clientId}" class="badge badge-outline text-xs gap-1 hover:badge-primary transition-colors">
-            <Building2 class="size-3" />{milestone.clientName}
+            <Icon name="Building2" size={12} class="size-3" />{milestone.clientName}
           </a>
         {/if}
         {#if hasPermission(data.user, 'agile_milestones', 'update')}
@@ -187,7 +187,7 @@
                 oninput={onClientInput}
                 autocomplete="off"
               />
-              <button type="button" class="btn btn-ghost btn-xs" onclick={() => { clientEditing = false; clientQuery = ''; clientResults = []; }}><X class="size-3" /></button>
+              <button type="button" class="btn btn-ghost btn-xs" onclick={() => { clientEditing = false; clientQuery = ''; clientResults = []; }}><Icon name="X" size={12} class="size-3" /></button>
               {#if milestone.clientId}
                 <button type="button" class="btn btn-ghost btn-xs text-error" disabled={clientSaving} onclick={() => linkClient(null)}>Unlink</button>
               {/if}
@@ -203,7 +203,7 @@
             </div>
           {:else}
             <button type="button" class="btn btn-ghost btn-xs gap-1" onclick={() => (clientEditing = true)}>
-              <Pencil class="size-3" />{milestone.clientId ? 'Change client' : 'Link client'}
+              <Icon name="Pencil" size={12} class="size-3" />{milestone.clientId ? 'Change client' : 'Link client'}
             </button>
           {/if}
         {/if}
@@ -223,7 +223,7 @@
             <button class="btn btn-ghost btn-sm" onclick={() => { deleteConfirm = false; deleteError = ''; }}>Cancel</button>
           {:else}
             <button class="btn btn-ghost btn-sm text-error hover:bg-error/10" onclick={() => deleteConfirm = true}>
-              <Trash2 class="size-4" /> Delete
+              <Icon name="Trash2" size={16} class="size-4" /> Delete
             </button>
           {/if}
         {/if}
@@ -250,7 +250,7 @@
       </div>
     </div>
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg bg-success/15"><Clock class="size-4 text-success"/></div>
+      <div class="p-2 rounded-lg bg-success/15"><Icon name="Clock" size={16} class="size-4 text-success"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Effort</p>
         <p class="text-lg font-bold">{fmtEffort(milestone.totalActualHours ?? 0)}</p>
@@ -258,7 +258,7 @@
       </div>
     </div>
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg bg-primary/15"><Layers class="size-4 text-primary"/></div>
+      <div class="p-2 rounded-lg bg-primary/15"><Icon name="Layers" size={16} class="size-4 text-primary"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Sprints</p>
         <p class="text-lg font-bold">{sprints.length}</p>
@@ -286,7 +286,7 @@
       <h2 class="text-lg font-semibold">Sprints</h2>
       {#if hasPermission(data.user, 'agile_sprints', 'create')}
         <button class="btn btn-primary btn-sm" onclick={openSprintModal}>
-          <Plus class="size-4" /> New Sprint
+          <Icon name="Plus" size={16} class="size-4" /> New Sprint
         </button>
       {/if}
     </div>
@@ -341,7 +341,7 @@
   <Modal size="lg" label="New Sprint">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Sprint</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintModal = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintModal = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if sprintError}
@@ -392,7 +392,7 @@
   <Modal size="lg" label="Edit Milestone">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Milestone</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editing = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editing = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editError}

@@ -3,10 +3,7 @@
   import { hasPermission } from '$lib/permissions';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import { fade, slide } from 'svelte/transition';
-  import {
-    ArrowLeft, Building2, CalendarDays, DollarSign,
-    Send, Ban, Trash2, Edit3, Check, X, UserPlus, Plus, Printer, RefreshCcw
-  } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -203,7 +200,7 @@
   <!-- Header -->
   <div class="flex items-start justify-between gap-3 flex-wrap">
     <div class="flex items-start gap-3">
-      <a href="/contracts" class="btn btn-ghost btn-square btn-sm mt-0.5"><ArrowLeft class="size-4" /></a>
+      <a href="/contracts" class="btn btn-ghost btn-square btn-sm mt-0.5"><Icon name="ArrowLeft" size={16} class="size-4" /></a>
       <div class="flex flex-col gap-1.5">
         {#if editing}
           <input transition:fade={{ duration: 150 }} type="text" class="input input-bordered text-xl font-semibold w-full" bind:value={editTitle} />
@@ -233,7 +230,7 @@
             </select>
           {:else if c.companyName}
             <span transition:fade={{ duration: 150 }} class="flex items-center gap-1 text-sm text-base-content/60">
-              <Building2 class="size-3" />
+              <Icon name="Building2" size={12} class="size-3" />
               {c.companyName}
             </span>
           {/if}
@@ -245,35 +242,35 @@
     <div class="relative flex items-center gap-2 flex-wrap">
       {#if editing}
         <div transition:fade={{ duration: 150 }} class="flex items-center gap-2">
-          <button class="btn btn-ghost btn-sm" onclick={() => editing = false}><X class="size-4" /> Cancel</button>
+          <button class="btn btn-ghost btn-sm" onclick={() => editing = false}><Icon name="X" size={16} class="size-4" /> Cancel</button>
           <button class="btn btn-primary btn-sm" onclick={saveEdit} disabled={saving}>
-            <Check class="size-4" />
+            <Icon name="Check" size={16} class="size-4" />
             {saving ? 'Saving…' : 'Save'}
           </button>
         </div>
       {:else}
         <div transition:fade={{ duration: 150 }} class="flex items-center gap-2 flex-wrap">
           <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/contract/${c.id}`, '_blank')} title="Download / Print PDF">
-            <Printer class="size-4" />
+            <Icon name="Printer" size={16} class="size-4" />
           </button>
           {#if canEdit}
             <button class="btn btn-ghost btn-sm" onclick={startEdit}>
-              <Edit3 class="size-4" /> Edit
+              <Icon name="Edit3" size={16} class="size-4" /> Edit
             </button>
           {/if}
           {#if canSend}
             <button class="btn btn-primary btn-sm" onclick={() => showSendModal = true}>
-              <Send class="size-4" /> Send for Signature
+              <Icon name="Send" size={16} class="size-4" /> Send for Signature
             </button>
           {/if}
           {#if canVoid}
             <button class="btn btn-ghost btn-sm text-warning" onclick={voidContract}>
-              <Ban class="size-4" /> Void
+              <Icon name="Ban" size={16} class="size-4" /> Void
             </button>
           {/if}
           {#if canDelete}
             <button class="btn btn-ghost btn-sm text-error" onclick={deleteContract}>
-              <Trash2 class="size-4" />
+              <Icon name="Trash2" size={16} class="size-4" />
             </button>
           {/if}
         </div>
@@ -309,7 +306,7 @@
         </div>
       {:else}
         <p transition:fade={{ duration: 150 }} class="font-medium text-sm flex items-center gap-1">
-          <DollarSign class="size-3 opacity-50" />
+          <Icon name="DollarSign" size={12} class="size-3 opacity-50" />
           {fmtCurrency(c.value, c.currency)}
         </p>
       {/if}
@@ -320,7 +317,7 @@
         <input transition:fade={{ duration: 150 }} type="date" class="input input-bordered input-xs w-full" bind:value={editEffDate} />
       {:else}
         <p transition:fade={{ duration: 150 }} class="font-medium text-sm flex items-center gap-1">
-          <CalendarDays class="size-3 opacity-50" />
+          <Icon name="CalendarDays" size={12} class="size-3 opacity-50" />
           {fmtDate(c.effectiveDate)}
         </p>
       {/if}
@@ -331,7 +328,7 @@
         <input transition:fade={{ duration: 150 }} type="date" class="input input-bordered input-xs w-full" bind:value={editExpDate} />
       {:else}
         <p transition:fade={{ duration: 150 }} class="font-medium text-sm flex items-center gap-1">
-          <CalendarDays class="size-3 opacity-50" />
+          <Icon name="CalendarDays" size={12} class="size-3 opacity-50" />
           {fmtDate(c.expiryDate)}
         </p>
       {/if}
@@ -362,7 +359,7 @@
                     disabled={resendingId === s.id}
                     title="Resend signing link"
                   >
-                    <RefreshCcw class="size-3 {resendingId === s.id ? 'animate-spin' : ''}" />
+                    <Icon name="RefreshCcw" size={12} class="size-3 {resendingId === s.id ? 'animate-spin' : ''}" />
                   </button>
                 {/if}
                 <div class="flex flex-col items-end gap-0.5">
@@ -419,7 +416,7 @@
               <span class="flex-1">{s.name} &lt;{s.email}&gt;</span>
               <span class="badge badge-ghost badge-xs">{s.role}</span>
               <button type="button" class="btn btn-ghost btn-xs" onclick={() => removeSigner(i)}>
-                <X class="size-3" />
+                <Icon name="X" size={12} class="size-3" />
               </button>
             </div>
           {/each}
@@ -440,7 +437,7 @@
             <option value="witness">Witness</option>
           </select>
           <button type="button" class="btn btn-outline btn-sm" onclick={addSigner}>
-            <Plus class="size-4" /> Add
+            <Icon name="Plus" size={16} class="size-4" /> Add
           </button>
         </div>
       </div>
@@ -448,7 +445,7 @@
       <div class="modal-action">
         <button class="btn btn-ghost" onclick={() => showSendModal = false}>Cancel</button>
         <button class="btn btn-primary" onclick={sendForSignature} disabled={sending || !signers.length}>
-          <Send class="size-4" />
+          <Icon name="Send" size={16} class="size-4" />
           {sending ? 'Sending…' : `Send to ${signers.length} signer${signers.length === 1 ? '' : 's'}`}
         </button>
       </div>

@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { dragScroll } from '$lib/actions/dragScroll';
-  import { Plus, Receipt, ChevronUp, ChevronDown, ChevronsUpDown, Trash2, X } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
@@ -88,8 +88,8 @@
   const currentPage = $derived(Math.floor(filters.skip / LIMIT) + 1);
 
   function sortIcon(field: string) {
-    if (filters.sort !== field) return ChevronsUpDown;
-    return filters.sortDir === 'asc' ? ChevronUp : ChevronDown;
+    if (filters.sort !== field) return 'ChevronsUpDown';
+    return filters.sortDir === 'asc' ? 'ChevronUp' : 'ChevronDown';
   }
 
   // Modal
@@ -172,7 +172,7 @@
 
     {#if hasPermission(data.user, 'finance_expenses', 'create')}
       <button type="button" class="btn btn-primary btn-sm shrink-0" onclick={openModal}>
-        <Plus class="size-4" />
+        <Icon name="Plus" size={16} class="size-4" />
         New Expense
       </button>
     {/if}
@@ -180,7 +180,7 @@
 
   {#if expenses.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-12 text-center">
-      <Receipt class="size-10 opacity-20 mx-auto mb-3" />
+      <Icon name="Receipt" size={40} class="size-10 opacity-20 mx-auto mb-3" />
       <p class="text-sm opacity-40">No expenses yet. Log hosting costs, software subscriptions, contractor payments, and more.</p>
     </div>
   {:else}
@@ -191,28 +191,28 @@
           <tr class="bg-base-300/30">
             <th>
               <button type="button" class="flex items-center gap-1 hover:opacity-80" onclick={() => applySort('expenseNumber')}>
-                # <svelte:component this={sortIcon('expenseNumber')} class="size-3" />
+                # <Icon name={sortIcon('expenseNumber')} size={12} class="size-3" />
               </button>
             </th>
             <th>
               <button type="button" class="flex items-center gap-1 hover:opacity-80" onclick={() => applySort('vendor')}>
-                Vendor <svelte:component this={sortIcon('vendor')} class="size-3" />
+                Vendor <Icon name={sortIcon('vendor')} size={12} class="size-3" />
               </button>
             </th>
             <th>Description</th>
             <th>
               <button type="button" class="flex items-center gap-1 hover:opacity-80" onclick={() => applySort('category')}>
-                Category <svelte:component this={sortIcon('category')} class="size-3" />
+                Category <Icon name={sortIcon('category')} size={12} class="size-3" />
               </button>
             </th>
             <th>
               <button type="button" class="flex items-center gap-1 hover:opacity-80" onclick={() => applySort('expenseDate')}>
-                Date <svelte:component this={sortIcon('expenseDate')} class="size-3" />
+                Date <Icon name={sortIcon('expenseDate')} size={12} class="size-3" />
               </button>
             </th>
             <th class="text-right">
               <button type="button" class="flex items-center gap-1 hover:opacity-80 ml-auto" onclick={() => applySort('amount')}>
-                Amount <svelte:component this={sortIcon('amount')} class="size-3" />
+                Amount <Icon name={sortIcon('amount')} size={12} class="size-3" />
               </button>
             </th>
             <th>Status</th>
@@ -296,7 +296,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">New Expense</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
 

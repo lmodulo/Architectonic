@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Plus, X, Search, Users } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -10,6 +10,8 @@
   import ContactCard from '$lib/components/crm/ContactCard.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
+  import PhoneInput from '$lib/components/PhoneInput.svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -54,15 +56,18 @@
     firstName: '', lastName: '', email: '', phone: '',
     role: 'Other', status: 'Prospect', source: 'Other',
   });
+  let formPhoneValid = $state(true);
 
   function openModal() {
     form = { firstName: '', lastName: '', email: '', phone: '', role: 'Other', status: 'Prospect', source: 'Other' };
+    formPhoneValid = true;
     saveError = '';
     modalOpen = true;
   }
 
   async function save() {
     if (!form.firstName.trim() || !form.lastName.trim()) { saveError = 'First and last name are required'; return; }
+    if (!formPhoneValid) { saveError = m.errors_phone_invalid(); return; }
     saving = true; saveError = '';
     try {
       const res = await fetch('/api/crm/contacts', {
@@ -71,7 +76,10 @@
         body: JSON.stringify(form),
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { saveError = (d as any).message ?? 'Save failed'; return; }
+      if (!res.ok) {
+        saveError = (d as any).message === 'phone_invalid' ? m.errors_phone_invalid() : ((d as any).message ?? 'Save failed');
+        return;
+      }
       contacts = [d as CrmContact, ...contacts];
       total++;
       modalOpen = false;
@@ -87,7 +95,7 @@
     <h2 class="text-lg font-semibold">Contacts <span class="text-sm opacity-40 font-normal">({total})</span></h2>
     <div class="flex flex-col items-end gap-2">
       <div class="relative">
-        <Search class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 opacity-40" />
+        <Icon name="Search" size={14} class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 opacity-40" />
         <input
           type="search" placeholder="Search…" class="input input-sm pl-7 w-44"
           bind:value={search} oninput={onSearchInput}
@@ -103,7 +111,7 @@
       </select>
       {#if hasPermission(data.user, 'crm_contacts', 'create')}
         <button class="btn btn-primary btn-sm" onclick={openModal}>
-          <Plus class="size-4" /> New Contact
+          <Icon name="Plus" size={16} class="size-4" /> New Contact
         </button>
       {/if}
     </div>
@@ -111,7 +119,7 @@
 
   {#if contacts.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center opacity-50">
-      <Users class="size-8 opacity-40 mx-auto mb-2" />
+      <Icon name="Users" size={32} class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No contacts yet.{#if hasPermission(data.user, 'crm_contacts', 'create')} Add one to get started.{/if}</p>
     </div>
   {:else}
@@ -129,7 +137,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">New Contact</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
     <div class="p-6 space-y-4 overflow-y-auto flex-1">
@@ -153,7 +161,7 @@
         </div>
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="c-phone">Phone</label>
-          <input id="c-phone" type="text" class="input w-full" bind:value={form.phone} />
+          <PhoneInput id="c-phone" bind:value={form.phone} bind:valid={formPhoneValid} name="" />
         </div>
       </div>
       <div class="grid grid-cols-3 gap-4">
@@ -179,7 +187,7 @@
     </div>
     <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
       <button type="button" class="btn btn-ghost" onclick={() => (modalOpen = false)}>Cancel</button>
-      <button type="button" class="btn btn-primary" disabled={saving} onclick={save}>
+      <button type="button" class="btn btn-primary" disabled={saving || !formPhoneValid} onclick={save}>
         {saving ? 'Creating…' : 'Create Contact'}
       </button>
     </footer>

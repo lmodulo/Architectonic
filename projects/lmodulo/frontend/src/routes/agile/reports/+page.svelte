@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import { STATUS_COLOR, fmtEffort } from '$lib/utils/agile';
-  import { GitBranch, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -210,7 +210,7 @@
     </div>
   {:else if sprints.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-12 text-center opacity-40">
-      <GitBranch class="size-8 opacity-40 mx-auto mb-2" />
+      <Icon name="GitBranch" size={24} class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No sprints in this milestone yet.</p>
     </div>
   {:else}
@@ -389,9 +389,9 @@
                 <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity {cls.includes('text-right') ? 'ml-auto' : ''}" onclick={() => toggleSort(field)}>
                   {label}
                   {#if sortField === field}
-                    {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                    {#if sortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                   {:else}
-                    <ChevronsUpDown class="size-3 opacity-30" />
+                    <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                   {/if}
                 </button>
               </th>

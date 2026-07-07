@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Plus, Trash2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import type { PageData } from './$types';
 
@@ -127,14 +127,14 @@
           <input type="number" class="input input-sm w-full" placeholder="Qty" min="0" step="1" bind:value={item.quantity} />
           <input type="number" class="input input-sm w-full" placeholder="Unit price" min="0" step="0.01" bind:value={item.unitPrice} />
           <button type="button" class="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100" onclick={() => removeLine(i)} disabled={lineItems.length === 1}>
-            <Trash2 class="size-3.5" />
+            <Icon name="Trash2" size={14} class="size-3.5" />
           </button>
         </div>
       {/each}
     </div>
     <div class="flex items-center justify-between pt-1">
       <button type="button" class="btn btn-ghost btn-sm" onclick={addLine}>
-        <Plus class="size-4" /> Add line
+        <Icon name="Plus" size={16} class="size-4" /> Add line
       </button>
       <span class="text-sm font-semibold">Subtotal: {fmtCurrency(subtotal)}</span>
     </div>

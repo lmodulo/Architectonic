@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Search } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
@@ -44,7 +44,7 @@
     <div class="flex flex-col items-end gap-2">
       <!-- Search -->
       <label class="input flex items-center gap-2 h-8 text-xs">
-        <Search class="size-3.5 opacity-50" />
+        <Icon name="Search" size={14} class="size-3.5 opacity-50" />
         <input type="search" class="grow text-xs" placeholder="Search tasks…" bind:value={search} />
       </label>
       <!-- Filters -->

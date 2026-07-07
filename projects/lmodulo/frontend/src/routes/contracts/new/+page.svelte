@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import Breadcrumb from '$lib/components/crm/Breadcrumb.svelte';
-  import { FileText, FileSignature, Shield, LayoutTemplate, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -25,7 +25,7 @@
   let saving        = $state(false);
   let err           = $state('');
 
-  const TYPE_ICONS: Record<string, any> = { msa: FileSignature, sow: FileText, nda: Shield, custom: LayoutTemplate };
+  const TYPE_ICONS: Record<string, string> = { msa: 'FileSignature', sow: 'FileText', nda: 'Shield', custom: 'LayoutTemplate' };
   const TYPE_DESCRIPTIONS: Record<string, string> = {
     msa:    'Governs the ongoing service relationship — foundation for all client engagements.',
     sow:    'Defines scope, deliverables, timeline, and fees for a specific project.',
@@ -130,7 +130,7 @@
       {#if step === 1}
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {#each data.templates as t}
-            {@const Icon = TYPE_ICONS[t.type] ?? LayoutTemplate}
+            {@const tplIcon = TYPE_ICONS[t.type] ?? 'LayoutTemplate'}
             <button
               type="button"
               class="flex items-start gap-3 p-4 rounded-box border text-left transition-all
@@ -139,7 +139,7 @@
                   : 'border-base-300 bg-base-200 hover:border-base-content/30'}"
               onclick={() => pickTemplate(t.id)}
             >
-              <Icon class="size-5 mt-0.5 shrink-0 {selectedTemplateId === t.id ? 'text-primary' : 'opacity-50'}" />
+              <Icon name={tplIcon} size={20} class="size-5 mt-0.5 shrink-0 {selectedTemplateId === t.id ? 'text-primary' : 'opacity-50'}" />
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                   <span class="font-medium text-sm">{t.name}</span>
@@ -160,7 +160,7 @@
                 : 'border-base-300 bg-base-200 hover:border-base-content/30'}"
             onclick={() => pickTemplate(null)}
           >
-            <LayoutTemplate class="size-5 mt-0.5 shrink-0 {selectedTemplateId === 'blank' ? 'text-primary' : 'opacity-50'}" />
+            <Icon name="LayoutTemplate" size={20} class="size-5 mt-0.5 shrink-0 {selectedTemplateId === 'blank' ? 'text-primary' : 'opacity-50'}" />
             <div>
               <span class="font-medium text-sm">Blank Document</span>
               <p class="text-xs opacity-60 mt-0.5">Start from scratch with no pre-filled content.</p>
@@ -228,14 +228,14 @@
     <div class="flex justify-between items-center px-6 py-4 border-t border-base-300 bg-base-200">
       {#if step > 1}
         <button class="btn btn-ghost btn-sm" onclick={() => step = step - 1}>
-          <ChevronLeft class="size-4" /> Back
+          <Icon name="ChevronLeft" size={16} class="size-4" /> Back
         </button>
       {:else}
         <div></div>
       {/if}
       {#if step < 3}
         <button class="btn btn-primary btn-sm" onclick={next}>
-          Continue <ChevronRight class="size-4" />
+          Continue <Icon name="ChevronRight" size={16} class="size-4" />
         </button>
       {:else}
         <button class="btn btn-primary" onclick={save} disabled={saving}>

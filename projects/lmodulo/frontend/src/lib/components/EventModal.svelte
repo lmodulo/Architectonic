@@ -2,7 +2,7 @@
   import { fade, scale } from 'svelte/transition';
   import { m } from '$lib/paraglide/messages.js';
   import { cubicOut } from 'svelte/easing';
-  import { X } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
   import Modal from '$lib/components/Modal.svelte';
@@ -161,7 +161,7 @@
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{event ? m.event_edit_title() : m.event_new_title()}</h2>
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={onClose} aria-label="Close">
-          <X class="size-5" />
+          <Icon name="X" size={20} class="size-5" />
         </button>
       </header>
 

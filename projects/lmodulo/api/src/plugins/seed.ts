@@ -47,6 +47,14 @@ const DEFAULT_SETTINGS = [
     type: 'boolean',
     label: 'AI Assistant',
     description: 'Show the AI chat assistant panel for authenticated users'
+  },
+  {
+    key: 'theme.icon_library',
+    value: 'lucide',
+    type: 'select',
+    label: 'Icon Set',
+    description: 'Icon library used throughout the app',
+    options: ['lucide', 'material', 'tabler', 'phosphor', 'heroicons']
   }
 ];
 
@@ -1293,7 +1301,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           _id: ctMarcus,
           firstName: 'Marcus', lastName: 'Webb',
-          email: 'marcus.webb@vertexsystems.io', phone: '+1 415 555 0182',
+          email: 'marcus.webb@vertexsystems.io', phone: '+14155550182',
           role: 'Decision Maker', status: 'Active', source: 'Inbound',
           companyId: coVertex, assignedTo: joeId,
           linkedInUrl: 'https://linkedin.com/in/marcuswebb',
@@ -1304,7 +1312,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           _id: ctPriya,
           firstName: 'Priya', lastName: 'Sharma',
-          email: 'priya.sharma@vertexsystems.io', phone: '+1 415 555 0194',
+          email: 'priya.sharma@vertexsystems.io', phone: '+14155550194',
           role: 'Technical', status: 'Active', source: 'Inbound',
           companyId: coVertex, assignedTo: alexId,
           linkedInUrl: 'https://linkedin.com/in/priyasharma-eng',
@@ -1315,7 +1323,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           _id: ctDana,
           firstName: 'Dana', lastName: 'Kowalski',
-          email: 'dana@techfusion.dev', phone: '+1 512 555 0237',
+          email: 'dana@techfusion.dev', phone: '+15125550237',
           role: 'Champion', status: 'Prospect', source: 'Inbound',
           companyId: coTech, assignedTo: alexId,
           linkedInUrl: '', timezone: 'America/Chicago', tags: ['pilot-lead'],
@@ -1325,7 +1333,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           _id: ctTyler,
           firstName: 'Tyler', lastName: 'Osei',
-          email: 'tyler.osei@techfusion.dev', phone: '+1 512 555 0251',
+          email: 'tyler.osei@techfusion.dev', phone: '+15125550251',
           role: 'Finance', status: 'Prospect', source: 'Inbound',
           companyId: coTech, assignedTo: alexId,
           linkedInUrl: '', timezone: 'America/Chicago', tags: ['budget-owner'],
@@ -1346,7 +1354,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           _id: ctCarmen,
           firstName: 'Carmen', lastName: 'Reyes',
-          email: 'carmen@bluepeakagency.com', phone: '+1 303 555 0128',
+          email: 'carmen@bluepeakagency.com', phone: '+13035550128',
           role: 'Champion', status: 'Prospect', source: 'Conference',
           companyId: coBluePeak, assignedTo: alexId,
           linkedInUrl: '', timezone: 'America/Denver', tags: ['productcon'],
@@ -1356,7 +1364,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           _id: ctFinn,
           firstName: 'Finn', lastName: 'Nakamura',
-          email: 'finn@orionlabs.io', phone: '+1 206 555 0175',
+          email: 'finn@orionlabs.io', phone: '+12065550175',
           role: 'Technical', status: 'Partner', source: 'Referral',
           companyId: coOrion, assignedTo: kyleId,
           linkedInUrl: 'https://linkedin.com/in/finnnakamura',
@@ -1367,7 +1375,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           _id: ctEleanor,
           firstName: 'Eleanor', lastName: 'Strom',
-          email: 'eleanor.strom@civicbridge.gov', phone: '+1 651 555 0109',
+          email: 'eleanor.strom@civicbridge.gov', phone: '+16515550109',
           role: 'Decision Maker', status: 'Churned', source: 'Outreach',
           companyId: coCivic, assignedTo: joeId,
           linkedInUrl: '', timezone: 'America/Chicago', tags: ['compliance', 'lost'],
@@ -1377,7 +1385,7 @@ export default fp(async function seedPlugin(app: any) {
         {
           _id: ctJames,
           firstName: 'James', lastName: 'Hartley',
-          email: 'james@meridiandigital.co', phone: '+1 720 555 0148',
+          email: 'james@meridiandigital.co', phone: '+17205550148',
           role: 'Champion', status: 'Active', source: 'Referral',
           companyId: coMeridian, assignedTo: alexId,
           linkedInUrl: '', timezone: 'America/Denver', tags: ['new-client', 'decision-maker'],

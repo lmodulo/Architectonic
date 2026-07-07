@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
-  import { Ticket, TicketPlus, Paperclip, X, FileText, AlertCircle } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import type { PageData } from './$types';
 
@@ -113,21 +113,21 @@
 <div class="p-6 max-w-4xl mx-auto">
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-start gap-3">
-      <Ticket class="size-6 opacity-60 shrink-0 mt-0.5" />
+      <Icon name="Ticket" size={24} class="size-6 opacity-60 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold">Support Tickets</h1>
         <p class="text-base-content/60 text-sm mt-0.5">Submit and track your support requests</p>
       </div>
     </div>
     <button class="btn btn-primary btn-sm gap-2" onclick={() => openModal()}>
-      <TicketPlus size={16} />
+      <Icon name="TicketPlus" size={16} />
       New Ticket
     </button>
   </div>
 
   {#if tickets.length === 0}
     <div class="flex flex-col items-center justify-center py-20 text-base-content/40">
-      <AlertCircle size={40} class="mb-3" />
+      <Icon name="AlertCircle" size={40} class="mb-3" />
       <p class="text-sm">No tickets yet. Click <strong>New Ticket</strong> to get started.</p>
     </div>
   {:else}
@@ -163,7 +163,7 @@
               <td>
                 {#if ticket.attachments?.length}
                   <span class="flex items-center gap-1 text-xs text-base-content/60">
-                    <Paperclip size={12} />
+                    <Icon name="Paperclip" size={12} />
                     {ticket.attachments.length}
                   </span>
                 {:else}
@@ -184,7 +184,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">New Support Ticket</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
 
@@ -222,7 +222,7 @@
           <ul class="space-y-1 mb-2">
             {#each pendingFiles as file (file.name)}
               <li class="flex items-center gap-2 text-sm bg-base-300/50 rounded px-2 py-1">
-                <FileText size={14} class="shrink-0 text-base-content/50" />
+                <Icon name="FileText" size={14} class="shrink-0 text-base-content/50" />
                 <span class="truncate flex-1">{file.name}</span>
                 <button
                   type="button"
@@ -230,7 +230,7 @@
                   onclick={() => removePending(file.name)}
                   aria-label="Remove {file.name}"
                 >
-                  <X size={12} />
+                  <Icon name="X" size={12} />
                 </button>
               </li>
             {/each}
@@ -238,7 +238,7 @@
         {/if}
         <input bind:this={fileInput} type="file" multiple class="hidden" onchange={onFileSelect} />
         <button type="button" class="btn btn-ghost btn-sm gap-2" onclick={() => fileInput.click()}>
-          <Paperclip size={14} />
+          <Icon name="Paperclip" size={14} />
           Attach files
         </button>
       </div>

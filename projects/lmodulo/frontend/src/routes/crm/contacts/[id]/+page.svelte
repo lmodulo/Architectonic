@@ -1,15 +1,17 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Pencil, Trash2, X, Check, UserPlus, UserCheck } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { slide } from 'svelte/transition';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
     CONTACT_STATUSES, CONTACT_ROLES, CONTACT_SOURCES, CRM_LEVEL,
-    STAGE_COLOR, fmtCurrency, fmtDate, type CrmContact, type CrmDeal, type CrmActivity,
+    STAGE_COLOR, fmtCurrency, fmtDate, fmtPhone, type CrmContact, type CrmDeal, type CrmActivity,
   } from '$lib/utils/crm';
   import Breadcrumb from '$lib/components/crm/Breadcrumb.svelte';
   import ActivityItem from '$lib/components/crm/ActivityItem.svelte';
+  import PhoneInput from '$lib/components/PhoneInput.svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -23,9 +25,10 @@
   let converting     = $state(false);
   let convertSuccess = $state('');
   let convertError   = $state('');
-  let form = $state({ ...contact });
+  let form = $state({ ...contact, phone: contact.phone ?? '' });
+  let editPhoneValid = $state(true);
 
-  function startEdit() { form = { ...contact }; editing = true; saveError = ''; }
+  function startEdit() { form = { ...contact, phone: contact.phone ?? '' }; editPhoneValid = true; editing = true; saveError = ''; }
 
   async function convertToClient() {
     converting = true; convertError = ''; convertSuccess = '';
@@ -50,6 +53,7 @@
   );
 
   async function saveEdit() {
+    if (!editPhoneValid) { saveError = m.errors_phone_invalid(); return; }
     saving = true; saveError = '';
     try {
       const res = await fetch(`/api/crm/contacts/${contact.id}`, {
@@ -61,7 +65,11 @@
           role: form.role, status: form.status,
         }),
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); saveError = (d as any).message ?? 'Save failed'; return; }
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        saveError = (d as any).message === 'phone_invalid' ? m.errors_phone_invalid() : ((d as any).message ?? 'Save failed');
+        return;
+      }
       contact = { ...contact, ...form };
       editing = false;
     } catch { saveError = 'Network error'; }
@@ -99,15 +107,15 @@
     </div>
     <div class="flex gap-2 flex-wrap">
       {#if hasPermission(data.user, 'crm_contacts', 'update') && !editing}
-        <button class="btn btn-ghost btn-sm" onclick={startEdit}><Pencil class="size-4" /> Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick={startEdit}><Icon name="Pencil" size={16} class="size-4" /> Edit</button>
       {/if}
       {#if contact.isUser}
         <span class="badge badge-primary gap-1.5 px-3 py-2.5">
-          <UserCheck class="size-3.5" /> Client Portal Active
+          <Icon name="UserCheck" size={14} class="size-3.5" /> Client Portal Active
         </span>
       {:else if hasPermission(data.user, 'crm_contacts', 'update') && canConvert}
         <button class="btn btn-secondary btn-sm" disabled={converting} onclick={convertToClient}>
-          <UserPlus class="size-4" />
+          <Icon name="UserPlus" size={16} class="size-4" />
           {converting ? 'Converting…' : 'Convert to Client'}
         </button>
       {/if}
@@ -144,7 +152,7 @@
         </div>
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Phone</label>
-          <input type="text" class="input w-full" bind:value={form.phone} />
+          <PhoneInput bind:value={form.phone} bind:valid={editPhoneValid} name="" />
         </div>
       </div>
       <div class="grid grid-cols-2 gap-4">
@@ -163,10 +171,10 @@
       </div>
       <div class="flex gap-2 justify-end">
         <button type="button" class="btn btn-ghost btn-sm" onclick={() => (editing = false)}>
-          <X class="size-4" /> Cancel
+          <Icon name="X" size={16} class="size-4" /> Cancel
         </button>
-        <button type="button" class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}>
-          <Check class="size-4" /> {saving ? 'Saving…' : 'Save'}
+        <button type="button" class="btn btn-primary btn-sm" disabled={saving || !editPhoneValid} onclick={saveEdit}>
+          <Icon name="Check" size={16} class="size-4" /> {saving ? 'Saving…' : 'Save'}
         </button>
       </div>
     </div>
@@ -179,7 +187,7 @@
         </div>
         <div class="flex items-center justify-between">
           <span class="opacity-50">Phone</span>
-          <span>{contact.phone ?? '—'}</span>
+          <span>{fmtPhone(contact.phone)}</span>
         </div>
         <div class="flex items-center justify-between">
           <span class="opacity-50">Role</span>

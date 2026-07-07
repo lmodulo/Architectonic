@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { Plus, X, ArrowRight, ArrowLeft, ExternalLink, GitBranch, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
@@ -183,7 +183,7 @@
 
     {#if sprintId && hasPermission(data.user, 'agile_jobs', 'create')}
       <button class="btn btn-primary btn-sm ml-auto" onclick={openJobModal}>
-        <Plus class="size-4" /> New Job in Sprint
+        <Icon name="Plus" size={16} class="size-4" /> New Job in Sprint
       </button>
     {/if}
   </div>
@@ -194,7 +194,7 @@
     </div>
   {:else if sprints.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-12 text-center opacity-40">
-      <GitBranch class="size-8 opacity-40 mx-auto mb-2" />
+      <Icon name="GitBranch" size={24} class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No sprints in this milestone yet.</p>
     </div>
   {:else if !sprintId}
@@ -257,7 +257,7 @@
                   </div>
                   <div class="flex items-center gap-1 shrink-0">
                     <a href="/agile/jobs/JOB-{job.jobNumber}" class="btn btn-ghost btn-xs btn-square opacity-50 hover:opacity-100" title="Open job">
-                      <ExternalLink class="size-3" />
+                      <Icon name="ExternalLink" size={12} class="size-3" />
                     </a>
                     {#if hasPermission(data.user, 'agile_jobs', 'update')}
                       <button
@@ -268,7 +268,7 @@
                         title="Move to selected sprint"
                       >
                         {moving === job.id ? '…' : ''}
-                        <ArrowRight class="size-3" />
+                        <Icon name="ArrowRight" size={12} class="size-3" />
                       </button>
                     {/if}
                   </div>
@@ -300,7 +300,7 @@
 
         {#if sprintJobs.length === 0}
           <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center opacity-40 border-dashed">
-            <ArrowLeft class="size-5 mx-auto mb-1" />
+            <Icon name="ArrowLeft" size={20} class="size-5 mx-auto mb-1" />
             <p class="text-xs">Move backlog items here to commit them to this sprint.</p>
           </div>
         {:else}
@@ -313,9 +313,9 @@
                       <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity {cls.includes('text-right') ? 'ml-auto' : ''}" onclick={() => togglePlanSort(field)}>
                         {label}
                         {#if planSortField === field}
-                          {#if planSortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                          {#if planSortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                         {:else}
-                          <ChevronsUpDown class="size-3 opacity-30" />
+                          <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                         {/if}
                       </button>
                     </th>
@@ -359,7 +359,7 @@
                           onclick={() => removeFromSprint(job)}
                           title="Move to {otherSprints[0]?.title ?? 'other sprint'}"
                         >
-                          <ArrowLeft class="size-3" />
+                          <Icon name="ArrowLeft" size={12} class="size-3" />
                         </button>
                       {/if}
                     </td>
@@ -381,7 +381,7 @@
   <Modal size="lg" label="New Job">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Job in Sprint</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobModal = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobModal = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if jobError}

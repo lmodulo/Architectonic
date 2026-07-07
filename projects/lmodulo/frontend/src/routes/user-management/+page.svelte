@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronUp, ChevronDown, ChevronsUpDown, Users } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
@@ -10,6 +10,7 @@
   import Modal from '$lib/components/Modal.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
+  import PhoneInput from '$lib/components/PhoneInput.svelte';
   import type { PageData } from './$types';
   import { m } from '$lib/paraglide/messages.js';
 
@@ -101,22 +102,29 @@
 
   let editTarget = $state<User | null>(null);
   let editForm   = $state({ firstName: '', lastName: '', username: '', email: '', phone: '' });
+  let editPhoneValid = $state(true);
   let saving     = $state(false);
   let editError  = $state('');
 
   function openEdit(user: User) {
     editForm = { firstName: user.firstName ?? '', lastName: user.lastName ?? '', username: user.username, email: user.email, phone: user.phone ?? '' };
+    editPhoneValid = true;
     editError = ''; editTarget = user;
   }
 
   async function submitEdit() {
     if (!editTarget) return;
+    if (!editPhoneValid) { editError = m.errors_phone_invalid(); return; }
     saving = true; editError = '';
     try {
       const res = await fetch(`/api/users/${editTarget.id}`, {
         method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(editForm)
       });
-      if (!res.ok) { const body = await res.json().catch(() => ({})); editError = body.message ?? 'Update failed'; return; }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        editError = body.message === 'phone_invalid' ? m.errors_phone_invalid() : (body.message ?? 'Update failed');
+        return;
+      }
       users = users.map(u => u.id === editTarget!.id ? { ...u, ...editForm } : u);
       editTarget = null;
     } catch { editError = 'Network error'; }
@@ -345,7 +353,7 @@
 
 <div class="flex flex-col gap-6">
   <div class="page-heading flex items-start gap-3">
-    <Users class="size-6 shrink-0 mt-0.5" />
+    <Icon name="Users" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold leading-none">{m.user_mgmt_title()}</h1>
       <p class="text-xs opacity-60 mt-0.5">{m.user_mgmt_subtitle()}</p>
@@ -382,12 +390,12 @@
     <div class="space-y-4">
       <div class="flex items-center gap-3">
         <label class="input flex items-center gap-2 flex-1">
-          <Search class="size-4 shrink-0 opacity-50" />
+          <Icon name="Search" size={16} class="size-4 shrink-0 opacity-50" />
           <input type="search" placeholder={m.user_mgmt_search_users()} class="grow" bind:value={query} oninput={onUsersQueryInput} autocomplete="off" />
         </label>
         {#if hasPermission(data.user, 'users', 'create')}
           <button type="button" class="btn btn-primary shrink-0" onclick={openNewUser}>
-            <UserPlus class="size-4" /> <span>{m.user_mgmt_invite_user()}</span>
+            <Icon name="UserPlus" size={16} class="size-4" /> <span>{m.user_mgmt_invite_user()}</span>
           </button>
         {/if}
       </div>
@@ -402,9 +410,9 @@
                   <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
                     {label}
                     {#if sortField === field}
-                      {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                      {#if sortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                     {:else}
-                      <ChevronsUpDown class="size-3 opacity-30" />
+                      <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                     {/if}
                   </button>
                 </th>
@@ -444,12 +452,12 @@
                   <div class="flex items-center justify-end gap-1">
                     {#if hasPermission(data.user, 'users', 'update')}
                       <button type="button" class="btn btn-ghost btn-xs btn-square" aria-label="Edit {user.username}" onclick={() => openEdit(user)}>
-                        <Pencil class="size-4" />
+                        <Icon name="Pencil" size={16} class="size-4" />
                       </button>
                     {/if}
                     {#if hasPermission(data.user, 'users', 'delete')}
                       <button type="button" class="btn btn-ghost btn-xs btn-square text-error" aria-label="Delete {user.username}" onclick={() => openDelete(user)}>
-                        <Trash2 class="size-4" />
+                        <Icon name="Trash2" size={16} class="size-4" />
                       </button>
                     {/if}
                   </div>
@@ -516,7 +524,7 @@
         <div class="space-y-3">
           <h2 class="text-lg font-semibold">{m.user_mgmt_assignments()}</h2>
           <label class="input flex items-center gap-2">
-            <Search class="size-4 shrink-0 opacity-50" />
+            <Icon name="Search" size={16} class="size-4 shrink-0 opacity-50" />
             <input type="search" placeholder={m.user_mgmt_search_users()} class="grow" bind:value={userQuery} oninput={onRolesQueryInput} />
           </label>
           <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
@@ -566,13 +574,13 @@
     <div class="space-y-4">
       <div class="flex items-center gap-3">
         <label class="input flex items-center gap-2 flex-1">
-          <Search class="size-4 shrink-0 opacity-50" />
+          <Icon name="Search" size={16} class="size-4 shrink-0 opacity-50" />
           <input type="search" placeholder={m.user_mgmt_search_teams()} class="grow" bind:value={teamQuery} oninput={onTeamsQueryInput} />
         </label>
         {#if data.canCreateTeam}
           <button type="button" class="btn btn-primary shrink-0"
             onclick={() => { newTeamForm = { name: '', description: '' }; newTeamError = ''; newTeamOpen = true; }}>
-            <Plus class="size-4" /> <span>{m.user_mgmt_new_team()}</span>
+            <Icon name="Plus" size={16} class="size-4" /> <span>{m.user_mgmt_new_team()}</span>
           </button>
         {/if}
       </div>
@@ -601,12 +609,12 @@
               <div class="flex items-center gap-1 shrink-0">
                 {#if data.canUpdateTeam}
                   <button type="button" class="btn btn-ghost btn-xs btn-square" aria-label="Edit {team.name}" onclick={() => openEditTeam(team)}>
-                    <Pencil class="size-4" />
+                    <Icon name="Pencil" size={16} class="size-4" />
                   </button>
                 {/if}
                 {#if data.canDeleteTeam}
                   <button type="button" class="btn btn-ghost btn-xs btn-square text-error" aria-label="Delete {team.name}" onclick={() => { deleteTeamError = ''; deleteTeam = team; }}>
-                    <Trash2 class="size-4" />
+                    <Icon name="Trash2" size={16} class="size-4" />
                   </button>
                 {/if}
               </div>
@@ -631,7 +639,7 @@
                           {#if data.canUpdateTeam}
                             <button type="button" class="btn btn-ghost btn-xs btn-square text-error shrink-0"
                               aria-label="Remove {member.username}" onclick={() => removeMember(team.id, member.id)}>
-                              <X class="size-4" />
+                              <Icon name="X" size={16} class="size-4" />
                             </button>
                           {/if}
                         </li>
@@ -668,7 +676,7 @@
                     {:else}
                       <button type="button" class="btn btn-ghost btn-sm"
                         onclick={() => { addMemberTeamId = team.id; selectedUserId = ''; addMemberError = ''; loadPickerUsers(); }}>
-                        <UserPlus class="size-4" /> {m.user_mgmt_add_member()}
+                        <Icon name="UserPlus" size={16} class="size-4" /> {m.user_mgmt_add_member()}
                       </button>
                     {/if}
                   {/if}
@@ -693,7 +701,7 @@
   <Modal size="md" label="Invite user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{m.user_mgmt_modal_invite()}</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newUserOpen = false)} aria-label="Close"><Icon name="X" size={20} class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if newError}<aside class="alert alert-error p-3 rounded text-sm">{newError}</aside>{/if}
@@ -735,7 +743,7 @@
   <Modal size="md" label="Edit user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{m.user_mgmt_modal_edit_user()}</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTarget = null)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTarget = null)} aria-label="Close"><Icon name="X" size={20} class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editError}<aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>{/if}
@@ -759,12 +767,12 @@
         </div>
         <div class="space-y-1">
           <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="edit-phone">Phone</label>
-          <input id="edit-phone" type="tel" class="input w-full" bind:value={editForm.phone} maxlength="30" placeholder="+1 555 000 0000" />
+          <PhoneInput id="edit-phone" bind:value={editForm.phone} bind:valid={editPhoneValid} name="" />
         </div>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
         <button type="button" class="btn btn-ghost" onclick={() => (editTarget = null)}>{m.common_cancel()}</button>
-        <button type="button" class="btn btn-primary" disabled={saving} onclick={submitEdit}>
+        <button type="button" class="btn btn-primary" disabled={saving || !editPhoneValid} onclick={submitEdit}>
           {saving ? m.common_saving() : m.common_save_changes()}
         </button>
       </footer>
@@ -776,7 +784,7 @@
   <Modal size="sm" label="Delete user">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{m.user_mgmt_modal_delete_user()}</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)} aria-label="Close"><Icon name="X" size={20} class="size-5" /></button>
       </header>
       <div class="p-6 space-y-3 overflow-y-auto flex-1">
         {#if deleteError}<aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>{/if}
@@ -796,7 +804,7 @@
   <Modal size="md" label="New team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{m.user_mgmt_modal_new_team()}</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newTeamOpen = false)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newTeamOpen = false)} aria-label="Close"><Icon name="X" size={20} class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if newTeamError}<aside class="alert alert-error p-3 rounded text-sm">{newTeamError}</aside>{/if}
@@ -823,7 +831,7 @@
   <Modal size="md" label="Edit team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{m.user_mgmt_modal_edit_team()}</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTeam = null)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editTeam = null)} aria-label="Close"><Icon name="X" size={20} class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editTeamError}<aside class="alert alert-error p-3 rounded text-sm">{editTeamError}</aside>{/if}
@@ -850,7 +858,7 @@
   <Modal size="sm" label="Delete team">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{m.user_mgmt_modal_delete_team()}</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTeam = null)} aria-label="Close"><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTeam = null)} aria-label="Close"><Icon name="X" size={20} class="size-5" /></button>
       </header>
       <div class="p-6 space-y-3 overflow-y-auto flex-1">
         {#if deleteTeamError}<aside class="alert alert-error p-3 rounded text-sm">{deleteTeamError}</aside>{/if}

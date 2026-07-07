@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, AlertCircle, Pencil, Copy, Trash2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
   import { fade, scale } from 'svelte/transition';
@@ -273,7 +273,7 @@
         class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
         onclick={() => navigator.clipboard.writeText(`JOB-${job.jobNumber}`)}
         title="Copy job ID"
-      >JOB-{job.jobNumber} <Copy class="size-2.5 shrink-0" /></button>
+      >JOB-{job.jobNumber} <Icon name="Copy" size={12} class="size-2.5 shrink-0" /></button>
     </div>
     <!-- Description -->
     {#if job.description?.replace(/<[^>]+>/g, '').trim()}
@@ -291,7 +291,7 @@
         <span class="badge text-xs {STATUS_COLOR[job.status] ?? 'badge-ghost'}">{job.status}</span>
         {#if job.blocked}
           <span class="flex items-center gap-1 text-xs text-error">
-            <AlertCircle class="size-3.5" /> Blocked
+            <Icon name="AlertCircle" size={14} class="size-3.5" /> Blocked
           </span>
         {/if}
         {#if jobTeam}
@@ -315,7 +315,7 @@
             <button class="btn btn-ghost btn-sm" onclick={() => { deleteConfirm = false; deleteError = ''; }}>Cancel</button>
           {:else}
             <button class="btn btn-ghost btn-sm text-error hover:bg-error/10" onclick={() => deleteConfirm = true}>
-              <Trash2 class="size-4" /> Delete
+              <Icon name="Trash2" size={16} class="size-4" /> Delete
             </button>
           {/if}
         {/if}
@@ -352,7 +352,7 @@
       <h2 class="text-lg font-semibold">Tasks</h2>
       {#if hasPermission(data.user, 'agile_tasks', 'create')}
         <button class="btn btn-primary btn-sm" onclick={openTaskModal}>
-          <Plus class="size-3.5" /> New Task
+          <Icon name="Plus" size={14} class="size-3.5" /> New Task
         </button>
       {/if}
     </div>
@@ -427,7 +427,7 @@
                       onclick={() => openEditModal(task)}
                       aria-label="Edit task"
                     >
-                      <Pencil class="size-3.5" />
+                      <Icon name="Pencil" size={14} class="size-3.5" />
                     </button>
                   </td>
                 {/if}
@@ -466,7 +466,7 @@
   <Modal size="md" label="Edit task">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Task</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editModal = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editModal = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editError}
@@ -549,7 +549,7 @@
             <button type="button" class="btn btn-ghost btn-sm" onclick={() => { taskDeleteConfirm = false; taskDeleteError = ''; }}>Cancel</button>
           {:else}
             <button type="button" class="btn btn-outline btn-error btn-sm mr-auto" onclick={() => taskDeleteConfirm = true}>
-              <Trash2 class="size-4" /> Delete
+              <Icon name="Trash2" size={16} class="size-4" /> Delete
             </button>
           {/if}
         {/if}
@@ -573,7 +573,7 @@
   <Modal size="md" label="New Task">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Task</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (taskModal = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (taskModal = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if taskError}
@@ -636,7 +636,7 @@
   <Modal size="lg" label="Edit job">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Job</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobEditing = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobEditing = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if jobEditError}

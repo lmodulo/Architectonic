@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { Bell } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { typeLabel } from '$lib/utils/calendarEvents';
   import type { PageData, ActionData } from './$types';
 
@@ -39,7 +39,7 @@
 
 <div class="space-y-8 max-w-xl">
   <div class="flex items-center gap-2">
-    <Bell class="size-5 text-primary" />
+    <Icon name="Bell" size={20} class="size-5 text-primary" />
     <h1 class="text-xl font-semibold">Event Notification Preferences</h1>
   </div>
 

@@ -1,14 +1,14 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
-  import { FileSignature, FileText, Shield, LayoutTemplate, Plus, Pencil, Trash2, X } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 
-  const TYPE_ICONS: Record<string, any> = { msa: FileSignature, sow: FileText, nda: Shield, custom: LayoutTemplate };
+  const TYPE_ICONS: Record<string, string> = { msa: 'FileSignature', sow: 'FileText', nda: 'Shield', custom: 'LayoutTemplate' };
   const TYPE_LABELS: Record<string, string> = { msa: 'MSA', sow: 'SOW', nda: 'NDA', custom: 'Custom' };
 
   // Edit modal state
@@ -96,19 +96,19 @@
     </p>
     {#if hasPermission(data.user, 'contract_templates', 'create')}
       <button class="btn btn-primary btn-sm" onclick={() => (showNew = true)}>
-        <Plus class="size-4" /> New Template
+        <Icon name="Plus" size={16} class="size-4" /> New Template
       </button>
     {/if}
   </div>
 
   <div class="flex flex-col gap-3">
     {#each data.templates as t}
-      {@const Icon = TYPE_ICONS[t.type] ?? LayoutTemplate}
+      {@const tplIcon = TYPE_ICONS[t.type] ?? 'LayoutTemplate'}
       <div class="card bg-base-200 border border-base-300 rounded-box">
         <div class="card-body p-4">
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-start gap-3 flex-1 min-w-0">
-              <Icon class="size-5 mt-0.5 text-base-content/60 shrink-0" />
+              <Icon name={tplIcon} size={20} class="size-5 mt-0.5 text-base-content/60 shrink-0" />
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-medium text-sm">{t.name}</span>
@@ -132,12 +132,12 @@
             <div class="flex gap-1 shrink-0">
               {#if hasPermission(data.user, 'contract_templates', 'update')}
                 <button class="btn btn-ghost btn-xs" onclick={() => openEditModal(t)}>
-                  <Pencil class="size-3" />
+                  <Icon name="Pencil" size={12} class="size-3" />
                 </button>
               {/if}
               {#if !t.isDefault && hasPermission(data.user, 'contract_templates', 'delete')}
                 <button class="btn btn-ghost btn-xs text-error" onclick={() => deleteTemplate(t.id, t.name)}>
-                  <Trash2 class="size-3" />
+                  <Icon name="Trash2" size={12} class="size-3" />
                 </button>
               {/if}
             </div>
@@ -153,7 +153,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">Edit Template</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editModal = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
 
@@ -192,7 +192,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">New Template</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (showNew = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
 

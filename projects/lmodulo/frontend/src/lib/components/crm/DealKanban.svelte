@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { X } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { DEAL_STAGES, fmtCurrency, type CrmDeal } from '$lib/utils/crm';
   import DealCard from './DealCard.svelte';
@@ -131,7 +131,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-base font-semibold">{m.crm_deal_lost_reason()}</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (lostModalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
     <div class="p-6 space-y-3">

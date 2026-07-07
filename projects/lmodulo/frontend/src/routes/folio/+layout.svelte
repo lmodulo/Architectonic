@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { LayoutGrid, FileText, RefreshCw, ClipboardList, Receipt, BarChart2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { hasPermission } from '$lib/permissions';
   import { m } from '$lib/paraglide/messages.js';
   import type { LayoutData } from './$types';
@@ -9,12 +9,12 @@
   let { data, children }: { data: LayoutData; children: any } = $props();
 
   const navLinks = $derived([
-    { href: '/folio',               label: m.folio_tab_overview(),       icon: LayoutGrid,    permission: null },
-    { href: '/folio/invoices',      label: m.folio_tab_invoices(),       icon: FileText,      permission: null },
-    { href: '/folio/estimates',     label: m.folio_tab_estimates(),      icon: ClipboardList, permission: 'finance_estimates' },
-    { href: '/folio/subscriptions', label: m.folio_tab_subscriptions(),  icon: RefreshCw,     permission: 'finance_subscriptions' },
-    { href: '/folio/expenses',      label: m.folio_tab_expenses(),       icon: Receipt,       permission: 'finance_expenses' },
-    { href: '/folio/reports',       label: m.folio_tab_reports(),        icon: BarChart2,     permission: 'finance_reports' },
+    { href: '/folio',               label: m.folio_tab_overview(),       icon: 'LayoutGrid',    permission: null },
+    { href: '/folio/invoices',      label: m.folio_tab_invoices(),       icon: 'FileText',      permission: null },
+    { href: '/folio/estimates',     label: m.folio_tab_estimates(),      icon: 'ClipboardList', permission: 'finance_estimates' },
+    { href: '/folio/subscriptions', label: m.folio_tab_subscriptions(),  icon: 'RefreshCw',     permission: 'finance_subscriptions' },
+    { href: '/folio/expenses',      label: m.folio_tab_expenses(),       icon: 'Receipt',       permission: 'finance_expenses' },
+    { href: '/folio/reports',       label: m.folio_tab_reports(),        icon: 'BarChart2',     permission: 'finance_reports' },
   ]);
 
   const isActive = (href: string) =>
@@ -26,7 +26,7 @@
 <div data-no-anim class="flex flex-col gap-6">
   <!-- Page header -->
   <div class="page-heading flex items-start gap-3">
-    <Receipt class="size-6 shrink-0 mt-0.5" />
+    <Icon name="Receipt" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold leading-none">{m.folio_title()}</h1>
       <p class="text-xs opacity-60 mt-0.5">{m.folio_subtitle()}</p>
@@ -45,7 +45,7 @@
                 ? 'bg-primary text-primary-content'
                 : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
           >
-            <svelte:component this={link.icon} class="size-4" />
+            <Icon name={link.icon} size={16} class="size-4" />
             {link.label}
           </a>
         {/if}

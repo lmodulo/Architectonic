@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { MessageSquare, Send, Pencil, Trash2, X, Check } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { hasPermission } from '$lib/permissions';
   import UserNameLink from '$lib/components/UserNameLink.svelte';
@@ -117,7 +117,7 @@
     <p class="text-xs opacity-40 text-center py-4">{m.common_loading()}</p>
   {:else if comments.length === 0}
     <div class="flex flex-col items-center gap-1 py-6 opacity-35">
-      <MessageSquare class="size-5" />
+      <Icon name="MessageSquare" size={20} class="size-5" />
       <p class="text-xs">{m.agile_comment_none()}</p>
     </div>
   {:else}
@@ -138,7 +138,7 @@
                       onclick={() => { editingId = c.id; editText = c.text; }}
                       aria-label={m.agile_comment_edit()}
                     >
-                      <Pencil class="size-3" />
+                      <Icon name="Pencil" size={12} class="size-3" />
                     </button>
                   {/if}
                   <button
@@ -147,7 +147,7 @@
                     onclick={() => deleteComment(c.id)}
                     aria-label={m.agile_comment_delete()}
                   >
-                    <Trash2 class="size-3" />
+                    <Icon name="Trash2" size={12} class="size-3" />
                   </button>
                 </span>
               {/if}
@@ -161,10 +161,10 @@
                 ></textarea>
                 <div class="flex flex-col gap-1 shrink-0">
                   <button type="button" class="btn btn-primary btn-xs btn-square" onclick={saveEdit} disabled={saving}>
-                    <Check class="size-3" />
+                    <Icon name="Check" size={12} class="size-3" />
                   </button>
                   <button type="button" class="btn btn-ghost btn-xs btn-square" onclick={() => (editingId = '')}>
-                    <X class="size-3" />
+                    <Icon name="X" size={12} class="size-3" />
                   </button>
                 </div>
               </div>
@@ -196,7 +196,7 @@
         disabled={posting || !newText.trim()}
         aria-label={m.agile_comment_post()}
       >
-        <Send class="size-3.5" />
+        <Icon name="Send" size={14} class="size-3.5" />
       </button>
     </div>
   {/if}

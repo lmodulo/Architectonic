@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
-  import { Pencil, Trash2, X, Check } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import { slide } from 'svelte/transition';
   import { hasPermission } from '$lib/permissions';
@@ -170,12 +170,12 @@
     <div class="flex gap-2 shrink-0">
       {#if hasPermission(data.user, 'finance_expenses', 'update') && !editing}
         <button type="button" class="btn btn-ghost btn-sm" onclick={startEdit}>
-          <Pencil class="size-4" /> Edit
+          <Icon name="Pencil" size={16} class="size-4" /> Edit
         </button>
       {/if}
       {#if hasPermission(data.user, 'finance_expenses', 'delete')}
         <button type="button" class="btn btn-ghost btn-sm text-error" onclick={deleteExpense} disabled={deleting}>
-          <Trash2 class="size-4" /> {deleting ? 'Deleting…' : 'Delete'}
+          <Icon name="Trash2" size={16} class="size-4" /> {deleting ? 'Deleting…' : 'Delete'}
         </button>
       {/if}
     </div>
@@ -261,10 +261,10 @@
 
       <div class="flex justify-end gap-2 pt-2">
         <button type="button" class="btn btn-ghost btn-sm" onclick={() => (editing = false)}>
-          <X class="size-4" /> Cancel
+          <Icon name="X" size={16} class="size-4" /> Cancel
         </button>
         <button type="button" class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}>
-          <Check class="size-4" /> {saving ? 'Saving…' : 'Save changes'}
+          <Icon name="Check" size={16} class="size-4" /> {saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
     </div>

@@ -1,3 +1,5 @@
+import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
+
 export type DealStage =
   | 'Discovery' | 'Proposal' | 'Negotiation' | 'Contract' | 'Closed Won' | 'Closed Lost';
 
@@ -78,6 +80,12 @@ export function fmtDate(val: string | Date | null | undefined): string {
   const d = new Date(val);
   if (isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export function fmtPhone(raw: string | null | undefined): string {
+  if (!raw) return '—';
+  const parsed = parsePhoneNumberFromString(raw);
+  return parsed?.isValid() ? parsed.formatInternational() : raw;
 }
 
 export function toDateInput(val: string | Date | null | undefined): string {

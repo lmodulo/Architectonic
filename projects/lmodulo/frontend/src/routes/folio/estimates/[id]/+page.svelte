@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
-  import { Send, CheckCircle, XCircle, Pencil, X, Check, Trash2, Printer } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { slide } from 'svelte/transition';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import type { PageData } from './$types';
@@ -169,35 +169,35 @@
       </div>
       <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
         <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/estimate/${estimate.id}`, '_blank')} title="Print / Save as PDF">
-          <Printer class="size-4" />
+          <Icon name="Printer" size={16} class="size-4" />
         </button>
         {#if hasPermission(data.user, 'finance_estimates', 'update') && !editing}
           <button class="btn btn-ghost btn-sm" onclick={() => { editForm = { ...estimate }; editing = true; }}>
-            <Pencil class="size-4" /> Edit
+            <Icon name="Pencil" size={16} class="size-4" /> Edit
           </button>
         {/if}
         {#if estimate.status === 'draft' && hasPermission(data.user, 'finance_estimates', 'update')}
           <button class="btn btn-outline btn-sm" disabled={saving} onclick={markSent}>
-            <Send class="size-4" /> Send to client
+            <Icon name="Send" size={16} class="size-4" /> Send to client
           </button>
         {/if}
         {#if estimate.status === 'sent' && hasPermission(data.user, 'finance_estimates', 'update')}
           <button class="btn btn-success btn-sm" disabled={saving} onclick={markAccepted}>
-            <CheckCircle class="size-4" /> Accept
+            <Icon name="CheckCircle" size={16} class="size-4" /> Accept
           </button>
           <button class="btn btn-error btn-outline btn-sm" disabled={saving} onclick={markDeclined}>
-            <XCircle class="size-4" /> Decline
+            <Icon name="XCircle" size={16} class="size-4" /> Decline
           </button>
         {/if}
         {#if canConvert && hasPermission(data.user, 'finance_invoices', 'create')}
           <button class="btn btn-primary btn-sm" disabled={converting} onclick={convertToInvoice}>
-            <CheckCircle class="size-4" />
+            <Icon name="CheckCircle" size={16} class="size-4" />
             {converting ? 'Converting…' : 'Convert to Invoice'}
           </button>
         {/if}
         {#if hasPermission(data.user, 'finance_estimates', 'delete') && !estimate.invoiceId}
           <button class="btn btn-ghost btn-sm text-error" disabled={saving} onclick={deleteEstimate}>
-            <Trash2 class="size-4" />
+            <Icon name="Trash2" size={16} class="size-4" />
           </button>
         {/if}
       </div>
@@ -240,8 +240,8 @@
       </div>
 
       <div class="flex gap-2 justify-end">
-        <button class="btn btn-ghost btn-sm" onclick={() => (editing = false)}><X class="size-4" /> Cancel</button>
-        <button class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}><Check class="size-4" /> {saving ? 'Saving…' : 'Save'}</button>
+        <button class="btn btn-ghost btn-sm" onclick={() => (editing = false)}><Icon name="X" size={16} class="size-4" /> Cancel</button>
+        <button class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}><Icon name="Check" size={16} class="size-4" /> {saving ? 'Saving…' : 'Save'}</button>
       </div>
     </div>
   {/if}

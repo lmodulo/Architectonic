@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { dragScroll } from '$lib/actions/dragScroll';
-  import { Plus, ClipboardList, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -85,7 +85,7 @@
   <div class="flex items-center justify-between gap-4">
     <p class="text-sm opacity-60">{total} estimate{total !== 1 ? 's' : ''}</p>
     <a href="/folio/estimates/new" class="btn btn-primary btn-sm">
-      <Plus class="size-4" />
+      <Icon name="Plus" size={16} class="size-4" />
       New Estimate
     </a>
   </div>
@@ -105,7 +105,7 @@
 
   {#if estimates.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center">
-      <ClipboardList class="size-8 opacity-20 mx-auto mb-2" />
+      <Icon name="ClipboardList" size={32} class="size-8 opacity-20 mx-auto mb-2" />
       <p class="text-sm opacity-40">No estimates found.</p>
       <a href="/folio/estimates/new" class="btn btn-primary btn-sm mt-4">Create estimate</a>
     </div>
@@ -125,12 +125,12 @@
                   {label}
                   {#if filters.sort === field}
                     {#if filters.sortDir === 'asc'}
-                      <ChevronUp class="size-3 opacity-70" />
+                      <Icon name="ChevronUp" size={12} class="size-3 opacity-70" />
                     {:else}
-                      <ChevronDown class="size-3 opacity-70" />
+                      <Icon name="ChevronDown" size={12} class="size-3 opacity-70" />
                     {/if}
                   {:else}
-                    <ChevronsUpDown class="size-3 opacity-30" />
+                    <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                   {/if}
                 </button>
               </th>

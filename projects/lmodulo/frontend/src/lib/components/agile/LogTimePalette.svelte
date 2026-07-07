@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Search, X, ChevronLeft, Play } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import {
     getPrefillTaskId, getPrefillDate,
@@ -118,7 +118,7 @@
       {#if !palTaskId}
         <!-- Step 1: search -->
         <div class="flex items-center gap-2 border border-base-300 rounded-lg px-3 py-2 focus-within:border-primary transition-colors">
-          <Search class="size-4 opacity-40 shrink-0" />
+          <Icon name="Search" size={16} class="size-4 opacity-40 shrink-0" />
           <!-- svelte-ignore a11y-autofocus -->
           <input
             autofocus
@@ -130,7 +130,7 @@
           />
           {#if palQuery}
             <button class="opacity-40 hover:opacity-100" onclick={() => palQuery = ''}>
-              <X class="size-4" />
+              <Icon name="X" size={16} class="size-4" />
             </button>
           {/if}
         </div>
@@ -172,7 +172,7 @@
         <!-- Step 2: form -->
         <div class="flex items-center gap-2">
           <button class="btn btn-xs btn-ghost opacity-50" onclick={() => palTaskId = ''}>
-            <ChevronLeft class="size-3.5" />
+            <Icon name="ChevronLeft" size={14} class="size-3.5" />
           </button>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold leading-tight">{palTask?.title ?? ''}</p>
@@ -222,7 +222,7 @@
             <button
               class="btn btn-sm btn-success btn-outline w-full"
               onclick={async () => { await startTimer(palTaskId); }}
-            ><Play class="size-3.5" />{m.log_time_start_timer()}</button>
+            ><Icon name="Play" size={14} class="size-3.5" />{m.log_time_start_timer()}</button>
           </div>
         </div>
       {/if}

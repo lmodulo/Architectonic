@@ -1,7 +1,7 @@
 <script lang="ts">
   import { slide } from 'svelte/transition';
   import { goto } from '$app/navigation';
-  import { Search, Plus, Trash2, FolderPlus, FolderOpen, Folder, X, ChevronRight, Upload, FileText, File, FolderLock, Image, Film, Music, Code, Sheet, Archive, Braces, Terminal } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import { hasPermission } from '$lib/permissions';
@@ -54,47 +54,47 @@
     customer:   'Customer'
   };
 
-  const EXT_MAP: Record<string, any> = {
+  const EXT_MAP: Record<string, string> = {
     // Images
-    jpg: Image, jpeg: Image, png: Image, gif: Image,
-    svg: Image, webp: Image, bmp: Image, ico: Image,
-    tiff: Image, tif: Image, heic: Image, avif: Image,
+    jpg: 'Image', jpeg: 'Image', png: 'Image', gif: 'Image',
+    svg: 'Image', webp: 'Image', bmp: 'Image', ico: 'Image',
+    tiff: 'Image', tif: 'Image', heic: 'Image', avif: 'Image',
     // Video
-    mp4: Film, mov: Film, avi: Film, mkv: Film,
-    webm: Film, wmv: Film, flv: Film, m4v: Film,
+    mp4: 'Film', mov: 'Film', avi: 'Film', mkv: 'Film',
+    webm: 'Film', wmv: 'Film', flv: 'Film', m4v: 'Film',
     // Audio
-    mp3: Music, wav: Music, ogg: Music, flac: Music,
-    aac: Music, m4a: Music, wma: Music, opus: Music,
+    mp3: 'Music', wav: 'Music', ogg: 'Music', flac: 'Music',
+    aac: 'Music', m4a: 'Music', wma: 'Music', opus: 'Music',
     // Shell scripts
-    sh: Terminal, bash: Terminal, zsh: Terminal, fish: Terminal,
+    sh: 'Terminal', bash: 'Terminal', zsh: 'Terminal', fish: 'Terminal',
     // Code / markup
-    js: Code, ts: Code, jsx: Code, tsx: Code,
-    py: Code, rb: Code, go: Code, rs: Code,
-    java: Code, c: Code, cpp: Code, cs: Code,
-    php: Code, css: Code, scss: Code, html: Code,
-    htm: Code, xml: Code, yaml: Code, yml: Code,
-    sql: Code, swift: Code, kt: Code,
+    js: 'Code', ts: 'Code', jsx: 'Code', tsx: 'Code',
+    py: 'Code', rb: 'Code', go: 'Code', rs: 'Code',
+    java: 'Code', c: 'Code', cpp: 'Code', cs: 'Code',
+    php: 'Code', css: 'Code', scss: 'Code', html: 'Code',
+    htm: 'Code', xml: 'Code', yaml: 'Code', yml: 'Code',
+    sql: 'Code', swift: 'Code', kt: 'Code',
     // JSON / config
-    json: Braces, jsonc: Braces, toml: Braces, env: Braces,
+    json: 'Braces', jsonc: 'Braces', toml: 'Braces', env: 'Braces',
     // Spreadsheets
-    xlsx: Sheet, xls: Sheet, csv: Sheet,
-    numbers: Sheet, ods: Sheet, tsv: Sheet,
+    xlsx: 'Sheet', xls: 'Sheet', csv: 'Sheet',
+    numbers: 'Sheet', ods: 'Sheet', tsv: 'Sheet',
     // Archives
-    zip: Archive, tar: Archive, gz: Archive, rar: Archive,
-    '7z': Archive, bz2: Archive, xz: Archive, tgz: Archive,
+    zip: 'Archive', tar: 'Archive', gz: 'Archive', rar: 'Archive',
+    '7z': 'Archive', bz2: 'Archive', xz: 'Archive', tgz: 'Archive',
     // Text / documents
-    txt: FileText, md: FileText, pdf: FileText, doc: FileText, docx: FileText,
-    rtf: FileText, odt: FileText, pages: FileText, tex: FileText,
+    txt: 'FileText', md: 'FileText', pdf: 'FileText', doc: 'FileText', docx: 'FileText',
+    rtf: 'FileText', odt: 'FileText', pages: 'FileText', tex: 'FileText',
   };
 
   function fileIcon(originalName?: string | null, mimetype?: string | null) {
     const ext = originalName?.split('.').pop()?.toLowerCase();
     if (ext && EXT_MAP[ext]) return EXT_MAP[ext];
-    if (mimetype?.startsWith('image/')) return Image;
-    if (mimetype?.startsWith('video/')) return Film;
-    if (mimetype?.startsWith('audio/')) return Music;
-    if (mimetype?.startsWith('text/'))  return FileText;
-    return File;
+    if (mimetype?.startsWith('image/')) return 'Image';
+    if (mimetype?.startsWith('video/')) return 'Film';
+    if (mimetype?.startsWith('audio/')) return 'Music';
+    if (mimetype?.startsWith('text/'))  return 'FileText';
+    return 'File';
   }
 
   // ── Filtered / paged list ──────────────────────────────────────────────────
@@ -271,7 +271,7 @@
   <!-- Page header -->
   <div class="page-heading flex items-center justify-between gap-4">
     <div class="flex items-start gap-2.5">
-      <FolderLock class="size-6 shrink-0 mt-0.5" />
+      <Icon name="FolderLock" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold leading-none">{m.vault_title()}</h1>
         <p class="text-xs opacity-50 mt-0.5">{m.vault_subtitle()}</p>
@@ -280,12 +280,12 @@
     <div class="flex gap-2 shrink-0">
       {#if hasPermission(data.user, 'vault_folders', 'create')}
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openFolderCreate}>
-          <FolderPlus class="size-4" /><span class="hidden sm:inline">{m.vault_new_folder()}</span>
+          <Icon name="FolderPlus" size={16} class="size-4" /><span class="hidden sm:inline">{m.vault_new_folder()}</span>
         </button>
       {/if}
       {#if hasPermission(data.user, 'vault_documents', 'create')}
         <button type="button" class="btn btn-primary btn-sm gap-1" onclick={openUpload}>
-          <Upload class="size-4" /><span>{m.common_upload()}</span>
+          <Icon name="Upload" size={16} class="size-4" /><span>{m.common_upload()}</span>
         </button>
       {/if}
     </div>
@@ -300,7 +300,7 @@
         class="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-left transition-colors hover:bg-base-300/40 {selectedFolderId === null ? 'font-semibold' : 'opacity-70'}"
         onclick={() => (selectedFolderId = null)}
       >
-        <FolderOpen class="size-4 shrink-0" />
+        <Icon name="FolderOpen" size={16} class="size-4 shrink-0" />
         <span class="truncate">{m.vault_all_documents()}</span>
       </button>
 
@@ -318,14 +318,20 @@
                 onclick={() => (selectedFolderId = folder.id)}
               >
                 {#if hasChildren}
-                  <ChevronRight
-                    class="size-3.5 shrink-0 transition-transform duration-200 {isOpen ? 'rotate-90' : ''}"
+                  <span
+                    class="shrink-0 inline-flex"
                     onclick={(e) => { e.stopPropagation(); toggleFolder(folder.id); }}
-                  />
+                  >
+                    <Icon
+                      name="ChevronRight"
+                      size={14}
+                      class="size-3.5 transition-transform duration-200 {isOpen ? 'rotate-90' : ''}"
+                    />
+                  </span>
                 {:else}
                   <span class="w-3.5 shrink-0"></span>
                 {/if}
-                <Folder class="size-3.5 shrink-0" />
+                <Icon name="Folder" size={14} class="size-3.5 shrink-0" />
                 <span class="truncate">{folder.name}</span>
               </button>
               {#if hasPermission(data.user, 'vault_folders', 'delete')}
@@ -334,7 +340,7 @@
                   class="btn btn-ghost btn-square btn-xs opacity-0 group-hover:opacity-60 hover:!opacity-100 mr-1 shrink-0"
                   aria-label="Delete {folder.name}"
                   onclick={(e) => openDeleteFolder(folder, e)}
-                ><Trash2 class="size-3" /></button>
+                ><Icon name="Trash2" size={12} class="size-3" /></button>
               {/if}
             </div>
 
@@ -348,7 +354,7 @@
                       onclick={() => (selectedFolderId = child.id)}
                     >
                       <span class="w-3.5 shrink-0"></span>
-                      <Folder class="size-3.5 shrink-0" />
+                      <Icon name="Folder" size={14} class="size-3.5 shrink-0" />
                       <span class="truncate">{child.name}</span>
                     </button>
                     {#if hasPermission(data.user, 'vault_folders', 'delete')}
@@ -357,7 +363,7 @@
                         class="btn btn-ghost btn-square btn-xs opacity-0 group-hover:opacity-60 hover:!opacity-100 mr-1 shrink-0"
                         aria-label="Delete {child.name}"
                         onclick={(e) => openDeleteFolder(child, e)}
-                      ><Trash2 class="size-3" /></button>
+                      ><Icon name="Trash2" size={12} class="size-3" /></button>
                     {/if}
                   </div>
                 {/each}
@@ -374,7 +380,7 @@
     <div class="flex-1 min-w-0 space-y-3">
       <div class="flex items-center gap-3">
         <label class="input input-bordered flex items-center gap-2 flex-1">
-          <Search class="size-4 opacity-50" />
+          <Icon name="Search" size={16} class="size-4 opacity-50" />
           <input type="search" placeholder={m.vault_search()} class="grow" bind:value={query} />
         </label>
       </div>
@@ -393,14 +399,14 @@
           </thead>
           <tbody>
             {#each paged as doc (doc.id)}
-              {@const DocIcon = fileIcon(doc.originalName, doc.mimetype)}
+              {@const docIconName = fileIcon(doc.originalName, doc.mimetype)}
               <tr
                 class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
                 onclick={() => goto(`/vault/${doc.id}`)}
               >
                 <td>
                   <div class="flex items-center gap-2">
-                    <DocIcon class="size-4 opacity-40 shrink-0" />
+                    <Icon name={docIconName} size={16} class="size-4 opacity-40 shrink-0" />
                     <div>
                       <div class="font-medium">{doc.name}</div>
                       {#if (doc.tags ?? []).length > 0}
@@ -430,7 +436,7 @@
                       class="btn btn-ghost btn-square btn-xs hover:btn-error"
                       aria-label="Delete {doc.name}"
                       onclick={(e) => { e.stopPropagation(); openDelete(doc); }}
-                    ><Trash2 class="size-3.5" /></button>
+                    ><Icon name="Trash2" size={14} class="size-3.5" /></button>
                   {/if}
                 </td>
               </tr>
@@ -464,7 +470,7 @@
   <Modal size="md" label="Upload Document">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">{m.vault_upload_title()}</h2>
-      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (uploadOpen = false)}><X class="size-5" /></button>
+      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (uploadOpen = false)}><Icon name="X" size={20} class="size-5" /></button>
     </header>
     <div class="p-6 space-y-4 overflow-y-auto flex-1">
       {#if uploadError}<aside class="alert alert-error p-3 rounded text-sm">{uploadError}</aside>{/if}
@@ -533,7 +539,7 @@
   <Modal size="sm" label="New Folder">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">{m.vault_new_folder()}</h2>
-      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (folderOpen = false)}><X class="size-5" /></button>
+      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (folderOpen = false)}><Icon name="X" size={20} class="size-5" /></button>
     </header>
     <div class="p-6 space-y-4">
       {#if folderError}<aside class="alert alert-error p-3 rounded text-sm">{folderError}</aside>{/if}
@@ -575,7 +581,7 @@
   <Modal size="sm" label="Delete Document">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">Delete Document</h2>
-      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)}><X class="size-5" /></button>
+      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteTarget = null)}><Icon name="X" size={20} class="size-5" /></button>
     </header>
     <div class="p-6 space-y-3">
       {#if deleteError}<aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>{/if}
@@ -595,7 +601,7 @@
   <Modal size="sm" label="Delete Folder">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">Delete Folder</h2>
-      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteFolderTarget = null)}><X class="size-5" /></button>
+      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteFolderTarget = null)}><Icon name="X" size={20} class="size-5" /></button>
     </header>
     <div class="p-6 space-y-3">
       {#if deleteFolderError}<aside class="alert alert-error p-3 rounded text-sm">{deleteFolderError}</aside>{/if}

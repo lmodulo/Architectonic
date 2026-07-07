@@ -2,7 +2,7 @@
   import { invalidateAll, goto } from '$app/navigation';
   import { dragScroll } from '$lib/actions/dragScroll';
   import { hasPermission } from '$lib/permissions';
-  import { Pencil, X, Check, Trash2, Plus } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { slide } from 'svelte/transition';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import RetainerBalance from '$lib/components/RetainerBalance.svelte';
@@ -154,7 +154,7 @@
         <span class="badge {STATUS_CLASS[sub.status] ?? 'badge-ghost'}">{sub.status}</span>
         {#if hasPermission(data.user, 'finance_subscriptions', 'update') && !editing}
           <button class="btn btn-ghost btn-sm" onclick={() => { editForm = { name: sub.name, taxRate: sub.taxRate, currency: sub.currency, billingCycle: sub.billingCycle, endDate: sub.endDate ? sub.endDate.substring(0, 10) : '', dueDateOffsetDays: sub.dueDateOffsetDays?.toString() ?? '', notes: sub.notes ?? '', retainerEnabled: sub.retainerEnabled ?? false, retainerHours: sub.retainerHours?.toString() ?? '', rolloverEnabled: sub.rolloverEnabled ?? false, rolloverCap: sub.rolloverCap?.toString() ?? '', overageRate: sub.overageRate?.toString() ?? '' }; editLines = sub.lineItems.map(i => ({ ...i })); editing = true; }}>
-            <Pencil class="size-4" /> Edit
+            <Icon name="Pencil" size={16} class="size-4" /> Edit
           </button>
           {#if sub.status === 'active'}
             <button class="btn btn-warning btn-sm" disabled={saving} onclick={() => setStatus('paused')}>Pause</button>
@@ -188,10 +188,10 @@
             <input type="text" class="input input-sm w-full" placeholder="Description" bind:value={item.description} />
             <input type="number" class="input input-sm w-full" placeholder="Qty" min="0" step="1" bind:value={item.quantity} oninput={() => { item.amount = item.quantity * item.unitPrice; }} />
             <input type="number" class="input input-sm w-full" placeholder="Unit price" min="0" step="0.01" bind:value={item.unitPrice} oninput={() => { item.amount = item.quantity * item.unitPrice; }} />
-            <button type="button" class="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100" onclick={() => removeLine(i)} disabled={editLines.length === 1}><Trash2 class="size-3.5" /></button>
+            <button type="button" class="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100" onclick={() => removeLine(i)} disabled={editLines.length === 1}><Icon name="Trash2" size={14} class="size-3.5" /></button>
           </div>
         {/each}
-        <button type="button" class="btn btn-ghost btn-sm" onclick={addLine}><Plus class="size-4" /> Add line</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick={addLine}><Icon name="Plus" size={16} class="size-4" /> Add line</button>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
@@ -258,8 +258,8 @@
       </div>
 
       <div class="flex gap-2 justify-end">
-        <button class="btn btn-ghost btn-sm" onclick={() => (editing = false)}><X class="size-4" /> Cancel</button>
-        <button class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}><Check class="size-4" /> {saving ? 'Saving…' : 'Save'}</button>
+        <button class="btn btn-ghost btn-sm" onclick={() => (editing = false)}><Icon name="X" size={16} class="size-4" /> Cancel</button>
+        <button class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}><Icon name="Check" size={16} class="size-4" /> {saving ? 'Saving…' : 'Save'}</button>
       </div>
     </div>
   {/if}

@@ -40,3 +40,8 @@ export const APP_FONTS: FontConfig = {
     'https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'
   ],
 };
+
+// Loaded only when the "material" icon theme is active (see $lib/stores/icon-theme.ts).
+// Material Symbols renders via a ligature font, not per-icon components like the other icon themes.
+export const MATERIAL_SYMBOLS_CDN_URL =
+  'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap';

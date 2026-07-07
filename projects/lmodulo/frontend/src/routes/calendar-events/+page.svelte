@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { ChevronLeft, ChevronRight, Plus, Search, LayoutList, Calendar as CalIcon, SearchX, CalendarRange } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { dragScroll } from '$lib/actions/dragScroll';
   import type { PageData } from './$types';
   import EventCard          from '$lib/components/EventCard.svelte';
@@ -189,7 +189,7 @@
   <!-- Header -->
   <div class="page-heading flex items-center justify-between gap-4">
     <div class="flex items-start gap-3">
-      <CalendarRange class="size-6 shrink-0 mt-0.5" />
+      <Icon name="CalendarRange" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold">Calendar Events</h1>
         <p class="text-sm opacity-60 mt-0.5">Events, announcements, and your personal schedule.</p>
@@ -201,7 +201,7 @@
       {/if}
       {#if hasPermission(data.user, 'calendar_events', 'create')}
         <button type="button" class="btn btn-primary btn-sm" onclick={openNew}>
-          <Plus class="size-4" /> New Event
+          <Icon name="Plus" size={16} class="size-4" /> New Event
         </button>
       {/if}
     </div>
@@ -245,11 +245,11 @@
 
         <div class="flex items-center justify-between px-5 py-3 border-b border-base-300">
           <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={prevMonth} aria-label="Previous month">
-            <ChevronLeft class="size-4" />
+            <Icon name="ChevronLeft" size={16} class="size-4" />
           </button>
           <span class="font-semibold text-sm">{calLabel}</span>
           <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={nextMonth} aria-label="Next month">
-            <ChevronRight class="size-4" />
+            <Icon name="ChevronRight" size={16} class="size-4" />
           </button>
         </div>
 
@@ -388,7 +388,7 @@
       <!-- Events grouped by month -->
       {#if groups.length === 0}
         <div class="card bg-base-200 border border-base-300 p-10 text-center space-y-2 rounded-box">
-          <CalIcon class="size-8 opacity-20 mx-auto mb-2" />
+          <Icon name="Calendar" size={24} class="size-8 opacity-20 mx-auto mb-2" />
           <p class="text-lg font-semibold opacity-50">No upcoming events scheduled.</p>
           <p class="text-sm opacity-40">Check back soon.</p>
         </div>
@@ -417,7 +417,7 @@
       <!-- Filters + view toggle -->
       <div class="flex flex-wrap items-center gap-3">
         <label class="input flex items-center gap-2 flex-1 min-w-48">
-          <Search class="size-4 opacity-50" />
+          <Icon name="Search" size={16} class="size-4 opacity-50" />
           <input type="search" class="grow" placeholder="Search events…" bind:value={query} />
         </label>
 
@@ -444,12 +444,12 @@
             type="button"
             class="join-item btn btn-sm {manageView === 'calendar' ? 'btn-primary' : 'btn-ghost'}"
             onclick={() => (manageView = 'calendar')} aria-label="Calendar view"
-          ><CalIcon class="size-4" /></button>
+          ><Icon name="Calendar" size={16} class="size-4" /></button>
           <button
             type="button"
             class="join-item btn btn-sm {manageView === 'list' ? 'btn-primary' : 'btn-ghost'}"
             onclick={() => (manageView = 'list')} aria-label="List view"
-          ><LayoutList class="size-4" /></button>
+          ><Icon name="LayoutList" size={16} class="size-4" /></button>
         </div>
       </div>
 
@@ -460,7 +460,7 @@
       {#if manageView === 'list'}
         {#if filtered.length === 0}
           <div class="card bg-base-200 border border-base-300 p-10 text-center rounded-box">
-            <SearchX class="size-8 opacity-20 mx-auto mb-2" />
+            <Icon name="SearchX" size={24} class="size-8 opacity-20 mx-auto mb-2" />
             <p class="opacity-50">No events match your filters.</p>
           </div>
         {:else}

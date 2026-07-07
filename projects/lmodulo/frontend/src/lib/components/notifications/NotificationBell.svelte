@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Bell } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { goto } from '$app/navigation';
   import { m } from '$lib/paraglide/messages.js';
   import {
@@ -51,7 +51,7 @@
     class="btn btn-ghost btn-sm btn-square relative"
     aria-label={m.notifications_title()}
   >
-    <Bell class="size-5" />
+    <Icon name="Bell" size={20} class="size-5" />
     {#if count > 0}
       <span class="bg-error absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
         {count > 99 ? '99+' : count}

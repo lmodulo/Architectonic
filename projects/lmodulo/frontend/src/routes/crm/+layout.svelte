@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { LayoutGrid, Users, Building2, TrendingUp, CalendarDays, BarChart2, Handshake } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { hasPermission } from '$lib/permissions';
   import { m } from '$lib/paraglide/messages.js';
   import type { LayoutData } from './$types';
@@ -9,12 +9,12 @@
   let { data, children }: { data: LayoutData; children: any } = $props();
 
   const navLinks = $derived([
-    { href: '/crm',            label: m.crm_tab_overview(),   icon: LayoutGrid   },
-    { href: '/crm/contacts',   label: m.crm_tab_contacts(),   icon: Users        },
-    { href: '/crm/companies',  label: m.crm_tab_companies(),  icon: Building2    },
-    { href: '/crm/pipeline',   label: m.crm_tab_pipeline(),   icon: TrendingUp   },
-    { href: '/crm/activities', label: m.crm_tab_activities(), icon: CalendarDays },
-    { href: '/crm/reports',    label: m.crm_tab_reports(),    icon: BarChart2    },
+    { href: '/crm',            label: m.crm_tab_overview(),   icon: 'LayoutGrid'   },
+    { href: '/crm/contacts',   label: m.crm_tab_contacts(),   icon: 'Users'        },
+    { href: '/crm/companies',  label: m.crm_tab_companies(),  icon: 'Building2'    },
+    { href: '/crm/pipeline',   label: m.crm_tab_pipeline(),   icon: 'TrendingUp'   },
+    { href: '/crm/activities', label: m.crm_tab_activities(), icon: 'CalendarDays' },
+    { href: '/crm/reports',    label: m.crm_tab_reports(),    icon: 'BarChart2'    },
   ]);
 
   const overviewPrefixes = ['/crm/deals', '/crm/contacts/', '/crm/companies/'];
@@ -36,7 +36,7 @@
 
 <div data-no-anim class="flex flex-col gap-6">
   <div class="page-heading flex items-start gap-3">
-    <Handshake class="size-6 shrink-0 mt-0.5" />
+    <Icon name="Handshake" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold leading-none">{m.crm_title()}</h1>
       <p class="text-xs opacity-60 mt-0.5">{m.crm_subtitle()}</p>
@@ -53,7 +53,7 @@
               ? (link.href === '/crm' ? levelActiveClass : 'bg-primary text-primary-content')
               : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         >
-          <svelte:component this={link.icon} class="size-4" />
+          <Icon name={link.icon} size={16} class="size-4" />
           {link.label}
         </a>
       {/each}

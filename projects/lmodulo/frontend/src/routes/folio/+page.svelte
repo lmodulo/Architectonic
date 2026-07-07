@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Users, FileText, Plus, Trash2, X } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
@@ -111,7 +111,7 @@
 <div class="space-y-6">
   <div class="flex justify-end">
     <button type="button" class="btn btn-primary btn-sm" onclick={openModal}>
-      <FileText class="size-4" />
+      <Icon name="FileText" size={16} class="size-4" />
       New Invoice
     </button>
   </div>
@@ -163,7 +163,7 @@
 
     {#if customers.length === 0}
       <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center">
-        <Users class="size-8 opacity-20 mx-auto mb-2" />
+        <Icon name="Users" size={32} class="size-8 opacity-20 mx-auto mb-2" />
         <p class="text-sm opacity-40">No clients yet. Convert a CRM contact to create one.</p>
       </div>
     {:else}
@@ -223,7 +223,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">New Invoice</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
 
@@ -276,13 +276,13 @@
               onclick={() => removeLine(i)}
               disabled={lineItems.length === 1}
             >
-              <Trash2 class="size-3.5" />
+              <Icon name="Trash2" size={14} class="size-3.5" />
             </button>
           </div>
         {/each}
         <div class="flex items-center justify-between pt-1">
           <button type="button" class="btn btn-ghost btn-sm" onclick={addLine}>
-            <Plus class="size-4" /> Add line
+            <Icon name="Plus" size={16} class="size-4" /> Add line
           </button>
           <span class="text-sm font-semibold">Subtotal: {fmtCurrency(subtotal)}</span>
         </div>

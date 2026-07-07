@@ -5,7 +5,7 @@
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import Avatar from './Avatar.svelte';
-  import { Mail, Phone, Users, MessageSquare } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { isOpen, getPopX, getPopY, isAbove, getUser, isLoading, closeCard, handleDocClick } from '$lib/stores/userCard.svelte';
 
   function dname(u: ReturnType<typeof getUser>) {
@@ -50,13 +50,13 @@
       <div class="border-t border-base-200 px-4 py-3 space-y-2">
         {#if u.email}
           <div class="flex items-center gap-2 text-xs">
-            <Mail class="size-3 opacity-40 shrink-0" />
+            <Icon name="Mail" size={12} class="size-3 opacity-40 shrink-0" />
             <a href="mailto:{u.email}" class="truncate opacity-70 hover:opacity-100 hover:underline">{u.email}</a>
           </div>
         {/if}
         {#if u.phone}
           <div class="flex items-center gap-2 text-xs">
-            <Phone class="size-3 opacity-40 shrink-0" />
+            <Icon name="Phone" size={12} class="size-3 opacity-40 shrink-0" />
             <span class="opacity-70">{u.phone}</span>
           </div>
         {/if}
@@ -64,7 +64,7 @@
           <p class="text-xs opacity-30 pl-5">{m.user_card_loading()}</p>
         {:else if u.teams?.length}
           <div class="flex items-start gap-2 text-xs">
-            <Users class="size-3 opacity-40 shrink-0 mt-0.5" />
+            <Icon name="Users" size={12} class="size-3 opacity-40 shrink-0 mt-0.5" />
             <div class="flex flex-wrap gap-1">
               {#each u.teams as team}
                 <span class="badge badge-ghost badge-sm">{team}</span>
@@ -81,7 +81,7 @@
             class="btn btn-ghost btn-sm w-full justify-start gap-2 text-xs"
             onclick={() => { const id = u.id; closeCard(); goto(`/messages/compose?to=${id}`); }}
           >
-            <MessageSquare class="size-3.5 opacity-60" />
+            <Icon name="MessageSquare" size={14} class="size-3.5 opacity-60" />
             {m.user_card_message()}
           </button>
         </div>

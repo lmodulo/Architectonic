@@ -8,10 +8,7 @@
   import Link from '@tiptap/extension-link';
   import { UrlParserExtension } from '$lib/extensions/UrlParserExtension';
   import { defaultParsers } from '$lib/extensions/editorParsers';
-  import {
-    Bold, Italic, UnderlineIcon, List, ListOrdered,
-    TextQuote, Undo, Redo
-  } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
 
   let { html = $bindable(''), placeholder = m.editor_placeholder() }: {
     html: string;
@@ -58,19 +55,19 @@
       class="btn btn-ghost btn-sm btn-square {active('bold') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBold().run())}
       aria-label={m.editor_bold()} title={m.editor_bold()}
-    ><Bold class="size-3.5" /></button>
+    ><Icon name="Bold" size={14} class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('italic') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleItalic().run())}
       aria-label={m.editor_italic()} title={m.editor_italic()}
-    ><Italic class="size-3.5" /></button>
+    ><Icon name="Italic" size={14} class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('underline') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleUnderline().run())}
       aria-label={m.editor_underline()} title={m.editor_underline()}
-    ><UnderlineIcon class="size-3.5" /></button>
+    ><Icon name="UnderlineIcon" size={14} class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
 
@@ -98,13 +95,13 @@
       class="btn btn-ghost btn-sm btn-square {active('bulletList') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBulletList().run())}
       aria-label={m.editor_bullet_list()} title={m.editor_bullet_list()}
-    ><List class="size-3.5" /></button>
+    ><Icon name="List" size={14} class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-sm btn-square {active('orderedList') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleOrderedList().run())}
       aria-label={m.editor_ordered_list()} title={m.editor_ordered_list()}
-    ><ListOrdered class="size-3.5" /></button>
+    ><Icon name="ListOrdered" size={14} class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
 
@@ -112,7 +109,7 @@
       class="btn btn-ghost btn-sm btn-square {active('blockquote') ? 'bg-primary/15 text-primary' : ''}"
       onmousedown={cmd(() => editor?.chain().toggleBlockquote().run())}
       aria-label={m.editor_blockquote()} title={m.editor_blockquote()}
-    ><TextQuote class="size-3.5" /></button>
+    ><Icon name="TextQuote" size={14} class="size-3.5" /></button>
 
     <span class="w-px h-4 bg-base-300 mx-1 opacity-60"></span>
 
@@ -120,13 +117,13 @@
       class="btn btn-ghost btn-sm btn-square"
       onmousedown={cmd(() => editor?.chain().undo().run())}
       aria-label={m.editor_undo()} title={m.editor_undo()}
-    ><Undo class="size-3.5" /></button>
+    ><Icon name="Undo" size={14} class="size-3.5" /></button>
 
     <button type="button"
       class="btn btn-ghost btn-sm btn-square"
       onmousedown={cmd(() => editor?.chain().redo().run())}
       aria-label={m.editor_redo()} title={m.editor_redo()}
-    ><Redo class="size-3.5" /></button>
+    ><Icon name="Redo" size={14} class="size-3.5" /></button>
   </div>
 
   <!-- Editor area -->

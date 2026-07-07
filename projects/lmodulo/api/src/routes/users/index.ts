@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
 import { checkDuplicateUser } from '../../lib/users.js';
+import { normalizePhone, InvalidPhoneError } from '../../lib/phone.js';
 import { logAudit } from '../../lib/audit.js';
 import { sendInviteEmail } from '../../lib/email.js';
 
@@ -256,7 +257,14 @@ export default async function usersRoutes(app: FastifyInstance) {
     if (email     !== undefined) $set.email     = email.trim();
     if (firstName !== undefined) $set.firstName = firstName.trim();
     if (lastName  !== undefined) $set.lastName  = lastName.trim();
-    if (phone     !== undefined) $set.phone     = phone.trim();
+    if (phone     !== undefined) {
+      try {
+        $set.phone = normalizePhone(phone);
+      } catch (err) {
+        if (err instanceof InvalidPhoneError) return reply.badRequest('phone_invalid');
+        throw err;
+      }
+    }
 
     const result = await db.collection(COLLECTION).updateOne(
       { _id: new ObjectId(req.params.id) },

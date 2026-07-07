@@ -4,6 +4,7 @@ import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
 import { logAudit } from '../../lib/audit.js';
 import { checkDuplicateUser } from '../../lib/users.js';
+import { normalizePhone, InvalidPhoneError } from '../../lib/phone.js';
 import { sendPasswordSetEmail } from '../../lib/email.js';
 import { sendWelcomeMessage } from '../../lib/financeMessages.js';
 
@@ -92,11 +93,19 @@ export default async function contactsRoutes(app: FastifyInstance) {
     if (!VALID_STATUS.includes(status as typeof VALID_STATUS[number]))
       throw app.httpErrors.badRequest(`Invalid status. Valid: ${VALID_STATUS.join(', ')}`);
 
+    let normalizedPhone: string | null;
+    try {
+      normalizedPhone = normalizePhone(phone as string);
+    } catch (err) {
+      if (err instanceof InvalidPhoneError) throw app.httpErrors.badRequest('phone_invalid');
+      throw err;
+    }
+
     const doc = {
       firstName:   (firstName as string).trim(),
       lastName:    (lastName  as string).trim(),
       email:       String(email).trim().toLowerCase() || null,
-      phone:       String(phone).trim() || null,
+      phone:       normalizedPhone,
       role:        String(role),
       status:      String(status),
       source:      String(source),
@@ -177,7 +186,14 @@ export default async function contactsRoutes(app: FastifyInstance) {
     if (firstName   !== undefined) $set.firstName   = (firstName as string).trim();
     if (lastName    !== undefined) $set.lastName    = (lastName  as string).trim();
     if (email       !== undefined) $set.email       = String(email).trim().toLowerCase() || null;
-    if (phone       !== undefined) $set.phone       = String(phone).trim() || null;
+    if (phone       !== undefined) {
+      try {
+        $set.phone = normalizePhone(phone as string);
+      } catch (err) {
+        if (err instanceof InvalidPhoneError) throw app.httpErrors.badRequest('phone_invalid');
+        throw err;
+      }
+    }
     if (role        !== undefined) $set.role        = String(role);
     if (status      !== undefined) $set.status      = String(status);
     if (source      !== undefined) $set.source      = String(source);

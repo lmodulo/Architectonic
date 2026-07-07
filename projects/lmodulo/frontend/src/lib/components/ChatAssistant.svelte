@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Bot, X, Send, Trash2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { chatConfig } from '$lib/config/chat';
   import {
@@ -33,7 +33,7 @@
   onclick={toggleOpen}
   aria-label={isOpen() ? m.assistant_close() : m.assistant_open()}
 >
-  <Bot class="size-6" />
+  <Icon name="Bot" size={24} class="size-6" />
 </button>
 
 <!-- Chat panel -->
@@ -47,7 +47,7 @@
     <!-- Header -->
     <header class="flex items-center justify-between px-4 py-3 border-b border-base-300 shrink-0">
       <div class="flex items-center gap-2">
-        <Bot class="size-4 text-primary" />
+        <Icon name="Bot" size={16} class="size-4 text-primary" />
         <span class="font-semibold text-sm">{m.assistant_title()}</span>
       </div>
       <div class="flex items-center gap-1">
@@ -58,7 +58,7 @@
           aria-label={m.assistant_clear()}
           title={m.assistant_clear()}
         >
-          <Trash2 class="size-4" />
+          <Icon name="Trash2" size={16} class="size-4" />
         </button>
         <button
           type="button"
@@ -66,7 +66,7 @@
           onclick={closePanel}
           aria-label="Close"
         >
-          <X class="size-4" />
+          <Icon name="X" size={16} class="size-4" />
         </button>
       </div>
     </header>
@@ -138,7 +138,7 @@
           disabled={isLoading() || !getInput().trim()}
           aria-label={m.assistant_send()}
         >
-          <Send class="size-4" />
+          <Icon name="Send" size={16} class="size-4" />
         </button>
       </div>
     </footer>

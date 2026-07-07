@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invalidate, invalidateAll, goto } from '$app/navigation';
-  import { Send, Paperclip, FileText, X, Mail, ChevronRight, LayoutDashboard } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import type { PageData } from './$types';
   import { m } from '$lib/paraglide/messages.js';
@@ -109,7 +109,7 @@
 
 <div class="space-y-6">
   <div class="flex items-start gap-3">
-    <LayoutDashboard class="size-6 opacity-60 shrink-0 mt-0.5" />
+    <Icon name="LayoutDashboard" size={24} class="size-6 opacity-60 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold">{m.client_portal_title()}</h1>
       <p class="text-sm opacity-60 mt-0.5">{m.client_portal_subtitle()}</p>
@@ -150,10 +150,10 @@
       <ul class="space-y-1">
         {#each pendingFiles as f (f.name)}
           <li class="flex items-center gap-2 text-sm p-2 rounded bg-base-300/40">
-            <FileText class="size-4 shrink-0 opacity-50" />
+            <Icon name="FileText" size={16} class="size-4 shrink-0 opacity-50" />
             <span class="flex-1 truncate">{f.name}</span>
             <button type="button" class="btn btn-ghost btn-xs btn-square opacity-40 hover:opacity-100" onclick={() => removePending(f.name)}>
-              <X class="size-3.5" />
+              <Icon name="X" size={14} class="size-3.5" />
             </button>
           </li>
         {/each}
@@ -162,11 +162,11 @@
 
     <div class="flex items-center justify-between">
       <button type="button" class="btn btn-ghost btn-sm gap-1.5 opacity-60 hover:opacity-100" onclick={() => fileInput.click()}>
-        <Paperclip class="size-4" />
+        <Icon name="Paperclip" size={16} class="size-4" />
         {m.client_portal_attach()}
       </button>
       <button type="button" class="btn btn-primary" disabled={sending} onclick={send}>
-        <Send class="size-4" />
+        <Icon name="Send" size={16} class="size-4" />
         {sending ? m.client_portal_sending() : m.client_portal_send()}
       </button>
     </div>
@@ -178,7 +178,7 @@
 
     {#if threads.length === 0}
       <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center">
-        <Mail class="size-8 opacity-20 mx-auto mb-2" />
+        <Icon name="Mail" size={32} class="size-8 opacity-20 mx-auto mb-2" />
         <p class="text-sm opacity-40">{m.client_portal_no_messages()}</p>
       </div>
     {:else}
@@ -189,7 +189,7 @@
             class="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-base-300/40 transition-colors"
             onclick={() => goto(`/messages/${thread.threadId}`)}
           >
-            <Mail class="size-4 shrink-0 opacity-40" />
+            <Icon name="Mail" size={16} class="size-4 shrink-0 opacity-40" />
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <p class="text-sm font-medium truncate {thread.unreadCount > 0 ? 'font-semibold' : ''}">{thread.subject}</p>
@@ -199,7 +199,7 @@
               </div>
               <p class="text-xs opacity-40">{formatDate(thread.latestAt)}</p>
             </div>
-            <ChevronRight class="size-4 shrink-0 opacity-30" />
+            <Icon name="ChevronRight" size={16} class="size-4 shrink-0 opacity-30" />
           </button>
         {/each}
       </div>

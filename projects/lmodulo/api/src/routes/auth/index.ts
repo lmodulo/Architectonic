@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import bcrypt from 'bcryptjs';
 import { checkDuplicateUser } from '../../lib/users.js';
+import { normalizePhone, InvalidPhoneError } from '../../lib/phone.js';
 import { sendPasswordResetEmail, sendPasswordSetEmail } from '../../lib/email.js';
 import { logAudit } from '../../lib/audit.js';
 
@@ -158,7 +159,14 @@ export default async function authRoutes(app: FastifyInstance) {
     if (firstName !== undefined) updates.firstName   = firstName;
     if (lastName  !== undefined) updates.lastName    = lastName;
     if (avatarColor !== undefined) updates.avatarColor = avatarColor;
-    if (phone !== undefined)     updates.phone       = phone.trim();
+    if (phone !== undefined) {
+      try {
+        updates.phone = normalizePhone(phone);
+      } catch (err) {
+        if (err instanceof InvalidPhoneError) return reply.badRequest('phone_invalid');
+        throw err;
+      }
+    }
 
     if (username || email) {
       const conflict = await col.findOne({

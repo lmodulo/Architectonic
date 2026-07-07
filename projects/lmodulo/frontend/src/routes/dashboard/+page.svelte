@@ -6,7 +6,7 @@
   import ActivityVolumeChart from '$lib/components/crm/ActivityVolumeChart.svelte';
   import DateRangeFilter from '$lib/components/DateRangeFilter.svelte';
   import { fmtCurrency, donutSegs, funnelPolygons } from '$lib/utils/dashboard';
-  import { Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw, CircleGauge } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { fade } from 'svelte/transition';
   import { m } from '$lib/paraglide/messages.js';
   import type { PageData } from './$types';
@@ -471,7 +471,7 @@
   <!-- Header -->
   <div class="page-heading flex items-end justify-between gap-4">
     <div class="flex items-start gap-3">
-      <CircleGauge class="size-6 shrink-0 mt-0.5" />
+      <Icon name="CircleGauge" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold tracking-tight">{m.dashboard_title()}</h1>
         <p class="text-sm opacity-50 mt-0.5">
@@ -489,9 +489,9 @@
         onclick={() => { editMode = !editMode; }}
       >
         {#if editMode}
-          <Check class="size-4" /> {m.dashboard_done()}
+          <Icon name="Check" size={16} class="size-4" /> {m.dashboard_done()}
         {:else}
-          <LayoutDashboard class="size-4" /> {m.dashboard_edit_layout()}
+          <Icon name="LayoutDashboard" size={16} class="size-4" /> {m.dashboard_edit_layout()}
         {/if}
       </button>
     </div>
@@ -510,7 +510,7 @@
         {#if saveStatus === 'saving'}{m.dashboard_saving()}{:else if saveStatus === 'saved'}{m.dashboard_saved()}{:else if saveStatus === 'error'}{m.dashboard_save_failed()}{/if}
       </span>
       <button type="button" class="btn btn-ghost btn-xs gap-1 opacity-60 hover:opacity-100" onclick={resetLayout}>
-        <RotateCcw class="size-3" /> {m.dashboard_reset()}
+        <Icon name="RotateCcw" size={12} class="size-3" /> {m.dashboard_reset()}
       </button>
     </div>
   {/if}
@@ -547,7 +547,7 @@
               ondragstart={(e: DragEvent) => onSectionDragStart(e, section.id)}
               ondragend={onSectionDragEnd}
             >
-              <GripVertical class="size-4 text-base-content/35 shrink-0" />
+              <Icon name="GripVertical" size={16} class="size-4 text-base-content/35 shrink-0" />
               <span class="text-xs font-semibold uppercase tracking-wider text-base-content/45 flex-1">
                 {SECTION_LABELS[section.id] ?? section.id}
               </span>
@@ -561,7 +561,7 @@
                       onclick={() => toggleItem(section.id, item.id)}
                       title="{item.visible ? 'Hide' : 'Show'} {ITEM_LABELS[section.id]?.[item.id] ?? item.id}"
                     >
-                      {#if item.visible}<Eye class="size-3" />{:else}<EyeOff class="size-3 opacity-40" />{/if}
+                      {#if item.visible}<Icon name="Eye" size={12} class="size-3" />{:else}<Icon name="EyeOff" size={12} class="size-3 opacity-40" />{/if}
                       <span class="hidden lg:inline">{ITEM_LABELS[section.id]?.[item.id] ?? item.id}</span>
                     </button>
                   {/each}
@@ -573,7 +573,7 @@
                 onclick={() => toggleSection(section.id)}
                 title={section.visible ? 'Hide section' : 'Show section'}
               >
-                {#if section.visible}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5 opacity-40" />{/if}
+                {#if section.visible}<Icon name="Eye" size={14} class="size-3.5" />{:else}<Icon name="EyeOff" size={14} class="size-3.5 opacity-40" />{/if}
               </button>
             </div>
           {/if}

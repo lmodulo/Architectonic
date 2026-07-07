@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidate, invalidateAll } from '$app/navigation';
   import { page } from '$app/state';
-  import { Send, X, Paperclip, FileText } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import UserSelect from '$lib/components/UserSelect.svelte';
   import type { LayoutData } from '../$types';
@@ -78,7 +78,7 @@
 <div class="p-6 space-y-4">
   <div class="flex items-center justify-between">
     <h1 class="text-lg font-semibold">{m.messages_compose_title()}</h1>
-    <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label="{m.common_cancel()}"><X class="size-5" /></a>
+    <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label="{m.common_cancel()}"><Icon name="X" size={20} class="size-5" /></a>
   </div>
 
   {#if error}
@@ -115,7 +115,7 @@
     <ul class="space-y-1">
       {#each pendingFiles as f (f.name)}
         <li class="flex items-center gap-2 text-sm p-2 rounded bg-base-300/40">
-          <FileText class="size-4 shrink-0 opacity-50" />
+          <Icon name="FileText" size={16} class="size-4 shrink-0 opacity-50" />
           <span class="flex-1 truncate">{f.name}</span>
           <button
             type="button"
@@ -123,7 +123,7 @@
             onclick={() => removePending(f.name)}
             aria-label="Remove {f.name}"
           >
-            <X class="size-3.5" />
+            <Icon name="X" size={14} class="size-3.5" />
           </button>
         </li>
       {/each}
@@ -137,11 +137,11 @@
       onclick={() => fileInput.click()}
       aria-label="Attach file"
     >
-      <Paperclip class="size-4" />
+      <Icon name="Paperclip" size={16} class="size-4" />
       {m.client_portal_attach()}
     </button>
     <button type="button" class="btn btn-primary" disabled={sending} onclick={send}>
-      <Send class="size-4" />
+      <Icon name="Send" size={16} class="size-4" />
       {sending ? m.common_sending() : m.common_send()}
     </button>
   </div>

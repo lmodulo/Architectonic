@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -81,7 +81,7 @@
     </div>
     {#if hasPermission(data.user, 'crm_deals', 'create')}
       <button class="btn btn-primary btn-sm" onclick={openModal}>
-        <Plus class="size-4" /> New Deal
+        <Icon name="Plus" size={16} class="size-4" /> New Deal
       </button>
     {/if}
   </div>
@@ -94,7 +94,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">New Deal</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
     <div class="p-6 space-y-4 overflow-y-auto flex-1">

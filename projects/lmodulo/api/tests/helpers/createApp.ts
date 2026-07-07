@@ -25,10 +25,6 @@ import usersRoutes         from '../../src/routes/users/index.js';
 import agileRoutes                from '../../src/routes/agile/index.js';
 import crmRoutes                  from '../../src/routes/crm/index.js';
 import financeRoutes              from '../../src/routes/finance/index.js';
-import financeEstimatesRoutes     from '../../src/routes/finance/estimates.js';
-import financeExpensesRoutes      from '../../src/routes/finance/expenses.js';
-import financeSubscriptionsRoutes from '../../src/routes/finance/subscriptions.js';
-import financeReportsRoutes       from '../../src/routes/finance/reports.js';
 import contractRoutes             from '../../src/routes/contracts/index.js';
 
 export async function createTestApp(mongoUri: string) {
@@ -64,10 +60,6 @@ export async function createTestApp(mongoUri: string) {
   await app.register(agileRoutes,                { prefix: '/agile' });
   await app.register(crmRoutes,                  { prefix: '/crm' });
   await app.register(financeRoutes,              { prefix: '/finance' });
-  await app.register(financeEstimatesRoutes,     { prefix: '/finance/estimates' });
-  await app.register(financeExpensesRoutes,      { prefix: '/finance/expenses' });
-  await app.register(financeSubscriptionsRoutes, { prefix: '/finance/subscriptions' });
-  await app.register(financeReportsRoutes,       { prefix: '/finance/reports' });
   await app.register(contractRoutes,             { prefix: '/contracts' });
 
   await app.ready();

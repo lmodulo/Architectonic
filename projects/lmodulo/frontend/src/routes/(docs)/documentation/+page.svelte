@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { Rocket, Layers, ShieldCheck, Code2, ListTodo, Receipt, FileSignature, ArrowRight } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
 
   const quickLinks = [
-    { href: '/documentation/getting-started', icon: Rocket,        label: 'Getting Started',    desc: 'Spin up the full stack in under five minutes with Docker Compose.' },
-    { href: '/documentation/architecture',    icon: Layers,        label: 'Architecture',        desc: 'Understand how the frontend, API, database, and storage services connect.' },
-    { href: '/documentation/rbac',            icon: ShieldCheck,   label: 'Roles & Permissions', desc: 'Learn how the six built-in roles map to resources and actions.' },
-    { href: '/documentation/api',             icon: Code2,         label: 'API Reference',       desc: 'Explore every endpoint with its expected inputs, outputs, and auth requirements.' },
-    { href: '/documentation/agile',           icon: ListTodo,      label: 'Agile Module',        desc: 'Deep-dive into milestones, sprints, jobs, and tasks.' },
-    { href: '/documentation/folio',           icon: Receipt,       label: 'Folio',               desc: 'Manage invoices, collect Stripe payments, and onboard CRM contacts as billing clients.' },
-    { href: '/documentation/contracts',       icon: FileSignature, label: 'Contracts',           desc: 'Create MSA/SOW/NDA contracts, send for e-signature, and track execution.' },
+    { href: '/documentation/getting-started', icon: 'Rocket',        label: 'Getting Started',    desc: 'Spin up the full stack in under five minutes with Docker Compose.' },
+    { href: '/documentation/architecture',    icon: 'Layers',        label: 'Architecture',        desc: 'Understand how the frontend, API, database, and storage services connect.' },
+    { href: '/documentation/rbac',            icon: 'ShieldCheck',   label: 'Roles & Permissions', desc: 'Learn how the six built-in roles map to resources and actions.' },
+    { href: '/documentation/api',             icon: 'Code2',         label: 'API Reference',       desc: 'Explore every endpoint with its expected inputs, outputs, and auth requirements.' },
+    { href: '/documentation/agile',           icon: 'ListTodo',      label: 'Agile Module',        desc: 'Deep-dive into milestones, sprints, jobs, and tasks.' },
+    { href: '/documentation/folio',           icon: 'Receipt',       label: 'Folio',               desc: 'Manage invoices, collect Stripe payments, and onboard CRM contacts as billing clients.' },
+    { href: '/documentation/contracts',       icon: 'FileSignature', label: 'Contracts',           desc: 'Create MSA/SOW/NDA contracts, send for e-signature, and track execution.' },
   ];
 </script>
 
@@ -109,19 +109,18 @@
     <h2 class="text-xl font-semibold">Where to Start</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {#each quickLinks as link}
-        {@const Icon = link.icon}
         <a
           href={link.href}
           class="group flex items-start gap-4 p-4 rounded-box bg-base-200 border border-base-300 hover:border-primary hover:bg-primary/5 transition-colors"
         >
           <div class="shrink-0 size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center mt-0.5">
-            <Icon class="size-4" />
+            <Icon name={link.icon} size={16} class="size-4" />
           </div>
           <div class="flex-1 min-w-0 space-y-0.5">
             <p class="text-sm font-semibold group-hover:text-primary transition-colors">{link.label}</p>
             <p class="text-xs opacity-60 leading-relaxed">{link.desc}</p>
           </div>
-          <ArrowRight class="size-4 shrink-0 opacity-30 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all mt-1" />
+          <Icon name="ArrowRight" size={16} class="size-4 shrink-0 opacity-30 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all mt-1" />
         </a>
       {/each}
     </div>

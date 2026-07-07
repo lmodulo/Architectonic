@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Pencil, X, Check, Milestone, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { slide } from 'svelte/transition';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
@@ -119,7 +119,7 @@
     <div class="flex gap-2 items-center">
       <div class="w-32"><HealthScoreBar score={company.healthScore ?? 0} /></div>
       {#if hasPermission(data.user, 'crm_companies', 'update') && !editing}
-        <button class="btn btn-ghost btn-sm" onclick={startEdit}><Pencil class="size-4" /> Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick={startEdit}><Icon name="Pencil" size={16} class="size-4" /> Edit</button>
       {/if}
     </div>
   </div>
@@ -161,10 +161,10 @@
       </div>
       <div class="flex gap-2 justify-end">
         <button type="button" class="btn btn-ghost btn-sm" onclick={() => (editing = false)}>
-          <X class="size-4" /> Cancel
+          <Icon name="X" size={16} class="size-4" /> Cancel
         </button>
         <button type="button" class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}>
-          <Check class="size-4" /> {saving ? 'Saving…' : 'Save'}
+          <Icon name="Check" size={16} class="size-4" /> {saving ? 'Saving…' : 'Save'}
         </button>
       </div>
     </div>
@@ -282,7 +282,7 @@
         <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
           {#if milestones.length === 0}
             <div class="p-8 text-center">
-              <Milestone class="size-8 opacity-20 mx-auto mb-2" />
+              <Icon name="Milestone" size={32} class="size-8 opacity-20 mx-auto mb-2" />
               <p class="text-sm opacity-40">No milestones linked to this company.</p>
               <p class="text-xs opacity-30 mt-1">Link a client from the Agile → Milestone detail page.</p>
             </div>
@@ -295,9 +295,9 @@
                       <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity {cls.includes('text-right') ? 'ml-auto' : ''}" onclick={() => toggleMsSort(field)}>
                         {label}
                         {#if msSortField === field}
-                          {#if msSortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                          {#if msSortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                         {:else}
-                          <ChevronsUpDown class="size-3 opacity-30" />
+                          <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                         {/if}
                       </button>
                     </th>

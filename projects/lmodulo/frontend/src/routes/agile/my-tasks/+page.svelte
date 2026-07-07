@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { AlertTriangle, Clock, ClipboardList, SearchX } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { STATUS_COLOR, fmtDate, fmtEffort } from '$lib/utils/agile';
   import type { PageData } from './$types';
 
@@ -120,12 +120,12 @@
   <!-- Task list -->
   {#if tasks.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-12 text-center opacity-50">
-      <ClipboardList class="size-8 opacity-40 mx-auto mb-2" />
+      <Icon name="ClipboardList" size={24} class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No tasks assigned to you.</p>
     </div>
   {:else if filtered.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center opacity-50">
-      <SearchX class="size-8 opacity-40 mx-auto mb-2" />
+      <Icon name="SearchX" size={24} class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No tasks match the current filter.</p>
     </div>
   {:else}
@@ -155,7 +155,7 @@
               <!-- Blocked reason -->
               {#if task.status === 'Blocked' && task.blockedReason?.replace(/<[^>]+>/g, '').trim()}
                 <p class="text-xs text-error flex items-center gap-1">
-                  <AlertTriangle class="size-3 shrink-0" />
+                  <Icon name="AlertTriangle" size={12} class="size-3 shrink-0" />
                   {task.blockedReason.replace(/<[^>]+>/g, '').slice(0, 120)}
                 </p>
               {/if}
@@ -181,7 +181,7 @@
               {/if}
               {#if task.estimateHours}
                 <span class="text-[10px] opacity-40 flex items-center gap-0.5">
-                  <Clock class="size-3" />{fmtEffort(task.estimateHours)}
+                  <Icon name="Clock" size={12} class="size-3" />{fmtEffort(task.estimateHours)}
                 </span>
               {/if}
             </div>

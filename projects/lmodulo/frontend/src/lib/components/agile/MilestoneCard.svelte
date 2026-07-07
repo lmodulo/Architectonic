@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Milestone, Calendar, Layers, Building2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { STATUS_COLOR, PRIORITY_COLOR, fmtDateRange, completionColor } from '$lib/utils/agile';
   import type { AgileMilestone } from '$lib/utils/agile';
@@ -26,7 +26,7 @@
   <!-- Header -->
   <div class="flex items-start justify-between gap-3">
     <div class="flex items-center gap-2 min-w-0">
-      <Milestone class="size-4 shrink-0 text-primary" />
+      <Icon name="Milestone" size={16} class="size-4 shrink-0 text-primary" />
       <h3 class="font-semibold truncate text-sm">{milestone.title}</h3>
     </div>
     <div class="flex items-center gap-1.5 shrink-0">
@@ -43,7 +43,7 @@
   <!-- Client badge -->
   {#if milestone.clientName}
     <div class="flex items-center gap-1 text-xs opacity-60">
-      <Building2 class="size-3" /><span>{milestone.clientName}</span>
+      <Icon name="Building2" size={12} class="size-3" /><span>{milestone.clientName}</span>
     </div>
   {/if}
 
@@ -61,11 +61,11 @@
   <!-- Meta -->
   <div class="flex items-center justify-between text-xs opacity-50">
     <span class="flex items-center gap-1">
-      <Calendar class="size-3" />
+      <Icon name="Calendar" size={12} class="size-3" />
       {fmtDateRange(milestone.startDate ?? null, milestone.endDate ?? null)}
     </span>
     <span class="flex items-center gap-1">
-      <Layers class="size-3" />
+      <Icon name="Layers" size={12} class="size-3" />
       {milestone.sprintCount ?? 0} sprints · {milestone.taskCount ?? 0} tasks
     </span>
   </div>

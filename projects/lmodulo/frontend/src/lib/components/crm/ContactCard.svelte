@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { CONTACT_STATUS_COLOR, fmtDate, type CrmContact } from '$lib/utils/crm';
-  import { UserCheck } from 'lucide-svelte';
+  import { CONTACT_STATUS_COLOR, fmtDate, fmtPhone, type CrmContact } from '$lib/utils/crm';
+  import Icon from '$lib/components/Icon.svelte';
 
   let {
     contact,
@@ -24,7 +24,7 @@
         <span class="badge badge-xs badge-ghost">{contact.role}</span>
         <span class="badge badge-xs {CONTACT_STATUS_COLOR[contact.status] ?? 'badge-ghost'}">{contact.status}</span>
         {#if contact.isUser}
-          <span class="badge badge-xs badge-primary gap-1"><UserCheck class="size-2.5" />Client</span>
+          <span class="badge badge-xs badge-primary gap-1"><Icon name="UserCheck" size={10} class="size-2.5" />Client</span>
         {/if}
       </div>
       <div class="flex items-center gap-3 mt-1 text-xs opacity-50 flex-wrap">
@@ -35,7 +35,7 @@
           <span>{contact.email}</span>
         {/if}
         {#if contact.phone}
-          <span>{contact.phone}</span>
+          <span>{fmtPhone(contact.phone)}</span>
         {/if}
       </div>
     </div>

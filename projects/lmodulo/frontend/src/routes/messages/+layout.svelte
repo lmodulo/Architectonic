@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { goto, invalidateAll } from '$app/navigation';
-  import { Mail, SquarePen, Inbox, Send, Archive } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import MessageListItem from '$lib/components/MessageListItem.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import type { LayoutData } from './$types';
@@ -72,13 +72,23 @@
     const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
     return name || u.username;
   }
+
+  let query = $state('');
+  const filteredList = $derived.by(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return listData;
+    return listData.filter(thread => {
+      const from = activeTab === 'sent' ? thread.subject : resolveFrom(thread.latestFrom);
+      return thread.subject.toLowerCase().includes(q) || from.toLowerCase().includes(q);
+    });
+  });
 </script>
 
-<div class="flex flex-col h-full overflow-hidden gap-4">
+<div class="flex flex-col h-full gap-4">
 
   <!-- Header -->
   <div class="page-heading flex items-start gap-3 shrink-0">
-    <Mail class="size-6 shrink-0 mt-0.5" />
+    <Icon name="Mail" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold leading-none">{m.messages_title()}</h1>
       <p class="text-xs opacity-60 mt-0.5">{m.messages_subtitle()}</p>
@@ -86,32 +96,40 @@
   </div>
 
   <!-- Two-panel shell -->
-  <div class="flex flex-1 overflow-hidden border border-base-300 rounded-box">
+  <div class="flex flex-1 gap-4 items-stretch overflow-hidden">
 
   <!-- Left panel — message list -->
-  <aside class="w-72 shrink-0 flex flex-col border-r border-base-300 overflow-hidden bg-base-200">
+  <aside class="w-72 shrink-0 flex flex-col bg-base-200 border border-base-300 rounded-box overflow-hidden">
 
     <!-- Compose button -->
     <div class="px-3 py-3 border-b border-base-300">
       <a href="/messages/compose" class="btn btn-primary w-full">
-        <SquarePen class="size-4" />
+        <Icon name="SquarePen" size={16} class="size-4" />
         <span>{m.messages_compose()}</span>
       </a>
     </div>
 
     <!-- Tabs -->
     <div class="flex border-b border-base-300 shrink-0">
-      {#each ([['inbox', m.messages_inbox(), Inbox], ['sent', m.messages_sent(), Send], ['archived', m.messages_archive(), Archive]] as [Tab, string, typeof Inbox][]) as [tab, label, Icon]}
+      {#each ([['inbox', m.messages_inbox(), 'Inbox'], ['sent', m.messages_sent(), 'Send'], ['archived', m.messages_archive(), 'Archive']] as [Tab, string, string][]) as [tab, label, tabIcon]}
         <button
           type="button"
           class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors
             {activeTab === tab ? 'bg-primary text-primary-content' : 'opacity-60 hover:opacity-100'}"
           onclick={() => switchTab(tab)}
         >
-          <Icon class="size-3.5" />
+          <Icon name={tabIcon} size={14} class="size-3.5" />
           {label}
         </button>
       {/each}
+    </div>
+
+    <!-- Search -->
+    <div class="px-3 py-2 border-b border-base-300 shrink-0">
+      <label class="input input-bordered input-sm flex items-center gap-2 w-full">
+        <Icon name="Search" size={14} class="size-3.5 opacity-50" />
+        <input type="search" placeholder={m.messages_search()} class="grow" bind:value={query} />
+      </label>
     </div>
 
     <!-- Thread list -->
@@ -120,8 +138,10 @@
         <p class="text-xs text-center opacity-40 mt-8">{m.common_loading()}</p>
       {:else if listData.length === 0}
         <p class="text-xs text-center opacity-40 mt-8">{m.messages_none()}</p>
+      {:else if filteredList.length === 0}
+        <p class="text-xs text-center opacity-40 mt-8">{m.messages_no_results()}</p>
       {:else}
-        {#each listData as thread (thread.threadId)}
+        {#each filteredList as thread (thread.threadId)}
           <MessageListItem
             threadId={thread.threadId}
             subject={thread.subject}
@@ -149,9 +169,11 @@
   </aside>
 
   <!-- Right panel -->
-  <main class="flex-1 overflow-y-auto bg-base-100">
-    {@render children()}
-  </main>
+  <div class="flex-1 min-w-0 bg-base-200 border border-base-300 rounded-box overflow-hidden flex flex-col">
+    <main class="flex-1 overflow-y-auto bg-base-100">
+      {@render children()}
+    </main>
+  </div>
 
   </div><!-- end two-panel shell -->
 

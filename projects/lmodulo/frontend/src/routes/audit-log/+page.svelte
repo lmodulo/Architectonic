@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { m } from '$lib/paraglide/messages.js';
   import { dragScroll } from '$lib/actions/dragScroll';
-  import { Search, ChevronDown, ChevronUp, ChevronsUpDown, History } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
@@ -95,7 +95,7 @@
 
 <div class="space-y-6">
   <div class="page-heading flex items-start gap-3">
-    <History class="size-6 shrink-0 mt-0.5" />
+    <Icon name="History" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold">Audit Log</h1>
       <p class="text-sm opacity-60 mt-0.5">Track actions taken by workspace members</p>
@@ -108,7 +108,7 @@
 
   <div class="flex items-center gap-3">
     <label class="input input-bordered flex items-center gap-2 flex-1">
-      <Search class="size-4 opacity-50" />
+      <Icon name="Search" size={16} class="size-4 opacity-50" />
       <input
         type="search"
         placeholder="Search by username…"
@@ -137,9 +137,9 @@
               <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
                 {label}
                 {#if sortField === field}
-                  {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                  {#if sortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                 {:else}
-                  <ChevronsUpDown class="size-3 opacity-30" />
+                  <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                 {/if}
               </button>
             </th>
@@ -195,7 +195,7 @@
                   aria-label="{expanded.has(entry.id) ? 'Collapse' : 'Expand'} details"
                   onclick={() => toggleMeta(entry.id)}
                 >
-                  <ChevronDown class="size-3.5 transition-transform duration-150 {expanded.has(entry.id) ? 'rotate-180' : ''}" />
+                  <Icon name="ChevronDown" size={14} class="size-3.5 transition-transform duration-150 {expanded.has(entry.id) ? 'rotate-180' : ''}" />
                 </button>
               {/if}
             </td>

@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { dragScroll } from '$lib/actions/dragScroll';
-  import { Plus, FileText, ChevronUp, ChevronDown, ChevronsUpDown, Trash2, X } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import type { PageData } from './$types';
 
@@ -143,7 +143,7 @@
   <div class="flex items-center justify-between gap-4">
     <p class="text-sm opacity-60">{total} invoice{total !== 1 ? 's' : ''}</p>
     <button type="button" class="btn btn-primary btn-sm" onclick={openModal}>
-      <Plus class="size-4" />
+      <Icon name="Plus" size={16} class="size-4" />
       New Invoice
     </button>
   </div>
@@ -163,7 +163,7 @@
 
   {#if invoices.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center">
-      <FileText class="size-8 opacity-20 mx-auto mb-2" />
+      <Icon name="FileText" size={32} class="size-8 opacity-20 mx-auto mb-2" />
       <p class="text-sm opacity-40">No invoices found.</p>
       <button type="button" class="btn btn-primary btn-sm mt-4" onclick={openModal}>Create invoice</button>
     </div>
@@ -183,12 +183,12 @@
                   {label}
                   {#if filters.sort === field}
                     {#if filters.sortDir === 'asc'}
-                      <ChevronUp class="size-3 opacity-70" />
+                      <Icon name="ChevronUp" size={12} class="size-3 opacity-70" />
                     {:else}
-                      <ChevronDown class="size-3 opacity-70" />
+                      <Icon name="ChevronDown" size={12} class="size-3 opacity-70" />
                     {/if}
                   {:else}
-                    <ChevronsUpDown class="size-3 opacity-30" />
+                    <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                   {/if}
                 </button>
               </th>
@@ -288,7 +288,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">New Invoice</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
 
@@ -341,13 +341,13 @@
               onclick={() => removeLine(i)}
               disabled={lineItems.length === 1}
             >
-              <Trash2 class="size-3.5" />
+              <Icon name="Trash2" size={14} class="size-3.5" />
             </button>
           </div>
         {/each}
         <div class="flex items-center justify-between pt-1">
           <button type="button" class="btn btn-ghost btn-sm" onclick={addLine}>
-            <Plus class="size-4" /> Add line
+            <Icon name="Plus" size={16} class="size-4" /> Add line
           </button>
           <span class="text-sm font-semibold">Subtotal: {fmtCurrency(subtotal)}</span>
         </div>

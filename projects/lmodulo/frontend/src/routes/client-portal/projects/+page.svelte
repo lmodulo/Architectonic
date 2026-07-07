@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FolderKanban, Paperclip, Download } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -45,7 +45,7 @@
 
 <div class="p-6 max-w-5xl mx-auto">
   <div class="flex items-center gap-3 mb-6">
-    <FolderKanban class="w-6 h-6 opacity-60" />
+    <Icon name="FolderKanban" size={24} class="w-6 h-6 opacity-60" />
     <div>
       <h1 class="text-xl font-semibold">Projects</h1>
       <p class="text-sm opacity-60">Track the progress of your active projects</p>
@@ -54,7 +54,7 @@
 
   {#if milestones.length === 0}
     <div class="text-center py-16 opacity-40">
-      <FolderKanban class="w-10 h-10 mx-auto mb-3" />
+      <Icon name="FolderKanban" size={40} class="w-10 h-10 mx-auto mb-3" />
       <p>No projects yet</p>
     </div>
   {:else}
@@ -92,7 +92,7 @@
             {#if m.attachments?.length > 0}
               <div class="mt-3 border-t border-base-200 pt-3">
                 <p class="text-xs font-medium opacity-60 mb-2 flex items-center gap-1">
-                  <Paperclip class="w-3 h-3" /> Deliverables
+                  <Icon name="Paperclip" size={12} class="w-3 h-3" /> Deliverables
                 </p>
                 <div class="flex flex-wrap gap-2">
                   {#each m.attachments as att}
@@ -102,7 +102,7 @@
                       rel="noopener noreferrer"
                       class="btn btn-xs btn-ghost gap-1 border border-base-300"
                     >
-                      <Download class="w-3 h-3" />
+                      <Icon name="Download" size={12} class="w-3 h-3" />
                       {att.name}
                     </a>
                   {/each}

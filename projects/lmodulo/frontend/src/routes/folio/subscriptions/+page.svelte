@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { dragScroll } from '$lib/actions/dragScroll';
-  import { Plus, RefreshCw, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
 
@@ -90,7 +90,7 @@
     <p class="text-sm opacity-60">{total} subscription{total !== 1 ? 's' : ''}</p>
     {#if hasPermission(data.user, 'finance_subscriptions', 'create')}
       <a href="/folio/subscriptions/new" class="btn btn-primary btn-sm">
-        <Plus class="size-4" />
+        <Icon name="Plus" size={16} class="size-4" />
         New Subscription
       </a>
     {/if}
@@ -111,7 +111,7 @@
 
   {#if subscriptions.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center">
-      <RefreshCw class="size-8 opacity-20 mx-auto mb-2" />
+      <Icon name="RefreshCw" size={32} class="size-8 opacity-20 mx-auto mb-2" />
       <p class="text-sm opacity-40">No subscriptions found.</p>
       {#if hasPermission(data.user, 'finance_subscriptions', 'create')}
         <a href="/folio/subscriptions/new" class="btn btn-primary btn-sm mt-4">Create subscription</a>
@@ -128,9 +128,9 @@
                 <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => applySort(field)}>
                   {label}
                   {#if filters.sort === field}
-                    {#if filters.sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                    {#if filters.sortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                   {:else}
-                    <ChevronsUpDown class="size-3 opacity-30" />
+                    <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                   {/if}
                 </button>
               </th>

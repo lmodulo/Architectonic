@@ -2,7 +2,7 @@
   import { invalidate, invalidateAll } from '$app/navigation';
   import { onMount } from 'svelte';
   import { m } from '$lib/paraglide/messages.js';
-  import { Reply, Paperclip, FileText, X } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
@@ -137,7 +137,7 @@
             <ul class="mt-2 space-y-1">
               {#each msg.attachments as att (att.name)}
                 <li class="flex items-center gap-2 text-xs p-1.5 rounded bg-base-300/40 hover:bg-base-300/60 transition-colors">
-                  <FileText class="size-3.5 shrink-0 opacity-50" />
+                  <Icon name="FileText" size={14} class="size-3.5 shrink-0 opacity-50" />
                   <a href={att.url} target="_blank" rel="noreferrer" class="flex-1 truncate font-medium hover:underline">{att.name}</a>
                   {#if att.uploadedAt}
                     <span class="opacity-40 shrink-0">{formatDate(att.uploadedAt)}</span>
@@ -166,7 +166,7 @@
           <ul class="space-y-1">
             {#each replyFiles as f (f.name)}
               <li class="flex items-center gap-2 text-sm p-2 rounded bg-base-300/40">
-                <FileText class="size-4 shrink-0 opacity-50" />
+                <Icon name="FileText" size={16} class="size-4 shrink-0 opacity-50" />
                 <span class="flex-1 truncate">{f.name}</span>
                 <button
                   type="button"
@@ -174,7 +174,7 @@
                   onclick={() => removeReplyFile(f.name)}
                   aria-label="Remove {f.name}"
                 >
-                  <X class="size-3.5" />
+                  <Icon name="X" size={14} class="size-3.5" />
                 </button>
               </li>
             {/each}
@@ -188,7 +188,7 @@
             onclick={() => replyFileInput.click()}
             aria-label="Attach file"
           >
-            <Paperclip class="size-4" />
+            <Icon name="Paperclip" size={16} class="size-4" />
             Attach
           </button>
           <div class="flex gap-2">
@@ -203,7 +203,7 @@
               disabled={sending}
               onclick={sendReply}
             >
-              <Reply class="size-4" />
+              <Icon name="Reply" size={16} class="size-4" />
               {sending ? m.common_sending() : m.messages_reply()}
             </button>
           </div>
@@ -215,7 +215,7 @@
         class="btn btn-ghost w-full text-sm opacity-70 hover:opacity-100"
         onclick={() => (replyOpen = true)}
       >
-        <Reply class="size-4" />
+        <Icon name="Reply" size={16} class="size-4" />
         {m.messages_reply()}
       </button>
     {/if}

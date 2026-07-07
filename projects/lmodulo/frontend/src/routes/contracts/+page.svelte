@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
-  import { Plus, Building2, DollarSign, FileSignature, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import type { PageData } from './$types';
 
@@ -96,7 +96,7 @@
     </div>
     {#if hasPermission(data.user, 'contracts', 'create')}
       <a href="/contracts/new" class="btn btn-primary btn-sm">
-        <Plus class="size-4" />
+        <Icon name="Plus" size={16} class="size-4" />
         New Contract
       </a>
     {/if}
@@ -105,7 +105,7 @@
   <!-- Table -->
   {#if data.contracts.length === 0}
     <div class="text-center py-16 text-base-content/50">
-      <FileSignature class="size-8 opacity-20 mx-auto mb-2" />
+      <Icon name="FileSignature" size={32} class="size-8 opacity-20 mx-auto mb-2" />
       <p class="text-sm">No contracts found.</p>
       {#if hasPermission(data.user, 'contracts', 'create')}
         <a href="/contracts/new" class="btn btn-primary btn-sm mt-4">Create your first contract</a>
@@ -121,9 +121,9 @@
                 <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
                   {label}
                   {#if sortField === field}
-                    {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                    {#if sortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                   {:else}
-                    <ChevronsUpDown class="size-3 opacity-30" />
+                    <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                   {/if}
                 </button>
               </th>
@@ -149,7 +149,7 @@
               <td class="hidden sm:table-cell">
                 {#if c.companyName}
                   <span class="flex items-center gap-1 text-sm">
-                    <Building2 class="size-3 opacity-50" />
+                    <Icon name="Building2" size={12} class="size-3 opacity-50" />
                     {c.companyName}
                   </span>
                 {:else}
@@ -159,7 +159,7 @@
               <td class="hidden md:table-cell">
                 {#if c.value}
                   <span class="flex items-center gap-1 text-sm">
-                    <DollarSign class="size-3 opacity-50" />
+                    <Icon name="DollarSign" size={12} class="size-3 opacity-50" />
                     {fmtCurrency(c.value, c.currency)}
                   </span>
                 {:else}

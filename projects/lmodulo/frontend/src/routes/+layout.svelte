@@ -1,10 +1,7 @@
 <script lang="ts">
   import '../app.css';
-  import {
-    Menu as MenuIcon, LogOut, X, User, Users,
-    Settings, ChevronRight, ChevronDown, HelpCircle,
-    Mail, Bell, Pin, PinOff
-  } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
+  import { setIconTheme, type IconLibrary } from '$lib/stores/icon-theme';
   import Avatar from '$lib/components/Avatar.svelte';
   import GlobalSearch from '$lib/components/GlobalSearch.svelte';
   import { navItems, isNavGroup, isSeparator } from '$lib/config/nav';
@@ -22,7 +19,7 @@
   import { closeCard } from '$lib/stores/userCard.svelte';
   import { isOpen as isPaletteOpen, openLogTimePalette, closeLogTimePalette } from '$lib/stores/logTimePalette.svelte';
   import { brand } from '$lib/config/logo';
-  import { APP_THEME, APP_FONTS } from '$lib/config/theme';
+  import { APP_THEME, APP_FONTS, MATERIAL_SYMBOLS_CDN_URL } from '$lib/config/theme';
   import { m } from '$lib/paraglide/messages.js';
 
   const fontVars = [
@@ -34,6 +31,9 @@
   import type { LayoutData } from './$types';
 
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
+
+  setIconTheme(() => (data.iconLibrary as IconLibrary) ?? 'lucide');
+  const iconLibrary = $derived((data.iconLibrary as IconLibrary) ?? 'lucide');
 
   let sidebarOpen = $state(false);
   let sidebarExpanded = $state(false);
@@ -147,6 +147,9 @@
       <link rel="stylesheet" {href} />
     {/each}
   {/if}
+  {#if iconLibrary === 'material'}
+    <link rel="stylesheet" href={MATERIAL_SYMBOLS_CDN_URL} />
+  {/if}
 </svelte:head>
 
 {#if data.user && pathname !== '/' && !pathname.startsWith('/documentation') && !page.data.isPrint}
@@ -207,7 +210,7 @@
           onclick={closeSidebar}
           aria-label={m.layout_close_nav()}
         >
-          <X class="size-4" />
+          <Icon name="X" size={16} class="size-4" />
         </button>
         <button
           type="button"
@@ -217,9 +220,9 @@
           aria-label={sidebarPinned ? m.layout_unpin_nav() : m.layout_pin_nav()}
         >
           {#if sidebarPinned}
-            <PinOff class="size-3.5" />
+            <Icon name="PinOff" size={14} class="size-3.5" />
           {:else}
-            <Pin class="size-3.5" />
+            <Icon name="Pin" size={14} class="size-3.5" />
           {/if}
         </button>
       </div>
@@ -238,32 +241,30 @@
             {:else if isNavGroup(entry)}
               {@const anyChildActive = entry.children.some(c => pathname.startsWith(c.href))}
               {@const isOpen = openGroups[entry.label()] ?? false}
-              {@const GroupIcon = entry.icon}
               <li>
                 <button
                   type="button"
                   class="flex items-center gap-3 p-3 rounded w-full text-sm {anyChildActive ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                   onclick={() => toggleGroup(entry.label)}
                 >
-                  <GroupIcon class="size-4 shrink-0" />
+                  <Icon name={entry.icon} size={16} class="size-4 shrink-0" />
                   <span class="flex-1 text-left whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label()}</span>
                   {#if isOpen}
-                    <ChevronDown class="size-3 opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}" />
+                    <Icon name="ChevronDown" size={12} class="size-3 opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}" />
                   {:else}
-                    <ChevronRight class="size-3 opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}" />
+                    <Icon name="ChevronRight" size={12} class="size-3 opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}" />
                   {/if}
                 </button>
                 <div class="nav-subnav" class:nav-subnav-open={isOpen && (sidebarOpen || sidebarExpanded)}>
                   <div class="nav-subnav-inner">
                     {#each entry.children as child}
                       {#if !child.permission || hasPermission(data.user, child.permission.resource, child.permission.action)}
-                        {@const ChildIcon = child.icon}
                         <a
                           href={child.href}
                           class="flex items-center gap-3 pl-9 pr-3 py-2 rounded text-sm {pathname.startsWith(child.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                           onclick={closeSidebar}
                         >
-                          <ChildIcon class="size-3.5 shrink-0 opacity-70" />
+                          <Icon name={child.icon} size={14} class="size-3.5 shrink-0 opacity-70" />
                           {child.label()}
                         </a>
                       {/if}
@@ -273,14 +274,13 @@
               </li>
             {:else}
               {#if !entry.permission || hasPermission(data.user, entry.permission.resource, entry.permission.action)}
-                {@const Icon = entry.icon}
                 <li>
                   <a
                     href={entry.href}
                     class="flex items-center gap-3 p-3 rounded {(entry.matchPrefix ? pathname.startsWith(entry.href) : pathname === entry.href) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                     onclick={closeSidebar}
                   >
-                    <Icon class="size-4 shrink-0" />
+                    <Icon name={entry.icon} size={16} class="size-4 shrink-0" />
                     <span class="text-sm flex-1 whitespace-nowrap transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">{entry.label()}</span>
                     {#if entry.href === '/agile'}
                       <kbd class="kbd kbd-xs opacity-40 transition-opacity duration-150 {sidebarExpanded ? '' : 'lg:opacity-0'}">⌘K</kbd>
@@ -312,7 +312,7 @@
               </p>
               <p class="text-xs opacity-50 truncate leading-tight">{data.user.username}</p>
             </div>
-            <ChevronDown class="size-3 opacity-40 transition-[transform,opacity] duration-200 {profileOpen ? 'rotate-180' : ''} {sidebarExpanded ? '' : 'lg:opacity-0'}" />
+            <Icon name="ChevronDown" size={12} class="size-3 opacity-40 transition-[transform,opacity] duration-200 {profileOpen ? 'rotate-180' : ''} {sidebarExpanded ? '' : 'lg:opacity-0'}" />
           </button>
 
           <div class="nav-subnav" class:nav-subnav-open={profileOpen && (sidebarOpen || sidebarExpanded)}>
@@ -322,7 +322,7 @@
                 class="flex items-center gap-3 px-3 py-2 rounded text-sm {pathname === '/profile' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >
-                <User class="size-4 shrink-0" />
+                <Icon name="User" size={16} class="size-4 shrink-0" />
                 <span>{m.layout_profile()}</span>
               </a>
               {#if hasPermission(data.user, 'users', 'read') || hasPermission(data.user, 'roles', 'read')}
@@ -331,7 +331,7 @@
                   class="flex items-center gap-3 px-3 py-2 rounded text-sm {pathname === '/user-management' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                   onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
-                  <Users class="size-4 shrink-0" />
+                  <Icon name="Users" size={16} class="size-4 shrink-0" />
                   <span>{m.layout_user_management()}</span>
                 </a>
               {/if}
@@ -341,7 +341,7 @@
                   class="flex items-center gap-3 px-3 py-2 rounded text-sm {pathname === '/settings' ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                   onclick={() => { closeSidebar(); profileOpen = false; }}
                 >
-                  <Settings class="size-4 shrink-0" />
+                  <Icon name="Settings" size={16} class="size-4 shrink-0" />
                   <span>{m.layout_settings()}</span>
                 </a>
               {/if}
@@ -351,7 +351,7 @@
                 class="flex items-center gap-3 px-3 py-2 rounded text-sm {pathname.startsWith('/documentation') ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
                 onclick={() => { closeSidebar(); profileOpen = false; }}
               >
-                <HelpCircle class="size-4 shrink-0" />
+                <Icon name="HelpCircle" size={16} class="size-4 shrink-0" />
                 <span>{m.layout_support()}</span>
               </a>
               <div class="border-t border-base-300/50 my-1"></div>
@@ -360,7 +360,7 @@
                 class="flex items-center gap-3 w-full px-3 py-2 rounded text-sm text-error hover:bg-error/10 transition-colors"
                 onclick={() => { closeSidebar(); profileOpen = false; logoutForm.requestSubmit(); }}
               >
-                <LogOut class="size-4 shrink-0" />
+                <Icon name="LogOut" size={16} class="size-4 shrink-0" />
                 <span>{m.layout_sign_out()}</span>
               </button>
             </div>
@@ -381,7 +381,7 @@
           onclick={() => (sidebarOpen = !sidebarOpen)}
           aria-label={m.layout_toggle_nav()}
         >
-          <MenuIcon class="size-5" />
+          <Icon name="Menu" size={20} class="size-5" />
         </button>
         <div class="hidden lg:grid h-16 items-center transition-[grid-template-columns] duration-200 ease-in-out {sidebarExpanded ? 'grid-cols-[0fr]' : 'grid-cols-[1fr]'}">
           <div class="overflow-hidden h-full flex items-center">
@@ -401,7 +401,7 @@
         <div class="flex items-center gap-1">
           <div class="tooltip tooltip-bottom" data-tip={m.layout_messages()}>
             <a href="/messages" class="btn btn-ghost btn-sm btn-square relative">
-              <Mail class="size-4" />
+              <Icon name="Mail" size={16} class="size-4" />
               {#if unreadCount > 0}
                 <span class="bg-error absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -411,7 +411,7 @@
           </div>
           <div class="tooltip tooltip-bottom" data-tip={m.layout_notifications()}>
             <a href="/notifications" class="btn btn-ghost btn-sm btn-square relative">
-              <Bell class="size-4" />
+              <Icon name="Bell" size={16} class="size-4" />
               {#if getUnreadCount() > 0}
                 <span class="bg-error absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[2px] rounded-full text-[10px] leading-[14px] text-center text-error-content">
                   {getUnreadCount() > 99 ? '99+' : getUnreadCount()}

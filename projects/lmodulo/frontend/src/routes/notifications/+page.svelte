@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { Bell } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import NotificationItem from '$lib/components/notifications/NotificationItem.svelte';
   import { markRead, setRecentNotifications } from '$lib/stores/notifications.svelte';
   import type { AppNotification } from '$lib/stores/notifications.svelte';
@@ -66,7 +66,7 @@
 <div class="space-y-6">
   <div class="page-heading flex items-center justify-between gap-4">
     <div class="flex items-start gap-3">
-      <Bell class="size-6 shrink-0 mt-0.5" />
+      <Icon name="Bell" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold leading-none">{m.notifications_title()}</h1>
         <p class="text-xs opacity-60 mt-0.5">{m.notifications_subtitle()}</p>
@@ -104,7 +104,7 @@
   <div class="card bg-base-100 border border-base-300 divide-y divide-base-300 rounded-box">
     {#if items.length === 0 && !loading}
       <div class="py-12 text-center opacity-50">
-        <Bell class="size-8 mx-auto mb-2" />
+        <Icon name="Bell" size={32} class="size-8 mx-auto mb-2" />
         <p class="text-sm">{m.notifications_none()}</p>
       </div>
     {:else}

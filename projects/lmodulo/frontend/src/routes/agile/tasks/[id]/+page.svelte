@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { X, Copy, AlertCircle, Trash2, Pencil } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
@@ -134,7 +134,7 @@
         class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
         onclick={() => navigator.clipboard.writeText(task.id ?? '')}
         title="Copy task ID"
-      >{task.id} <Copy class="size-2.5 shrink-0" /></button>
+      >{task.id} <Icon name="Copy" size={12} class="size-2.5 shrink-0" /></button>
     </div>
 
     <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
@@ -144,14 +144,14 @@
         <span class="badge text-xs {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
         {#if task.status === 'Blocked'}
           <span class="flex items-center gap-1 text-xs text-error">
-            <AlertCircle class="size-3.5" /> Blocked
+            <Icon name="AlertCircle" size={14} class="size-3.5" /> Blocked
           </span>
         {/if}
       </div>
       <div class="flex items-center gap-2 shrink-0">
         {#if hasPermission(data.user, 'agile_tasks', 'update')}
           <button class="btn btn-ghost btn-sm" onclick={openEdit}>
-            <Pencil class="size-4" /> Edit
+            <Icon name="Pencil" size={16} class="size-4" /> Edit
           </button>
         {/if}
         {#if hasPermission(data.user, 'agile_tasks', 'delete')}
@@ -163,7 +163,7 @@
             <button class="btn btn-ghost btn-sm" onclick={() => { deleteConfirm = false; deleteError = ''; }}>Cancel</button>
           {:else}
             <button class="btn btn-ghost btn-sm text-error hover:bg-error/10" onclick={() => deleteConfirm = true}>
-              <Trash2 class="size-4" /> Delete
+              <Icon name="Trash2" size={16} class="size-4" /> Delete
             </button>
           {/if}
         {/if}
@@ -185,7 +185,7 @@
   <!-- Blocked reason -->
   {#if task.status === 'Blocked' && task.blockedReason}
     <aside class="alert alert-error p-3 rounded text-sm flex items-start gap-2">
-      <AlertCircle class="size-4 shrink-0 mt-0.5" />
+      <Icon name="AlertCircle" size={16} class="size-4 shrink-0 mt-0.5" />
       <span>{task.blockedReason}</span>
     </aside>
   {/if}
@@ -263,7 +263,7 @@
   <Modal size="md" label="Edit task">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Task</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editing = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editing = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if editError}

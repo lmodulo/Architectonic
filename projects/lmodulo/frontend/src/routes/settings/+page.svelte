@@ -1,7 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
-  import { Settings } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import LogoIcon from '$lib/components/LogoIcon.svelte';
   import type { PageData } from './$types';
   import { m } from '$lib/paraglide/messages.js';
@@ -153,7 +153,7 @@
 
   <!-- Page heading -->
   <div class="page-heading flex items-start gap-3">
-    <Settings class="size-6 shrink-0 mt-0.5" />
+    <Icon name="Settings" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold leading-none">{m.settings_title()}</h1>
       <p class="text-xs opacity-60 mt-0.5">{m.settings_subtitle()}</p>

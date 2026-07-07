@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, Zap, LayoutGrid, Trash2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
   import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
@@ -259,7 +259,7 @@
             <button class="btn btn-ghost btn-sm" onclick={() => { deleteConfirm = false; deleteError = ''; }}>Cancel</button>
           {:else}
             <button class="btn btn-ghost btn-sm text-error hover:bg-error/10" onclick={() => deleteConfirm = true}>
-              <Trash2 class="size-4" /> Delete
+              <Icon name="Trash2" size={16} class="size-4" /> Delete
             </button>
           {/if}
         {/if}
@@ -293,7 +293,7 @@
     <!-- Velocity chart (SVG mini-bar) -->
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-2">
       <div class="flex items-center gap-2">
-        <Zap class="size-4 text-warning" />
+        <Icon name="Zap" size={16} class="size-4 text-warning" />
         <span class="text-xs font-semibold opacity-70">Velocity</span>
       </div>
       <svg viewBox="0 0 120 60" width="100%" height="60" class="block" aria-hidden="true">
@@ -312,7 +312,7 @@
 
     <!-- Jobs -->
     <div class="card bg-base-200 border border-base-300 rounded-box p-4 flex items-start gap-3">
-      <div class="p-2 rounded-lg bg-primary/15"><LayoutGrid class="size-4 text-primary"/></div>
+      <div class="p-2 rounded-lg bg-primary/15"><Icon name="LayoutGrid" size={16} class="size-4 text-primary"/></div>
       <div>
         <p class="text-xs opacity-60 uppercase tracking-wide font-medium">Jobs</p>
         <p class="text-xl font-bold">{jobs.length}</p>
@@ -341,7 +341,7 @@
         <h2 class="text-base font-semibold">Jobs</h2>
         {#if hasPermission(data.user, 'agile_jobs', 'create')}
           <button class="btn btn-primary btn-sm" onclick={openJobModal}>
-            <Plus class="size-3.5" /> New Job
+            <Icon name="Plus" size={14} class="size-3.5" /> New Job
           </button>
         {/if}
       </div>
@@ -400,7 +400,7 @@
         <h2 class="text-base font-semibold">Jobs</h2>
         {#if hasPermission(data.user, 'agile_jobs', 'create')}
           <button class="btn btn-primary btn-sm" onclick={openJobModal}>
-            <Plus class="size-3.5" /> New Job
+            <Icon name="Plus" size={14} class="size-3.5" /> New Job
           </button>
         {/if}
       </div>
@@ -528,7 +528,7 @@
   <Modal size="lg" label="New Job">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">New Job</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobModal = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobModal = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if jobError}
@@ -581,7 +581,7 @@
   <Modal size="lg" label="Edit Sprint">
       <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">Edit Sprint</h2>
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintEditing = false)}><X class="size-5"/></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (sprintEditing = false)}><Icon name="X" size={20} class="size-5"/></button>
       </header>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if sprintEditError}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowLeft, Printer } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -44,10 +44,10 @@
   <!-- Actions bar (hidden when printing) -->
   <div class="flex items-center justify-between mb-6 print:hidden">
     <a href="/client-portal/invoices" class="btn btn-sm btn-ghost gap-1">
-      <ArrowLeft class="w-4 h-4" /> Back
+      <Icon name="ArrowLeft" size={16} class="w-4 h-4" /> Back
     </a>
     <button class="btn btn-sm btn-ghost gap-1" onclick={() => window.open(`/invoice/${inv.id}`, '_blank')}>
-      <Printer class="w-4 h-4" /> Print / Save as PDF
+      <Icon name="Printer" size={16} class="w-4 h-4" /> Print / Save as PDF
     </button>
   </div>
 

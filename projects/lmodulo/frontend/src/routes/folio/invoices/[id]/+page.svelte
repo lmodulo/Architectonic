@@ -1,7 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
-  import { Send, CheckCircle, AlertCircle, Clock, Circle, Pencil, X, Check, Trash2, Printer } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { slide } from 'svelte/transition';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import type { PageData } from './$types';
@@ -133,21 +133,21 @@
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <button class="btn btn-ghost btn-sm" onclick={() => window.open(`/invoice/${invoice.id}`, '_blank')} title="Print / Save as PDF">
-          <Printer class="size-4" />
+          <Icon name="Printer" size={16} class="size-4" />
         </button>
         {#if hasPermission(data.user, 'finance_invoices', 'update') && !editing}
           <button class="btn btn-ghost btn-sm" onclick={() => { editForm = { ...invoice }; editing = true; }}>
-            <Pencil class="size-4" /> Edit
+            <Icon name="Pencil" size={16} class="size-4" /> Edit
           </button>
         {/if}
         {#if invoice.status === 'proposal' && hasPermission(data.user, 'finance_invoices', 'update')}
           <button class="btn btn-primary btn-sm" disabled={saving} onclick={convertToInvoice}>
-            <CheckCircle class="size-4" /> Convert to Invoice
+            <Icon name="CheckCircle" size={16} class="size-4" /> Convert to Invoice
           </button>
         {/if}
         {#if invoice.status === 'draft' && hasPermission(data.user, 'finance_invoices', 'update')}
           <button class="btn btn-primary btn-sm" disabled={saving} onclick={markSent}>
-            <Send class="size-4" /> Send to client
+            <Icon name="Send" size={16} class="size-4" /> Send to client
           </button>
         {/if}
       </div>
@@ -211,8 +211,8 @@
       </div>
 
       <div class="flex gap-2 justify-end">
-        <button class="btn btn-ghost btn-sm" onclick={() => (editing = false)}><X class="size-4" /> Cancel</button>
-        <button class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}><Check class="size-4" /> {saving ? 'Saving…' : 'Save'}</button>
+        <button class="btn btn-ghost btn-sm" onclick={() => (editing = false)}><Icon name="X" size={16} class="size-4" /> Cancel</button>
+        <button class="btn btn-primary btn-sm" disabled={saving} onclick={saveEdit}><Icon name="Check" size={16} class="size-4" /> {saving ? 'Saving…' : 'Save'}</button>
       </div>
     </div>
   {/if}

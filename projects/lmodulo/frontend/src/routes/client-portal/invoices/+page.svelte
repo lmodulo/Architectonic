@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { FileText, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -65,7 +65,7 @@
 
 <div class="p-6 max-w-5xl mx-auto">
   <div class="flex items-center gap-3 mb-6">
-    <FileText class="w-6 h-6 opacity-60" />
+    <Icon name="FileText" size={24} class="w-6 h-6 opacity-60" />
     <div>
       <h1 class="text-xl font-semibold">Invoices</h1>
       <p class="text-sm opacity-60">Your billing history</p>
@@ -84,7 +84,7 @@
 
   {#if invoices.length === 0}
     <div class="text-center py-16 opacity-40">
-      <FileText class="w-10 h-10 mx-auto mb-3" />
+      <Icon name="FileText" size={40} class="w-10 h-10 mx-auto mb-3" />
       <p>No invoices found</p>
     </div>
   {:else}
@@ -123,10 +123,10 @@
       <div class="flex items-center justify-end gap-2 mt-4 text-sm">
         <span class="opacity-60">{data.skip + 1}–{Math.min(data.skip + PAGE_SIZE, data.total)} of {data.total}</span>
         <button class="btn btn-sm btn-ghost" disabled={data.skip === 0} onclick={() => goPage(-1)}>
-          <ChevronLeft class="w-4 h-4" />
+          <Icon name="ChevronLeft" size={16} class="w-4 h-4" />
         </button>
         <button class="btn btn-sm btn-ghost" disabled={data.skip + PAGE_SIZE >= data.total} onclick={() => goPage(1)}>
-          <ChevronRight class="w-4 h-4" />
+          <Icon name="ChevronRight" size={16} class="w-4 h-4" />
         </button>
       </div>
     {/if}

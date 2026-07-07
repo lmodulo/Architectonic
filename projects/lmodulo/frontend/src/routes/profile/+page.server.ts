@@ -1,5 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { m } from '$lib/paraglide/messages.js';
 import type { PageServerLoad, Actions } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
@@ -42,8 +43,9 @@ export const actions: Actions = {
 
     if (!apiRes.ok) {
       const body = await apiRes.json().catch(() => ({}));
+      const message = (body as { message?: string }).message;
       return fail(apiRes.status, {
-        error: (body as { message?: string }).message ?? 'Update failed'
+        error: message === 'phone_invalid' ? m.errors_phone_invalid() : (message ?? 'Update failed')
       });
     }
 

@@ -1,8 +1,9 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
-  import { CircleUser } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import AvatarCropper from '$lib/components/AvatarCropper.svelte';
+  import PhoneInput from '$lib/components/PhoneInput.svelte';
   import type { PageData, ActionData } from './$types';
   import { m } from '$lib/paraglide/messages.js';
 
@@ -15,6 +16,7 @@
   let username  = $state(data.user?.username  ?? '');
   let email     = $state(data.user?.email     ?? '');
   let phone     = $state(data.user?.phone     ?? '');
+  let phoneValid = $state(true);
 
   let activeTab = $state<'profile' | 'avatar' | 'teams'>('profile');
 
@@ -108,7 +110,7 @@
 
   <!-- Page heading -->
   <div class="page-heading flex items-start gap-3">
-    <CircleUser class="size-6 shrink-0 mt-0.5" />
+    <Icon name="CircleUser" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold leading-none">{m.profile_title()}</h1>
       <p class="text-xs opacity-60 mt-0.5">{m.profile_subtitle()}</p>
@@ -175,9 +177,9 @@
         </label>
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium">Phone</span>
-          <input type="tel" name="phone" class="input" bind:value={phone} maxlength="30" placeholder="+1 555 000 0000" autocomplete="tel" />
+          <PhoneInput bind:value={phone} bind:valid={phoneValid} name="phone" />
         </label>
-        <button type="submit" class="btn btn-primary w-full">{m.common_save_changes()}</button>
+        <button type="submit" class="btn btn-primary w-full" disabled={!phoneValid}>{m.common_save_changes()}</button>
       </form>
     </div>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { LayoutGrid, KanbanSquare, GanttChart, CalendarDays, ClipboardList, BarChart2, ListChecks, Clock, Milestone } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { hasPermission } from '$lib/permissions';
   import { m } from '$lib/paraglide/messages.js';
   import type { LayoutData } from './$types';
@@ -9,14 +9,14 @@
   let { data, children }: { data: LayoutData; children: any } = $props();
 
   const navLinks = $derived([
-    { href: '/agile',          label: m.agile_tab_overview(),  icon: LayoutGrid    },
-    { href: '/agile/board',    label: m.agile_tab_board(),     icon: KanbanSquare  },
-    { href: '/agile/plan',     label: m.agile_tab_plan(),      icon: ClipboardList },
-    { href: '/agile/timeline', label: m.agile_tab_timeline(),  icon: GanttChart    },
-    { href: '/agile/calendar', label: m.agile_tab_calendar(),  icon: CalendarDays  },
-    { href: '/agile/reports',  label: m.agile_tab_reports(),   icon: BarChart2     },
-    { href: '/agile/my-tasks', label: m.agile_tab_my_tasks(),  icon: ListChecks    },
-    { href: '/agile/time',     label: m.agile_tab_time(),      icon: Clock         },
+    { href: '/agile',          label: m.agile_tab_overview(),  icon: 'LayoutGrid'    },
+    { href: '/agile/board',    label: m.agile_tab_board(),     icon: 'KanbanSquare'  },
+    { href: '/agile/plan',     label: m.agile_tab_plan(),      icon: 'ClipboardList' },
+    { href: '/agile/timeline', label: m.agile_tab_timeline(),  icon: 'GanttChart'    },
+    { href: '/agile/calendar', label: m.agile_tab_calendar(),  icon: 'CalendarDays'  },
+    { href: '/agile/reports',  label: m.agile_tab_reports(),   icon: 'BarChart2'     },
+    { href: '/agile/my-tasks', label: m.agile_tab_my_tasks(),  icon: 'ListChecks'    },
+    { href: '/agile/time',     label: m.agile_tab_time(),      icon: 'Clock'         },
   ]);
 
   const overviewPrefixes = ['/agile/milestones', '/agile/sprints', '/agile/jobs', '/agile/tasks'];
@@ -39,7 +39,7 @@
 <div data-no-anim class="flex flex-col gap-6">
   <!-- Page header -->
   <div class="page-heading flex items-start gap-3">
-    <Milestone class="size-6 shrink-0 mt-0.5" />
+    <Icon name="Milestone" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold leading-none">{m.agile_title()}</h1>
       <p class="text-xs opacity-60 mt-0.5">{m.agile_subtitle()}</p>
@@ -57,7 +57,7 @@
               ? (link.href === '/agile' ? levelActiveClass : 'bg-primary text-primary-content')
               : 'opacity-60 hover:opacity-100 hover:bg-base-300/50'}"
         >
-          <svelte:component this={link.icon} class="size-4" />
+          <Icon name={link.icon} size={16} class="size-4" />
           {link.label}
         </a>
       {/each}

@@ -2,7 +2,7 @@
   import EventTypeBadge from './EventTypeBadge.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { fmtDateRange, fmtShortRange, typePreset, type CalendarEvent } from '$lib/utils/calendarEvents';
-  import { MapPin, User } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
 
   let {
     event,
@@ -37,13 +37,13 @@
       <p class="text-sm opacity-60">{compact ? fmtShortRange(event) : fmtDateRange(event)}</p>
       {#if event.location}
         <p class="text-xs opacity-50 flex items-center gap-1">
-          <MapPin class="size-3" />
+          <Icon name="MapPin" size={12} class="size-3" />
           {event.location}
         </p>
       {/if}
       {#if !compact && event.ownerName}
         <p class="text-xs opacity-40 flex items-center gap-1 mt-0.5">
-          <User class="size-3 shrink-0" />
+          <Icon name="User" size={12} class="size-3 shrink-0" />
           {m.event_card_by()} {event.ownerName}
           {#if event.visibility === 'public'}
             · {m.event_card_public()}

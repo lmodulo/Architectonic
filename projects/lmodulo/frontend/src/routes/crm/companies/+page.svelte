@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Plus, X, Search, Building2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import {
@@ -84,7 +84,7 @@
     <h2 class="text-lg font-semibold">Companies <span class="text-sm opacity-40 font-normal">({total})</span></h2>
     <div class="flex flex-col items-end gap-2">
       <div class="relative">
-        <Search class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 opacity-40" />
+        <Icon name="Search" size={14} class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 opacity-40" />
         <input
           type="search" placeholder="Search…" class="input input-sm pl-7 w-44"
           bind:value={search} oninput={onSearchInput}
@@ -100,7 +100,7 @@
       </select>
       {#if hasPermission(data.user, 'crm_companies', 'create')}
         <button class="btn btn-primary btn-sm" onclick={openModal}>
-          <Plus class="size-4" /> New Company
+          <Icon name="Plus" size={16} class="size-4" /> New Company
         </button>
       {/if}
     </div>
@@ -108,7 +108,7 @@
 
   {#if companies.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-10 text-center opacity-50">
-      <Building2 class="size-8 opacity-40 mx-auto mb-2" />
+      <Icon name="Building2" size={32} class="size-8 opacity-40 mx-auto mb-2" />
       <p class="text-sm">No companies yet.{#if hasPermission(data.user, 'crm_companies', 'create')} Add one to get started.{/if}</p>
     </div>
   {:else}
@@ -126,7 +126,7 @@
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">New Company</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (modalOpen = false)}>
-        <X class="size-5" />
+        <Icon name="X" size={20} class="size-5" />
       </button>
     </header>
     <div class="p-6 space-y-4 overflow-y-auto flex-1">

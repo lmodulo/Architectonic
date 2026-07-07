@@ -1,9 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import {
-    ArrowLeft, Download, Upload, Pencil, Check, X, Clock, FileText,
-    File as FileIcon, Trash2, Save, SquarePen
-  } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
   import { hasPermission } from '$lib/permissions';
@@ -244,7 +241,7 @@
   <!-- Back + actions header -->
   <div class="page-heading flex items-start justify-between gap-4">
     <div class="flex items-center gap-3">
-      <a href="/vault" class="btn btn-ghost btn-square btn-sm"><ArrowLeft class="size-4" /></a>
+      <a href="/vault" class="btn btn-ghost btn-square btn-sm"><Icon name="ArrowLeft" size={16} class="size-4" /></a>
       <div>
         <h1 class="text-2xl font-bold leading-none">{doc.name}</h1>
         <p class="text-xs opacity-50 mt-0.5">
@@ -256,31 +253,31 @@
     <div class="flex gap-2 shrink-0">
       {#if hasPermission(data.user, 'vault_documents', 'update')}
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openVersion}>
-          <Upload class="size-4" /><span class="hidden sm:inline">New Version</span>
+          <Icon name="Upload" size={16} class="size-4" /><span class="hidden sm:inline">New Version</span>
         </button>
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openEdit}>
-          <Pencil class="size-4" /><span class="hidden sm:inline">Edit</span>
+          <Icon name="Pencil" size={16} class="size-4" /><span class="hidden sm:inline">Edit</span>
         </button>
         {#if currentVersion && isMarkdown(currentVersion.mimetype, currentVersion.originalName) && markdownHtml !== null}
           {#if editingRaw}
             <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={cancelEditRaw}>
-              <X class="size-4" /><span class="hidden sm:inline">Cancel</span>
+              <Icon name="X" size={16} class="size-4" /><span class="hidden sm:inline">Cancel</span>
             </button>
             <button type="button" class="btn btn-primary btn-sm gap-1" disabled={rawSaving} onclick={saveRaw}>
-              <Save class="size-4" /><span>{rawSaving ? 'Saving…' : 'Save Changes'}</span>
+              <Icon name="Save" size={16} class="size-4" /><span>{rawSaving ? 'Saving…' : 'Save Changes'}</span>
             </button>
           {:else}
             <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openEditRaw}>
-              <SquarePen class="size-4" /><span class="hidden sm:inline">Edit Document</span>
+              <Icon name="SquarePen" size={16} class="size-4" /><span class="hidden sm:inline">Edit Document</span>
             </button>
           {/if}
         {/if}
       {/if}
       <button type="button" class="btn btn-primary btn-sm gap-1" onclick={download}>
-        <Download class="size-4" /><span>Download</span>
+        <Icon name="Download" size={16} class="size-4" /><span>Download</span>
       </button>
       {#if hasPermission(data.user, 'vault_documents', 'delete')}
-        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteOpen = true)}><Trash2 class="size-4" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteOpen = true)}><Icon name="Trash2" size={16} class="size-4" /></button>
       {/if}
     </div>
   </div>
@@ -325,14 +322,14 @@
             </div>
           {:else}
             <div class="flex flex-col items-center gap-3 py-16 opacity-40">
-              <FileText class="size-12" />
+              <Icon name="FileText" size={48} class="size-12" />
               <p class="text-sm">{currentVersion.originalName}</p>
               <p class="text-xs">{fmtSize(currentVersion.size)}</p>
             </div>
           {/if}
         {:else}
           <div class="flex flex-col items-center gap-3 py-16 opacity-30">
-            <FileIcon class="size-12" />
+            <Icon name="File" size={48} class="size-12" />
             <p class="text-sm">No preview available</p>
           </div>
         {/if}
@@ -383,7 +380,7 @@
       <!-- Version history card -->
       <div class="bg-base-200 border border-base-300 rounded-box overflow-hidden">
         <div class="flex items-center gap-2 px-4 py-3 border-b border-base-300">
-          <Clock class="size-3.5 opacity-50" />
+          <Icon name="Clock" size={14} class="size-3.5 opacity-50" />
           <h2 class="text-sm font-semibold">Version History</h2>
         </div>
         <ul class="divide-y divide-base-300">
@@ -407,7 +404,7 @@
                   title="Set as current"
                   onclick={() => setCurrentVersion(v.id)}
                 >
-                  <Check class="size-3" />
+                  <Icon name="Check" size={12} class="size-3" />
                 </button>
               {/if}
             </li>
@@ -426,7 +423,7 @@
   <Modal size="md" label="Edit Document">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">Edit Document</h2>
-      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editOpen = false)}><X class="size-5" /></button>
+      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editOpen = false)}><Icon name="X" size={20} class="size-5" /></button>
     </header>
     <div class="p-6 space-y-4 overflow-y-auto flex-1">
       {#if editError}<aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>{/if}
@@ -484,7 +481,7 @@
   <Modal size="sm" label="Upload New Version">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">Upload New Version</h2>
-      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (versionOpen = false)}><X class="size-5" /></button>
+      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (versionOpen = false)}><Icon name="X" size={20} class="size-5" /></button>
     </header>
     <div class="p-6 space-y-4">
       {#if versionError}<aside class="alert alert-error p-3 rounded text-sm">{versionError}</aside>{/if}
@@ -512,7 +509,7 @@
   <Modal size="sm" label="Delete Document">
     <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
       <h2 class="text-lg font-semibold">Delete Document</h2>
-      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteOpen = false)}><X class="size-5" /></button>
+      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteOpen = false)}><Icon name="X" size={20} class="size-5" /></button>
     </header>
     <div class="p-6 space-y-3">
       {#if deleteError}<aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>{/if}

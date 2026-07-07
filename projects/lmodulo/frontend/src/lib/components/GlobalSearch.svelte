@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Search, Loader2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { goto } from '$app/navigation';
   import { m } from '$lib/paraglide/messages.js';
 
@@ -132,9 +132,9 @@
 <div class="relative flex-1 max-w-sm" bind:this={containerEl}>
   <label class="input input-sm w-full flex items-center gap-2 bg-base-100 border-base-300">
     {#if loading}
-      <Loader2 class="size-3.5 shrink-0 opacity-50 animate-spin" />
+      <Icon name="Loader2" size={14} class="size-3.5 shrink-0 opacity-50 animate-spin" />
     {:else}
-      <Search class="size-3.5 shrink-0 opacity-50" />
+      <Icon name="Search" size={14} class="size-3.5 shrink-0 opacity-50" />
     {/if}
     <input
       bind:this={inputEl}

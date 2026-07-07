@@ -1,22 +1,21 @@
 <script lang="ts">
-  import { Bell, Mail, ShieldCheck, Users, ShoppingCart, Package, Layers } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import type { AppNotification } from '$lib/stores/notifications.svelte';
-  import type { Component } from 'svelte';
 
   let { notification, onclick }: {
     notification: AppNotification;
     onclick?: (n: AppNotification) => void;
   } = $props();
 
-  function iconFor(type: string): Component {
-    if (type.startsWith('message.'))   return Mail;
-    if (type.startsWith('auth.') || type.startsWith('account.')) return ShieldCheck;
-    if (type.startsWith('role.') || type.startsWith('rbac.'))    return Users;
-    if (type.startsWith('order.'))     return ShoppingCart;
-    if (type.startsWith('product.') || type.startsWith('stock.')) return Package;
-    if (type.startsWith('agile_'))    return Layers;
-    return Bell;
+  function iconFor(type: string): string {
+    if (type.startsWith('message.'))   return 'Mail';
+    if (type.startsWith('auth.') || type.startsWith('account.')) return 'ShieldCheck';
+    if (type.startsWith('role.') || type.startsWith('rbac.'))    return 'Users';
+    if (type.startsWith('order.'))     return 'ShoppingCart';
+    if (type.startsWith('product.') || type.startsWith('stock.')) return 'Package';
+    if (type.startsWith('agile_'))    return 'Layers';
+    return 'Bell';
   }
 
   function timeAgo(iso: string): string {
@@ -30,7 +29,7 @@
     return m.time_days_ago({ count: days });
   }
 
-  const Icon = $derived(iconFor(notification.type));
+  const iconName = $derived(iconFor(notification.type));
 </script>
 
 <button
@@ -40,7 +39,7 @@
   onclick={() => onclick?.(notification)}
 >
   <div class="mt-0.5 shrink-0 {notification.read ? 'opacity-50' : 'text-primary'}">
-    <Icon class="size-4" />
+    <Icon name={iconName} size={16} class="size-4" />
   </div>
 
   <div class="flex-1 min-w-0">

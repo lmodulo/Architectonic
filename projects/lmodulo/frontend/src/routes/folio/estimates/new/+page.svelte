@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { Plus, Trash2 } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Breadcrumb from '$lib/components/folio/Breadcrumb.svelte';
   import type { PageData, ActionData } from './$types';
 
@@ -107,14 +107,14 @@
               onclick={() => removeLine(i)}
               disabled={lineItems.length === 1}
             >
-              <Trash2 class="size-3.5" />
+              <Icon name="Trash2" size={14} class="size-3.5" />
             </button>
           </div>
         {/each}
       </div>
 
       <button type="button" class="btn btn-ghost btn-sm" onclick={addLine}>
-        <Plus class="size-4" />
+        <Icon name="Plus" size={16} class="size-4" />
         Add line
       </button>
 

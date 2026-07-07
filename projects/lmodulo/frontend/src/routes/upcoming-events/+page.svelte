@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  import { CalendarDays } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -55,7 +55,7 @@
 
   {#if groups.length === 0}
     <div class="card bg-base-200 border border-base-300 p-10 text-center space-y-2 rounded-box">
-      <CalendarDays class="size-8 opacity-20 mx-auto mb-2" />
+      <Icon name="CalendarDays" size={32} class="size-8 opacity-20 mx-auto mb-2" />
       <p class="text-lg font-semibold opacity-50">No upcoming events scheduled.</p>
       <p class="text-sm opacity-40">Check back soon.</p>
     </div>

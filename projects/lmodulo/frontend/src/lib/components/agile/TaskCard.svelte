@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GripVertical, Clock, AlertCircle, Copy } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import { STATUS_COLOR, PRIORITY_COLOR, fmtEffort, fmtDate } from '$lib/utils/agile';
   import type { AgileTask } from '$lib/utils/agile';
@@ -36,7 +36,7 @@
   <!-- Title row -->
   <div class="flex items-start gap-1.5">
     {#if draggable}
-      <GripVertical class="size-3.5 shrink-0 opacity-30 mt-0.5" />
+      <Icon name="GripVertical" size={14} class="size-3.5 shrink-0 opacity-30 mt-0.5" />
     {/if}
     <p class="text-sm font-medium leading-snug flex-1 min-w-0">{task.title}</p>
   </div>
@@ -47,7 +47,7 @@
     <span class="badge text-[10px] {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
     {#if isBlocked}
       <span class="flex items-center gap-0.5 text-[10px] text-error">
-        <AlertCircle class="size-2.5" /> {m.agile_task_blocked()}
+        <Icon name="AlertCircle" size={10} class="size-2.5" /> {m.agile_task_blocked()}
       </span>
     {/if}
   </div>
@@ -55,7 +55,7 @@
   <!-- Estimate & due date -->
   <div class="flex items-center justify-between text-[10px] opacity-50">
     <span class="flex items-center gap-0.5">
-      <Clock class="size-3" />
+      <Icon name="Clock" size={12} class="size-3" />
       {fmtEffort(task.estimateHours)}
       {#if task.actualHours}
         · {fmtEffort(task.actualHours)} logged
@@ -72,6 +72,6 @@
       class="flex items-center gap-1 font-mono text-[10px] opacity-30 hover:opacity-60 transition-opacity cursor-copy w-fit"
       onclick={e => { e.stopPropagation(); navigator.clipboard.writeText(jobName); }}
       title="Copy job name"
-    >{jobName} <Copy class="size-2.5 shrink-0" /></button>
+    >{jobName} <Icon name="Copy" size={10} class="size-2.5 shrink-0" /></button>
   {/if}
 </div>

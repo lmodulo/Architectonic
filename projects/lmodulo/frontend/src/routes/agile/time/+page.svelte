@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { Clock, Play, Square, Plus, ChevronLeft, ChevronRight, Timer, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import { openLogTimePalette, getLastSavedEntry, getLastTimerStarted, getCachedTasks } from '$lib/stores/logTimePalette.svelte';
 
@@ -235,7 +235,7 @@
   <!-- Timer banner -->
   {#if activeTimer}
     <div class="bg-success/15 border border-success/30 rounded-box px-4 py-3 flex items-center gap-3 flex-wrap">
-      <Timer class="size-4 text-success shrink-0" />
+      <Icon name="Timer" size={16} class="size-4 text-success shrink-0" />
       <div class="flex-1 min-w-0">
         <p class="text-sm font-semibold leading-tight truncate">{activeTimer.task?.title ?? 'Unknown task'}</p>
         {#if activeTimer.task?.jobTitle}
@@ -244,7 +244,7 @@
       </div>
       <span class="font-mono text-lg font-bold tabular-nums text-success">{fmtElapsed(elapsedSeconds)}</span>
       <button class="btn btn-sm btn-error" onclick={stopTimer} disabled={timerStopping}>
-        <Square class="size-3.5" />Stop
+        <Icon name="Square" size={14} class="size-3.5" />Stop
       </button>
       <button class="btn btn-sm btn-ghost" onclick={() => openLogTimePalette()}>Switch task</button>
     </div>
@@ -258,15 +258,15 @@
     </div>
     <div class="flex items-center gap-1 ml-auto">
       <button class="btn btn-sm btn-ghost btn-circle" onclick={() => shiftWeek(-1)}>
-        <ChevronLeft class="size-4" />
+        <Icon name="ChevronLeft" size={16} class="size-4" />
       </button>
       <span class="text-sm font-medium px-2 whitespace-nowrap">{weekLabel}</span>
       <button class="btn btn-sm btn-ghost btn-circle" onclick={() => shiftWeek(1)}>
-        <ChevronRight class="size-4" />
+        <Icon name="ChevronRight" size={16} class="size-4" />
       </button>
     </div>
     <button class="btn btn-sm btn-primary" onclick={() => openLogTimePalette()}>
-      <Plus class="size-4" />Log time
+      <Icon name="Plus" size={16} class="size-4" />Log time
       <kbd class="kbd kbd-xs opacity-60">⌘K</kbd>
     </button>
   </div>
@@ -274,7 +274,7 @@
   <!-- Week grid -->
   {#if rowTaskIds.length === 0}
     <div class="card bg-base-200 border border-base-300 rounded-box p-14 text-center">
-      <Clock class="size-8 mx-auto mb-3 opacity-30" />
+      <Icon name="Clock" size={24} class="size-8 mx-auto mb-3 opacity-30" />
       <p class="text-sm opacity-50">No entries this week and no assigned tasks.</p>
       <p class="text-xs opacity-40 mt-1">Press <kbd class="kbd kbd-xs">⌘K</kbd> to log time on any task.</p>
     </div>
@@ -288,9 +288,9 @@
               <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleTimeSort('title')}>
                 Task
                 {#if timeSortField === 'title'}
-                  {#if timeSortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                  {#if timeSortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                 {:else}
-                  <ChevronsUpDown class="size-3 opacity-30" />
+                  <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                 {/if}
               </button>
             </th>
@@ -304,9 +304,9 @@
               <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity ml-auto" onclick={() => toggleTimeSort('total')}>
                 Total
                 {#if timeSortField === 'total'}
-                  {#if timeSortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                  {#if timeSortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                 {:else}
-                  <ChevronsUpDown class="size-3 opacity-30" />
+                  <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                 {/if}
               </button>
             </th>
@@ -383,7 +383,7 @@
             </p>
           </div>
           <button class="btn btn-xs btn-ghost btn-circle shrink-0" onclick={() => cellOpen = false}>
-            <X class="size-3.5" />
+            <Icon name="X" size={14} class="size-3.5" />
           </button>
         </div>
 
@@ -392,7 +392,7 @@
           <div class="space-y-1">
             {#each cellCurrentEntries as e (e.id)}
               <div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-2">
-                <Clock class="size-3.5 opacity-40 shrink-0" />
+                <Icon name="Clock" size={14} class="size-3.5 opacity-40 shrink-0" />
                 <span class="text-sm font-medium">{fmtMins(e.durationMinutes)}</span>
                 {#if e.note}
                   <span class="text-xs opacity-50 flex-1 truncate">{e.note}</span>
@@ -402,7 +402,7 @@
                 <button
                   class="btn btn-xs btn-ghost opacity-30 hover:opacity-100 hover:btn-error"
                   onclick={() => deleteCellEntry(e.id)}
-                ><X class="size-3" /></button>
+                ><Icon name="X" size={12} class="size-3" /></button>
               </div>
             {/each}
           </div>
@@ -442,7 +442,7 @@
               <button
                 class="btn btn-sm btn-success btn-outline"
                 onclick={async () => { await startTimer(cellTaskId); cellOpen = false; }}
-              ><Play class="size-3.5" />Timer</button>
+              ><Icon name="Play" size={14} class="size-3.5" />Timer</button>
             {/if}
           </div>
         </div>

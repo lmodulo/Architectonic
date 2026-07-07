@@ -4,11 +4,7 @@
   import { tick } from 'svelte';
   import { APP_THEME } from '$lib/config/theme';
   import { scrollStore } from '$lib/stores/scroll';
-  import {
-    Menu as MenuIcon, X,
-    BookOpen, Rocket, Layers, Lock, ShieldCheck,
-    Code2, ListTodo, Mail, CalendarDays, Settings, Handshake, Receipt, Zap, Building2, Clock, FileSignature, FolderLock,
-  } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
   import Logo from '$lib/components/Logo.svelte';
@@ -34,23 +30,23 @@
   const BASE = '/documentation';
 
   const sections = [
-    { label: 'Overview',           href: BASE,                        icon: BookOpen,    exact: true },
-    { label: 'Getting Started',    href: `${BASE}/getting-started`,   icon: Rocket },
-    { label: 'Architecture',       href: `${BASE}/architecture`,      icon: Layers },
-    { label: 'Authentication',     href: `${BASE}/authentication`,    icon: Lock },
-    { label: 'Roles & Permissions',href: `${BASE}/rbac`,              icon: ShieldCheck },
-    { label: 'Workspaces',         href: `${BASE}/workspaces`,        icon: Building2 },
-    { label: 'API Reference',      href: `${BASE}/api`,               icon: Code2 },
-    { label: 'Agile Module',       href: `${BASE}/agile`,             icon: ListTodo },
-    { label: 'Time Tracking',      href: `${BASE}/time`,              icon: Clock },
-    { label: 'Nexus CRM',         href: `${BASE}/crm`,               icon: Handshake },
-    { label: 'Folio',             href: `${BASE}/folio`,             icon: Receipt },
-    { label: 'Contracts',         href: `${BASE}/contracts`,         icon: FileSignature },
-    { label: 'Vault',             href: `${BASE}/vault`,             icon: FolderLock },
-    { label: 'Messaging',          href: `${BASE}/messaging`,         icon: Mail },
-    { label: 'Calendar & Events',  href: `${BASE}/calendar`,          icon: CalendarDays },
-    { label: 'Automation',         href: `${BASE}/automation`,        icon: Zap },
-    { label: 'Administration',     href: `${BASE}/administration`,    icon: Settings },
+    { label: 'Overview',           href: BASE,                        icon: 'BookOpen',    exact: true },
+    { label: 'Getting Started',    href: `${BASE}/getting-started`,   icon: 'Rocket' },
+    { label: 'Architecture',       href: `${BASE}/architecture`,      icon: 'Layers' },
+    { label: 'Authentication',     href: `${BASE}/authentication`,    icon: 'Lock' },
+    { label: 'Roles & Permissions',href: `${BASE}/rbac`,              icon: 'ShieldCheck' },
+    { label: 'Workspaces',         href: `${BASE}/workspaces`,        icon: 'Building2' },
+    { label: 'API Reference',      href: `${BASE}/api`,               icon: 'Code2' },
+    { label: 'Agile Module',       href: `${BASE}/agile`,             icon: 'ListTodo' },
+    { label: 'Time Tracking',      href: `${BASE}/time`,              icon: 'Clock' },
+    { label: 'Nexus CRM',         href: `${BASE}/crm`,               icon: 'Handshake' },
+    { label: 'Folio',             href: `${BASE}/folio`,             icon: 'Receipt' },
+    { label: 'Contracts',         href: `${BASE}/contracts`,         icon: 'FileSignature' },
+    { label: 'Vault',             href: `${BASE}/vault`,             icon: 'FolderLock' },
+    { label: 'Messaging',          href: `${BASE}/messaging`,         icon: 'Mail' },
+    { label: 'Calendar & Events',  href: `${BASE}/calendar`,          icon: 'CalendarDays' },
+    { label: 'Automation',         href: `${BASE}/automation`,        icon: 'Zap' },
+    { label: 'Administration',     href: `${BASE}/administration`,    icon: 'Settings' },
   ];
 
   function isActive(href: string, exact = false) {
@@ -94,21 +90,20 @@
         onclick={() => (sidebarOpen = false)}
         aria-label="Close navigation"
       >
-        <X class="size-4" />
+        <Icon name="X" size={16} class="size-4" />
       </button>
     </div>
 
     <nav class="flex-1 overflow-y-auto p-3">
       <ul class="flex flex-col gap-0.5">
         {#each sections as section}
-          {@const Icon = section.icon}
           <li>
             <a
               href={section.href}
               class="flex items-center gap-3 p-3 rounded text-sm {isActive(section.href, section.exact ?? false) ? 'bg-primary text-primary-content' : 'hover:bg-base-300/50'}"
               onclick={() => (sidebarOpen = false)}
             >
-              <Icon class="size-4 shrink-0 opacity-70" />
+              <Icon name={section.icon} size={16} class="size-4 shrink-0 opacity-70" />
               {section.label}
             </a>
           </li>
@@ -131,7 +126,7 @@
         onclick={() => (sidebarOpen = !sidebarOpen)}
         aria-label="Toggle navigation"
       >
-        <MenuIcon class="size-5" />
+        <Icon name="Menu" size={20} class="size-5" />
       </button>
       <span class="text-sm font-semibold">lmodulo docs</span>
     </header>

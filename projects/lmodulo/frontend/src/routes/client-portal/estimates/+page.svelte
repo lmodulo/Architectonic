@@ -1,7 +1,7 @@
 <script lang="ts">
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { ClipboardList, ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -89,7 +89,7 @@
 
 <div class="p-6 max-w-5xl mx-auto">
   <div class="flex items-center gap-3 mb-6">
-    <ClipboardList class="w-6 h-6 opacity-60" />
+    <Icon name="ClipboardList" size={24} class="w-6 h-6 opacity-60" />
     <div>
       <h1 class="text-xl font-semibold">Estimates</h1>
       <p class="text-sm opacity-60">Review and sign off on proposals</p>
@@ -98,7 +98,7 @@
 
   {#if actionError}
     <div class="alert alert-error mb-4">
-      <XCircle class="w-4 h-4" />
+      <Icon name="XCircle" size={16} class="w-4 h-4" />
       <span>{actionError}</span>
     </div>
   {/if}
@@ -115,7 +115,7 @@
 
   {#if estimates.length === 0}
     <div class="text-center py-16 opacity-40">
-      <ClipboardList class="w-10 h-10 mx-auto mb-3" />
+      <Icon name="ClipboardList" size={40} class="w-10 h-10 mx-auto mb-3" />
       <p>No estimates found</p>
     </div>
   {:else}
@@ -149,14 +149,14 @@
                       disabled={actingId === est.id}
                       onclick={() => respond(est.id, 'accept')}
                     >
-                      <CheckCircle class="w-3 h-3" /> Accept
+                      <Icon name="CheckCircle" size={12} class="w-3 h-3" /> Accept
                     </button>
                     <button
                       class="btn btn-xs btn-error btn-outline gap-1"
                       disabled={actingId === est.id}
                       onclick={() => respond(est.id, 'decline')}
                     >
-                      <XCircle class="w-3 h-3" /> Decline
+                      <Icon name="XCircle" size={12} class="w-3 h-3" /> Decline
                     </button>
                   </div>
                 {/if}
@@ -172,10 +172,10 @@
       <div class="flex items-center justify-end gap-2 mt-4 text-sm">
         <span class="opacity-60">{data.skip + 1}–{Math.min(data.skip + PAGE_SIZE, data.total)} of {data.total}</span>
         <button class="btn btn-sm btn-ghost" disabled={data.skip === 0} onclick={() => goPage(-1)}>
-          <ChevronLeft class="w-4 h-4" />
+          <Icon name="ChevronLeft" size={16} class="w-4 h-4" />
         </button>
         <button class="btn btn-sm btn-ghost" disabled={data.skip + PAGE_SIZE >= data.total} onclick={() => goPage(1)}>
-          <ChevronRight class="w-4 h-4" />
+          <Icon name="ChevronRight" size={16} class="w-4 h-4" />
         </button>
       </div>
     {/if}

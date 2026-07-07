@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronLeft, ChevronRight, Plus } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
   import { hasPermission } from '$lib/permissions';
   import EventModal from '$lib/components/EventModal.svelte';
@@ -131,7 +131,7 @@
     </div>
     {#if hasPermission(data.user, 'calendar_events', 'create')}
       <button type="button" class="btn btn-primary btn-sm" onclick={openNew}>
-        <Plus class="size-4" /> New Event
+        <Icon name="Plus" size={16} class="size-4" /> New Event
       </button>
     {/if}
   </div>
@@ -141,11 +141,11 @@
 
     <div class="flex items-center justify-between px-5 py-3 border-b border-base-300">
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={prevMonth} aria-label="Previous month">
-        <ChevronLeft class="size-4"/>
+        <Icon name="ChevronLeft" size={16} class="size-4"/>
       </button>
       <span class="font-semibold text-sm">{calLabel}</span>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={nextMonth} aria-label="Next month">
-        <ChevronRight class="size-4"/>
+        <Icon name="ChevronRight" size={16} class="size-4"/>
       </button>
     </div>
 

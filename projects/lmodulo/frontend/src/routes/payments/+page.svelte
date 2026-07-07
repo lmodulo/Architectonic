@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
   import { invalidateAll } from '$app/navigation';
   import { dragScroll } from '$lib/actions/dragScroll';
-  import { CreditCard, FileText, CheckCircle, AlertCircle, Clock, Circle, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -59,11 +59,11 @@
 
   const stripePk = env.PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 
-  const STATUS_ICON: Record<string, typeof CheckCircle> = {
-    paid:    CheckCircle,
-    overdue: AlertCircle,
-    sent:    Clock,
-    draft:   Circle,
+  const STATUS_ICON: Record<string, string> = {
+    paid:    'CheckCircle',
+    overdue: 'AlertCircle',
+    sent:    'Clock',
+    draft:   'Circle',
   };
 
   const STATUS_CLASS: Record<string, string> = {
@@ -151,7 +151,7 @@
 
 <div class="space-y-6">
   <div class="flex items-start gap-3">
-    <CreditCard class="size-6 opacity-60 shrink-0 mt-0.5" />
+    <Icon name="CreditCard" size={24} class="size-6 opacity-60 shrink-0 mt-0.5" />
     <div>
       <h1 class="text-2xl font-bold">Payments</h1>
       <p class="text-sm opacity-60 mt-0.5">View your invoices and make payments.</p>
@@ -165,7 +165,7 @@
       class="tab {activeTab === 'invoices' ? 'tab-active' : ''}"
       onclick={() => (activeTab = 'invoices')}
     >
-      <FileText class="size-4 mr-1.5" />
+      <Icon name="FileText" size={16} class="size-4 mr-1.5" />
       Invoices
     </button>
     <button
@@ -173,7 +173,7 @@
       class="tab {activeTab === 'pay' ? 'tab-active' : ''}"
       onclick={() => (activeTab = 'pay')}
     >
-      <CreditCard class="size-4 mr-1.5" />
+      <Icon name="CreditCard" size={16} class="size-4 mr-1.5" />
       Pay
     </button>
   </div>
@@ -182,7 +182,7 @@
     <!-- Invoice table -->
     {#if invoices.length === 0}
       <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center">
-        <FileText class="size-8 opacity-20 mx-auto mb-2" />
+        <Icon name="FileText" size={32} class="size-8 opacity-20 mx-auto mb-2" />
         <p class="text-sm opacity-40">No invoices yet.</p>
       </div>
     {:else}
@@ -196,9 +196,9 @@
                   <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity" onclick={() => toggleSort(field)}>
                     {label}
                     {#if sortField === field}
-                      {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                      {#if sortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                     {:else}
-                      <ChevronsUpDown class="size-3 opacity-30" />
+                      <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                     {/if}
                   </button>
                 </th>
@@ -210,9 +210,9 @@
                 <button type="button" class="flex items-center gap-1 hover:opacity-80 transition-opacity ml-auto" onclick={() => toggleSort('total')}>
                   Total
                   {#if sortField === 'total'}
-                    {#if sortDir === 'asc'}<ChevronUp class="size-3 opacity-70" />{:else}<ChevronDown class="size-3 opacity-70" />{/if}
+                    {#if sortDir === 'asc'}<Icon name="ChevronUp" size={12} class="size-3 opacity-70" />{:else}<Icon name="ChevronDown" size={12} class="size-3 opacity-70" />{/if}
                   {:else}
-                    <ChevronsUpDown class="size-3 opacity-30" />
+                    <Icon name="ChevronsUpDown" size={12} class="size-3 opacity-30" />
                   {/if}
                 </button>
               </th>
@@ -222,7 +222,7 @@
           </thead>
           <tbody>
             {#each sortedInvoices as inv (inv.id)}
-              {@const StatusIcon = STATUS_ICON[inv.status] ?? Circle}
+              {@const statusIconName = STATUS_ICON[inv.status] ?? 'Circle'}
               <tr
                 class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
                 onclick={() => selectInvoice(inv)}
@@ -239,7 +239,7 @@
                 <td class="text-right font-semibold text-sm">{fmtCurrency(inv.total)}</td>
                 <td>
                   <span class="badge badge-sm {STATUS_CLASS[inv.status] ?? 'badge-ghost'} gap-1">
-                    <StatusIcon class="size-3" />
+                    <Icon name={statusIconName} size={12} class="size-3" />
                     {inv.status}
                   </span>
                 </td>
@@ -266,7 +266,7 @@
     <!-- Pay tab -->
     {#if !selectedInv}
       <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center">
-        <CreditCard class="size-8 opacity-20 mx-auto mb-2" />
+        <Icon name="CreditCard" size={32} class="size-8 opacity-20 mx-auto mb-2" />
         <p class="text-sm opacity-40">Select an invoice from the Invoices tab to pay.</p>
       </div>
     {:else}
@@ -306,12 +306,12 @@
 
         {#if selectedInv.status === 'paid'}
           <div class="alert alert-success">
-            <CheckCircle class="size-4" />
+            <Icon name="CheckCircle" size={16} class="size-4" />
             <span>This invoice has been paid.</span>
           </div>
         {:else if paySuccess}
           <div class="alert alert-success">
-            <CheckCircle class="size-4" />
+            <Icon name="CheckCircle" size={16} class="size-4" />
             <span>Payment successful! Thank you.</span>
           </div>
         {:else}
@@ -335,7 +335,7 @@
                 disabled={paySubmitting}
                 onclick={pay}
               >
-                <CreditCard class="size-4" />
+                <Icon name="CreditCard" size={16} class="size-4" />
                 {paySubmitting ? 'Processing…' : `Pay ${fmtCurrency(selectedInv.total)}`}
               </button>
             </div>
