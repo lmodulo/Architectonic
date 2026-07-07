@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { APP_THEME } from '$lib/config/theme';
 import type { LayoutServerLoad } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
@@ -19,7 +20,7 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
   const sessionCookie = cookies.get('session');
   const headers = sessionCookie ? { cookie: `session=${sessionCookie}` } : {};
 
-  const [unreadCount, chatEnabled, brandName, brandLogo, iconLibrary] = await Promise.all([
+  const [unreadCount, chatEnabled, brandName, brandLogo, iconLibrary, themeMode] = await Promise.all([
     fetch(`${API_URL}/messages/unread-count`, { headers })
       .then(r => r.ok ? r.json() : { count: 0 })
       .then((d: { count: number }) => d.count)
@@ -39,8 +40,12 @@ export const load: LayoutServerLoad = async ({ locals, cookies, depends }) => {
     fetch(`${API_URL}/settings/theme.icon_library`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then((d: { value?: unknown } | null) => (d?.value as string) || 'lucide')
-      .catch(() => 'lucide')
+      .catch(() => 'lucide'),
+    fetch(`${API_URL}/settings/theme.mode`, { headers })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { value?: unknown } | null) => (d?.value as string) || APP_THEME)
+      .catch(() => APP_THEME)
   ]);
 
-  return { user: locals.user, unreadCount, chatEnabled, appName, brandName, brandLogo, iconLibrary };
+  return { user: locals.user, unreadCount, chatEnabled, appName, brandName, brandLogo, iconLibrary, themeMode };
 };

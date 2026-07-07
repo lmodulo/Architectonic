@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { APP_THEME } from '$lib/config/theme';
+  import { getThemeMode } from '$lib/stores/theme-mode';
   import type { Snippet } from 'svelte';
 
   let { children }: { children: Snippet } = $props();
+
+  const themeGetter = getThemeMode();
+  const themeMode = $derived(themeGetter());
 </script>
 
-<div data-theme={APP_THEME} style="display:contents">
+<div data-theme={themeMode} style="display:contents">
   {@render children()}
 </div>

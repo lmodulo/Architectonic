@@ -1,4 +1,7 @@
-// Change this value to switch the app theme everywhere.
+// Fallback theme, used before the "theme.mode" setting loads and for logged-out
+// pages. Admins pick the live app theme on the Settings page (General tab),
+// which is backed by the "theme.mode" setting (see api/src/plugins/seed.ts)
+// and applied in real time via $lib/stores/theme-mode.
 // Built-in DaisyUI themes: light · dark · cupcake · bumblebee · emerald · corporate ·
 //   synthwave · retro · cyberpunk · valentine · halloween · garden · forest · aqua ·
 //   lofi · pastel · fantasy · wireframe · black · luxury · dracula · cmyk · autumn ·

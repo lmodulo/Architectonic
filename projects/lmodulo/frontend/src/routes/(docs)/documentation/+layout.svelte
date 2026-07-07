@@ -2,7 +2,7 @@
   import { page } from '$app/state';
   import { beforeNavigate, afterNavigate } from '$app/navigation';
   import { tick } from 'svelte';
-  import { APP_THEME } from '$lib/config/theme';
+  import { getThemeMode } from '$lib/stores/theme-mode';
   import { scrollStore } from '$lib/stores/scroll';
   import Icon from '$lib/components/Icon.svelte';
   import type { Snippet } from 'svelte';
@@ -12,6 +12,9 @@
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
   let sidebarOpen = $state(false);
   let mainEl: HTMLElement;
+
+  const themeGetter = getThemeMode();
+  const themeMode = $derived(themeGetter());
 
   beforeNavigate(() => {
     if (mainEl) scrollStore.save(page.url.pathname, mainEl.scrollTop);
@@ -54,7 +57,7 @@
   }
 </script>
 
-<div data-theme={APP_THEME} class="flex h-screen overflow-hidden bg-base-100">
+<div data-theme={themeMode} class="flex h-screen overflow-hidden bg-base-100">
 
   {#if sidebarOpen}
     <button

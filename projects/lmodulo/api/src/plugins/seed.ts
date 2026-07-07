@@ -35,11 +35,17 @@ const DEFAULT_SETTINGS = [
   },
   {
     key: 'theme.mode',
-    value: 'light',
+    value: 'lmodulo',
     type: 'select',
     label: 'Default Theme',
-    description: 'Application color scheme for new sessions',
-    options: ['light', 'dark']
+    description: 'Application color theme, applied in real time to all sessions',
+    options: [
+      'lmodulo', 'light', 'dark', 'cupcake', 'bumblebee', 'emerald', 'corporate',
+      'synthwave', 'retro', 'cyberpunk', 'valentine', 'halloween', 'garden', 'forest',
+      'aqua', 'lofi', 'pastel', 'fantasy', 'wireframe', 'black', 'luxury', 'dracula',
+      'cmyk', 'autumn', 'business', 'acid', 'lemonade', 'night', 'coffee', 'winter',
+      'dim', 'nord', 'sunset'
+    ]
   },
   {
     key: 'chat.enabled',

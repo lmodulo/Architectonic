@@ -2,6 +2,7 @@
   import '../app.css';
   import Icon from '$lib/components/Icon.svelte';
   import { setIconTheme, type IconLibrary } from '$lib/stores/icon-theme';
+  import { setThemeMode } from '$lib/stores/theme-mode';
   import Avatar from '$lib/components/Avatar.svelte';
   import GlobalSearch from '$lib/components/GlobalSearch.svelte';
   import { navItems, isNavGroup, isSeparator } from '$lib/config/nav';
@@ -34,6 +35,9 @@
 
   setIconTheme(() => (data.iconLibrary as IconLibrary) ?? 'lucide');
   const iconLibrary = $derived((data.iconLibrary as IconLibrary) ?? 'lucide');
+
+  setThemeMode(() => (data.themeMode as string) ?? APP_THEME);
+  const themeMode = $derived((data.themeMode as string) ?? APP_THEME);
 
   let sidebarOpen = $state(false);
   let sidebarExpanded = $state(false);
@@ -156,7 +160,7 @@
 
   <form bind:this={logoutForm} method="POST" action="/logout" class="hidden"></form>
 
-  <div data-theme={APP_THEME} style={fontVars} class="h-screen flex overflow-hidden">
+  <div data-theme={themeMode} style={fontVars} class="h-screen flex overflow-hidden">
 
     <!-- Mobile overlay -->
     {#if sidebarOpen}
@@ -456,18 +460,18 @@
 
   </div>
 
-  <div data-theme={APP_THEME} style="display:contents"><UserCard /></div>
+  <div data-theme={themeMode} style="display:contents"><UserCard /></div>
 
   {#if isPaletteOpen()}
-    <div data-theme={APP_THEME} style="display:contents"><LogTimePalette /></div>
+    <div data-theme={themeMode} style="display:contents"><LogTimePalette /></div>
   {/if}
 
   {#if data.chatEnabled}
-    <div data-theme={APP_THEME} style="display:contents"><ChatAssistant /></div>
+    <div data-theme={themeMode} style="display:contents"><ChatAssistant /></div>
   {/if}
 
 {:else}
-  <div data-theme={APP_THEME} style={fontVars}>{@render children()}</div>
+  <div data-theme={themeMode} style={fontVars}>{@render children()}</div>
 {/if}
 
 <style>
