@@ -9,6 +9,8 @@
 // Custom themes (defined in src/app.css): lmodulo
 export const APP_THEME = 'lmodulo';
 
+import { DISPLAY_FONTS, BODY_FONTS, MONO_FONTS, type FontOption } from './fonts';
+
 export type FontStack = {
   family: string;   // font name as it appears in the CDN, e.g. 'Fraunces'
   fallback: string; // CSS fallback stack, e.g. 'ui-serif, Georgia, serif'
@@ -22,27 +24,35 @@ export type FontConfig = {
   preconnect?: string[]; // domains to preconnect
 };
 
-// Change font families here — CDN links load automatically from cdnUrls.
-// To use self-hosted fonts: omit cdnUrls/preconnect and add @font-face rules in app.css.
-export const APP_FONTS: FontConfig = {
-  display: {
-    family: 'Ancizar Serif',
-    fallback: 'ui-serif, Georgia, serif',
-  },
-  body: {
-    family: 'Roboto',
-    fallback: 'ui-serif, Georgia, serif',
-  },
-  mono: {
-    family: 'JetBrains Mono',
-    fallback: 'ui-monospace, SFMono-Regular, monospace',
-  },
-  preconnect: ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
-  cdnUrls: [
-    'https://fonts.googleapis.com/css2?family=Ancizar+Serif:ital,wght@0,300..900;1,300..900&display=swap',
-    'https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'
-  ],
-};
+const FONT_PRECONNECT = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
+
+function pickFont(catalog: FontOption[], name: string): FontOption {
+  return catalog.find(f => f.name === name) ?? catalog[0];
+}
+
+// Builds a FontConfig from the "theme.font_display" / "theme.font_body" / "theme.font_mono"
+// setting values — see $lib/config/fonts for the selectable catalogs.
+export function resolveFontConfig(displayName: string, bodyName: string, monoName: string): FontConfig {
+  const display = pickFont(DISPLAY_FONTS, displayName);
+  const body = pickFont(BODY_FONTS, bodyName);
+  const mono = pickFont(MONO_FONTS, monoName);
+  return {
+    display: { family: display.name, fallback: display.fallback },
+    body: { family: body.name, fallback: body.fallback },
+    mono: { family: mono.name, fallback: mono.fallback },
+    preconnect: FONT_PRECONNECT,
+    cdnUrls: [...new Set([display.cdnUrl, body.cdnUrl, mono.cdnUrl])],
+  };
+}
+
+// Fallback fonts, used before the "theme.font_*" settings load and for logged-out
+// pages if the fetch fails. Admins pick the live font set on the Settings page
+// (General tab), backed by the theme.font_display/body/mono settings.
+export const APP_FONTS: FontConfig = resolveFontConfig(
+  DISPLAY_FONTS[0].name,
+  BODY_FONTS[0].name,
+  MONO_FONTS[0].name,
+);
 
 // Loaded only when the "material" icon theme is active (see $lib/stores/icon-theme.ts).
 // Material Symbols renders via a ligature font, not per-icon components like the other icon themes.

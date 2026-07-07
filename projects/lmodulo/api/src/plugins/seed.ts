@@ -61,6 +61,44 @@ const DEFAULT_SETTINGS = [
     label: 'Icon Set',
     description: 'Icon library used throughout the app',
     options: ['lucide', 'material', 'tabler', 'phosphor', 'heroicons']
+  },
+  {
+    key: 'theme.font_display',
+    value: 'Ancizar Serif',
+    type: 'select',
+    label: 'Display Font',
+    description: 'Font used for headings (h1–h6), applied in real time to all sessions',
+    // keep in sync with DISPLAY_FONTS in frontend/src/lib/config/fonts.ts
+    options: [
+      'Ancizar Serif', 'Playfair Display', 'Merriweather', 'Lora', 'Fraunces',
+      'Libre Baskerville', 'Cormorant Garamond', 'Bitter', 'PT Serif', 'Spectral',
+      'Crimson Pro', 'Source Serif 4'
+    ]
+  },
+  {
+    key: 'theme.font_body',
+    value: 'Roboto',
+    type: 'select',
+    label: 'Body Font',
+    description: 'Font used for body copy, applied in real time to all sessions',
+    // keep in sync with BODY_FONTS in frontend/src/lib/config/fonts.ts
+    options: [
+      'Roboto', 'Inter', 'Open Sans', 'Lato', 'Nunito Sans', 'Work Sans',
+      'Source Sans 3', 'IBM Plex Sans', 'Noto Sans', 'Mulish', 'Manrope', 'Karla'
+    ]
+  },
+  {
+    key: 'theme.font_mono',
+    value: 'JetBrains Mono',
+    type: 'select',
+    label: 'Monospace Font',
+    description: 'Font used for code and monospace text, applied in real time to all sessions',
+    // keep in sync with MONO_FONTS in frontend/src/lib/config/fonts.ts
+    options: [
+      'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'IBM Plex Mono', 'Roboto Mono',
+      'Space Mono', 'Inconsolata', 'Ubuntu Mono', 'Courier Prime', 'Red Hat Mono',
+      'Overpass Mono', 'DM Mono'
+    ]
   }
 ];
 

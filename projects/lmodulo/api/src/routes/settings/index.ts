@@ -79,6 +79,19 @@ export default async function settingsRoutes(app: FastifyInstance) {
     return { mode: (s?.value as string) || 'lmodulo' };
   });
 
+  // GET /settings/fonts — public: returns theme.font_display/body/mono without auth (needed for logged-out pages)
+  app.get('/fonts', async () => {
+    const docs = await app.mongo.db!.collection('settings')
+      .find({ key: { $in: ['theme.font_display', 'theme.font_body', 'theme.font_mono'] } })
+      .toArray();
+    const map = Object.fromEntries(docs.map(d => [d.key as string, d.value as string ?? '']));
+    return {
+      display: map['theme.font_display'] || '',
+      body:    map['theme.font_body'] || '',
+      mono:    map['theme.font_mono'] || ''
+    };
+  });
+
   // GET /settings/:key — requireAuth only: individual settings readable by all authenticated users
   app.get<{ Params: { key: string } }>('/:key', {
     preHandler: app.requireAuth,

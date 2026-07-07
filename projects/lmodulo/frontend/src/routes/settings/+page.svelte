@@ -5,8 +5,17 @@
   import LogoIcon from '$lib/components/LogoIcon.svelte';
   import type { PageData } from './$types';
   import { m } from '$lib/paraglide/messages.js';
+  import { DISPLAY_FONTS, BODY_FONTS, MONO_FONTS } from '$lib/config/fonts';
 
   let { data }: { data: PageData } = $props();
+
+  // Font-preview settings: option text is rendered in the font it names.
+  const FONT_CATALOG_BY_KEY: Record<string, typeof DISPLAY_FONTS> = {
+    'theme.font_display': DISPLAY_FONTS,
+    'theme.font_body': BODY_FONTS,
+    'theme.font_mono': MONO_FONTS,
+  };
+  const ALL_CATALOG_FONTS = [...DISPLAY_FONTS, ...BODY_FONTS, ...MONO_FONTS];
 
   interface Setting {
     key:         string;
@@ -149,6 +158,12 @@
   let activeTab = $state<'general' | 'brand'>('general');
 </script>
 
+<svelte:head>
+  {#each ALL_CATALOG_FONTS as font}
+    <link rel="stylesheet" href={font.cdnUrl} />
+  {/each}
+</svelte:head>
+
 <div class="flex flex-col gap-6">
 
   <!-- Page heading -->
@@ -207,13 +222,15 @@
                     <span class="text-sm">{editValue ? 'Enabled' : 'Disabled'}</span>
                   </label>
                 {:else if setting.type === 'select' && setting.options}
+                  {@const fontCatalog = FONT_CATALOG_BY_KEY[setting.key]}
                   <select
                     class="select text-sm"
                     value={editValue as string}
                     onchange={e => (editValue = (e.target as HTMLSelectElement).value)}
                   >
                     {#each setting.options as opt}
-                      <option value={opt}>{opt}</option>
+                      {@const font = fontCatalog?.find(f => f.name === opt)}
+                      <option value={opt} style={font ? `font-family:'${font.name}',${font.fallback}` : undefined}>{opt}</option>
                     {/each}
                   </select>
                 {:else}

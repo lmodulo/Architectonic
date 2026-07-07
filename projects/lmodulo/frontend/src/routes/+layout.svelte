@@ -20,14 +20,9 @@
   import { closeCard } from '$lib/stores/userCard.svelte';
   import { isOpen as isPaletteOpen, openLogTimePalette, closeLogTimePalette } from '$lib/stores/logTimePalette.svelte';
   import { brand } from '$lib/config/logo';
-  import { APP_THEME, APP_FONTS, MATERIAL_SYMBOLS_CDN_URL } from '$lib/config/theme';
+  import { APP_THEME, APP_FONTS, MATERIAL_SYMBOLS_CDN_URL, resolveFontConfig } from '$lib/config/theme';
+  import { setFontSet } from '$lib/stores/font-set';
   import { m } from '$lib/paraglide/messages.js';
-
-  const fontVars = [
-    `--display:'${APP_FONTS.display.family}',${APP_FONTS.display.fallback}`,
-    `--body:'${APP_FONTS.body.family}',${APP_FONTS.body.fallback}`,
-    `--mono:'${APP_FONTS.mono.family}',${APP_FONTS.mono.fallback}`,
-  ].join(';');
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
 
@@ -38,6 +33,22 @@
 
   setThemeMode(() => (data.themeMode as string) ?? APP_THEME);
   const themeMode = $derived((data.themeMode as string) ?? APP_THEME);
+
+  setFontSet(() => ({
+    display: (data.fontDisplay as string) ?? APP_FONTS.display.family,
+    body: (data.fontBody as string) ?? APP_FONTS.body.family,
+    mono: (data.fontMono as string) ?? APP_FONTS.mono.family,
+  }));
+  const fontConfig = $derived(resolveFontConfig(
+    (data.fontDisplay as string) ?? APP_FONTS.display.family,
+    (data.fontBody as string) ?? APP_FONTS.body.family,
+    (data.fontMono as string) ?? APP_FONTS.mono.family,
+  ));
+  const fontVars = $derived([
+    `--display:'${fontConfig.display.family}',${fontConfig.display.fallback}`,
+    `--body:'${fontConfig.body.family}',${fontConfig.body.fallback}`,
+    `--mono:'${fontConfig.mono.family}',${fontConfig.mono.fallback}`,
+  ].join(';'));
 
   let sidebarOpen = $state(false);
   let sidebarExpanded = $state(false);
@@ -141,13 +152,13 @@
 
 <svelte:head>
   <title>{data.appName ?? 'Application'} — {brand.description}</title>
-  {#if APP_FONTS.preconnect}
-    {#each APP_FONTS.preconnect as href}
+  {#if fontConfig.preconnect}
+    {#each fontConfig.preconnect as href}
       <link rel="preconnect" {href} crossorigin />
     {/each}
   {/if}
-  {#if APP_FONTS.cdnUrls}
-    {#each APP_FONTS.cdnUrls as href}
+  {#if fontConfig.cdnUrls}
+    {#each fontConfig.cdnUrls as href}
       <link rel="stylesheet" {href} />
     {/each}
   {/if}
