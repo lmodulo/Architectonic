@@ -1,0 +1,39 @@
+{
+  "name": "crm",
+  "description": "Contact and company relationship management with deal pipeline and activity tracking",
+  "nav": [
+    {
+      "label": "Nexus",
+      "href": "/crm",
+      "icon": "Handshake",
+      "permission": "crm_contacts.read"
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "crm_contacts",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "crm_companies",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "crm_deals",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "crm_activities",
+      "actions": ["create", "read", "update", "delete"]
+    }
+  ],
+  "dependencies": {
+    "frontend": {
+      "libphonenumber-js": "^1.13.8"
+    },
+    "api": {
+      "libphonenumber-js": "^1.13.8"
+    }
+  },
+  "env": []
+}

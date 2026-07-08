@@ -1,0 +1,66 @@
+{
+  "name": "folio",
+  "description": "Invoicing, estimates, recurring subscriptions/retainers, expense tracking, and Stripe payments",
+  "nav": [
+    {
+      "label": "Folio",
+      "href": "/folio",
+      "icon": "Receipt",
+      "permission": "finance_invoices.read"
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "finance_invoices",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "finance_payments",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "finance_subscriptions",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "finance_estimates",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "finance_expenses",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "finance_reports",
+      "actions": ["read"]
+    }
+  ],
+  "dependencies": {
+    "frontend": {
+      "@stripe/stripe-js": "^9.4.0"
+    },
+    "api": {
+      "stripe": "^22.1.1"
+    }
+  },
+  "env": [
+    {
+      "key": "STRIPE_SECRET_KEY",
+      "required": false,
+      "default": "sk_test_...",
+      "description": "Stripe secret key (test key for dev)"
+    },
+    {
+      "key": "STRIPE_WEBHOOK_SECRET",
+      "required": false,
+      "default": "whsec_...",
+      "description": "Stripe webhook signing secret"
+    },
+    {
+      "key": "PUBLIC_STRIPE_PUBLISHABLE_KEY",
+      "required": false,
+      "default": "pk_test_...",
+      "description": "Stripe publishable key (browser-side)"
+    }
+  ]
+}

@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const SCAFFOLD = path.join(__dirname, 'example');
+const SCAFFOLD = path.join(__dirname, 'candidate');
 const MODULES  = path.join(__dirname, 'modules');
 const PROJECTS = path.join(__dirname, 'projects');
 

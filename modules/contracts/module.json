@@ -1,0 +1,27 @@
+{
+  "name": "contracts",
+  "description": "Contract drafting and e-signature collection with public signer links and signer/void tracking",
+  "nav": [
+    {
+      "label": "Contracts",
+      "href": "/contracts",
+      "icon": "FileSignature",
+      "permission": "contracts.read"
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "contracts",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "contract_templates",
+      "actions": ["create", "read", "update", "delete"]
+    }
+  ],
+  "dependencies": {
+    "frontend": {},
+    "api": {}
+  },
+  "env": []
+}

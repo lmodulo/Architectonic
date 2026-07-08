@@ -1,0 +1,43 @@
+{
+  "name": "agile",
+  "description": "Project delivery tracking — milestones, sprints, jobs, tasks, time tracking, and reporting with optional calendar-events and CRM integration",
+  "nav": [
+    {
+      "label": "Agile",
+      "href": "/agile",
+      "icon": "Milestone",
+      "permission": "agile_milestones.read"
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "agile_milestones",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "agile_sprints",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "agile_jobs",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "agile_tasks",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "agile_comments",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "agile_time_entries",
+      "actions": ["create", "read", "update", "delete"]
+    }
+  ],
+  "dependencies": {
+    "frontend": {},
+    "api": {}
+  },
+  "env": []
+}

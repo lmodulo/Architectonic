@@ -1,0 +1,698 @@
+<script lang="ts">
+  import { AlertCircle, Copy, Pencil, Plus, Trash2, X } from 'lucide-svelte';
+  import Breadcrumb from '$lib/components/agile/Breadcrumb.svelte';
+  import AttachmentPanel from '$lib/components/agile/AttachmentPanel.svelte';
+  import { fade, scale } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
+  import { goto } from '$app/navigation';
+  import type { PageData } from './$types';
+  import { hasPermission } from '$lib/permissions';
+  import DependencyGraph from '$lib/components/agile/DependencyGraph.svelte';
+  import EffortBar from '$lib/components/agile/EffortBar.svelte';
+  import CommentFeed from '$lib/components/agile/CommentFeed.svelte';
+  import UserSelect from '$lib/components/UserSelect.svelte';
+  import UserNameLink from '$lib/components/UserNameLink.svelte';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import Modal from '$lib/components/Modal.svelte';
+  import {
+    STATUS_COLOR, PRIORITY_COLOR, CATEGORY_COLOR, JOB_STATUSES, JOB_CATEGORIES, TASK_STATUSES, PRIORITIES, LEVEL,
+    fmtEffort, fmtDate, toDateInput, completionColor,
+    type AgileJob, type AgileTask, type AgileAttachment,
+  } from '$lib/utils/agile';
+
+  let { data }: { data: PageData } = $props();
+
+  let job             = $state<AgileJob>(data.job);
+  let tasks           = $state<AgileTask[]>((data.tasks ?? []) as AgileTask[]);
+  let jobAttachments  = $state<AgileAttachment[]>(data.job.attachments ?? []);
+  const users       = $derived((data.users ?? []) as any[]);
+  const sprintJobs  = $derived((data.sprintJobs ?? []) as AgileJob[]);
+  const teams       = $derived((data.teams ?? []) as { id: string; name: string }[]);
+  const jobTeam     = $derived(teams.find(t => t.id === (job as any).teamId));
+
+  const pct    = $derived(Math.round(job.completionPct ?? 0));
+  const barClr = $derived(completionColor(pct));
+
+  function userName(id: string | undefined) {
+    if (!id) return 'Unassigned';
+    const u = users.find((u: any) => u.id === id);
+    return u ? (u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username) : id;
+  }
+
+  // ── Edit job modal ─────────────────────────────────────────────────
+  let jobEditing   = $state(false);
+  let jobEditSaving = $state(false);
+  let jobEditError  = $state('');
+  let jobEditForm   = $state({
+    title:       job.title,
+    description: job.description ?? '',
+    category:    job.category,
+    blocked:     job.blocked,
+    status:      job.status,
+    startDate:   toDateInput(job.startDate),
+    endDate:     toDateInput(job.endDate),
+    teamId:      (job as any).teamId ?? '',
+  });
+
+  async function saveJobEdit() {
+    if (!jobEditForm.title.trim()) { jobEditError = 'Title is required'; return; }
+    jobEditSaving = true; jobEditError = '';
+    try {
+      const res = await fetch(`/api/agile/jobs/JOB-${job.jobNumber}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(jobEditForm),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { jobEditError = (d as any).message ?? 'Save failed'; return; }
+      job = { ...job, ...jobEditForm };
+      jobEditing = false;
+    } catch { jobEditError = 'Network error'; }
+    finally { jobEditSaving = false; }
+  }
+
+  // ── Delete job ─────────────────────────────────────────────────────
+  let deleteConfirm = $state(false);
+  let deleting      = $state(false);
+  let deleteError   = $state('');
+
+  async function deleteJob() {
+    deleting = true; deleteError = '';
+    try {
+      const res = await fetch(`/api/agile/jobs/JOB-${job.jobNumber}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        deleteError = (d as any).message ?? 'Delete failed';
+        deleteConfirm = false;
+        return;
+      }
+      goto(job.sprintId ? `/agile/sprints/${job.sprintId}` : '/agile');
+    } catch { deleteError = 'Network error'; deleteConfirm = false; }
+    finally { deleting = false; }
+  }
+
+  // ── Delete task ────────────────────────────────────────────────────
+  let taskDeleteConfirm = $state(false);
+  let taskDeleting      = $state(false);
+  let taskDeleteError   = $state('');
+
+  async function deleteTask() {
+    taskDeleting = true; taskDeleteError = '';
+    try {
+      const res = await fetch(`/api/agile/tasks/${editingId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        taskDeleteError = (d as any).message ?? 'Delete failed';
+        taskDeleteConfirm = false;
+        return;
+      }
+      tasks = tasks.filter(t => t.id !== editingId);
+      editModal = false;
+    } catch { taskDeleteError = 'Network error'; taskDeleteConfirm = false; }
+    finally { taskDeleting = false; }
+  }
+
+  // ── New task modal ─────────────────────────────────────────────────
+  let taskModal  = $state(false);
+  let savingTask = $state(false);
+  let taskError  = $state('');
+  let taskForm   = $state<{
+    title: string; description: string; assignedTo: string | null;
+    estimateHours: number; priority: string; status: string;
+    blockedReason: string; dueDate: string;
+  }>({
+    title: '', description: '', assignedTo: null,
+    estimateHours: 1, priority: 'Medium', status: 'Backlog',
+    blockedReason: '', dueDate: '',
+  });
+
+  function openTaskModal() {
+    taskForm = { title: '', description: '', assignedTo: null, estimateHours: 1, priority: 'Medium', status: 'Backlog', blockedReason: '', dueDate: '' };
+    taskError = '';
+    taskModal = true;
+  }
+
+  async function saveTask() {
+    if (!taskForm.title.trim()) { taskError = 'Title is required'; return; }
+    if (taskForm.estimateHours <= 0) { taskError = 'Estimate must be > 0'; return; }
+    savingTask = true; taskError = '';
+    try {
+      const body: Record<string, unknown> = {
+        ...taskForm,
+        jobId: job.id,
+        assignedTo: taskForm.assignedTo || undefined,
+        dueDate:    taskForm.dueDate    || undefined,
+      };
+      const res = await fetch('/api/agile/tasks', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { taskError = (d as any).message ?? 'Save failed'; return; }
+      tasks = [...tasks, d as AgileTask];
+      taskModal = false;
+    } catch { taskError = 'Network error'; }
+    finally { savingTask = false; }
+  }
+
+  async function updateTaskStatus(task: AgileTask, newStatus: string) {
+    const res = await fetch(`/api/agile/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (res.ok) {
+      tasks = tasks.map(t => t.id === task.id ? { ...t, status: newStatus } : t);
+    }
+  }
+
+  const totalEst = $derived(tasks.reduce((s, t) => s + (t.estimateHours ?? 0), 0));
+  const totalAct = $derived(tasks.reduce((s, t) => s + (t.actualHours ?? 0), 0));
+  const totalRem = $derived(tasks.reduce((s, t) => s + (t.remainingHours ?? Math.max(0, (t.estimateHours ?? 0) - (t.actualHours ?? 0))), 0));
+
+  // ── Edit task modal ────────────────────────────────────────────────
+  let editModal        = $state(false);
+  let savingEdit       = $state(false);
+  let editError        = $state('');
+  let editingId        = $state('');
+  let editTaskAttachments = $state<AgileAttachment[]>([]);
+  let editForm    = $state<{
+    title: string; description: string; assignedTo: string | null;
+    priority: string; status: string;
+    actualHours: number; remainingHours: number;
+    blockedReason: string; dueDate: string;
+    estimateHours: number;
+  }>({
+    title: '', description: '', assignedTo: null,
+    priority: 'Medium', status: 'Backlog',
+    actualHours: 0, remainingHours: 0,
+    blockedReason: '', dueDate: '',
+    estimateHours: 0,
+  });
+
+  function openEditModal(task: AgileTask) {
+    editingId = task.id ?? '';
+    editError = '';
+    taskDeleteConfirm = false;
+    taskDeleteError = '';
+    editTaskAttachments = [...(task.attachments ?? [])];
+    editForm = {
+      title:         task.title,
+      description:   task.description ?? '',
+      assignedTo:    task.assignedTo ?? null,
+      priority:      task.priority,
+      status:        task.status,
+      actualHours:   task.actualHours ?? 0,
+      remainingHours: task.remainingHours ?? Math.max(0, (task.estimateHours ?? 0) - (task.actualHours ?? 0)),
+      blockedReason: task.blockedReason ?? '',
+      dueDate:       toDateInput(task.dueDate),
+      estimateHours: task.estimateHours ?? 0,
+    };
+    editModal = true;
+  }
+
+  async function saveEdit() {
+    if (!editForm.title.trim()) { editError = 'Title is required'; return; }
+    savingEdit = true; editError = '';
+    try {
+      const body: Record<string, unknown> = {
+        title:          editForm.title.trim(),
+        description:    editForm.description,
+        assignedTo:     editForm.assignedTo || undefined,
+        priority:       editForm.priority,
+        status:         editForm.status,
+        actualHours:    editForm.actualHours,
+        remainingHours: editForm.remainingHours,
+        blockedReason:  editForm.blockedReason,
+        dueDate:        editForm.dueDate || undefined,
+      };
+      const res = await fetch(`/api/agile/tasks/${editingId}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { editError = (d as any).message ?? 'Save failed'; return; }
+      tasks = tasks.map(t => t.id === editingId ? {
+        ...t,
+        title:          editForm.title.trim(),
+        description:    editForm.description,
+        assignedTo:     editForm.assignedTo || undefined,
+        priority:       editForm.priority,
+        status:         editForm.status,
+        actualHours:    editForm.actualHours,
+        remainingHours: editForm.remainingHours,
+        blockedReason:  editForm.blockedReason,
+        dueDate:        editForm.dueDate || undefined,
+        attachments:    editTaskAttachments,
+      } as AgileTask : t);
+      editModal = false;
+    } catch { editError = 'Network error'; }
+    finally { savingEdit = false; }
+  }
+</script>
+
+<svelte:head><title>{job.title} — Job</title></svelte:head>
+
+<div class="space-y-6 -mt-6">
+
+  <!-- Header -->
+  <div class="space-y-4">
+    <Breadcrumb crumbs={[
+      { label: 'Agile', href: '/agile' },
+      { label: (data as any).milestone?.title ?? 'Milestone', href: (data as any).sprint?.milestoneId ? `/agile/milestones/${(data as any).sprint.milestoneId}` : '/agile', colorClass: LEVEL.milestone.badge },
+      { label: `Sprint ${(data as any).sprint?.sprintNumber ?? ''}`, href: job.sprintId ? `/agile/sprints/${job.sprintId}` : undefined, colorClass: LEVEL.sprint.badge },
+      { label: job.title, colorClass: LEVEL.job.badge },
+    ]} />
+
+    <div class="space-y-1 min-w-0">
+      <h1 class="text-2xl font-bold">{job.title}</h1>
+      <button
+        type="button"
+        class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"
+        onclick={() => navigator.clipboard.writeText(`JOB-${job.jobNumber}`)}
+        title="Copy job ID"
+      >JOB-{job.jobNumber} <Copy size={12} class="size-2.5 shrink-0" /></button>
+    </div>
+    <!-- Description -->
+    {#if job.description?.replace(/<[^>]+>/g, '').trim()}
+      <section class="space-y-2">
+        <div class="border-l-2 border-primary/30 pl-4 py-0.5 prose prose-sm dark:prose-invert max-w-none">
+          {@html job.description}
+        </div>
+      </section>
+    {/if}
+
+    <div class="flex items-center justify-between gap-4 border-t border-base-300/60 pt-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="badge text-xs {LEVEL.job.badge}">{LEVEL.job.label}</span>
+        <span class="badge text-xs {CATEGORY_COLOR[job.category] ?? 'badge-ghost'}">{job.category}</span>
+        <span class="badge text-xs {STATUS_COLOR[job.status] ?? 'badge-ghost'}">{job.status}</span>
+        {#if job.blocked}
+          <span class="flex items-center gap-1 text-xs text-error">
+            <AlertCircle size={14} class="size-3.5" /> Blocked
+          </span>
+        {/if}
+        {#if jobTeam}
+          <span class="badge badge-ghost text-xs">{jobTeam.name}</span>
+        {/if}
+        <span class="text-sm font-bold ml-2" style="color:{barClr}">{pct}%</span>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        {#if hasPermission(data.user, 'agile_jobs', 'update')}
+          <button class="btn btn-ghost btn-sm" onclick={() => {
+            jobEditForm = { title: job.title, description: job.description ?? '', category: job.category, blocked: job.blocked, status: job.status, startDate: toDateInput(job.startDate), endDate: toDateInput(job.endDate), teamId: (job as any).teamId ?? '' };
+            jobEditing = true;
+          }}>Edit</button>
+        {/if}
+        {#if hasPermission(data.user, 'agile_jobs', 'delete')}
+          {#if deleteConfirm}
+            <span class="text-xs text-error font-medium">Delete job?</span>
+            <button class="btn btn-error btn-sm" disabled={deleting} onclick={deleteJob}>
+              {deleting ? 'Deleting…' : 'Yes, delete'}
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick={() => { deleteConfirm = false; deleteError = ''; }}>Cancel</button>
+          {:else}
+            <button class="btn btn-ghost btn-sm text-error hover:bg-error/10" onclick={() => deleteConfirm = true}>
+              <Trash2 size={16} class="size-4" /> Delete
+            </button>
+          {/if}
+        {/if}
+      </div>
+    </div>
+  </div>
+
+  {#if deleteError}
+    <aside class="alert alert-error p-3 rounded text-sm">{deleteError}</aside>
+  {/if}
+
+  <!-- Attachments -->
+  <section class="space-y-3">
+    <h2 class="text-lg font-semibold">Attachments</h2>
+    <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+      <AttachmentPanel
+        bind:attachments={jobAttachments}
+        uploadUrl="/api/agile/jobs/JOB-{job.jobNumber}/attachments"
+        deleteUrlFn={(fn) => `/api/agile/jobs/JOB-${job.jobNumber}/attachments/${encodeURIComponent(fn)}`}
+        canDelete={hasPermission(data.user, 'agile_jobs', 'update')}
+      />
+    </div>
+  </section>
+
+  <!-- Effort bar -->
+  <div class="card bg-base-200 border border-base-300 rounded-box p-4 space-y-3">
+    <h2 class="text-sm font-semibold opacity-70">Effort Breakdown</h2>
+    <EffortBar estimated={totalEst} actual={totalAct} remaining={totalRem} />
+  </div>
+
+  <!-- Tasks table -->
+  <section class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold">Tasks</h2>
+      {#if hasPermission(data.user, 'agile_tasks', 'create')}
+        <button class="btn btn-primary btn-sm" onclick={openTaskModal}>
+          <Plus size={14} class="size-3.5" /> New Task
+        </button>
+      {/if}
+    </div>
+
+    {#if tasks.length === 0}
+      <div class="card bg-base-200 border border-base-300 rounded-box p-8 text-center opacity-50">
+        <p class="text-sm">No tasks yet.</p>
+      </div>
+    {:else}
+      <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+        <table class="table table-sm">
+          <thead>
+            <tr class="bg-base-300/30">
+              <th>Task</th>
+              <th>Assignee</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th class="text-right">Est</th>
+              <th class="text-right">Logged</th>
+              <th class="text-right">Due</th>
+              {#if hasPermission(data.user, 'agile_tasks', 'update')}
+                <th class="w-8"></th>
+              {/if}
+            </tr>
+          </thead>
+          <tbody>
+            {#each tasks as task (task.id)}
+              <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
+                <td class="font-medium">
+                  <button
+                    type="button"
+                    class="text-left hover:text-primary hover:underline transition-colors"
+                    onclick={() => goto(`/agile/tasks/${task.id}`)}
+                  >{task.title}</button>
+                  {#if task.status === 'Blocked' && task.blockedReason}
+                    <p class="text-[10px] text-error mt-0.5">{task.blockedReason}</p>
+                  {/if}
+                </td>
+                <td class="text-xs opacity-70">
+                  {#if task.assignedTo}
+                    <UserNameLink user={users.find((u: any) => u.id === task.assignedTo)} />
+                  {:else}
+                    Unassigned
+                  {/if}
+                </td>
+                <td>
+                  <span class="badge text-xs {PRIORITY_COLOR[task.priority] ?? 'badge-ghost'}">{task.priority}</span>
+                </td>
+                <td>
+                  {#if hasPermission(data.user, 'agile_tasks', 'update')}
+                    <select
+                      class="select text-xs h-7 pl-2 pr-6"
+                      value={task.status}
+                      onchange={e => updateTaskStatus(task, (e.target as HTMLSelectElement).value)}
+                    >
+                      {#each TASK_STATUSES as s}
+                        <option value={s}>{s}</option>
+                      {/each}
+                    </select>
+                  {:else}
+                    <span class="badge text-xs {STATUS_COLOR[task.status] ?? 'badge-ghost'}">{task.status}</span>
+                  {/if}
+                </td>
+                <td class="text-right text-xs opacity-70">{fmtEffort(task.estimateHours)}</td>
+                <td class="text-right text-xs opacity-70">{fmtEffort(task.actualHours ?? 0)}</td>
+                <td class="text-right text-xs opacity-70">{fmtDate(task.dueDate)}</td>
+                {#if hasPermission(data.user, 'agile_tasks', 'update')}
+                  <td class="text-center">
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm btn-square opacity-40 hover:opacity-100"
+                      onclick={() => openEditModal(task)}
+                      aria-label="Edit task"
+                    >
+                      <Pencil size={14} class="size-3.5" />
+                    </button>
+                  </td>
+                {/if}
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+  </section>
+
+  <!-- Comment feed -->
+  {#if hasPermission(data.user, 'agile_comments', 'read')}
+    <section class="space-y-3">
+      <h2 class="text-base font-semibold">Discussion</h2>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+        <CommentFeed jobId={job.id ?? ''} user={data.user} {users} />
+      </div>
+    </section>
+  {/if}
+
+  <!-- Dependency graph -->
+  {#if sprintJobs.length > 1}
+    <section class="space-y-3">
+      <h2 class="text-base font-semibold">Job Dependencies</h2>
+      <div class="card bg-base-200 border border-base-300 rounded-box p-4">
+        <DependencyGraph jobs={sprintJobs} />
+      </div>
+    </section>
+  {/if}
+
+</div>
+
+<!-- ── Edit Task Modal ───────────────────────────────────────────── -->
+{#if editModal}
+  <Modal size="md" label="Edit task">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
+        <h2 class="text-lg font-semibold">Edit Task</h2>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (editModal = false)}><X size={20} class="size-5"/></button>
+      </header>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        {#if editError}
+          <aside class="alert alert-error p-3 rounded text-sm">{editError}</aside>
+        {/if}
+
+        <!-- Estimate shown read-only -->
+        <div class="rounded bg-base-300/40 px-3 py-2 text-xs opacity-60 flex items-center gap-2">
+          <span class="font-semibold uppercase tracking-wide">Estimate:</span>
+          <span>{fmtEffort(editForm.estimateHours)}</span>
+          <span class="ml-auto italic">read-only</span>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="et-title">Title *</label>
+          <input id="et-title" type="text" class="input w-full" placeholder="Task title" bind:value={editForm.title} />
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={editForm.description} placeholder="Optional details…" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Assigned To</label>
+            <UserSelect {users} placeholder="Unassigned" clearable bind:value={editForm.assignedTo} />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="et-due">Due Date</label>
+            <input id="et-due" type="date" class="input w-full" bind:value={editForm.dueDate} />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Priority</label>
+            <select class="select w-full" bind:value={editForm.priority}>
+              {#each PRIORITIES as p}<option value={p}>{p}</option>{/each}
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
+            <select class="select w-full" bind:value={editForm.status}>
+              {#each TASK_STATUSES as s}<option value={s}>{s}</option>{/each}
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="et-act">Logged Hours</label>
+            <input id="et-act" type="number" min="0" step="0.5" class="input w-full" bind:value={editForm.actualHours} />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="et-rem">Remaining Hours</label>
+            <input id="et-rem" type="number" min="0" step="0.5" class="input w-full" bind:value={editForm.remainingHours} />
+          </div>
+        </div>
+        {#if editForm.status === 'Blocked'}
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="et-reason">Blocked Reason *</label>
+            <input id="et-reason" type="text" class="input w-full" placeholder="Why is this blocked?" bind:value={editForm.blockedReason} />
+          </div>
+        {/if}
+
+        <div class="space-y-1 border-t border-base-300 pt-4">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Attachments</p>
+          <AttachmentPanel
+            bind:attachments={editTaskAttachments}
+            uploadUrl="/api/agile/tasks/{editingId}/attachments"
+            deleteUrlFn={(fn) => `/api/agile/tasks/${editingId}/attachments/${encodeURIComponent(fn)}`}
+            canDelete={hasPermission(data.user, 'agile_tasks', 'update')}
+          />
+        </div>
+      </div>
+      <footer class="flex items-center gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
+        {#if hasPermission(data.user, 'agile_tasks', 'delete')}
+          {#if taskDeleteConfirm}
+            <span class="text-xs text-error font-medium mr-auto">Delete task?</span>
+            <button type="button" class="btn btn-error btn-sm" disabled={taskDeleting} onclick={deleteTask}>
+              {taskDeleting ? 'Deleting…' : 'Yes, delete'}
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick={() => { taskDeleteConfirm = false; taskDeleteError = ''; }}>Cancel</button>
+          {:else}
+            <button type="button" class="btn btn-outline btn-error btn-sm mr-auto" onclick={() => taskDeleteConfirm = true}>
+              <Trash2 size={16} class="size-4" /> Delete
+            </button>
+          {/if}
+        {/if}
+        {#if taskDeleteError}
+          <span class="text-xs text-error">{taskDeleteError}</span>
+        {/if}
+        <button type="button" class="btn btn-ghost" onclick={() => {
+          tasks = tasks.map(t => t.id === editingId ? { ...t, attachments: editTaskAttachments } as AgileTask : t);
+          editModal = false;
+          taskDeleteConfirm = false;
+        }}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={savingEdit} onclick={saveEdit}>
+          {savingEdit ? 'Saving…' : 'Save Changes'}
+        </button>
+      </footer>
+  </Modal>
+{/if}
+
+<!-- ── New Task Modal ─────────────────────────────────────────────── -->
+{#if taskModal}
+  <Modal size="md" label="New Task">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
+        <h2 class="text-lg font-semibold">New Task</h2>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (taskModal = false)}><X size={20} class="size-5"/></button>
+      </header>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        {#if taskError}
+          <aside class="alert alert-error p-3 rounded text-sm">{taskError}</aside>
+        {/if}
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="tk-title">Title *</label>
+          <input id="tk-title" type="text" class="input w-full" placeholder="Task title" bind:value={taskForm.title} />
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={taskForm.description} placeholder="Optional details…" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Assigned To</label>
+            <UserSelect {users} placeholder="Unassigned" clearable bind:value={taskForm.assignedTo} />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="tk-est">Estimate (hrs) *</label>
+            <input id="tk-est" type="number" min="0.5" step="0.5" class="input w-full" bind:value={taskForm.estimateHours} />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Priority</label>
+            <select class="select w-full" bind:value={taskForm.priority}>
+              {#each PRIORITIES as p}<option value={p}>{p}</option>{/each}
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
+            <select class="select w-full" bind:value={taskForm.status}>
+              {#each TASK_STATUSES as s}<option value={s}>{s}</option>{/each}
+            </select>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="tk-due">Due Date</label>
+          <input id="tk-due" type="date" class="input w-full" bind:value={taskForm.dueDate} />
+        </div>
+        {#if taskForm.status === 'Blocked'}
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="tk-reason">Blocked Reason *</label>
+            <input id="tk-reason" type="text" class="input w-full" placeholder="Why is this blocked?" bind:value={taskForm.blockedReason} />
+          </div>
+        {/if}
+      </div>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
+        <button type="button" class="btn btn-ghost" onclick={() => (taskModal = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={savingTask} onclick={saveTask}>
+          {savingTask ? 'Creating…' : 'Create Task'}
+        </button>
+      </footer>
+  </Modal>
+{/if}
+
+<!-- ── Edit Job Modal ─────────────────────────────────────────────── -->
+{#if jobEditing}
+  <Modal size="lg" label="Edit job">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
+        <h2 class="text-lg font-semibold">Edit Job</h2>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (jobEditing = false)}><X size={20} class="size-5"/></button>
+      </header>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        {#if jobEditError}
+          <aside class="alert alert-error p-3 rounded text-sm">{jobEditError}</aside>
+        {/if}
+        <div class="space-y-1">
+          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="je-title">Title *</label>
+          <input id="je-title" type="text" class="input w-full" bind:value={jobEditForm.title} />
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
+          <MessageEditor bind:html={jobEditForm.description} placeholder="Describe this job…" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Category</label>
+            <select class="select w-full" bind:value={jobEditForm.category}>
+              {#each JOB_CATEGORIES as c}<option value={c}>{c}</option>{/each}
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Status</label>
+            <select class="select w-full" bind:value={jobEditForm.status}>
+              {#each JOB_STATUSES as s}<option value={s}>{s}</option>{/each}
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="je-start">Start Date</label>
+            <input id="je-start" type="date" class="input w-full" bind:value={jobEditForm.startDate} />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="je-end">End Date</label>
+            <input id="je-end" type="date" class="input w-full" bind:value={jobEditForm.endDate} min={jobEditForm.startDate} />
+          </div>
+        </div>
+        {#if teams.length > 0}
+          <div class="space-y-1">
+            <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Team</label>
+            <select class="select w-full" bind:value={jobEditForm.teamId}>
+              <option value="">— None —</option>
+              {#each teams as team}<option value={team.id}>{team.name}</option>{/each}
+            </select>
+          </div>
+        {/if}
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" class="checkbox checkbox-sm" bind:checked={jobEditForm.blocked} />
+          <span class="text-sm">Mark as Blocked</span>
+        </label>
+      </div>
+      <footer class="flex justify-end gap-3 px-6 pb-5 border-t border-base-300 pt-3 shrink-0">
+        <button type="button" class="btn btn-ghost" onclick={() => (jobEditing = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={jobEditSaving} onclick={saveJobEdit}>
+          {jobEditSaving ? 'Saving…' : 'Save Changes'}
+        </button>
+      </footer>
+  </Modal>
+{/if}

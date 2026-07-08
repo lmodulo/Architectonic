@@ -238,6 +238,7 @@
   "notifications_load_more":      "Load more",
   "notifications_view_all":       "View all notifications →",
   "notifications_prefs_title":    "Notification Preferences",
+  "notifications_prefs_subtitle": "Choose how and when you're notified",
   "notifications_prefs_saved":    "Preferences saved.",
   "notifications_prefs_channels": "Delivery Channels",
   "notifications_prefs_push":     "Push (in-app, always on)",
