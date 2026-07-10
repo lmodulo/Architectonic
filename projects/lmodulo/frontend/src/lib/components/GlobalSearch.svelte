@@ -17,16 +17,24 @@
     contacts: Result[];
     companies: Result[];
     deals: Result[];
+    invoices: Result[];
+    estimates: Result[];
+    contracts: Result[];
+    calendarEvents: Result[];
   }
 
   const GROUPS: { key: keyof Results; label: () => string; href: (id: string) => string; badge: string }[] = [
-    { key: 'milestones', label: () => m.search_milestones(), href: id => `/agile/milestones/${id}`, badge: 'badge-primary' },
-    { key: 'sprints',    label: () => m.search_sprints(),    href: id => `/agile/sprints/${id}`,    badge: 'badge-secondary' },
-    { key: 'jobs',       label: () => m.search_jobs(),       href: id => `/agile/jobs/${id}`,       badge: 'badge-accent' },
-    { key: 'tasks',      label: () => m.search_tasks(),      href: id => `/agile/tasks/${id}`,      badge: 'badge-neutral' },
-    { key: 'contacts',   label: () => m.search_contacts(),   href: id => `/crm/contacts/${id}`,     badge: 'badge-info' },
-    { key: 'companies',  label: () => m.search_companies(),  href: id => `/crm/companies/${id}`,    badge: 'badge-success' },
-    { key: 'deals',      label: () => m.search_deals(),      href: id => `/crm/deals/${id}`,        badge: 'badge-warning' },
+    { key: 'milestones',     label: () => m.search_milestones(),      href: id => `/agile/milestones/${id}`,        badge: 'badge-primary' },
+    { key: 'sprints',        label: () => m.search_sprints(),         href: id => `/agile/sprints/${id}`,           badge: 'badge-secondary' },
+    { key: 'jobs',           label: () => m.search_jobs(),            href: id => `/agile/jobs/${id}`,              badge: 'badge-accent' },
+    { key: 'tasks',          label: () => m.search_tasks(),           href: id => `/agile/tasks/${id}`,             badge: 'badge-neutral' },
+    { key: 'contacts',       label: () => m.search_contacts(),        href: id => `/crm/contacts/${id}`,            badge: 'badge-info' },
+    { key: 'companies',      label: () => m.search_companies(),       href: id => `/crm/companies/${id}`,           badge: 'badge-success' },
+    { key: 'deals',          label: () => m.search_deals(),           href: id => `/crm/deals/${id}`,               badge: 'badge-warning' },
+    { key: 'invoices',       label: () => m.search_invoices(),        href: id => `/folio/invoices/${id}`,          badge: 'badge-error' },
+    { key: 'estimates',      label: () => m.search_estimates(),       href: id => `/folio/estimates/${id}`,         badge: 'badge-outline' },
+    { key: 'contracts',      label: () => m.search_contracts(),       href: id => `/contracts/${id}`,               badge: 'badge-primary' },
+    { key: 'calendarEvents', label: () => m.search_calendar_events(), href: id => `/calendar-events?eventId=${id}`, badge: 'badge-secondary' },
   ];
 
   let query = $state('');

@@ -545,6 +545,10 @@
   "search_contacts":    "Contacts",
   "search_companies":   "Companies",
   "search_deals":       "Deals",
+  "search_invoices":        "Invoices",
+  "search_estimates":       "Estimates",
+  "search_contracts":       "Contracts",
+  "search_calendar_events": "Calendar Events",
 
   "cropper_hint":  "Drag to reposition · Slider to zoom",
   "cropper_zoom":  "Zoom",

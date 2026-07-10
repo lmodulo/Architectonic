@@ -269,12 +269,12 @@
       <h2 class="text-lg font-semibold">Create Proposal</h2>
       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (proposalOpen = false)} aria-label="Close"><Icon name="X" size={20} class="size-5" /></button>
     </header>
-    <div class="p-6 space-y-4">
+    <div class="p-6 grid grid-cols-2 gap-4">
       {#if proposalError}
-        <aside class="alert alert-error p-3 rounded text-sm">{proposalError}</aside>
+        <aside class="alert alert-error p-3 rounded text-sm col-span-2">{proposalError}</aside>
       {/if}
 
-      <label class="flex flex-col gap-1">
+      <label class="flex flex-col gap-1 col-span-2">
         <span class="text-sm font-medium">Client <span class="text-error">*</span></span>
         <select class="select" bind:value={proposalForm.customerId}>
           <option value="">Select a client…</option>
@@ -284,7 +284,7 @@
         </select>
       </label>
 
-      <div>
+      <div class="col-span-2">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-medium">Line Items</span>
           <button type="button" class="btn btn-ghost btn-xs" onclick={() => (proposalLines = [...proposalLines, { description: '', quantity: 1, unitPrice: 0 }])}>
@@ -312,18 +312,16 @@
         </p>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Tax Rate (%)</span>
-          <input type="number" class="input" min="0" max="100" step="0.1" bind:value={proposalForm.taxRate} />
-        </label>
-        <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Valid Until</span>
-          <input type="date" class="input" bind:value={proposalForm.dueDate} />
-        </label>
-      </div>
-
       <label class="flex flex-col gap-1">
+        <span class="text-sm font-medium">Tax Rate (%)</span>
+        <input type="number" class="input" min="0" max="100" step="0.1" bind:value={proposalForm.taxRate} />
+      </label>
+      <label class="flex flex-col gap-1">
+        <span class="text-sm font-medium">Valid Until</span>
+        <input type="date" class="input" bind:value={proposalForm.dueDate} />
+      </label>
+
+      <label class="flex flex-col gap-1 col-span-2">
         <span class="text-sm font-medium">Notes</span>
         <textarea class="textarea" rows="2" bind:value={proposalForm.notes}></textarea>
       </label>

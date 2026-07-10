@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import Icon from '$lib/components/Icon.svelte';
@@ -50,6 +51,18 @@
   function openNew() { editing = null; newEventDate = ''; modalOpen = true; }
   function openNewOnDate(dateStr: string) { editing = null; newEventDate = dateStr; modalOpen = true; }
   function openEdit(ev: CalendarEvent) { editing = ev; modalOpen = true; }
+
+  // Deep-link support: global search links to /calendar-events?eventId=... since
+  // there's no dedicated detail route — open the matching event's modal on load.
+  onMount(() => {
+    const eventId = page.url.searchParams.get('eventId');
+    if (!eventId) return;
+    const match = events.find(e => e.id === eventId);
+    if (match) { openEdit(match); return; }
+    fetch(`/api/calendar-events/${eventId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(d => { if (d) openEdit(normalizeEvent(d)); });
+  });
 
   async function handleSave(body: Record<string, unknown>) {
     let res: Response;
