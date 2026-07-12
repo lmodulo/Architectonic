@@ -21,7 +21,7 @@
 </svelte:head>
 
 <!-- Screen wrapper — A4-ish card on a neutral background -->
-<div class="min-h-screen bg-[#f0f0f0] flex flex-col items-center py-8 px-4 no-print:py-8">
+<div class="min-h-screen bg-base-200 flex flex-col items-center py-8 px-4 no-print:py-8">
 
   <!-- Print button (screen only) -->
   <div class="no-print w-full max-w-[794px] flex justify-end mb-3">
@@ -39,8 +39,14 @@
   <div class="w-full max-w-[794px] bg-white shadow-md rounded-sm overflow-hidden">
 
     <!-- Brand header -->
-    <header class="px-10 py-12 flex flex-col items-center gap-2 border-b border-gray-100">
-      <img src="/logo-black.svg" alt={brandName || 'Logo'} style="height:48px;width:auto;max-width:240px;" />
+    <header class="px-10 py-12 flex flex-col items-center gap-2 border-b border-gray-100 bg-base-300">
+      {#if brandLogo}
+        <img src={brandLogo} alt={brandName || title || 'Logo'} style="height:48px;width:auto;max-width:240px;" />
+      {:else if brandName}
+        <span class="text-xl font-semibold text-gray-800">{brandName}</span>
+      {:else if title}
+        <span class="text-xl font-semibold text-gray-800">{title}</span>
+      {/if}
     </header>
 
     <!-- Document content -->
@@ -80,9 +86,13 @@
     }
 
     /* Remove card styling for print */
-    .bg-\[#f0f0f0\] {
+    .bg-base-200 {
       background: white !important;
       padding: 0 !important;
+    }
+
+    .bg-base-300 {
+      background: white !important;
     }
 
     .shadow-md,
