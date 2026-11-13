@@ -1,0 +1,42 @@
+{
+  "name": "cms",
+  "description": "Content — the public website: one site tree (menu + URLs), a block page builder, and images from Vault",
+  "nav": [
+    {
+      "label": "Content",
+      "href": "/cms",
+      "icon": "LayoutTemplate",
+      "permission": "cms_nodes.read",
+      "matchPrefix": true
+    }
+  ],
+  "permissions": [
+    {
+      "resource": "cms_nodes",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "cms_pages",
+      "actions": ["create", "read", "update", "delete"]
+    },
+    {
+      "resource": "cms_publish",
+      "actions": ["update"]
+    }
+  ],
+  "roles": {
+    "lead": {
+      "cms_nodes":   ["create", "read", "update"],
+      "cms_pages":   ["create", "read", "update"],
+      "cms_publish": ["update"]
+    },
+    "contributor": {
+      "cms_nodes": ["read"],
+      "cms_pages": ["read", "update"]
+    }
+  },
+  "dependencies": {
+    "frontend": {},
+    "api": {}
+  }
+}

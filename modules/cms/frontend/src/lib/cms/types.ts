@@ -1,0 +1,149 @@
+// Shared CMS content types for the admin and the public renderer. They mirror what the API's
+// sanitizer (api/src/lib/cmsSanitize.ts) stores; the two packages can't share code, so keep both in sync.
+
+export type NodeType = 'page' | 'component' | 'link' | 'label';
+export type NodeStatus = 'draft' | 'published';
+
+/** A site tree item as GET /cms/nodes returns it. */
+export interface CmsNode {
+  id: string;
+  parentId: string | null;
+  order: number;
+  type: NodeType;
+  title: string;
+  /** null for links */
+  slug: string | null;
+  showInMenu: boolean;
+  status: NodeStatus;
+  component: ComponentRef | null;
+  /** link nodes only */
+  url: string | null;
+  newTab: boolean;
+  /** slug path such as '/about/team'; null for links */
+  path: string | null;
+  /** public URL: '/' for the home page, the URL for links */
+  href: string | null;
+  /** the node and all its ancestors are published */
+  visible: boolean;
+  isHome: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string | null;
+  updatedBy: string | null;
+}
+
+export interface ComponentRef { key: string; props: Record<string, unknown> }
+
+export type ImageRef = { vaultId: string; src: string; alt: string; w?: number; h?: number };
+/** nodeId links are turned into paths at read time, so moving a page doesn't break links to it. */
+export type LinkRef = { nodeId: string } | { url: string };
+
+/** Tiptap JSON (only the nodes and marks the sanitizer allows survive a save). */
+export interface TiptapNode {
+  type: string;
+  attrs?: Record<string, unknown>;
+  content?: TiptapNode[];
+  marks?: { type: string; attrs?: Record<string, unknown> }[];
+  text?: string;
+}
+
+/** Attributes of the `cmsImage` node inside rich text. */
+export interface CmsImageAttrs {
+  vaultId: string;
+  src: string;
+  alt: string;
+  caption: string | null;
+  align: 'left' | 'right' | 'center' | 'full';
+  width: 25 | 33 | 50 | 100;
+  w: number | null;
+  h: number | null;
+}
+
+export interface RichTextData { doc: TiptapNode }
+export interface HeroData {
+  title: string;
+  subtitle?: string;
+  image?: ImageRef;
+  align: 'left' | 'center';
+  height: 'sm' | 'md' | 'lg';
+  cta?: { label: string; link: LinkRef };
+}
+export interface GalleryData {
+  images: (ImageRef & { caption?: string })[];
+  columns: 2 | 3 | 4 | 5 | 6;
+  aspect: 'square' | '4:3' | 'natural';
+  gap: 'sm' | 'md' | 'lg';
+}
+export interface ButtonsData {
+  items: { label: string; link: LinkRef; style: 'primary' | 'outline' }[];
+  align: 'left' | 'center' | 'right';
+}
+export interface DividerData { style: 'line' | 'space'; size: 'sm' | 'md' | 'lg' }
+export type ComponentData = ComponentRef;
+
+export type Block =
+  | { id: string; type: 'richText'; data: RichTextData }
+  | { id: string; type: 'hero'; data: HeroData }
+  | { id: string; type: 'gallery'; data: GalleryData }
+  | { id: string; type: 'buttons'; data: ButtonsData }
+  | { id: string; type: 'divider'; data: DividerData }
+  | { id: string; type: 'component'; data: ComponentData };
+
+export type BlockType = Block['type'];
+
+export interface Seo { title?: string; description?: string; image?: ImageRef; noindex?: boolean }
+export interface PageContent { blocks: Block[]; seo: Seo }
+
+/** GET /cms/pages/:nodeId */
+export interface PageDraft {
+  nodeId: string;
+  draft: PageContent;
+  rev: number;
+  status: NodeStatus;
+  publishedAt: string | null;
+  hasUnpublishedChanges: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+/** GET /cms/site/resolve and GET /cms/pages/:nodeId/preview */
+export interface PageView {
+  node: { id: string; type: NodeType; title: string; path: string | null; component: ComponentRef | null };
+  /** null for component nodes */
+  page: PageContent | null;
+  /** vaultId → current file (Session 5) */
+  media: Record<string, { url: string; w?: number; h?: number }>;
+  /** nodeId → public URL, for LinkRefs; links to unpublished pages are missing */
+  links: Record<string, string>;
+  breadcrumbs: { id: string; title: string; path: string | null }[];
+  /** remaining path segments, for components that accept subpaths */
+  rest?: string;
+  preview?: true;
+}
+
+export type ResolveResult = PageView | { redirect: string };
+
+export interface MenuItem {
+  id: string;
+  type: NodeType;
+  title: string;
+  href: string;
+  newTab?: boolean;
+  children: MenuItem[];
+}
+
+/** GET /cms/site/menu */
+export interface SiteMenu {
+  items: MenuItem[];
+  footer: { text: string; links: { label: string; href: string; newTab?: boolean }[] };
+}
+
+export interface FooterLink { label: string; link: LinkRef; newTab?: boolean }
+
+/** GET /cms/settings */
+export interface CmsSettings {
+  homeNodeId: string | null;
+  footer: { text: string; links: FooterLink[] };
+  mediaFolderId: string | null;
+  updatedAt: string | null;
+}

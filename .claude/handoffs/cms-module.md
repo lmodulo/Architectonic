@@ -10,7 +10,7 @@ This is the master plan for the module, and it stays the source of truth. Each s
 | # | Session | State | Session handoff |
 |---|---------|-------|-----------------|
 | 1 | Scaffold extension points (candidate + friendsofmcrwr sync) | ☑ 2026-11-13 | [session 1](cms-module-session-1.md) |
-| 2 | CMS API + module skeleton + seed | ☐ | |
+| 2 | CMS API + module skeleton + seed | ☑ 2026-11-13 | [session 2](cms-module-session-2.md) |
 | 3 | Public site: routing, site shell, n-deep menu, text blocks, component registry | ☐ | |
 | 4 | Admin: site tree + block page builder (no images) | ☐ | |
 | 5 | Vault media: picker, aligned images, gallery + lightbox | ☐ | |
@@ -117,7 +117,9 @@ workspace-scoped.
   - Draft and published live on one document because compose runs a standalone `mongo:7` with no transactions, and a
     single-document update keeps publish atomic.
   - `rev` is the optimistic lock: a stale save returns `409`.
-- **`cms_settings`**: one document, `{ _id: 'site', homeNodeId, footer: { text, links: LinkRef[] }, mediaFolderId }`.
+  - *(S2)* Unpublishing a page sets `published: null`, so only `status` and `published` decide what is public.
+- **`cms_settings`**: one document, `{ _id: 'site', homeNodeId, footer: { text, links: FooterLink[] }, mediaFolderId }`.
+  *(S2)* `FooterLink` is `{ label, link: LinkRef, newTab? }`, because a bare `LinkRef` has no label.
 - **Blocks:** `{ id: crypto.randomUUID(), type, data }`. Shared types live in `frontend/src/lib/cms/types.ts`.
   ```ts
   type ImageRef = { vaultId: string; src: string; alt: string; w?: number; h?: number };
@@ -146,26 +148,31 @@ Slugs come from `candidate/api/src/lib/slug.ts` `toSlug()`.
 
 | Method | Path | Guard | Notes |
 |---|---|---|---|
-| GET | `/cms/nodes` | cms_nodes.read | flat list, each with a computed `path` and `visible` |
+| GET | `/cms/nodes` | cms_nodes.read | flat list in tree order (parents first), each with a computed `path`, public `href` (`/` for home), `visible` and `isHome` |
 | POST | `/cms/nodes` | cms_nodes.create | reserved-slug + sibling-slug check |
-| PATCH | `/cms/nodes/:id` | cms_nodes.update | same checks |
+| PATCH | `/cms/nodes/:id` | cms_nodes.update | same checks. *(S2)* `type` may change (a node with children can't become a link). `status` can't be set here; use publish/unpublish. |
 | DELETE | `/cms/nodes/:id` | cms_nodes.delete | 409 if it has children; also deletes its `cms_pages` doc |
 | POST | `/cms/nodes/:id/move` | cms_nodes.update | `{ parentId, index }`. Rejects moving under itself or a descendant (walk up from the new parent), under a `link`, or next to a sibling with the same slug (409). Renumbers old and new siblings with `bulkWrite`; safe to re-run. |
 | GET | `/cms/pages/:nodeId` | cms_pages.read | draft, published metadata, `rev` |
-| PUT | `/cms/pages/:nodeId/draft` | cms_pages.update | `{ blocks, seo, rev }`; sanitized; 409 on a stale `rev` |
-| POST | `/cms/pages/:nodeId/publish` | cms_publish.update | copies draft to published and sets the node to `published`; returns warnings (e.g. missing images) |
-| POST | `/cms/pages/:nodeId/unpublish` | cms_publish.update | |
+| PUT | `/cms/pages/:nodeId/draft` | cms_pages.update | `{ blocks, seo, rev }`; sanitized; returns `{ rev, draft, removed }`. A stale `rev` gets 409 with the current `rev` in the body. |
+| POST | `/cms/pages/:nodeId/publish` | cms_publish.update | *(S2)* Works for **every node type**: it sets `status: published`, and for pages it also copies the draft to published. Optional `{ rev }` gets 409 if the draft has moved on. Returns `{ status, publishedAt, visible, warnings }`. Warnings so far: an unpublished ancestor, and links to items that aren't public; missing images come in S5. |
+| POST | `/cms/pages/:nodeId/unpublish` | cms_publish.update | every node type; returns a warning with the number of descendants hidden too |
 | GET | `/cms/pages/:nodeId/preview` | cms_pages.read | same shape as `resolve`, built from the draft |
 | GET / PATCH | `/cms/settings` | cms_nodes.read / cms_nodes.update | |
-| GET | `/cms/media`, `/cms/media/folders`, `/cms/media/:id` | cms_pages.update **and** a manual `vault_documents.read` check | see §6 |
+| GET | `/cms/media`, `/cms/media/folders`, `/cms/media/:id` | cms_pages.update **and** a manual `vault_documents.read` check | see §6. Deferred to S5, together with `cmsRole.ts`. |
 | GET | `/cms/site/menu` | **none** | published, visible, `showInMenu` tree, plus footer |
-| GET | `/cms/site/resolve?path=` | **none** | `{ node, page: { blocks, seo }, media: {vaultId → {url,w,h}}, links: {nodeId → path}, breadcrumbs, rest? }`, or `{ redirect }`, or 404. `/` resolves to `homeNodeId`, and the home node's own path redirects to `/`. |
+| GET | `/cms/site/resolve?path=` | **none** | `{ node, page: { blocks, seo }, media: {vaultId → {url,w,h}}, links: {nodeId → path}, breadcrumbs, rest? }`, or `{ redirect }`, or 404. `/` resolves to `homeNodeId`, and the home node's own path redirects to `/`. *(S2)* `rest` is returned for any component node with leftover segments, and the frontend 404s it unless the registry entry has `subpaths`. A label redirects to its first visible page or component, descending through labels and skipping links. `media` stays `{}` until S5. |
 
 - **Sanitize on save** (*new* `api/src/lib/cmsSanitize.ts`):
-  - Whitelist the block types and the Tiptap node and mark types; drop anything else.
-  - Headings may only be levels 2–4.
+  - Whitelist the block types and the Tiptap node and mark types; drop anything else. *(S2)* The allowed nodes are
+    doc, paragraph, heading, bulletList, orderedList (`start`), listItem (must start with a paragraph), blockquote,
+    horizontalRule, hardBreak, text and cmsImage. The allowed marks are bold, italic, underline, strike and link
+    (`href` and `target` only). **No codeBlock and no code mark.**
+  - The content model is enforced (e.g. no blocks inside paragraphs), and empty lists and list items are dropped.
+  - Headings may only be levels 2–4. *(S2)* Other levels are clamped into that range rather than dropped.
   - Cap document depth and size.
-  - Link hrefs must match `^(https?:|mailto:|tel:|\/(?!\/)|#)`, otherwise the link mark is removed.
+  - Link hrefs must match `^(https?:|mailto:|tel:|\/(?![/\\])|#)` (case-insensitive) with no whitespace or control
+    characters, otherwise the link mark is removed. *(S2)* This also rejects `/\host`, which browsers treat as `//host`.
   - Image attributes must match the `cmsImage` schema.
 - **Reserved slugs, API baseline:** `api, uploads, _app, login, register, logout, forgot-password, reset-password,
   accept-invite, dashboard, settings, profile, messages, notifications, audit-log, user-management, manage-users, roles,
@@ -253,7 +260,8 @@ a tab bar (`dragScroll`, `tab-scroll`) and `data-no-anim`. Browser calls go thro
   - Buttons: Publish, Unpublish, and Preview (opens `/cms/preview/[nodeId]` with a "Draft preview" ribbon).
 - **`RichTextEditor`** is a *new* component, not a copy of `MessageEditor`.
   - Plain Tiptap 3: StarterKit, which **already includes Link and Underline**, so configure those through
-    `StarterKit.configure`; plus Placeholder.
+    `StarterKit.configure`; plus Placeholder. *(S2)* To match the sanitizer, configure
+    `codeBlock: false, code: false, heading: { levels: [2, 3, 4] }`, or saves will silently drop that content.
   - Link `isAllowedUri: (u, c) => c.defaultValidate(u) && SAFE.test(u)`.
   - Keep a `$state` tick that is bumped in `onTransaction`, so the toolbar's active states refresh.
     (`MessageEditor`'s editor isn't reactive.)
@@ -381,9 +389,10 @@ collision.
 ```
 modules/cms/
   module.json  PERMISSIONS.md
-  api/src/lib/{cmsTree,cmsSanitize,cmsRole}.ts
-  api/src/routes/cms/{index,nodes,pages,settings,media,site}.ts
+  api/src/lib/{cmsTree,cmsSanitize,cmsRole}.ts            (cmsRole: S5)
+  api/src/routes/cms/{index,nodes,pages,settings,media,site}.ts   (media: S5)
   api/src/seeds/80-cms.ts
+  api/tests/unit/lib/{cmsSanitize,cmsTree}.test.ts      (S2; copied into projects' api/tests)
   frontend/src/params/cmspath.ts
   frontend/src/lib/cms/{types.ts, tiptap/CmsImage.ts}
   frontend/src/lib/config/module-routes/cms.ts
@@ -569,6 +578,8 @@ nodes render nothing until Session 5.
   being logged out.
 - **Tools.** Playwright: `require('/Users/joenicora/.npm/_npx/e41f203b7505f1fb/node_modules/playwright')`. macOS has no
   `timeout`. Run `npx svelte-kit sync` before `npx svelte-check`.
+- **Test scripts.** `.claude/handoffs/cms-tests/` holds the reusable throwaway-project checks (Session 2 API matrix,
+  web/proxy checks); see its README. Add each session's scripts there.
 - **Known noise.** The `candidate/api` roles test logs one `ERR_HTTP_HEADERS_SENT`. The friendsofmcrwr API `tsc` has
   about 598 baseline errors, so compare counts rather than expecting zero.
 
