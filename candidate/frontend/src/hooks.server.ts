@@ -53,6 +53,8 @@ const authHandle: Handle = async ({ event, resolve }) => {
   }
 
   const path = event.url.pathname;
+  // Route id of the matched route (set before handle runs; null when nothing matches), for routeId rules
+  const routeId = event.route.id;
 
   // Redirect authenticated users away from auth pages
   if (event.locals.user && AUTH_PATHS.has(path)) {
@@ -60,19 +62,20 @@ const authHandle: Handle = async ({ event, resolve }) => {
   }
 
   // Redirect unauthenticated users to login
-  if (!event.locals.user && !PUBLIC_PATHS.has(path) && !isPublicRoute(path) && !path.startsWith('/api/') && !path.startsWith('/uploads/')) {
+  if (!event.locals.user && !PUBLIC_PATHS.has(path) && !isPublicRoute(path, routeId) && !path.startsWith('/api/') && !path.startsWith('/uploads/')) {
     redirect(303, '/login');
   }
 
   // Customers may only access their allowed paths, plus module routes marked customer or public
-  if (event.locals.user?.role === 'customer' && !CUSTOMER_ALLOWED_PATHS.has(path) && !isCustomerRoute(path) && !path.startsWith('/api/')) {
+  if (event.locals.user?.role === 'customer' && !CUSTOMER_ALLOWED_PATHS.has(path) && !isCustomerRoute(path, routeId) && !path.startsWith('/api/')) {
     redirect(303, customerHome(event.locals.user));
   }
 
-  // Permission-based route guards (staff only — customers already redirected above)
+  // Permission-based route guards (staff only — customers already redirected above).
+  // Matched on segment boundaries, so '/roles' doesn't catch a page such as '/roles-of-the-board'.
   if (event.locals.user) {
     const permEntry = Object.entries(ROUTE_PERMISSIONS).find(([prefix]) =>
-      path.startsWith(prefix)
+      path === prefix || path.startsWith(prefix + '/')
     );
     if (permEntry) {
       const [, { resource, action }] = permEntry;

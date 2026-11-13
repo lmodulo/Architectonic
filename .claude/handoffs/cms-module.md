@@ -1,0 +1,590 @@
+# Handoff: `cms` module ("Content"), a CMS for the public website
+
+Written 2026-11-13 at HEAD `0f7980a` with a clean working tree. **Commit at the end of each session** (user, 2026-11-13), on
+branch `cms-module`; don't push and don't merge to `main` unless asked.
+This is the master plan for the module, and it stays the source of truth. Each session ends by writing
+`.claude/handoffs/cms-module-session-<N>.md` and updating the status table below (see "End-of-session protocol").
+
+## Status
+
+| # | Session | State | Session handoff |
+|---|---------|-------|-----------------|
+| 1 | Scaffold extension points (candidate + friendsofmcrwr sync) | ☑ 2026-11-13 | [session 1](cms-module-session-1.md) |
+| 2 | CMS API + module skeleton + seed | ☐ | |
+| 3 | Public site: routing, site shell, n-deep menu, text blocks, component registry | ☐ | |
+| 4 | Admin: site tree + block page builder (no images) | ☐ | |
+| 5 | Vault media: picker, aligned images, gallery + lightbox | ☐ | |
+| 6 | Events component, SEO, docs, widget, final test matrix | ☐ | |
+
+## Goal
+
+A new module `modules/cms`. Its nav item reads **Content** (`/cms`, lucide `LayoutTemplate`) and it manages the public
+website rendered by the same SvelteKit app:
+
+- **Site tree.** An n-deep tree. Each node is both a menu item and a URL.
+- **Block page builder.** Rich text in which Vault images can float left or right with the text wrapping around them,
+  plus hero, gallery (grid that opens a lightbox on click), buttons, divider and embedded-component blocks.
+- **Images come from Vault.** A picker shows Vault's images. Uploads go into a Vault folder (default "Website Media").
+  Editors place and align images inside the CMS.
+- **Custom Svelte pages.** A registry of Svelte components that can be a whole page or a block. The first real one
+  (Session 6) is **Events**: public, active events from the `calendar-events` module.
+
+## Decisions (settled by the user on 2026-11-13; don't re-open them)
+
+1. **Root URLs.** The public site serves `/`, `/about` and `/about/team`. This needs small, generic extension points in
+   `candidate/`; the scaffold marketing page stays as the fallback home.
+2. **One site tree.** Node types: `page` (blocks), `component` (registry Svelte page), `link` (external or internal URL)
+   and `label` (a parent with no page of its own). A URL is the node's slugs joined. Each node has a `showInMenu` flag.
+3. **Block-stack builder** in the Gutenberg/Sanity style: an ordered list of blocks, a "+" inserter between blocks,
+   drag to reorder, and editing in place.
+4. **Module only.** Build and verify in throwaway projects. Do **not** install cms into friendsofmcrwr; the user decides
+   that later.
+5. **Scaffold edits are synced to friendsofmcrwr** (the byte-identical convention). That is not a cms install: copy the
+   changed scaffold files only.
+
+## Architecture
+
+### 1. Scaffold extension points (`candidate/`; Session 1)
+
+All of these are generic, and none of them changes behavior when no module uses them.
+
+- **Route rules that match a route id.** In `candidate/frontend/src/lib/config/route-rules.ts`:
+  - Make `prefix` optional and add `routeId?: string`, matched exactly against the SvelteKit route id.
+  - Add an `applies(rule, path, routeId)` helper. *(Built in S1.)* A rule with both `prefix` and `routeId` matches only
+    when both match; a rule with neither matches nothing. `routeId` is null for unmatched URLs, so `routeId` rules never
+    apply to them. For `__data.json` requests, SvelteKit sets the page's route id, so client navigation is gated the same way.
+  - `isPublicRoute`, `isCustomerRoute` and `isBareRoute` take an optional `routeId`.
+
+  Then pass the route id at the call sites:
+  - `hooks.server.ts`, where the gates are around lines 63 and 68: pass `event.route.id`. In SvelteKit 2.55 this is
+    already set when `handle` runs (checked in `respond.js`).
+  - `routes/+layout.svelte:43`: pass `page.route.id`.
+
+  Existing prefix rules (commerce, folio, agile, vault) and `customer-home.ts` keep working unchanged.
+- **Segment-boundary fix.** `ROUTE_PERMISSIONS` in `hooks.server.ts` matches with `path.startsWith(prefix)`, so a CMS
+  slug like `/roles-of-the-board` would bounce staff without `roles.read` to `/403`. Match `path === p || path.startsWith(p + '/')`.
+- **Home-page override.** Today there is no `src/hooks.ts` and no `routes/+page.server.ts`. Don't use `reroute`.
+  - *New* `src/lib/server/module-home.ts`:
+    - globs `./module-home/*.ts`; each file default-exports `(event: ServerLoadEvent) => Promise<object | null>`
+      (type `ModuleHomeLoader`); the key is the file name, and a key with no matching `.svelte` falls back to the
+      scaffold page
+    - `resolveModuleHome(event)` returns the first non-null `{ key, data }`, ordered by file name
+    - each loader runs inside try/catch
+  - *New* `src/lib/config/module-home.ts`: an eager glob of `./module-home/*.svelte`, mapping key to component.
+  - *New* `routes/+page.server.ts`: `load = async (e) => ({ moduleHome: await resolveModuleHome(e) })`.
+  - Move the 957-line marketing markup from `routes/+page.svelte`, unchanged, into *new* `$lib/components/ScaffoldHome.svelte`.
+    The page becomes `{#if Home}<Home data={data.moduleHome.data} />{:else}<ScaffoldHome />{/if}`.
+
+  This split keeps private env (`API_URL`) out of the client bundle.
+- **Upload size behind adapter-node.** adapter-node's `BODY_SIZE_LIMIT` defaults to 512K, but the API accepts 10 MB
+  (`api/src/server.ts:49`). In production, larger Vault, commerce and avatar uploads already fail through the proxy.
+  - Add `- BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT:-10M}` to the `web` service in `candidate/docker-compose.yml`.
+  - Do this in compose, because arch.js writes `.env`, which the web container doesn't read.
+- **Docs.** Update the "Module routes" bullet in `candidate/CLAUDE.md` and the README "Public / customer / shell-free
+  routes" paragraph (around line 559) to cover `routeId` rules and the home override.
+- **Sync to friendsofmcrwr.**
+  - Before overwriting each file, confirm the project copy equals `git show HEAD:candidate/...`.
+  - Hand-merge the files that are intentionally different there: `+layout.svelte` (it has the agile LogTimePalette)
+    and `docker-compose.yml`.
+  - Then rebuild and restart **web only**. Touch no settings or data.
+
+### 2. Data model (Mongo, native driver; no `workspaceId`)
+
+There is one public site per deployment, as with settings and the commerce storefront. Only media lookups are
+workspace-scoped.
+
+- **`cms_nodes`**
+  - Fields:
+    ```
+    { _id, parentId: ObjectId|null, order: number, type: 'page'|'component'|'link'|'label',
+      title, slug?, showInMenu: boolean, status: 'draft'|'published',
+      component?: { key, props }, url?, newTab?, createdAt, updatedAt, createdBy, updatedBy }
+    ```
+  - Indexes: `{ parentId: 1, order: 1 }`, and a unique `{ parentId: 1, slug: 1 }` with a partial filter on
+    `slug: { $type: 'string' }`.
+  - `link` nodes have no slug and no children.
+  - A `label` node's slug is part of its children's URLs. Visiting the label's own URL redirects (307) to its first
+    visible child.
+  - **Don't store a materialized path.** Trees are small, so load every node and build paths in memory; that way moves
+    don't have to rewrite paths.
+  - A node is publicly visible only if it **and all its ancestors** are `published`.
+- **`cms_pages`**
+  - Fields:
+    ```
+    { _id, nodeId (unique), draft: { blocks, seo }, published: { blocks, seo } | null,
+      rev: number, publishedAt, updatedAt, updatedBy }
+    ```
+  - Draft and published live on one document because compose runs a standalone `mongo:7` with no transactions, and a
+    single-document update keeps publish atomic.
+  - `rev` is the optimistic lock: a stale save returns `409`.
+- **`cms_settings`**: one document, `{ _id: 'site', homeNodeId, footer: { text, links: LinkRef[] }, mediaFolderId }`.
+- **Blocks:** `{ id: crypto.randomUUID(), type, data }`. Shared types live in `frontend/src/lib/cms/types.ts`.
+  ```ts
+  type ImageRef = { vaultId: string; src: string; alt: string; w?: number; h?: number };
+  type LinkRef  = { nodeId: string } | { url: string };   // nodeId → path at read time, so moves don't break links
+  richText:  { doc: TiptapJSON }
+  hero:      { title, subtitle?, image?: ImageRef, align: 'left'|'center', height: 'sm'|'md'|'lg', cta?: { label, link: LinkRef } }
+  gallery:   { images: (ImageRef & { caption?: string })[], columns: 2|3|4|5|6, aspect: 'square'|'4:3'|'natural', gap: 'sm'|'md'|'lg' }
+  buttons:   { items: { label, link: LinkRef, style: 'primary'|'outline' }[], align: 'left'|'center'|'right' }
+  divider:   { style: 'line'|'space', size: 'sm'|'md'|'lg' }
+  component: { key, props }                  // registry entry whose modes include 'block'
+  ```
+  The `cmsImage` node inside rich text has the attributes
+  `{ vaultId, src, alt, caption?, align: 'left'|'right'|'center'|'full', width: 25|33|50|100, w, h }`.
+
+### 3. API (`modules/cms/api/src/routes/cms/`; Fastify autoload)
+
+`index.ts` creates the indexes and **registers its sibling files itself**: autoload ignores the other files in a folder
+that has an `index.ts` (see `modules/vault/api/src/routes/vault/index.ts`). Follow Vault's style:
+
+- `mapX()` turns `_id` into `id`
+- requests are validated with a JSON `schema`
+- every write calls `logAudit`
+- errors use `reply.notFound`, `reply.conflict` and similar
+
+Slugs come from `candidate/api/src/lib/slug.ts` `toSlug()`.
+
+| Method | Path | Guard | Notes |
+|---|---|---|---|
+| GET | `/cms/nodes` | cms_nodes.read | flat list, each with a computed `path` and `visible` |
+| POST | `/cms/nodes` | cms_nodes.create | reserved-slug + sibling-slug check |
+| PATCH | `/cms/nodes/:id` | cms_nodes.update | same checks |
+| DELETE | `/cms/nodes/:id` | cms_nodes.delete | 409 if it has children; also deletes its `cms_pages` doc |
+| POST | `/cms/nodes/:id/move` | cms_nodes.update | `{ parentId, index }`. Rejects moving under itself or a descendant (walk up from the new parent), under a `link`, or next to a sibling with the same slug (409). Renumbers old and new siblings with `bulkWrite`; safe to re-run. |
+| GET | `/cms/pages/:nodeId` | cms_pages.read | draft, published metadata, `rev` |
+| PUT | `/cms/pages/:nodeId/draft` | cms_pages.update | `{ blocks, seo, rev }`; sanitized; 409 on a stale `rev` |
+| POST | `/cms/pages/:nodeId/publish` | cms_publish.update | copies draft to published and sets the node to `published`; returns warnings (e.g. missing images) |
+| POST | `/cms/pages/:nodeId/unpublish` | cms_publish.update | |
+| GET | `/cms/pages/:nodeId/preview` | cms_pages.read | same shape as `resolve`, built from the draft |
+| GET / PATCH | `/cms/settings` | cms_nodes.read / cms_nodes.update | |
+| GET | `/cms/media`, `/cms/media/folders`, `/cms/media/:id` | cms_pages.update **and** a manual `vault_documents.read` check | see §6 |
+| GET | `/cms/site/menu` | **none** | published, visible, `showInMenu` tree, plus footer |
+| GET | `/cms/site/resolve?path=` | **none** | `{ node, page: { blocks, seo }, media: {vaultId → {url,w,h}}, links: {nodeId → path}, breadcrumbs, rest? }`, or `{ redirect }`, or 404. `/` resolves to `homeNodeId`, and the home node's own path redirects to `/`. |
+
+- **Sanitize on save** (*new* `api/src/lib/cmsSanitize.ts`):
+  - Whitelist the block types and the Tiptap node and mark types; drop anything else.
+  - Headings may only be levels 2–4.
+  - Cap document depth and size.
+  - Link hrefs must match `^(https?:|mailto:|tel:|\/(?!\/)|#)`, otherwise the link mark is removed.
+  - Image attributes must match the `cmsImage` schema.
+- **Reserved slugs, API baseline:** `api, uploads, _app, login, register, logout, forgot-password, reset-password,
+  accept-invite, dashboard, settings, profile, messages, notifications, audit-log, user-management, manage-users, roles,
+  403, upcoming-events, documentation, cms, shop, client-portal, vault, crm, agile, folio, contracts, calendar-events,
+  commerce`. A second check against the project's real route list happens in the frontend (§4).
+
+### 4. Public site (frontend; Session 3)
+
+- **Param matcher** at *new* `modules/cms/frontend/src/params/cmspath.ts`. The scaffold has no `src/params`, so there is
+  no collision.
+  - It rejects a first segment of `api`, `uploads` or `_app`.
+  - Every segment must match `^[a-z0-9-]+$`, so dotted paths like `favicon.ico` fail.
+  - Without it, the catch-all would swallow `/api/<missing>` and serve HTML 404s to `fetch` callers.
+- **Routes**
+  - `routes/(site)/+layout.server.ts` loads the menu. It must **never throw**; on any failure it returns an empty menu.
+  - `routes/(site)/+layout.svelte` renders `SiteShell`.
+  - `routes/(site)/+error.svelte` shows 404s inside the site chrome.
+  - `routes/(site)/[...path=cmspath]/+page.server.ts` resolves the page, throws `error(404)` or `redirect(307)` as
+    needed, and runs the component loads.
+  - `+page.svelte` renders `BlockRenderer`.
+  - Static app routes always win over the catch-all, and so does the root `/`.
+- **Route rules:** `lib/config/module-routes/cms.ts`
+  ```ts
+  [{ routeId: '/(site)/[...path=cmspath]', public: true, bare: true },
+   { routeId: '/', bare: true },                 // the site home renders without the app shell for signed-in users too
+   { prefix: '/cms/preview', bare: true }]       // staff only (not public, not customer)
+  ```
+- **Home:** `lib/server/module-home/cms.ts` returns `null` unless a home node is set and published, so the marketing
+  page is the fallback. `lib/config/module-home/cms.svelte` renders `SiteShell` and `BlockRenderer`.
+- **Shared server loader:** `lib/server/cms/site.ts` exports `loadMenu(event)` and `loadPage(event, path)`.
+  - Call `API_URL` directly. `event.fetch('/api/...')` would re-run `handle`, including its `/auth/me` call, and the
+    dev API has a 200 req/min limit.
+  - Run component `load`s in parallel, each in try/catch with a timeout. Return `componentData[blockId | 'page']`.
+- **`SiteShell`**
+  - Brand: `Logo` with `brandName` and `brandLogo` from the root layout data.
+  - Desktop: a horizontal menu with dropdowns. Level 2 drops down; level 3 and deeper fly out to the side.
+  - Mobile: a drawer with a nested accordion.
+  - Every open and close uses a transition: `slide` 200 for accordions, `scale` 0.95 for dropdowns, `fade` plus
+    `slide x` for the drawer.
+  - Keyboard: `aria-expanded`, Esc closes, arrow keys move in menus.
+  - Highlight the active trail.
+  - Optional breadcrumbs, and a footer from `cms_settings.footer`.
+  - Use the app's runtime DaisyUI theme (already on `<html data-theme>`).
+  - Don't use `PageHeader`; it is for app pages only.
+- **Renderers** in `lib/components/cms/render/`:
+  - `BlockRenderer` switches on `block.type`.
+  - `RichTextRenderer` walks the Tiptap JSON recursively with snippets. It renders only whitelisted nodes and marks,
+    re-checks hrefs, and adds `rel="noopener noreferrer"` to `_blank` links.
+  - **There is no `{@html}` anywhere in the module.** Don't reuse calendar-events' `EventCard`: it renders unsanitized
+    `{@html}`, and importing another module's code is forbidden anyway.
+  - One shared stylesheet, `cms-prose.css`, serves the editor and the public page:
+    - typography
+    - `display: flow-root` on blocks so floats stay inside them
+    - figure floats, which become full width below about 640px
+- **Reserved slugs, per project:** `lib/server/cms/reserved.ts`.
+  - Lazy-glob `/src/routes/**/+page.svelte` and `/src/routes/**/+server.ts`, strip `(group)` segments, and take the
+    first static segment.
+  - **Server only**: a client glob would pull `$env/dynamic/private` into the bundle.
+  - The `/api/cms/[...path]` proxy rejects reserved slugs on node POST and PATCH, and the admin page load sends the list
+    to the UI for inline validation.
+
+### 5. Admin UI (`/cms`; Session 4)
+
+The admin follows the README "Module Page Layout": `PageHeader icon={LayoutTemplate} title="Content" subtitle="Site · Settings"`,
+a tab bar (`dragScroll`, `tab-scroll`) and `data-no-anim`. Browser calls go through the *new* catch-all proxy
+`routes/api/cms/[...path]/+server.ts`, which forwards the session cookie on all methods.
+
+- **Site tree** at `/cms`.
+  - Indented tree with expand and collapse (`slide`), a type icon per node, and status badges: Draft, Published,
+    Hidden from menu, and Shadowed when the slug collides with a route the project has gained since.
+  - Native HTML5 drag and drop with **before / after / inside** drop zones. There is no DnD library in the repo; see
+    the `reorder()` pattern in `candidate/frontend/src/routes/dashboard/+page.svelte` (around lines 245–345).
+  - Keyboard alternatives: move up, move down, indent, outdent.
+  - Add a child node inline.
+  - Clicking a node opens a detail panel (`slide`) with title, slug (auto from the title, editable, inline reserved and
+    duplicate validation), type, `showInMenu`, URL or `newTab` for links, component key and props, a live URL preview,
+    and **Edit content** for pages.
+- **Page builder** at `/cms/pages/[nodeId]`.
+  - The canvas shows blocks styled like the public site.
+  - Each block card has a hover toolbar: drag handle, up, down, duplicate, delete.
+  - A "+" inserter between blocks opens a block palette popover (`scale`).
+  - A side panel holds page settings and SEO.
+  - Drafts autosave, debounced, sending `rev`. On a 409, show "changed elsewhere, reload".
+  - Show an unsaved-changes indicator, and guard navigation with `beforeNavigate`.
+  - Buttons: Publish, Unpublish, and Preview (opens `/cms/preview/[nodeId]` with a "Draft preview" ribbon).
+- **`RichTextEditor`** is a *new* component, not a copy of `MessageEditor`.
+  - Plain Tiptap 3: StarterKit, which **already includes Link and Underline**, so configure those through
+    `StarterKit.configure`; plus Placeholder.
+  - Link `isAllowedUri: (u, c) => c.defaultValidate(u) && SAFE.test(u)`.
+  - Keep a `$state` tick that is bumped in `onTransaction`, so the toolbar's active states refresh.
+    (`MessageEditor`'s editor isn't reactive.)
+  - Store `getJSON()`, never HTML.
+  - Block pasted or dropped files, or route them to the upload flow.
+- **Settings** at `/cms/settings`: home page (page nodes only), footer text and links, and the Website Media folder.
+
+### 6. Vault media (Session 5)
+
+Modules never import each other's code. CMS reads Vault's collections by name and uploads through Vault's own HTTP
+proxies.
+
+- **`GET /cms/media`** is one aggregate over `vault_documents` in the caller's workspace, with
+  `visibility ∈ {staff, customer}`.
+  - **Never return `admin_only`**, even to admins. These images end up public.
+  - `$lookup` `vault_document_versions` on `currentVersionId`, keep `mimetype` `^image/`, and **exclude
+    `image/svg+xml`** (a same-origin SVG can run scripts).
+  - Filters: `folderId`, `q` (name and tags), `skip` and `limit`, about 24 per page.
+  - If `listCollections({ name: 'vault_documents' })` is empty, return `{ available: false }`.
+  - Copy the roughly 10-line `callerRole` logic into *new* `api/src/lib/cmsRole.ts`; don't import `vaultRole.ts`.
+- **Upload.**
+  1. Find or create a root Vault folder "Website Media" through `/api/vault/folders`, and store its id in
+     `cms_settings.mediaFolderId`. Recreate it if it was deleted.
+  2. Send a multipart POST to `/api/vault/documents` with that `folderId`.
+  3. Vault returns only `{ id }`, so then fetch `/api/cms/media/:id`.
+
+  Vault keeps its own validation, audit log and permissions this way. Editors without `vault_documents.create` don't see
+  the upload button. Editors without `vault_folders.create` upload to the Vault root.
+- **`MediaPicker`** modal (`fade` backdrop, `scale` content).
+  - Image grid, a Vault folder sidebar, search, pagination, upload with progress, and an alt text field.
+  - Check `file.size <= 10 MB` before uploading. An oversized body makes the streaming proxy return 500, not 413
+    (found in S1).
+  - On select, read `naturalWidth` and `naturalHeight` and store them as `w` and `h`. There is no sharp and no
+    thumbnails, so use `loading="lazy" decoding="async"`.
+  - A notice: "Images placed on pages are publicly visible."
+  - If Vault isn't installed, hide image actions and show "Install the Vault module to add images".
+- **`cmsImage` Tiptap node** (*new* `lib/cms/tiptap/CmsImage.ts`).
+  - Node options: `group: 'block'`, `atom`, `draggable`, `selectable`.
+  - `renderHTML` outputs `figure[data-cms-image].cms-fig--{align} > img + figcaption`.
+  - `parseHTML` **only** accepts `figure[data-cms-image]`, so pasted external images are dropped.
+  - Use plain `renderHTML`, not a Svelte NodeView, in v1.
+  - When `editor.isActive('cmsImage')`, a toolbar row slides in with:
+    - **align left / right / center / full**
+    - width 25 / 33 / 50 / 100%
+    - alt
+    - caption
+    - replace
+    - remove
+
+    Don't use the svelte-tiptap `BubbleMenu`: it shows and hides through CSS visibility rather than a Svelte transition,
+    and it throws if it mounts before the editor exists.
+- **Gallery block.**
+  - Editor: add images (picker multi-select), remove them, drag to reorder, captions, columns, aspect ratio, gap.
+  - Public render: a CSS grid, or CSS columns for `natural`.
+  - Each tile is a `<button>` that opens a lightbox.
+- **`Lightbox.svelte`**, hand-rolled; no library, matching the repo's no-dependency habit.
+  - `fade` backdrop with `scale` content.
+  - Esc closes; ← and → move between images; swipe works on touch (pointer events); focus is trapped and returned on
+    close.
+  - Counter and caption; the neighboring images are preloaded.
+  - Body scroll is locked while open; `prefers-reduced-motion` is respected.
+- **Read-time resolution.**
+  - `resolve` collects every `vaultId` in the published blocks and runs one `$in` lookup.
+  - An image renders only if its document exists, isn't `admin_only`, and its current version is `image/*`. Otherwise
+    the image is dropped from the page.
+  - New Vault versions therefore show up on the site automatically, and deleted images disappear. Vault's delete
+    removes the files too (`documents.ts:270`).
+  - The stored `src` is only for the editor preview. The editor flags missing images, and publish returns them as
+    warnings.
+
+### 7. Custom component registry (Session 3 skeleton; Events in Session 6)
+
+- A glob registry at `lib/config/cms-components/*.ts`, following the `module-routes` and `module-docs` pattern. Each file
+  default-exports:
+  ```ts
+  { key: string, label: string, description: string, modes: ('page'|'block')[],
+    component: Component, props?: PropSpec[], subpaths?: boolean,
+    load?: (ctx: { fetch, url, rest, props }) => Promise<unknown> }
+  ```
+- **Entries run on both server and client.** `+page.server.ts` calls `load`, and `+page.svelte` imports `component`.
+  So `load` may only use the `fetch` it is given, against `/api/...` proxies, and must **never** import
+  `$env/dynamic/private`. Importing a `.svelte` file from an eager-glob `.ts` file is fine.
+- Another module can add an entry later by shipping its own file in this folder. It must match the shape **without
+  importing CMS types**, so the module still builds when cms isn't installed.
+- An unknown key renders nothing on the public site and a warning in the admin.
+- With `subpaths: true`, `/events/<slug>` resolves to the longest matching node and passes the remainder as `rest`.
+- **Session 3 proof:** a built-in `sitemap` entry (page and block) that renders the published tree, so no other module
+  is needed.
+- **Session 6: `events`** (page and block).
+  - `load` fetches `/api/calendar-events/public` (that proxy sends no cookie) and returns `{ unavailable: true }` if the
+    response isn't ok. With the matcher, a missing module means a plain 404.
+  - Render text only, and sort by start date.
+  - Block props: `limit` and `eventType`.
+  - **Known gap:** the endpoint filters `status: 'active', visibility: 'public', startDate > now`, so events already in
+    progress are skipped. Raise this with the user; any fix belongs in the calendar-events module.
+
+### 8. Permissions (`module.json` `roles`, mirrored in `PERMISSIONS.md`)
+
+The only actions available are create, read, update and delete (`candidate/frontend/src/lib/permissions.ts:1`
+`Action`; the API's `requirePermission` in `candidate/api/src/plugins/auth.ts` checks the same four). Publishing therefore has
+its own resource, `cms_publish: ['update']`.
+
+| Role | cms_nodes | cms_pages | cms_publish |
+|---|---|---|---|
+| owner, admin | c r u d | c r u d | u |
+| lead | c r u | c r u | u |
+| contributor | r | r u (edit drafts only) | none |
+| viewer | r | r | none |
+| customer | none | none | none |
+
+In Session 2, check how `arch.js`'s "viewer gets read" default treats `cms_publish`, which declares no `read` action.
+If needed, set viewer explicitly. Public pages need no permissions.
+
+`module.json`:
+- nav: `[{ "label": "Content", "href": "/cms", "icon": "LayoutTemplate", "permission": "cms_nodes.read", "matchPrefix": true }]`
+- widgets: `CmsDashboardWidget` (Session 6, wraps `ModuleStatsWidget`), `order` 80
+- dependencies: none expected; Tiptap is already in candidate
+- seed: `api/src/seeds/80-cms.ts`
+
+Ship no file that already exists in candidate (for example `nav.ts` or `routes/+page.svelte`); arch.js stops on any
+collision.
+
+### 9. Module file map (new files)
+
+```
+modules/cms/
+  module.json  PERMISSIONS.md
+  api/src/lib/{cmsTree,cmsSanitize,cmsRole}.ts
+  api/src/routes/cms/{index,nodes,pages,settings,media,site}.ts
+  api/src/seeds/80-cms.ts
+  frontend/src/params/cmspath.ts
+  frontend/src/lib/cms/{types.ts, tiptap/CmsImage.ts}
+  frontend/src/lib/config/module-routes/cms.ts
+  frontend/src/lib/config/module-docs/cms.ts
+  frontend/src/lib/config/module-home/cms.svelte
+  frontend/src/lib/config/cms-components/{sitemap,events}.ts
+  frontend/src/lib/server/module-home/cms.ts
+  frontend/src/lib/server/cms/{site,reserved}.ts
+  frontend/src/lib/components/cms/
+    render/  BlockRenderer RichTextRenderer HeroBlock GalleryBlock ButtonsBlock DividerBlock ComponentBlock Lightbox
+    site/    SiteShell SiteMenu SiteMenuItem SiteMobileMenu SiteFooter SitemapComponent EventsComponent
+    admin/   SiteTree SiteTreeNode NodePanel BlockEditor BlockCard BlockInserter RichTextEditor MediaPicker
+             GalleryEditor HeroEditor ButtonsEditor ComponentEditor CmsDashboardWidget
+    cms-prose.css
+  frontend/src/routes/(site)/{+layout.server.ts,+layout.svelte,+error.svelte}
+  frontend/src/routes/(site)/[...path=cmspath]/{+page.server.ts,+page.svelte}
+  frontend/src/routes/cms/{+layout.svelte,+layout.server.ts,+page.server.ts,+page.svelte}
+  frontend/src/routes/cms/pages/[nodeId]/   frontend/src/routes/cms/settings/   frontend/src/routes/cms/preview/[nodeId]/
+  frontend/src/routes/api/cms/[...path]/+server.ts
+  frontend/src/routes/(docs)/documentation/cms/+page.svelte
+```
+
+## Session plan and exit criteria
+
+**Session 1: scaffold extension points.** Covers §1 in full, including the docs and the friendsofmcrwr sync.
+*Exit:*
+- `node arch.js create s1-check --modules commerce,vault` behaves exactly as before:
+  - `/` shows the marketing page
+  - `/shop` is public and shell-free
+  - `/documentation` is public
+  - logged-out `/dashboard` goes to `/login`
+  - customer redirects are unchanged
+- A temporary probe file in that throwaway project, `lib/server/module-home/probe.ts` plus `probe.svelte`, overrides
+  `/`. Removing it restores the marketing page.
+- A temporary `routeId` rule makes a test route public.
+- `npx vitest run` in `candidate/api` passes.
+- `svelte-check` (after `npx svelte-kit sync`) reports no new errors.
+- friendsofmcrwr's web container is rebuilt, and its `/`, login and dashboard behave as before.
+
+**Session 2: CMS API and module skeleton.** Covers `module.json`, `PERMISSIONS.md`, §2, §3, the seed, the `/api/cms`
+proxy, and a placeholder `/cms` page with `PageHeader`.
+
+The seed (`SEED_DEMO_DATA=true` only, empty collections only) builds:
+
+```
+Home (page: hero + rich text; set as home)
+About (page)
+  Team
+  History
+Events (component: events)
+Resources (label)
+  Sitemap (component)
+  Donate (external link)
+Privacy (page, hidden from menu)
+```
+
+*Exit (curl):*
+- CRUD and move, including cycle and duplicate-slug rejections
+- a stale `rev` returns 409
+- publish and unpublish
+- a hidden ancestor makes `resolve` return 404
+- `javascript:` hrefs and unknown nodes are stripped
+- reserved slugs are rejected
+- the permission matrix holds per role
+- a contributor can't publish
+
+**Session 3: public site.** Covers §4 and the §7 skeleton (`sitemap`). Rich text renders without images; `cmsImage`
+nodes render nothing until Session 5.
+*Exit:*
+- `/`, `/about`, `/about/team`, a label redirect and an unknown-slug 404 (inside the site chrome) all work for
+  logged-out visitors, a customer and staff, with no app shell.
+- `/api/nope` returns a plain 404, not the CMS page.
+- `/dashboard` while logged out still goes to `/login`.
+- The n-deep menu works on desktop and mobile, with transitions.
+- `grep -r "{@html" modules/cms` finds nothing.
+- With no home published, the marketing page shows.
+
+**Session 4: admin.** Covers §5.
+*Exit:*
+- A three-level site, with every block type except images, can be built and published from the UI alone.
+- Drag and drop and keyboard moves persist.
+- A stale tab gets a 409 prompt.
+- Preview shows the draft.
+- Reserved and duplicate slugs are blocked inline.
+
+**Session 5: Vault media.** Covers §6.
+*Exit:*
+- Left and right floats wrap the text, and stack on mobile.
+- The gallery grid opens the lightbox, with keyboard and swipe navigation.
+- Uploading from the picker lands in "Website Media".
+- A new Vault version appears on the public page.
+- Images that are deleted or set to `admin_only` disappear from the public page.
+- SVGs are never listed.
+- A `--modules cms` project with no Vault works, with image actions hidden.
+
+**Session 6: Events, SEO, docs, polish.**
+- The `events` component.
+- SEO per page: `<svelte:head>` title as `{seo.title || node.title} · {brandName}`, meta description, `og:image` from
+  Vault, and a canonical URL.
+- `module-docs/cms.ts` and its documentation page, ending with the API table.
+- The dashboard widget.
+- Shadow badges.
+
+*Exit:*
+- The full matrix passes on `--modules cms` and on `--modules cms,vault,calendar-events,commerce`.
+- Then tear down every throwaway project.
+- The final session handoff sets out the friendsofmcrwr install decision for the user.
+
+## End-of-session protocol (every session)
+
+1. Run that session's exit checks and record the results honestly: what passed, what failed, what was skipped.
+2. Write `.claude/handoffs/cms-module-session-<N>.md` covering:
+   - the files changed or added
+   - any deviation from this plan, and why
+   - test results
+   - open issues and bugs found, including pre-existing ones
+   - exact first steps for session N+1
+   - questions for the user
+3. Update the **Status** table above (☑, date, link). If the design changed, edit the matching section here so this
+   document stays the source of truth.
+4. Tear down the throwaway stacks, or list the ones left running with their ports.
+5. If a durable convention changed (for example the new scaffold extension points), update the matching memory note.
+6. Commit the session's work (code, friendsofmcrwr sync, handoffs) on branch `cms-module` as one commit. Don't push.
+
+## Known pitfalls
+
+- **arch.js limits.** Collision checks forbid shipping any file that exists in candidate. There is no "add a module to
+  an existing project" command.
+- **Labels.** Nav labels are plain strings with no i18n, and must not contain an apostrophe (arch.js doesn't escape it).
+- **Autoload** skips sibling files when a folder has an `index.ts`.
+- **Seed numbers** 10–70 are taken; use `80`.
+- **Server-only globs** (`reserved.ts`, the home loaders) must never be imported by client code.
+- **`/uploads/` has no auth.** It is served with no auth (`api/src/server.ts:51`), so any Vault file, `admin_only`
+  included, can be fetched by anyone who has its URL. This predates cms. Don't widen it, and report it to the user.
+- **Vault's list endpoint** returns no mimetype or URL, which is why cms runs its own aggregate. lmodulo's fork has a
+  similar join for reference (`projects/lmodulo/api/src/routes/vault/documents.ts:98-112`); don't edit lmodulo.
+- **Vault's `PATCH` endpoints** don't validate `visibility`. This predates cms; report it, don't fix it here.
+- **Prod uploads (found in S1).** The prod API image (`USER appuser`) can't write a fresh `uploads` volume
+  (`EACCES`), so local-storage uploads fail in production. Test uploads on the dev compose, or `chown` inside a
+  throwaway container. The user will fix it later, outside this plan (2026-11-13); don't fix it in a cms session.
+- **Personal seed accounts** in `candidate/api/src/plugins/seed.ts` stay (user, 2026-11-13); don't touch them.
+- **Verification (found in S1).**
+  - Playwright on the dev server: `waitForLoadState('networkidle')` before filling or clicking.
+  - curl against form actions: send `accept: text/html`, plus `Origin` for multipart.
+  - When switching a project to the prod compose, use `--no-deps`.
+- **Global search** in candidate is a stub with no module registry, so cms can't register search content. That is out
+  of scope.
+- **Existing marketing page bugs.** `+page.svelte` reads a `brand.text` that doesn't exist, and doesn't pass the runtime
+  brand to `MarketingNav`. These predate cms. Keep the markup byte-for-byte when moving it to `ScaffoldHome.svelte`,
+  and report the bugs separately.
+
+## Conventions you must follow in this repo
+
+- **Three copies stay byte-identical:** `candidate/`, `modules/<m>/` and `projects/friendsofmcrwr/`. The cms module
+  itself is **not** installed in friendsofmcrwr (decision 4). Scaffold edits are synced to it (decision 5).
+  - Intentional friendsofmcrwr-only differences: `frontend/src/lib/config/nav.ts`,
+    `frontend/src/lib/config/dashboard-widgets.ts`, `frontend/src/routes/+layout.svelte`, `docker-compose.yml`, `.env*`,
+    and `api/src/data/permissions.json`.
+- **Modules never import each other's code.** They use Mongo collections by name, HTTP proxies, and the scaffold
+  registries: `module-routes/`, `module-docs/`, `module-home/`, `cms-components/`, widgets and seeds.
+- **Don't edit `projects/lmodulo`** unless asked.
+- **The user works in friendsofmcrwr live.** Never change its settings or data to test anything; use throwaway projects.
+- **UI rules.** Every show, hide or layout shift needs a Svelte transition: `slide` 200 for inline panels, `scale` 0.95
+  with `cubicOut` for popups, a `fade` backdrop with `scale` 300 content for modals. App pages use `PageHeader`; public
+  pages don't. `README.md` "Style Guide" is the authority, and `candidate/CLAUDE.md` holds the Svelte 5 rules.
+- **Customer scoping** reads `workspace_members`, never `users.role`.
+
+## Running stacks and tooling
+
+- **Ports.** lmodulo: 3000 / 4000 / 27017. friendsofmcrwr: 3001 / 4001 / 27019. Throwaway projects use 3002 / 4002 /
+  27020; use 3003 / 4003 / 27021 for a second one.
+- **Throwaway project setup.**
+  - Create it with `node arch.js create <name> --modules ...`. Don't pass `--no-install`, or run `npm install` in both
+    folders before the Docker build.
+  - Edit `.env` (ports, `SEED_DEMO_DATA=true`) with perl or sed; it has no trailing newline, so `>>` appends to the
+    last line.
+  - Start it with `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`. API changes need
+    `build api && up -d api`.
+  - Tear down with `docker compose … down -v --rmi local`, then `rm -rf projects/<name>`.
+- **Seeded logins.** `admin@example.com` / `admin-password`. The demo customer is `client@vertexsystems.io` /
+  `ClientPass1!`. The login form uses the `email` field.
+- **Rate limits.** The dev API allows 200 req/min (login 10/min). Space out page sweeps; a 429 on `/auth/me` looks like
+  being logged out.
+- **Tools.** Playwright: `require('/Users/joenicora/.npm/_npx/e41f203b7505f1fb/node_modules/playwright')`. macOS has no
+  `timeout`. Run `npx svelte-kit sync` before `npx svelte-check`.
+- **Known noise.** The `candidate/api` roles test logs one `ERR_HTTP_HEADERS_SENT`. The friendsofmcrwr API `tsc` has
+  about 598 baseline errors, so compare counts rather than expecting zero.
+
+## Out of scope (future)
+
+- A Vault public visibility tier, and signed or authenticated file URLs
+- Thumbnails and resizing (sharp)
+- Several sites per workspace
+- Revision history and rollback
+- Scheduled publishing
+- More than one menu (e.g. a footer tree)
+- Translated content
+- Search registration
+- `sitemap.xml` and `robots.txt`
+- Column or layout blocks
+- Forms
+- Page templates
+- Menu caching
+- A separate public-site theme

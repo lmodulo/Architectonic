@@ -8,6 +8,8 @@ services:
     environment:
       - ORIGIN=http://localhost:${WEB_PORT:-3000}
       - API_URL=http://api:4000
+      # adapter-node rejects request bodies over 512K by default; match the API's 10 MB upload limit
+      - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT:-10M}
       - PUBLIC_STRIPE_PUBLISHABLE_KEY=${PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
     depends_on:
       api:

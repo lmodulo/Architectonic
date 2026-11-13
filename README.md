@@ -560,7 +560,16 @@ never `users.role`, which self-registered users don't have.
 (see `$lib/config/route-rules.ts`), e.g. `[{ prefix: '/shop', public: true, bare: true }]`. Customers can only open a few
 scaffold pages, so a customer-facing page needs `customer: true` (e.g. `{ prefix: '/client-portal/invoices', customer: true }`).
 That lets signed-in customers in without making the page public. Pair it with a `customerOnly` nav item: after login,
-customers land on the first one they have permission for, or `/` when there is none.
+customers land on the first one they have permission for, or `/` when there is none. A rule can match an exact SvelteKit
+route id instead of a prefix, for routes whose URLs aren't known up front: `{ routeId: '/(site)/[...path]', public: true }`
+covers every URL that catch-all serves, and nothing else. If a rule sets both `prefix` and `routeId`, both must match.
+
+**Home page override** — a module can replace `/` with its own page. Ship a server loader at
+`frontend/src/lib/server/module-home/<key>.ts` that default-exports `(event) => Promise<object | null>`, and a component at
+`frontend/src/lib/config/module-home/<key>.svelte` that receives the loader's result as its `data` prop. Loaders run in
+file-name order and the first non-null result wins; return `null` to leave `/` alone (e.g. nothing is published yet). A
+loader that throws is logged and skipped. With no override, `/` shows the scaffold marketing page
+(`$lib/components/ScaffoldHome.svelte`). Loaders run only on the server, so they may read `$env/dynamic/private`.
 
 **Demo data** — ship `api/src/seeds/NN-<module>.ts` with a default export `(ctx: DemoContext) => Promise<void>`
 (see `api/src/lib/demo.ts`). Seeds run on boot only when `SEED_DEMO_DATA=true`, in file-name order (`NN` sets the order,

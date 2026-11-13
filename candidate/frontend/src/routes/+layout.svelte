@@ -40,7 +40,7 @@
   $effect(() => { document.documentElement.dataset.theme = theme; });
 
   // Module routes declared `bare` (e.g. the storefront) render without the app shell, even when signed in.
-  const bare = $derived(isBareRoute(page.url.pathname));
+  const bare = $derived(isBareRoute(page.url.pathname, page.route.id));
 
   let sidebarOpen = $state(false);
   let sidebarExpanded = $state(false);
