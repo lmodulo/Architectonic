@@ -110,20 +110,25 @@
   }
 </script>
 
-<div class="p-6 max-w-4xl mx-auto">
-  <div class="flex items-center justify-between mb-6">
+<div class="mb-6">
+  <div class="page-heading flex items-center justify-between gap-4">
     <div class="flex items-start gap-3">
-      <Icon name="Ticket" size={24} class="size-6 opacity-60 shrink-0 mt-0.5" />
+      <Icon name="Ticket" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
-        <h1 class="text-2xl font-bold">Support Tickets</h1>
-        <p class="text-base-content/60 text-sm mt-0.5">Submit and track your support requests</p>
+        <h1 class="text-2xl font-bold leading-none">Support Tickets</h1>
+        <p class="text-xs opacity-60 mt-0.5">Submit and track your support requests</p>
       </div>
     </div>
-    <button class="btn btn-primary btn-sm gap-2" onclick={() => openModal()}>
-      <Icon name="TicketPlus" size={16} />
-      New Ticket
-    </button>
+    <div class="flex items-center gap-2 shrink-0">
+      <button class="btn btn-primary btn-sm gap-2" onclick={() => openModal()}>
+        <Icon name="TicketPlus" size={16} />
+        New Ticket
+      </button>
+    </div>
   </div>
+</div>
+
+<div class="max-w-4xl mx-auto">
 
   {#if tickets.length === 0}
     <div class="flex flex-col items-center justify-center py-20 text-base-content/40">

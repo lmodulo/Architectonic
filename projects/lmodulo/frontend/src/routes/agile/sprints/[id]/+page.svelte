@@ -222,7 +222,7 @@
     ]} />
 
     <div class="space-y-1">
-      <h1 class="text-2xl font-bold">{sprint.title}</h1>
+      <h2 class="text-2xl font-bold">{sprint.title}</h2>
       <p class="text-xs opacity-50">{fmtDateRange(sprint.startDate ?? null, sprint.endDate ?? null)}</p>
     </div>
 

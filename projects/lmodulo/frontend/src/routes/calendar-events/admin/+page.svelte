@@ -97,16 +97,21 @@
 
 <div class="space-y-6">
 
-  <div class="flex items-start justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold">Calendar Events</h1>
-      <p class="text-sm opacity-60 mt-0.5">{events.length} event{events.length !== 1 ? 's' : ''} total</p>
+  <div class="page-heading flex items-center justify-between gap-4">
+    <div class="flex items-start gap-3">
+      <Icon name="CalendarRange" size={24} class="size-6 shrink-0 mt-0.5" />
+      <div>
+        <h1 class="text-2xl font-bold leading-none">Manage Events</h1>
+        <p class="text-xs opacity-60 mt-0.5">{events.length} event{events.length !== 1 ? 's' : ''} total</p>
+      </div>
     </div>
-    {#if hasPermission(data.user, 'calendar_events', 'create')}
-      <button type="button" class="btn btn-primary" onclick={openNew}>
-        <Icon name="Plus" size={16} class="size-4" /> New Event
-      </button>
-    {/if}
+    <div class="flex items-center gap-2 shrink-0">
+      {#if hasPermission(data.user, 'calendar_events', 'create')}
+        <button type="button" class="btn btn-primary btn-sm" onclick={openNew}>
+          <Icon name="Plus" size={16} class="size-4" /> New Event
+        </button>
+      {/if}
+    </div>
   </div>
 
   <!-- Filters -->

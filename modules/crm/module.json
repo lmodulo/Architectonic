@@ -9,6 +9,14 @@
       "permission": "crm_contacts.read"
     }
   ],
+  "widgets": [
+    {
+      "component": "CrmDashboardWidget",
+      "import": "$lib/components/crm/CrmDashboardWidget.svelte",
+      "permission": "crm_contacts.read",
+      "order": 20
+    }
+  ],
   "permissions": [
     {
       "resource": "crm_contacts",
@@ -27,6 +35,20 @@
       "actions": ["create", "read", "update", "delete"]
     }
   ],
+  "roles": {
+    "lead": {
+      "crm_contacts":   ["create", "read", "update"],
+      "crm_companies":  ["create", "read", "update"],
+      "crm_deals":      ["create", "read", "update"],
+      "crm_activities": ["create", "read", "update"]
+    },
+    "contributor": {
+      "crm_contacts":   ["read"],
+      "crm_companies":  ["read"],
+      "crm_deals":      ["read"],
+      "crm_activities": ["create", "read", "update"]
+    }
+  },
   "dependencies": {
     "frontend": {
       "libphonenumber-js": "^1.13.8"

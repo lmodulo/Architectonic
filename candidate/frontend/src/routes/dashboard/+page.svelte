@@ -2,12 +2,8 @@
   import { onMount } from 'svelte';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
-  import Pagination from '$lib/components/Pagination.svelte';
-  import {
-    Search, TrendingUp, ShoppingCart, DollarSign, MapPin,
-    ChevronLeft, ChevronRight, Plus, X,
-    Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw
-  } from 'lucide-svelte';
+  import { HouseIcon } from 'lucide-svelte';
+  import { Search, ChevronLeft, ChevronRight, Plus, X, Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import type { PageData } from './$types';
@@ -23,44 +19,16 @@
   interface DashboardLayout { sections: SectionConfig[]; }
 
   const SECTION_LABELS = $derived<Record<string, string>>({
-    kpi:           m.dashboard_section_kpi(),
-    charts:        m.dashboard_section_charts(),
-    'sales-table': m.dashboard_section_sales(),
     calendar:      m.dashboard_section_calendar(),
     widgets:       m.dashboard_section_widgets(),
   });
 
-  const ITEM_LABELS: Record<string, Record<string, string>> = {
-    kpi: {
-      revenue:      'Total Revenue',
-      orders:       'Total Orders',
-      'avg-order':  'Avg Order Value',
-      'top-region': 'Top Region',
-    },
-    charts: {
-      'daily-revenue':   'Daily Revenue',
-      'product-revenue': 'Revenue by Product',
-      'region-orders':   'Orders by Region',
-      'monthly-revenue': 'Monthly Revenue',
-    },
-  };
+  // Per-item labels for sections that have toggleable items (none in the scaffold; modules add widgets instead)
+  const ITEM_LABELS: Record<string, Record<string, string>> = {};
 
   function defaultLayout(): DashboardLayout {
     return {
       sections: [
-        { id: 'kpi', visible: true, items: [
-          { id: 'revenue',      visible: true },
-          { id: 'orders',       visible: true },
-          { id: 'avg-order',    visible: true },
-          { id: 'top-region',   visible: true },
-        ]},
-        { id: 'charts', visible: true, items: [
-          { id: 'daily-revenue',   visible: true },
-          { id: 'product-revenue', visible: true },
-          { id: 'region-orders',   visible: true },
-          { id: 'monthly-revenue', visible: true },
-        ]},
-        { id: 'sales-table', visible: true },
         { id: 'calendar',    visible: true },
         { id: 'widgets',     visible: true },
       ]
@@ -94,139 +62,9 @@
     return { sections: orderedSections };
   }
 
-  // ── Seeded RNG ─────────────────────────────────────────────────────
-  function makeRng(seed: number) {
-    let s = (seed >>> 0) || 1;
-    return () => { s = (Math.imul(1664525, s) + 1013904223) >>> 0; return s / 0x100000000; };
-  }
-  const rng = makeRng(8675309);
-
-  // ── Generate 90 sales records ──────────────────────────────────────
-  const PRODUCTS = ['Software License', 'Consulting', 'Support Plan', 'Training', 'Hardware'];
-  const REGIONS  = ['North', 'South', 'East', 'West', 'International'];
-  const STATUSES = ['Completed', 'Completed', 'Completed', 'Pending', 'Refunded'] as const;
-
-  type Sale = { id: string; date: Date; product: string; region: string; revenue: number; units: number; status: string };
-
+  // ── Calendar ───────────────────────────────────────────────────────
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
-  const allSales: Sale[] = Array.from({ length: 90 }, (_, i) => {
-    const daysAgo = Math.floor(rng() * 90);
-    const d = new Date(today); d.setDate(d.getDate() - daysAgo);
-    return {
-      id:      `ORD-${1000 + i}`,
-      date:    d,
-      product: PRODUCTS[Math.floor(rng() * PRODUCTS.length)],
-      region:  REGIONS[Math.floor(rng()  * REGIONS.length)],
-      revenue: Math.round((rng() * 8500 + 500) * 100) / 100,
-      units:   Math.floor(rng() * 20) + 1,
-      status:  STATUSES[Math.floor(rng() * STATUSES.length)],
-    };
-  }).sort((a, b) => b.date.getTime() - a.date.getTime());
-
-  // ── KPIs ───────────────────────────────────────────────────────────
-  const totalRevenue = allSales.reduce((s, r) => s + r.revenue, 0);
-  const totalOrders  = allSales.length;
-  const avgOrder     = totalRevenue / totalOrders;
-  const topRegion    = [...REGIONS].sort((a, b) =>
-    allSales.filter(s => s.region === b).length - allSales.filter(s => s.region === a).length
-  )[0];
-
-  const fmt = (n: number) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
-
-  const KPI_DEFS = $derived([
-    { id: 'revenue',    label: m.dashboard_kpi_total_revenue(), value: fmt(totalRevenue),    sub: m.dashboard_kpi_sub_period(),      icon: DollarSign,   color: 'primary'   },
-    { id: 'orders',     label: m.dashboard_kpi_total_orders(),  value: String(totalOrders),  sub: m.dashboard_kpi_sub_regions(),     icon: ShoppingCart, color: 'secondary' },
-    { id: 'avg-order',  label: m.dashboard_kpi_avg_order(),     value: fmt(avgOrder),        sub: m.dashboard_kpi_sub_transaction(), icon: TrendingUp,   color: 'success'   },
-    { id: 'top-region', label: m.dashboard_kpi_top_region(),    value: topRegion,            sub: m.dashboard_kpi_sub_volume(),      icon: MapPin,       color: 'warning'   },
-  ]);
-
-  // ── Chart datasets ─────────────────────────────────────────────────
-  const dailyData = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(today); d.setDate(d.getDate() - (29 - i));
-    return { label: `${d.getMonth()+1}/${d.getDate()}`, value: allSales.filter(s => s.date.toDateString() === d.toDateString()).reduce((a, s) => a + s.revenue, 0) };
-  });
-
-  const productData = PRODUCTS.map(p => ({
-    label: p, value: allSales.filter(s => s.product === p).reduce((a, s) => a + s.revenue, 0)
-  })).sort((a, b) => b.value - a.value);
-
-  const regionData = REGIONS.map(r => ({
-    label: r, value: allSales.filter(s => s.region === r).length
-  }));
-
-  const monthlyData = Array.from({ length: 12 }, (_, i) => {
-    const d = new Date(today.getFullYear(), today.getMonth() - (11 - i), 1);
-    return { label: d.toLocaleString('en-US', { month: 'short' }), value: allSales.filter(s => s.date.getFullYear() === d.getFullYear() && s.date.getMonth() === d.getMonth()).reduce((a, s) => a + s.revenue, 0) };
-  });
-
-  // ── SVG chart helpers ──────────────────────────────────────────────
-  function linePoints(pts: {value:number}[], w=480, h=140, p=16): string {
-    const mx = Math.max(...pts.map(d => d.value), 1);
-    return pts.map((d, i) => `${(p + (i/(pts.length-1))*(w-p*2)).toFixed(1)},${(h-p-(d.value/mx)*(h-p*2)).toFixed(1)}`).join(' ');
-  }
-
-  function areaPath(pts: {value:number}[], w=480, h=140, p=16): string {
-    const mx = Math.max(...pts.map(d => d.value), 1);
-    const coords = pts.map((d, i) => ({ x: p + (i/(pts.length-1))*(w-p*2), y: h-p-(d.value/mx)*(h-p*2) }));
-    const line = coords.map(c => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(' L ');
-    return `M${coords[0].x.toFixed(1)},${(h-p).toFixed(1)} L ${line} L${coords[coords.length-1].x.toFixed(1)},${(h-p).toFixed(1)}Z`;
-  }
-
-  function hBars(pts: {label:string;value:number}[], w=460, h=165, lblW=118, p=10) {
-    const mx = Math.max(...pts.map(d => d.value), 1);
-    const rowH = (h - p*2) / pts.length;
-    return pts.map((d, i) => ({
-      ...d,
-      x: lblW, y: p + i*rowH + rowH*0.12,
-      w: (d.value/mx)*(w-lblW-p), bh: rowH*0.76,
-      midY: p + i*rowH + rowH/2,
-    }));
-  }
-
-  const DONUT_COLORS = ['primary','secondary','success','warning','error'] as const;
-  function donutSegs(pts: {label:string;value:number}[], cx=90, cy=90, r=78, ir=48) {
-    const total = pts.reduce((s, d) => s + d.value, 0) || 1;
-    let a = -Math.PI/2;
-    return pts.map((d, i) => {
-      const sw = (d.value/total)*Math.PI*2;
-      const [x1,y1] = [cx+r*Math.cos(a), cy+r*Math.sin(a)];
-      const [x2,y2] = [cx+r*Math.cos(a+sw), cy+r*Math.sin(a+sw)];
-      const [xi1,yi1] = [cx+ir*Math.cos(a+sw), cy+ir*Math.sin(a+sw)];
-      const [xi2,yi2] = [cx+ir*Math.cos(a), cy+ir*Math.sin(a)];
-      const lg = sw > Math.PI ? 1 : 0;
-      const path = `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${lg} 1 ${x2.toFixed(2)},${y2.toFixed(2)} L${xi1.toFixed(2)},${yi1.toFixed(2)} A${ir},${ir} 0 ${lg} 0 ${xi2.toFixed(2)},${yi2.toFixed(2)}Z`;
-      a += sw;
-      return { path, color: `var(--color-${DONUT_COLORS[i%5]}-500)`, label: d.label, pct: Math.round(d.value/total*100), value: d.value };
-    });
-  }
-
-  const bars = hBars(productData);
-  const segs = donutSegs(regionData);
-
-  // ── Table ──────────────────────────────────────────────────────────
-  let query       = $state('');
-  let currentPage = $state(1);
-  const PAGE_SIZE = 10;
-
-  const filtered = $derived(query.trim()
-    ? allSales.filter(s =>
-        s.id.toLowerCase().includes(query.toLowerCase()) ||
-        s.product.toLowerCase().includes(query.toLowerCase()) ||
-        s.region.toLowerCase().includes(query.toLowerCase()) ||
-        s.status.toLowerCase().includes(query.toLowerCase()))
-    : allSales);
-
-  const pageRows = $derived(filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE));
-  $effect(() => { query; currentPage = 1; });
-
-  const STATUS_CLS: Record<string,string> = {
-    Completed: 'badge-success',
-    Pending:   'badge-warning',
-    Refunded:  'badge-error',
-  };
-
-  // ── Calendar ───────────────────────────────────────────────────────
   let calYear  = $state(today.getFullYear());
   let calMonth = $state(today.getMonth());
 
@@ -238,8 +76,7 @@
       const day = i - startDow + 1;
       if (day < 1 || day > daysInMonth) return null;
       const d = new Date(year, month, day);
-      const ds = allSales.filter(s => s.date.toDateString() === d.toDateString());
-      return { day, isToday: d.toDateString() === today.toDateString(), count: ds.length, revenue: ds.reduce((a,s) => a+s.revenue, 0) };
+      return { day, isToday: d.toDateString() === today.toDateString() };
     });
   }
 
@@ -248,9 +85,6 @@
   function prevMonth() { calMonth === 0 ? (calMonth=11, calYear--) : calMonth--; }
   function nextMonth() { calMonth === 11 ? (calMonth=0, calYear++) : calMonth++; }
 
-  const maxDayRevenue = $derived(
-    Math.max(...calDays.filter(Boolean).map(d => d!.revenue), 1)
-  );
 
   // ── Events ────────────────────────────────────────────────────────
   type CalEvent = {
@@ -541,21 +375,23 @@
 
 <div class="space-y-6">
 
-  <!-- Header row with Edit Layout toggle -->
-  <div class="flex items-start justify-between gap-4">
-    <PageHeader title={m.dashboard_title()}>{m.dashboard_welcome({ firstName: data.user?.firstName ?? data.user?.username ?? '' })}</PageHeader>
-    <button
-      type="button"
-      class="btn btn-sm shrink-0 mt-1 {editMode ? 'btn-success' : 'btn-ghost border border-base-300'}"
-      onclick={() => { editMode = !editMode; }}
-    >
-      {#if editMode}
-        <Check class="size-4" /> {m.dashboard_done()}
-      {:else}
-        <LayoutDashboard class="size-4" /> {m.dashboard_edit_layout()}
-      {/if}
-    </button>
-  </div>
+  <!-- Header with Edit Layout toggle -->
+  <PageHeader icon={HouseIcon} title={m.dashboard_title()}>
+    {m.dashboard_welcome({ firstName: data.user?.firstName ?? data.user?.username ?? '' })}
+    {#snippet actions()}
+      <button
+        type="button"
+        class="btn btn-sm shrink-0 {editMode ? 'btn-success' : 'btn-ghost border border-base-300'}"
+        onclick={() => { editMode = !editMode; }}
+      >
+        {#if editMode}
+          <Check class="size-4" /> {m.dashboard_done()}
+        {:else}
+          <LayoutDashboard class="size-4" /> {m.dashboard_edit_layout()}
+        {/if}
+      </button>
+    {/snippet}
+  </PageHeader>
 
   <!-- Edit mode banner -->
   {#if editMode}
@@ -613,193 +449,8 @@
         <!-- Section content (dimmed when hidden in edit mode) -->
         <div class="transition-opacity duration-150 {editMode && !section.visible ? 'opacity-20 pointer-events-none select-none' : ''}">
 
-          <!-- ── KPI Cards ──────────────────────────────────────── -->
-          {#if section.id === 'kpi'}
-            {@const kpiItems = section.items ?? []}
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {#each kpiItems.filter(i => i.visible || editMode) as item (item.id)}
-                {@const kpi = KPI_DEFS.find(k => k.id === item.id)}
-                {#if kpi}
-                  <div
-                    class="card bg-base-100 border border-base-200 p-5 flex items-start gap-4 relative transition-all duration-100
-                      {editMode ? 'cursor-grab active:cursor-grabbing' : ''}
-                      {editMode && dragOverItem?.sectionId === 'kpi' && dragOverItem.itemId === item.id && draggingItem?.itemId !== item.id ? 'ring-2 ring-primary/50 border-primary/30' : ''}
-                      {editMode && draggingItem?.sectionId === 'kpi' && draggingItem.itemId === item.id ? 'opacity-40' : ''}
-                      {editMode && !item.visible ? 'opacity-30' : ''}"
-                    draggable={editMode}
-                    ondragstart={editMode ? (e: DragEvent) => onItemDragStart(e, 'kpi', item.id) : undefined}
-                    ondragover={editMode ? (e: DragEvent) => onItemDragOver(e, 'kpi', item.id) : undefined}
-                    ondrop={editMode ? (e: DragEvent) => onItemDrop(e, 'kpi', item.id) : undefined}
-                    ondragend={editMode ? onItemDragEnd : undefined}
-                  >
-                    {#if editMode}
-                      <div class="absolute top-1.5 left-1.5 text-base-content/25 pointer-events-none">
-                        <GripVertical class="size-3.5" />
-                      </div>
-                      <button
-                        type="button"
-                        class="absolute top-1 right-1 btn btn-ghost btn-xs btn-square opacity-50 hover:opacity-100"
-                        onclick={(e) => { e.stopPropagation(); toggleItem('kpi', item.id); }}
-                        title={item.visible ? 'Hide' : 'Show'}
-                      >
-                        {#if item.visible}<Eye class="size-3" />{:else}<EyeOff class="size-3" />{/if}
-                      </button>
-                    {/if}
-                    <div class="p-2 rounded-lg bg-{kpi.color}/10">
-                      <svelte:component this={kpi.icon} class="size-5 text-{kpi.color}" />
-                    </div>
-                    <div>
-                      <p class="text-xs opacity-60 uppercase tracking-wide font-medium">{kpi.label}</p>
-                      <p class="text-2xl font-bold mt-0.5">{kpi.value}</p>
-                      <p class="text-xs opacity-50 mt-0.5">{kpi.sub}</p>
-                    </div>
-                  </div>
-                {/if}
-              {/each}
-            </div>
-
-          <!-- ── Charts ─────────────────────────────────────────── -->
-          {:else if section.id === 'charts'}
-            {@const chartItems = section.items ?? []}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {#each chartItems.filter(i => i.visible || editMode) as item (item.id)}
-                <div
-                  class="card bg-base-100 border border-base-200 p-5 space-y-3 relative transition-all duration-100
-                    {editMode ? 'cursor-grab active:cursor-grabbing' : ''}
-                    {editMode && dragOverItem?.sectionId === 'charts' && dragOverItem.itemId === item.id && draggingItem?.itemId !== item.id ? 'ring-2 ring-primary/50 border-primary/30' : ''}
-                    {editMode && draggingItem?.sectionId === 'charts' && draggingItem.itemId === item.id ? 'opacity-40' : ''}
-                    {editMode && !item.visible ? 'opacity-30' : ''}"
-                  draggable={editMode}
-                  ondragstart={editMode ? (e: DragEvent) => onItemDragStart(e, 'charts', item.id) : undefined}
-                  ondragover={editMode ? (e: DragEvent) => onItemDragOver(e, 'charts', item.id) : undefined}
-                  ondrop={editMode ? (e: DragEvent) => onItemDrop(e, 'charts', item.id) : undefined}
-                  ondragend={editMode ? onItemDragEnd : undefined}
-                >
-                  {#if editMode}
-                    <div class="absolute top-1.5 left-1.5 text-base-content/25 pointer-events-none">
-                      <GripVertical class="size-3.5" />
-                    </div>
-                    <button
-                      type="button"
-                      class="absolute top-1 right-1 btn btn-ghost btn-xs btn-square opacity-50 hover:opacity-100 z-10"
-                      onclick={(e) => { e.stopPropagation(); toggleItem('charts', item.id); }}
-                      title={item.visible ? 'Hide' : 'Show'}
-                    >
-                      {#if item.visible}<Eye class="size-3" />{:else}<EyeOff class="size-3" />{/if}
-                    </button>
-                  {/if}
-
-                  {#if item.id === 'daily-revenue'}
-                    <h2 class="text-sm font-semibold opacity-70">{m.dashboard_chart_daily_revenue()}</h2>
-                    <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-                      {#each [0.25, 0.5, 0.75, 1] as frac}
-                        <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
-                          stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
-                      {/each}
-                      <path d={areaPath(dailyData)} fill="var(--color-primary-500)" fill-opacity="0.15"/>
-                      <polyline points={linePoints(dailyData)} fill="none" stroke="var(--color-primary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-                      {#each dailyData as d, i}
-                        {#if i % 5 === 0}
-                          <text x={(16 + (i/29)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
-                        {/if}
-                      {/each}
-                    </svg>
-
-                  {:else if item.id === 'product-revenue'}
-                    <h2 class="text-sm font-semibold opacity-70">{m.dashboard_chart_revenue_product()}</h2>
-                    <svg viewBox="0 0 460 165" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-                      {#each bars as b, i}
-                        <text x={b.x - 5} y={b.midY + 3.5} font-size="9.5" text-anchor="end" fill="currentColor" fill-opacity="0.6">{b.label}</text>
-                        <rect x={b.x} y={b.y} width={b.w} height={b.bh} rx="3"
-                          fill="var(--color-{DONUT_COLORS[i%5]}-500)" fill-opacity="0.85"/>
-                        <text x={b.x + b.w + 5} y={b.midY + 3.5} font-size="9" fill="currentColor" fill-opacity="0.5">{fmt(b.value)}</text>
-                      {/each}
-                    </svg>
-
-                  {:else if item.id === 'region-orders'}
-                    <h2 class="text-sm font-semibold opacity-70">{m.dashboard_chart_orders_region()}</h2>
-                    <div class="flex items-center gap-6">
-                      <svg viewBox="0 0 180 180" width="180" height="180" class="shrink-0" aria-hidden="true">
-                        {#each segs as seg}
-                          <path d={seg.path} fill={seg.color} fill-opacity="0.9"/>
-                        {/each}
-                        <text x="90" y="85" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">{totalOrders}</text>
-                        <text x="90" y="100" text-anchor="middle" font-size="9" fill="currentColor" fill-opacity="0.5">orders</text>
-                      </svg>
-                      <ul class="space-y-2 text-sm flex-1">
-                        {#each segs as seg}
-                          <li class="flex items-center justify-between gap-2">
-                            <span class="flex items-center gap-2">
-                              <span class="size-2.5 rounded-full shrink-0" style="background:{seg.color}"></span>
-                              <span class="opacity-70">{seg.label}</span>
-                            </span>
-                            <span class="font-semibold">{seg.pct}%</span>
-                          </li>
-                        {/each}
-                      </ul>
-                    </div>
-
-                  {:else if item.id === 'monthly-revenue'}
-                    <h2 class="text-sm font-semibold opacity-70">{m.dashboard_chart_monthly_revenue()}</h2>
-                    <svg viewBox="0 0 480 140" width="100%" preserveAspectRatio="none" class="block" aria-hidden="true">
-                      {#each [0.25, 0.5, 0.75, 1] as frac}
-                        <line x1="16" x2="464" y1={140-16-(frac*(140-32)).toFixed(1)} y2={140-16-(frac*(140-32)).toFixed(1)}
-                          stroke="currentColor" stroke-opacity="0.08" stroke-width="1"/>
-                      {/each}
-                      <path d={areaPath(monthlyData)} fill="var(--color-secondary-500)" fill-opacity="0.18"/>
-                      <polyline points={linePoints(monthlyData)} fill="none" stroke="var(--color-secondary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-                      {#each monthlyData as d, i}
-                        <text x={(16 + (i/11)*(480-32)).toFixed(1)} y="135" font-size="9" text-anchor="middle" fill="currentColor" fill-opacity="0.4">{d.label}</text>
-                      {/each}
-                    </svg>
-                  {/if}
-                </div>
-              {/each}
-            </div>
-
-          <!-- ── Sales Table ─────────────────────────────────────── -->
-          {:else if section.id === 'sales-table'}
-            <div class="space-y-3">
-              <h2 class="text-lg font-semibold">{m.dashboard_section_sales()}</h2>
-              <label class="input input-bordered flex items-center gap-2">
-                <Search class="size-4 opacity-50 shrink-0" />
-                <input type="search" class="grow" placeholder={m.dashboard_sales_search()} bind:value={query} />
-              </label>
-              <div class="card bg-base-100 border border-base-200 overflow-hidden">
-                <table class="table table-sm">
-                  <thead>
-                    <tr>
-                      <th>{m.dashboard_col_order()}</th><th>{m.dashboard_col_date()}</th><th>{m.dashboard_col_product()}</th><th>{m.dashboard_col_region()}</th>
-                      <th class="text-right">{m.dashboard_col_units()}</th><th class="text-right">{m.dashboard_col_revenue()}</th><th>{m.dashboard_col_status()}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {#each pageRows as row}
-                      <tr class="odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors">
-                        <td class="font-mono text-xs opacity-60">{row.id}</td>
-                        <td class="opacity-60">{row.date.toLocaleDateString()}</td>
-                        <td>{row.product}</td>
-                        <td class="opacity-60">{row.region}</td>
-                        <td class="text-right">{row.units}</td>
-                        <td class="text-right font-semibold">{fmt(row.revenue)}</td>
-                        <td><span class="badge text-xs {STATUS_CLS[row.status] ?? ''}">{row.status}</span></td>
-                      </tr>
-                    {:else}
-                      <tr><td colspan="7" class="px-4 py-8 text-center opacity-50">{m.dashboard_no_records()}</td></tr>
-                    {/each}
-                  </tbody>
-                </table>
-                <div class="flex items-center justify-between px-4 py-2 border-t border-base-200">
-                  <span class="text-xs opacity-50">
-                    {filtered.length === 0 ? 'No records' : `${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filtered.length)} of ${filtered.length}`}
-                  </span>
-                  <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={e => (currentPage = e.page)} siblingCount={1} />
-                </div>
-              </div>
-            </div>
-
-          <!-- ── Order Calendar ──────────────────────────────────── -->
-          {:else if section.id === 'calendar'}
+          <!-- ── Calendar ────────────────────────────────────────── -->
+          {#if section.id === 'calendar'}
             <div class="space-y-3">
               <h2 class="text-lg font-semibold">{m.dashboard_section_calendar()}</h2>
               <div class="flex items-center gap-3">
@@ -860,15 +511,6 @@
                         <span class="text-xs font-semibold {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-content' : 'opacity-70'}">
                           {cell.day}
                         </span>
-                        {#if cell.count > 0}
-                          <div class="mt-1.5 space-y-0.5">
-                            <div class="w-full rounded-sm h-1.5 overflow-hidden bg-base-200">
-                              <div class="h-full rounded-sm bg-primary" style="width:{Math.round((cell.revenue/maxDayRevenue)*100)}%"></div>
-                            </div>
-                            <p class="text-[10px] text-primary font-semibold">{fmt(cell.revenue)}</p>
-                            <p class="text-[10px] opacity-40">{cell.count} order{cell.count !== 1 ? 's' : ''}</p>
-                          </div>
-                        {/if}
                         {#each eventsForDay(calYear, calMonth, cell.day) as ev}
                           <button
                             type="button"
@@ -887,13 +529,16 @@
           <!-- ── Module Widgets ──────────────────────────────────── -->
           {:else if section.id === 'widgets'}
             {#if sortedWidgets.length > 0}
-              {#each sortedWidgets as w}
-                {#if hasPermission(data.user, w.permission.resource, w.permission.action)}
-                  <w.component />
-                {/if}
-              {/each}
-            {:else if editMode}
-              <div class="card bg-base-100 border border-base-200 border-dashed px-6 py-8 text-center opacity-40 text-sm">
+              <!-- Grid: compact widgets take one cell; a widget whose root has col-span-full spans the row -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {#each sortedWidgets as w}
+                  {#if hasPermission(data.user, w.permission.resource, w.permission.action)}
+                    <w.component />
+                  {/if}
+                {/each}
+              </div>
+            {:else}
+              <div class="card bg-base-100 border border-base-200 border-dashed px-6 py-8 text-center opacity-60 text-sm">
                 {m.dashboard_no_widgets()}
               </div>
             {/if}

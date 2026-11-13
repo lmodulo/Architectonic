@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { randomUUID } from 'crypto';
 import { logAudit } from '../../lib/audit.js';
+import { ownRecordsOnly } from '../../lib/contractRole.js';
 import {
   sendContractSigningEmail,
   sendContractSignedEmail,
@@ -39,7 +40,9 @@ export default async function contractRoutes(app: FastifyInstance) {
     const userDoc = await db.collection('users').findOne({ _id: new ObjectId(userId) });
     const match: Record<string, unknown> = {};
 
-    if (userDoc?.role === 'customer') {
+    // Customers see only contracts they are a signer on
+    if (await ownRecordsOnly(db, req.session)) {
+      if (!userDoc?.email) return [];
       match['signers.email'] = userDoc.email;
     }
 
@@ -115,8 +118,8 @@ export default async function contractRoutes(app: FastifyInstance) {
 
     const userDoc = await db.collection('users').findOne({ _id: new ObjectId(req.session.userId!) });
     if (
-      userDoc?.role === 'customer' &&
-      !doc.signers?.some((s: any) => s.email === userDoc.email)
+      await ownRecordsOnly(db, req.session) &&
+      (!userDoc?.email || !doc.signers?.some((s: any) => s.email === userDoc.email))
     ) {
       throw app.httpErrors.forbidden();
     }

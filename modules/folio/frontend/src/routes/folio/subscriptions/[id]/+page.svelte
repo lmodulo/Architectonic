@@ -145,7 +145,7 @@
     <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Subscriptions', href: '/folio/subscriptions' }, { label: sub.name }]} />
     <div class="flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold">{sub.name}</h1>
+        <h2 class="text-2xl font-bold">{sub.name}</h2>
         {#if customer}
           <p class="text-sm opacity-60">{customer.firstName} {customer.lastName}{customer.companyName ? ` — ${customer.companyName}` : ''}</p>
         {/if}

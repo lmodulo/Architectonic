@@ -20,10 +20,6 @@
   .shop-shell {
     padding-top: 3.5rem;
     min-height: 100vh;
-    background: var(--body-background-color);
-  }
-
-  :global(.dark) .shop-shell {
-    background: var(--body-background-color-dark);
+    background: var(--color-base-100);
   }
 </style>

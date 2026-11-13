@@ -6,4 +6,6 @@ export interface DashboardWidget {
   order: number;
 }
 
-export const dashboardWidgets: DashboardWidget[] = [];
+// Modules add entries here via module.json "widgets" (merged by arch.js before the closing bracket).
+export const dashboardWidgets: DashboardWidget[] = [
+];

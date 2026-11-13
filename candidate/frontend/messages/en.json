@@ -74,7 +74,7 @@
   "layout_sign_out": "Sign Out",
 
   "dashboard_title": "Dashboard",
-  "dashboard_welcome": "Welcome back, {firstName} — last 90 days of sales activity",
+  "dashboard_welcome": "Welcome back, {firstName}",
   "dashboard_edit_layout": "Edit Layout",
   "dashboard_done": "Done",
   "dashboard_saved": "Saved ✓",
@@ -82,7 +82,7 @@
   "dashboard_section_kpi": "KPI Cards",
   "dashboard_section_charts": "Charts",
   "dashboard_section_sales": "Sales Records",
-  "dashboard_section_calendar": "Order Calendar",
+  "dashboard_section_calendar": "Calendar",
   "dashboard_section_widgets": "Module Widgets",
   "dashboard_sales_search": "Search by ID, product, region, or status…",
   "dashboard_col_order": "Order",
@@ -119,7 +119,7 @@
   "dashboard_chart_revenue_product": "Revenue by Product",
   "dashboard_chart_orders_region": "Orders by Region",
   "dashboard_chart_monthly_revenue": "Monthly Revenue — Last 12 Months",
-  "dashboard_no_widgets": "Module Widgets — no widgets configured",
+  "dashboard_no_widgets": "Nothing here yet. Installed modules add their summaries to the dashboard.",
   "dashboard_kpi_total_revenue": "Total Revenue",
   "dashboard_kpi_total_orders": "Total Orders",
   "dashboard_kpi_avg_order": "Avg Order Value",
@@ -160,6 +160,7 @@
   "automation_delete_confirm": "Delete rule \"{name}\"?",
 
   "workspace_settings_title": "Workspace Settings",
+  "workspace_settings_subtitle": "General · Members",
   "workspace_settings_general": "General",
   "workspace_settings_members": "Members",
   "workspace_settings_member": "Member",
@@ -168,6 +169,7 @@
   "workspace_settings_email": "Email address",
 
   "profile_title": "Profile",
+  "profile_subtitle": "Account information · Avatar · Teams",
   "profile_avatar": "Avatar",
   "profile_photo": "Photo",
   "profile_color": "Color",
@@ -184,6 +186,7 @@
   "profile_updated": "Profile updated successfully.",
 
   "user_mgmt_title": "User Management",
+  "user_mgmt_subtitle": "Users · Roles · Teams",
   "user_mgmt_tab_users": "Users",
   "user_mgmt_tab_roles": "Roles",
   "user_mgmt_tab_teams": "Teams",
@@ -272,6 +275,7 @@
   "messages_compose_body_required": "Message body is required",
 
   "notifications_title": "Notifications",
+  "notifications_subtitle": "Activity and updates across your workspace",
   "notifications_preferences": "Preferences",
   "notifications_mark_all_read": "Mark all read",
   "notifications_tab_all": "All",
@@ -280,6 +284,7 @@
   "notifications_load_more": "Load more",
   "notifications_view_all": "View all notifications →",
   "notifications_prefs_title": "Notification Preferences",
+  "notifications_prefs_subtitle": "Choose how and when you're notified",
   "notifications_prefs_saved": "Preferences saved.",
   "notifications_prefs_channels": "Delivery Channels",
   "notifications_prefs_push": "Push (in-app, always on)",

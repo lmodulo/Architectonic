@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { CheckCircle, ChevronLeft, ChevronRight, ClipboardList, XCircle } from 'lucide-svelte';
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -87,14 +88,8 @@
   };
 </script>
 
-<div class="p-6 max-w-5xl mx-auto">
-  <div class="flex items-center gap-3 mb-6">
-    <ClipboardList size={24} class="w-6 h-6 opacity-60" />
-    <div>
-      <h1 class="text-xl font-semibold">Estimates</h1>
-      <p class="text-sm opacity-60">Review and sign off on proposals</p>
-    </div>
-  </div>
+<div class="max-w-5xl mx-auto">
+  <div class="mb-6"><PageHeader icon={ClipboardList} title="Estimates" subtitle="Review and sign off on proposals" /></div>
 
   {#if actionError}
     <div class="alert alert-error mb-4">

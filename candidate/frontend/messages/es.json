@@ -74,7 +74,7 @@
   "layout_sign_out": "Cerrar sesión",
 
   "dashboard_title": "Panel",
-  "dashboard_welcome": "Bienvenido, {firstName} — últimos 90 días de actividad de ventas",
+  "dashboard_welcome": "Bienvenido, {firstName}",
   "dashboard_edit_layout": "Editar diseño",
   "dashboard_done": "Listo",
   "dashboard_saved": "Guardado ✓",
@@ -82,7 +82,7 @@
   "dashboard_section_kpi": "Tarjetas KPI",
   "dashboard_section_charts": "Gráficos",
   "dashboard_section_sales": "Registros de ventas",
-  "dashboard_section_calendar": "Calendario de pedidos",
+  "dashboard_section_calendar": "Calendario",
   "dashboard_section_widgets": "Widgets de módulos",
   "dashboard_sales_search": "Buscar por ID, producto, región o estado…",
   "dashboard_col_order": "Pedido",
@@ -119,7 +119,7 @@
   "dashboard_chart_revenue_product": "Ingresos por producto",
   "dashboard_chart_orders_region": "Pedidos por región",
   "dashboard_chart_monthly_revenue": "Ingresos mensuales — Últimos 12 meses",
-  "dashboard_no_widgets": "Widgets de módulos — no hay widgets configurados",
+  "dashboard_no_widgets": "Aún no hay nada aquí. Los módulos instalados añaden sus resúmenes al panel.",
   "dashboard_kpi_total_revenue": "Ingresos totales",
   "dashboard_kpi_total_orders": "Pedidos totales",
   "dashboard_kpi_avg_order": "Valor promedio del pedido",
@@ -160,6 +160,7 @@
   "automation_delete_confirm": "¿Eliminar la regla «{name}»?",
 
   "workspace_settings_title": "Configuración del espacio de trabajo",
+  "workspace_settings_subtitle": "General · Miembros",
   "workspace_settings_general": "General",
   "workspace_settings_members": "Miembros",
   "workspace_settings_member": "Miembro",
@@ -168,6 +169,7 @@
   "workspace_settings_email": "Dirección de correo electrónico",
 
   "profile_title": "Perfil",
+  "profile_subtitle": "Información de cuenta · Avatar · Equipos",
   "profile_avatar": "Avatar",
   "profile_photo": "Foto",
   "profile_color": "Color",
@@ -184,6 +186,7 @@
   "profile_updated": "Perfil actualizado correctamente.",
 
   "user_mgmt_title": "Gestión de usuarios",
+  "user_mgmt_subtitle": "Usuarios · Roles · Equipos",
   "user_mgmt_tab_users": "Usuarios",
   "user_mgmt_tab_roles": "Roles",
   "user_mgmt_tab_teams": "Equipos",
@@ -272,6 +275,7 @@
   "messages_compose_body_required": "El cuerpo del mensaje es obligatorio",
 
   "notifications_title": "Notificaciones",
+  "notifications_subtitle": "Actividad y novedades de tu espacio de trabajo",
   "notifications_preferences": "Preferencias",
   "notifications_mark_all_read": "Marcar todo como leído",
   "notifications_tab_all": "Todas",
@@ -280,6 +284,7 @@
   "notifications_load_more": "Cargar más",
   "notifications_view_all": "Ver todas las notificaciones →",
   "notifications_prefs_title": "Preferencias de notificaciones",
+  "notifications_prefs_subtitle": "Elige cómo y cuándo recibir notificaciones",
   "notifications_prefs_saved": "Preferencias guardadas.",
   "notifications_prefs_channels": "Canales de entrega",
   "notifications_prefs_push": "Push (en la app, siempre activo)",

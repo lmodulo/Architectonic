@@ -108,11 +108,11 @@
 <input bind:this={fileInput} type="file" class="hidden" onchange={onFileSelect} />
 
 <div class="space-y-6">
-  <div class="flex items-start gap-3">
-    <Icon name="LayoutDashboard" size={24} class="size-6 opacity-60 shrink-0 mt-0.5" />
+  <div class="page-heading flex items-start gap-3">
+    <Icon name="LayoutDashboard" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-2xl font-bold">{m.client_portal_title()}</h1>
-      <p class="text-sm opacity-60 mt-0.5">{m.client_portal_subtitle()}</p>
+      <h1 class="text-2xl font-bold leading-none">{m.client_portal_title()}</h1>
+      <p class="text-xs opacity-60 mt-0.5">{m.client_portal_subtitle()}</p>
     </div>
   </div>
 

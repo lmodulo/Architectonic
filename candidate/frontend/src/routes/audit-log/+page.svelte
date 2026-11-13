@@ -3,6 +3,7 @@
   import { Search, ChevronDown } from 'lucide-svelte';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import { HistoryIcon } from 'lucide-svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
@@ -88,7 +89,7 @@
 </svelte:head>
 
 <div class="space-y-6">
-  <PageHeader title={m.audit_title()} subtitle={m.audit_subtitle()} />
+  <PageHeader icon={HistoryIcon} title={m.audit_title()} subtitle={m.audit_subtitle()} />
 
   {#if data.error}
     <div role="alert" class="alert alert-error text-sm">{data.error}</div>

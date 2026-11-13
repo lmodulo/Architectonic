@@ -60,13 +60,13 @@
     font-weight: 200;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--color-surface-900);
+    color: var(--color-base-content);
     margin: 0 0 0.5rem;
   }
 
   .landing-sub {
     font-size: 0.9375rem;
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     margin: 0;
     letter-spacing: 0.04em;
   }
@@ -75,7 +75,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1px;
-    background: var(--color-surface-200);
+    background: var(--color-base-300);
   }
 
   @media (min-width: 768px) {
@@ -88,13 +88,13 @@
     display: block;
     text-decoration: none;
     color: inherit;
-    background: var(--color-surface-50);
+    background: var(--color-base-100);
   }
 
   .cat-image {
     overflow: hidden;
     aspect-ratio: 4 / 3;
-    background: var(--color-surface-100);
+    background: var(--color-base-200);
   }
 
   .cat-img {
@@ -111,7 +111,7 @@
   .cat-placeholder {
     width: 100%;
     height: 100%;
-    background: var(--color-surface-200);
+    background: var(--color-base-300);
     transition: transform 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
@@ -127,7 +127,7 @@
     font-size: 1rem;
     font-weight: 400;
     letter-spacing: 0.04em;
-    color: var(--color-surface-900);
+    color: var(--color-base-content);
     margin: 0 0 0.25rem;
     text-transform: uppercase;
     font-size: 0.8125rem;
@@ -135,38 +135,14 @@
 
   .cat-desc {
     font-size: 0.8125rem;
-    color: var(--color-surface-500);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     margin: 0;
   }
 
   .empty-state {
     text-align: center;
     padding: 6rem 0;
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     font-size: 0.9375rem;
-  }
-
-  :global(.dark) .landing-title {
-    color: var(--color-surface-100);
-  }
-
-  :global(.dark) .category-card {
-    background: var(--color-surface-900);
-  }
-
-  :global(.dark) .cat-image {
-    background: var(--color-surface-800);
-  }
-
-  :global(.dark) .cat-placeholder {
-    background: var(--color-surface-800);
-  }
-
-  :global(.dark) .cat-name {
-    color: var(--color-surface-100);
-  }
-
-  :global(.dark) .category-grid {
-    background: var(--color-surface-800);
   }
 </style>

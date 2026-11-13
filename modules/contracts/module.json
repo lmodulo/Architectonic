@@ -9,6 +9,14 @@
       "permission": "contracts.read"
     }
   ],
+  "widgets": [
+    {
+      "component": "ContractsDashboardWidget",
+      "import": "$lib/components/contracts/ContractsDashboardWidget.svelte",
+      "permission": "contracts.read",
+      "order": 50
+    }
+  ],
   "permissions": [
     {
       "resource": "contracts",
@@ -19,6 +27,19 @@
       "actions": ["create", "read", "update", "delete"]
     }
   ],
+  "roles": {
+    "lead": {
+      "contracts":          ["create", "read", "update"],
+      "contract_templates": ["read"]
+    },
+    "contributor": {
+      "contracts":          ["read"],
+      "contract_templates": ["read"]
+    },
+    "customer": {
+      "contracts":          ["read"]
+    }
+  },
   "dependencies": {
     "frontend": {},
     "api": {}

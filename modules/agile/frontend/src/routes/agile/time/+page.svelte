@@ -253,7 +253,7 @@
   <!-- Page header -->
   <div class="flex items-center gap-3 flex-wrap">
     <div>
-      <h1 class="text-xl font-bold leading-none">Time</h1>
+      <h2 class="text-xl font-bold leading-none">Time</h2>
       <p class="text-xs opacity-50 mt-0.5">Log and review your weekly hours</p>
     </div>
     <div class="flex items-center gap-1 ml-auto">

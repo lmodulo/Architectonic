@@ -102,9 +102,9 @@
     <div class="flex items-center justify-between gap-4 px-6 py-4 bg-base-200 border-b border-base-300">
       <div>
         <p class="text-[11px] font-semibold uppercase tracking-wide opacity-40">New Contract</p>
-        <h1 class="font-semibold text-base leading-tight">
+        <h2 class="font-semibold text-base leading-tight">
           {step === 1 ? 'Choose a starting point' : step === 2 ? 'Contract details' : 'Review & edit content'}
-        </h1>
+        </h2>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         {#each ['Template', 'Details', 'Content'] as label, i}

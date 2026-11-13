@@ -1,4 +1,6 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
+  import { FileTextIcon } from 'lucide-svelte';
   import { ArrowLeft, Printer } from 'lucide-svelte';
   import type { PageData } from './$types';
 
@@ -40,16 +42,21 @@
   }
 </script>
 
-<div class="p-6 max-w-3xl mx-auto">
-  <!-- Actions bar (hidden when printing) -->
-  <div class="flex items-center justify-between mb-6 print:hidden">
-    <a href="/client-portal/invoices" class="btn btn-sm btn-ghost gap-1">
-      <ArrowLeft size={16} class="w-4 h-4" /> Back
-    </a>
-    <button class="btn btn-sm btn-ghost gap-1" onclick={() => window.open(`/invoice/${inv.id}`, '_blank')}>
-      <Printer size={16} class="w-4 h-4" /> Print / Save as PDF
-    </button>
-  </div>
+<!-- Header (hidden when printing) -->
+<div class="mb-6 print:hidden">
+  <PageHeader icon={FileTextIcon} title={inv.invoiceNumber} subtitle="Invoice">
+    {#snippet actions()}
+      <a href="/client-portal/invoices" class="btn btn-sm btn-ghost gap-1">
+        <ArrowLeft size={16} class="w-4 h-4" /> Back
+      </a>
+      <button class="btn btn-sm btn-ghost gap-1" onclick={() => window.open(`/invoice/${inv.id}`, '_blank')}>
+        <Printer size={16} class="w-4 h-4" /> Print / Save as PDF
+      </button>
+    {/snippet}
+  </PageHeader>
+</div>
+
+<div class="max-w-3xl mx-auto">
 
   <div class="card bg-base-100 border border-base-200 shadow-sm">
     <div class="card-body p-8">
@@ -57,7 +64,7 @@
       <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <p class="text-xs opacity-40 uppercase tracking-widest mb-1">Invoice</p>
-          <h1 class="text-2xl font-mono font-semibold">{inv.invoiceNumber}</h1>
+          <h2 class="text-2xl font-mono font-semibold">{inv.invoiceNumber}</h2>
         </div>
         <span class="badge badge-md {STATUS_BADGE[inv.status] ?? 'badge-ghost'}">{inv.status}</span>
       </div>

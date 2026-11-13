@@ -80,6 +80,20 @@ describe('GET /settings/:key', () => {
     const res = await app.inject({ method: 'GET', url: '/settings/app.registration_open' });
     expect(res.statusCode).toBe(401);
   });
+
+  it('theme.mode is readable without authentication (public pages need the theme)', async () => {
+    const res = await app.inject({ method: 'GET', url: '/settings/theme.mode' });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().value).toBe('business');
+  });
+
+  it('brand.name and brand.logo are readable without authentication (public pages show the brand)', async () => {
+    for (const key of ['brand.name', 'brand.logo']) {
+      const res = await app.inject({ method: 'GET', url: `/settings/${key}` });
+      expect(res.statusCode).toBe(200);
+      expect(res.json().key).toBe(key);
+    }
+  });
 });
 
 describe('PATCH /settings/:key', () => {

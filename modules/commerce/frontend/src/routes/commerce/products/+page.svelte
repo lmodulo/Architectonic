@@ -1,8 +1,10 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
+  import { PackageIcon } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { Search, Plus, Archive, X, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-svelte';
-  import { Pagination } from '@skeletonlabs/skeleton-svelte';
+  import { Search, Plus, Archive, X } from 'lucide-svelte';
+  import Pagination from '$lib/components/Pagination.svelte';
   import { goto } from '$app/navigation';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
@@ -41,9 +43,9 @@
   $effect(() => { query; statusFilter; categoryFilter; currentPage = 1; });
 
   const STATUS_BADGE: Record<string, string> = {
-    active:   'preset-tonal-success',
-    draft:    'preset-tonal-warning',
-    archived: 'preset-tonal-surface'
+    active:   'badge-success badge-soft',
+    draft:    'badge-warning badge-soft',
+    archived: 'badge-ghost'
   };
 
   function fmt(cents: number) { return `$${(cents / 100).toFixed(2)}`; }
@@ -100,13 +102,13 @@
 <svelte:head><title>Products</title></svelte:head>
 
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold">Products</h1>
+  <PageHeader icon={PackageIcon} title="Products" subtitle="Catalog · Variants · Pricing" />
 
   <div class="flex flex-wrap items-center gap-3">
-    <div class="input-group grid-cols-[auto_1fr] flex-1 min-w-48">
-      <div class="ig-cell preset-tonal"><Search class="size-4" /></div>
-      <input type="search" placeholder="Search products…" class="ig-input" bind:value={query} />
-    </div>
+    <label class="input flex items-center gap-2 flex-1 min-w-48">
+      <Search class="size-4 opacity-50" />
+      <input type="search" placeholder="Search products…" class="grow" bind:value={query} />
+    </label>
     <select class="select w-36 shrink-0" bind:value={statusFilter}>
       {#each STATUS_OPTIONS as s}
         <option value={s}>{s ? s.charAt(0).toUpperCase() + s.slice(1) : 'All statuses'}</option>
@@ -119,45 +121,45 @@
       {/each}
     </select>
     {#if hasPermission(data.user, 'commerce_products', 'create')}
-      <button type="button" class="btn preset-filled-primary-500 shrink-0" onclick={openNew}>
+      <button type="button" class="btn btn-primary shrink-0" onclick={openNew}>
         <Plus class="size-4" /><span>New Product</span>
       </button>
     {/if}
   </div>
 
-  <div class="card preset-filled-surface-100-900 overflow-hidden">
+  <div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
     <table class="w-full text-sm">
       <thead>
-        <tr class="border-b border-surface-200-800">
-          <th class="text-left px-4 py-3 font-semibold text-surface-500">Name</th>
-          <th class="text-left px-4 py-3 font-semibold text-surface-500">Status</th>
-          <th class="text-left px-4 py-3 font-semibold text-surface-500">Category</th>
-          <th class="text-right px-4 py-3 font-semibold text-surface-500">Price</th>
-          <th class="text-right px-4 py-3 font-semibold text-surface-500">Stock</th>
-          <th class="text-right px-4 py-3 font-semibold text-surface-500">Variants</th>
+        <tr class="border-b border-base-300">
+          <th class="text-left px-4 py-3 font-semibold opacity-60">Name</th>
+          <th class="text-left px-4 py-3 font-semibold opacity-60">Status</th>
+          <th class="text-left px-4 py-3 font-semibold opacity-60">Category</th>
+          <th class="text-right px-4 py-3 font-semibold opacity-60">Price</th>
+          <th class="text-right px-4 py-3 font-semibold opacity-60">Stock</th>
+          <th class="text-right px-4 py-3 font-semibold opacity-60">Variants</th>
           <th class="px-4 py-3"></th>
         </tr>
       </thead>
       <tbody>
         {#each pageProducts as p}
           <tr
-            class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
+            class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035] hover:bg-black/[.05] dark:hover:bg-white/[.06] transition-colors cursor-pointer"
             onclick={() => goto(`/commerce/products/${p.id}`)}
           >
             <td class="px-4 py-3">
               <div class="font-medium">{p.name}</div>
-              <div class="text-xs text-surface-500 font-mono">{p.slug}</div>
+              <div class="text-xs opacity-60 font-mono">{p.slug}</div>
             </td>
-            <td class="px-4 py-3"><span class="badge {STATUS_BADGE[p.status] ?? 'preset-tonal'} text-xs capitalize">{p.status}</span></td>
-            <td class="px-4 py-3 text-surface-500">{categoryName(p.category)}</td>
+            <td class="px-4 py-3"><span class="badge {STATUS_BADGE[p.status] ?? 'badge-ghost'} text-xs capitalize">{p.status}</span></td>
+            <td class="px-4 py-3 opacity-60">{categoryName(p.category)}</td>
             <td class="px-4 py-3 text-right font-medium">{fmt(p.basePrice ?? 0)}</td>
-            <td class="px-4 py-3 text-right text-surface-500">{totalStock(p)}</td>
-            <td class="px-4 py-3 text-right text-surface-500">{(p.variants ?? []).length}</td>
+            <td class="px-4 py-3 text-right opacity-60">{totalStock(p)}</td>
+            <td class="px-4 py-3 text-right opacity-60">{(p.variants ?? []).length}</td>
             <td class="px-4 py-3">
               {#if hasPermission(data.user, 'commerce_products', 'delete') && p.status !== 'archived'}
                 <button
                   type="button"
-                  class="btn-icon btn-sm hover:preset-tonal-warning"
+                  class="btn btn-ghost btn-sm btn-square hover:text-warning"
                   onclick={(e) => { e.stopPropagation(); openArchive(p); }}
                   aria-label="Archive {p.name}"
                 >
@@ -167,32 +169,16 @@
             </td>
           </tr>
         {:else}
-          <tr><td colspan="7" class="px-4 py-8 text-center text-surface-500">No products found.</td></tr>
+          <tr><td colspan="7" class="px-4 py-8 text-center opacity-60">No products found.</td></tr>
         {/each}
       </tbody>
     </table>
 
-    <div class="flex items-center justify-between px-4 py-2 border-t border-surface-200-800">
-      <span class="text-surface-500 text-xs">
+    <div class="flex items-center justify-between px-4 py-2 border-t border-base-300">
+      <span class="opacity-60 text-xs">
         {filtered.length === 0 ? 'No products' : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} of ${filtered.length}`}
       </span>
-      <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={(e) => (currentPage = e.page)} siblingCount={1}>
-        <Pagination.FirstTrigger class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronFirst class="size-4" /></Pagination.FirstTrigger>
-        <Pagination.PrevTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLeft  class="size-4" /></Pagination.PrevTrigger>
-        <Pagination.Context>
-          {#snippet children(pagination)}
-            {#each pagination().pages as p (p)}
-              {#if p.type === 'page'}
-                <Pagination.Item {...p} class="btn-icon btn-sm {p.value === currentPage ? 'preset-tonal-primary' : 'hover:preset-tonal'}">{p.value}</Pagination.Item>
-              {:else}
-                <Pagination.Ellipsis index={p.index} class="btn-icon btn-sm opacity-50">…</Pagination.Ellipsis>
-              {/if}
-            {/each}
-          {/snippet}
-        </Pagination.Context>
-        <Pagination.NextTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronRight class="size-4" /></Pagination.NextTrigger>
-        <Pagination.LastTrigger  class="btn-icon btn-sm hover:preset-tonal-primary"><ChevronLast  class="size-4" /></Pagination.LastTrigger>
-      </Pagination>
+      <Pagination count={filtered.length} pageSize={PAGE_SIZE} page={currentPage} onPageChange={(e) => (currentPage = e.page)} siblingCount={1} />
     </div>
   </div>
 </div>
@@ -200,32 +186,32 @@
 <!-- New Product modal -->
 {#if newOpen}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card preset-filled-surface-100-900 w-full max-w-md shadow-xl">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-md shadow-xl">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">New Product</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (newOpen = false)}><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (newOpen = false)}><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-4">
-        {#if newError}<aside class="alert preset-tonal-error p-3 rounded-base text-sm">{newError}</aside>{/if}
-        <label class="label">
-          <span class="label-text text-sm font-medium">Name <span class="text-error-500">*</span></span>
-          <input type="text" class="input mt-1" bind:value={newForm.name} maxlength="200" placeholder="e.g. Classic T-Shirt" />
+        {#if newError}<aside class="alert alert-error p-3 rounded text-sm">{newError}</aside>{/if}
+        <label class="flex flex-col">
+          <span class="label-text text-sm font-medium">Name <span class="text-error">*</span></span>
+          <input type="text" class="input mt-1 w-full" bind:value={newForm.name} maxlength="200" placeholder="e.g. Classic T-Shirt" />
         </label>
-        <label class="label">
-          <span class="label-text text-sm font-medium">Base Price (USD) <span class="text-error-500">*</span></span>
-          <input type="number" class="input mt-1" bind:value={newForm.basePriceDollars} min="0" step="0.01" placeholder="29.99" />
+        <label class="flex flex-col">
+          <span class="label-text text-sm font-medium">Base Price (USD) <span class="text-error">*</span></span>
+          <input type="number" class="input mt-1 w-full" bind:value={newForm.basePriceDollars} min="0" step="0.01" placeholder="29.99" />
         </label>
         <div class="grid grid-cols-2 gap-4">
-          <label class="label">
+          <label class="flex flex-col">
             <span class="label-text text-sm font-medium">Status</span>
-            <select class="select mt-1" bind:value={newForm.status}>
+            <select class="select mt-1 w-full" bind:value={newForm.status}>
               <option value="draft">Draft</option>
               <option value="active">Active</option>
             </select>
           </label>
-          <label class="label">
+          <label class="flex flex-col">
             <span class="label-text text-sm font-medium">Category</span>
-            <select class="select mt-1" bind:value={newForm.category}>
+            <select class="select mt-1 w-full" bind:value={newForm.category}>
               <option value="">None</option>
               {#each categories as c}
                 <option value={c.id}>{c.name}</option>
@@ -233,11 +219,11 @@
             </select>
           </label>
         </div>
-        <p class="text-xs text-surface-500">Variants, images, and discounts can be added after creation.</p>
+        <p class="text-xs opacity-60">Variants, images, and discounts can be added after creation.</p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (newOpen = false)}>Cancel</button>
-        <button type="button" class="btn preset-filled-primary-500" disabled={creating} onclick={submitNew}>
+        <button type="button" class="btn btn-ghost" onclick={() => (newOpen = false)}>Cancel</button>
+        <button type="button" class="btn btn-primary" disabled={creating} onclick={submitNew}>
           {creating ? 'Creating…' : 'Create & Edit'}
         </button>
       </footer>
@@ -248,18 +234,18 @@
 <!-- Archive confirm modal -->
 {#if archiveTarget}
   <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl">
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800">
+    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300">
         <h2 class="text-lg font-semibold">Archive Product</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={() => (archiveTarget = null)}><X class="size-5" /></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (archiveTarget = null)}><X class="size-5" /></button>
       </header>
       <div class="p-6 space-y-3">
-        {#if archiveError}<aside class="alert preset-tonal-error p-3 rounded-base text-sm">{archiveError}</aside>{/if}
+        {#if archiveError}<aside class="alert alert-error p-3 rounded text-sm">{archiveError}</aside>{/if}
         <p class="text-sm">Archive <span class="font-semibold">{archiveTarget.name}</span>? It will no longer appear in active listings but order history is preserved.</p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (archiveTarget = null)}>Cancel</button>
-        <button type="button" class="btn preset-filled-warning-500" disabled={archiving} onclick={confirmArchive}>
+        <button type="button" class="btn btn-ghost" onclick={() => (archiveTarget = null)}>Cancel</button>
+        <button type="button" class="btn btn-warning" disabled={archiving} onclick={confirmArchive}>
           {archiving ? 'Archiving…' : 'Archive'}
         </button>
       </footer>

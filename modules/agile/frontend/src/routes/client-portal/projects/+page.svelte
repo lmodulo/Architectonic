@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { Download, FolderKanban, Paperclip } from 'lucide-svelte';
   import type { PageData } from './$types';
 
@@ -43,14 +44,8 @@
   }
 </script>
 
-<div class="p-6 max-w-5xl mx-auto">
-  <div class="flex items-center gap-3 mb-6">
-    <FolderKanban size={24} class="w-6 h-6 opacity-60" />
-    <div>
-      <h1 class="text-xl font-semibold">Projects</h1>
-      <p class="text-sm opacity-60">Track the progress of your active projects</p>
-    </div>
-  </div>
+<div class="max-w-5xl mx-auto">
+  <div class="mb-6"><PageHeader icon={FolderKanban} title="Projects" subtitle="Track the progress of your active projects" /></div>
 
   {#if milestones.length === 0}
     <div class="text-center py-16 opacity-40">

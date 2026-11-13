@@ -7,6 +7,22 @@
       "href": "/vault",
       "icon": "FolderLock",
       "permission": "vault_documents.read"
+    },
+    {
+      "label": "Documents",
+      "href": "/client-portal/vault",
+      "icon": "Files",
+      "permission": "vault_documents.read",
+      "matchPrefix": true,
+      "customerOnly": true
+    }
+  ],
+  "widgets": [
+    {
+      "component": "VaultDashboardWidget",
+      "import": "$lib/components/vault/VaultDashboardWidget.svelte",
+      "permission": "vault_documents.read",
+      "order": 60
     }
   ],
   "permissions": [
@@ -19,6 +35,20 @@
       "actions": ["create", "read", "update", "delete"]
     }
   ],
+  "roles": {
+    "lead": {
+      "vault_documents": ["create", "read", "update"],
+      "vault_folders":   ["create", "read", "update"]
+    },
+    "contributor": {
+      "vault_documents": ["read"],
+      "vault_folders":   ["read"]
+    },
+    "customer": {
+      "vault_documents": ["read"],
+      "vault_folders":   ["read"]
+    }
+  },
   "dependencies": {
     "frontend": {},
     "api": {
@@ -26,6 +56,9 @@
       "@aws-sdk/client-s3": "^3.0.0"
     }
   },
+  "exclude": [
+    "frontend/src/lib/config/nav.ts"
+  ],
   "env": [
     {
       "key": "STORAGE_PROVIDER",

@@ -230,8 +230,12 @@ export default async function companiesRoutes(app: FastifyInstance) {
     reply.status(204);
   });
 
-  // GET /crm/companies/:id/milestones — linked agile milestones with rolled-up hours
-  app.get('/:id/milestones', { preHandler: app.requirePermission('agile_milestones', 'read') }, async (req, reply) => {
+  // GET /crm/companies/:id/milestones — linked agile milestones with rolled-up hours.
+  // Needs crm_companies:read too: customers can read their own milestones (agile scopes those)
+  // but must not list any company's milestones through this route.
+  app.get('/:id/milestones', {
+    preHandler: [app.requirePermission('crm_companies', 'read'), app.requirePermission('agile_milestones', 'read')],
+  }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { FileTextIcon } from 'lucide-svelte';
   import { fade, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto, invalidateAll } from '$app/navigation';
@@ -186,19 +187,12 @@
 <svelte:head><title>{doc.name} — Vault</title></svelte:head>
 
 <div class="space-y-6">
-  <!-- Back + actions header -->
-  <div class="flex items-start justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <a href="/vault" class="btn btn-ghost btn-square btn-sm"><ArrowLeft class="size-4" /></a>
-      <div>
-        <h1 class="text-2xl font-bold leading-none">{doc.name}</h1>
-        <p class="text-xs opacity-50 mt-0.5">
-          <span class="badge badge-sm {VISIBILITY_BADGE[doc.visibility] ?? 'badge-ghost'} mr-1">{VISIBILITY_LABEL[doc.visibility] ?? doc.visibility}</span>
-          {folderName(doc.folderId)} · Updated {fmtDate(doc.updatedAt)}
-        </p>
-      </div>
-    </div>
-    <div class="flex gap-2 shrink-0">
+  <!-- Header with actions -->
+  <PageHeader icon={FileTextIcon} title={doc.name}>
+    <span class="badge badge-sm {VISIBILITY_BADGE[doc.visibility] ?? 'badge-ghost'} mr-1">{VISIBILITY_LABEL[doc.visibility] ?? doc.visibility}</span>
+    {folderName(doc.folderId)} · Updated {fmtDate(doc.updatedAt)}
+    {#snippet actions()}
+      <a href="/vault" class="btn btn-ghost btn-sm"><ArrowLeft class="size-4" /> Vault</a>
       {#if hasPermission(data.user, 'vault_documents', 'update')}
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openVersion}>
           <Upload class="size-4" /><span class="hidden sm:inline">New Version</span>
@@ -213,8 +207,8 @@
       {#if hasPermission(data.user, 'vault_documents', 'delete')}
         <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => (deleteOpen = true)}><Trash2 class="size-4" /></button>
       {/if}
-    </div>
-  </div>
+    {/snippet}
+  </PageHeader>
 
   <div class="flex gap-6 items-start">
 

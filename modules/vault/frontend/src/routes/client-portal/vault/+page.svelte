@@ -1,4 +1,6 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
+  import { FolderLockIcon } from 'lucide-svelte';
   import { Search, Download, FileText, FileImage, File } from 'lucide-svelte';
   import type { PageData } from './$types';
 
@@ -48,10 +50,7 @@
 <svelte:head><title>Documents</title></svelte:head>
 
 <div class="space-y-6">
-  <div>
-    <h1 class="text-2xl font-bold leading-none">Documents</h1>
-    <p class="text-xs opacity-50 mt-0.5">Policies, warranties, and reference materials</p>
-  </div>
+  <PageHeader icon={FolderLockIcon} title="Documents" subtitle="Policies, warranties, and reference materials" />
 
   <label class="input input-bordered flex items-center gap-2 max-w-sm">
     <Search class="size-4 opacity-50" />

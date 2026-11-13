@@ -39,23 +39,23 @@
   function nextMonth() { calMonth === 11 ? (calMonth = 0, calYear++) : calMonth++; }
 </script>
 
-<div class="card preset-filled-surface-100-900 overflow-hidden">
+<div class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
 
   <!-- Nav -->
-  <div class="flex items-center justify-between px-5 py-3 border-b border-surface-200-800">
-    <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={prevMonth} aria-label="Previous month">
+  <div class="flex items-center justify-between px-5 py-3 border-b border-base-300">
+    <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={prevMonth} aria-label="Previous month">
       <ChevronLeft class="size-4" />
     </button>
     <span class="font-semibold text-sm">{calLabel}</span>
-    <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={nextMonth} aria-label="Next month">
+    <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={nextMonth} aria-label="Next month">
       <ChevronRight class="size-4" />
     </button>
   </div>
 
   <!-- DOW header -->
-  <div class="grid grid-cols-7 border-b border-surface-200-800">
+  <div class="grid grid-cols-7 border-b border-base-300">
     {#each ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as dow}
-      <div class="px-2 py-2 text-center text-xs font-semibold text-surface-500 uppercase tracking-wide">{dow}</div>
+      <div class="px-2 py-2 text-center text-xs font-semibold opacity-50 uppercase tracking-wide">{dow}</div>
     {/each}
   </div>
 
@@ -64,11 +64,11 @@
     {#each calDays as cell, i}
       {@const borderR = (i + 1) % 7 !== 0 ? 'border-r' : ''}
       {@const borderB = i < calDays.length - 7 ? 'border-b' : ''}
-      <div class="min-h-[5.5rem] p-2 border-surface-200-800 {borderR} {borderB}
-        {cell?.isToday ? 'bg-primary-500/5' : ''}">
+      <div class="min-h-[5.5rem] p-2 border-base-300 {borderR} {borderB}
+        {cell?.isToday ? 'bg-primary/5' : ''}">
         {#if cell}
           <span class="text-xs font-semibold
-            {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full preset-filled-primary-500 text-white' : 'opacity-70'}">
+            {cell.isToday ? 'inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-content' : 'opacity-70'}">
             {cell.day}
           </span>
           {#each eventsForDay(events, calYear, calMonth, cell.day) as ev}

@@ -7,6 +7,22 @@
       "href": "/agile",
       "icon": "Milestone",
       "permission": "agile_milestones.read"
+    },
+    {
+      "label": "Projects",
+      "href": "/client-portal/projects",
+      "icon": "FolderKanban",
+      "permission": "agile_milestones.read",
+      "matchPrefix": true,
+      "customerOnly": true
+    }
+  ],
+  "widgets": [
+    {
+      "component": "AgileDashboardWidget",
+      "import": "$lib/components/agile/AgileDashboardWidget.svelte",
+      "permission": "agile_milestones.read",
+      "order": 30
     }
   ],
   "permissions": [
@@ -35,6 +51,27 @@
       "actions": ["create", "read", "update", "delete"]
     }
   ],
+  "roles": {
+    "lead": {
+      "agile_milestones":   ["create", "read", "update"],
+      "agile_sprints":      ["create", "read", "update"],
+      "agile_jobs":         ["create", "read", "update"],
+      "agile_tasks":        ["create", "read", "update", "delete"],
+      "agile_comments":     ["create", "read", "update", "delete"],
+      "agile_time_entries": ["create", "read", "update", "delete"]
+    },
+    "contributor": {
+      "agile_milestones":   ["read"],
+      "agile_sprints":      ["read"],
+      "agile_jobs":         ["read"],
+      "agile_tasks":        ["read", "update"],
+      "agile_comments":     ["create", "read", "update", "delete"],
+      "agile_time_entries": ["create", "read", "update", "delete"]
+    },
+    "customer": {
+      "agile_milestones":   ["read"]
+    }
+  },
   "dependencies": {
     "frontend": {},
     "api": {}

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
+import { callerRole } from '../../lib/agileRole.js';
 
 const COL = 'agile_comments';
 
@@ -148,8 +149,7 @@ export default async function commentsRoutes(app: FastifyInstance) {
     const comment = await db.collection(COL).findOne({ _id: oid });
     if (!comment) throw app.httpErrors.notFound('Comment not found');
 
-    const sessionUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.userId!) });
-    const isOwnerRole = ['owner', 'admin', 'lead'].includes(sessionUser?.role ?? '');
+    const isOwnerRole = ['owner', 'admin', 'lead'].includes((await callerRole(db, req.session)) ?? '');
     if (!isOwnerRole && comment.createdBy.toString() !== req.session.userId) {
       throw app.httpErrors.forbidden('You can only edit your own comments');
     }
@@ -169,8 +169,7 @@ export default async function commentsRoutes(app: FastifyInstance) {
     const comment = await db.collection(COL).findOne({ _id: oid });
     if (!comment) throw app.httpErrors.notFound('Comment not found');
 
-    const sessionUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.userId!) });
-    const isOwnerRole = ['owner', 'admin', 'lead'].includes(sessionUser?.role ?? '');
+    const isOwnerRole = ['owner', 'admin', 'lead'].includes((await callerRole(db, req.session)) ?? '');
     if (!isOwnerRole && comment.createdBy.toString() !== req.session.userId) {
       throw app.httpErrors.forbidden('You can only delete your own comments');
     }

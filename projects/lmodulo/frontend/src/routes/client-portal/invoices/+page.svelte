@@ -63,13 +63,15 @@
   const statusLabels: Record<string, string> = { '': 'All', draft: 'Draft', sent: 'Sent', paid: 'Paid', overdue: 'Overdue' };
 </script>
 
-<div class="p-6 max-w-5xl mx-auto">
-  <div class="flex items-center gap-3 mb-6">
-    <Icon name="FileText" size={24} class="w-6 h-6 opacity-60" />
+<div class="max-w-5xl mx-auto">
+  <div class="mb-6">
+  <div class="page-heading flex items-start gap-3">
+    <Icon name="FileText" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-xl font-semibold">Invoices</h1>
-      <p class="text-sm opacity-60">Your billing history</p>
+      <h1 class="text-2xl font-bold leading-none">Invoices</h1>
+      <p class="text-xs opacity-60 mt-0.5">Your billing history</p>
     </div>
+  </div>
   </div>
 
   <!-- Status filter -->

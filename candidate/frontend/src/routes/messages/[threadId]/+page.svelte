@@ -74,7 +74,7 @@
   <!-- Thread subject header -->
   {#if messages.length > 0}
     <div class="px-6 py-3 border-b border-base-300 shrink-0">
-      <h1 class="text-base font-semibold truncate">{messages[0].subject}</h1>
+      <h2 class="text-base font-semibold truncate">{messages[0].subject}</h2>
       <p class="text-xs opacity-50 mt-0.5">{m.messages_count({ count: messages.length })}</p>
     </div>
   {/if}

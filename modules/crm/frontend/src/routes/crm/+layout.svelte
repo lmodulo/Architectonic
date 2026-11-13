@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { Handshake, LayoutGrid, Users, Building2, TrendingUp, CalendarDays, BarChart2 } from 'lucide-svelte';
   import { page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
@@ -34,13 +35,7 @@
 </script>
 
 <div data-no-anim class="flex flex-col gap-6">
-  <div class="page-heading flex items-start gap-3">
-    <Handshake size={24} class="size-6 shrink-0 mt-0.5" />
-    <div>
-      <h1 class="text-2xl font-bold leading-none">{'Nexus'}</h1>
-      <p class="text-xs opacity-60 mt-0.5">{'Companies · Contacts · Deals · Activities'}</p>
-    </div>
-  </div>
+  <PageHeader icon={Handshake} title="Nexus" subtitle="Companies · Contacts · Deals · Activities" />
 
   {#if hasPermission(data.user, 'crm_contacts', 'read')}
     <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-6">

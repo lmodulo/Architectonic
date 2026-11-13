@@ -5,6 +5,7 @@ declare global {
   namespace App {
     interface Locals {
       user: UserWithPermissions | null;
+      theme?: string; // set by the root +layout.server.ts load, written into <html data-theme>
     }
     interface PageData {
       user?: UserWithPermissions | null;

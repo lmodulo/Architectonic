@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
+import { callerRole } from '../../lib/agileRole.js';
 import { storage } from '../../lib/storage.js';
 
 const COL = 'agile_tasks';
@@ -134,8 +135,7 @@ export default async function tasksRoutes(app: FastifyInstance) {
     if (!preTask) return reply.notFound('Task not found');
 
     // Contributor restriction: can only update own tasks
-    const sessionUser = await db.collection('users').findOne({ _id: new ObjectId(req.session.userId!) });
-    if (sessionUser?.role === 'contributor') {
+    if ((await callerRole(db, req.session)) === 'contributor') {
       if (!preTask.assignedTo || preTask.assignedTo.toString() !== req.session.userId) {
         throw app.httpErrors.forbidden('Contributors can only update tasks assigned to them');
       }

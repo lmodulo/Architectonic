@@ -224,6 +224,7 @@ export default async function contactsRoutes(app: FastifyInstance) {
     if (!contact) return reply.notFound('Contact not found');
     if (!contact.email) return reply.badRequest('Contact must have an email address');
     if (!contact.companyId) return reply.badRequest('Contact must be linked to a company');
+    if (!req.session.workspaceId) return reply.badRequest('No active workspace');
 
     const usersCol = db.collection('users');
     const conflict = await checkDuplicateUser(usersCol, { email: contact.email as string });
@@ -247,6 +248,17 @@ export default async function contactsRoutes(app: FastifyInstance) {
       passwordSetTokenExpiry: new Date(now.getTime() + 48 * 60 * 60 * 1000),
       avatarUrl:   '',
       avatarColor: '',
+      createdAt:   now,
+      updatedAt:   now,
+    });
+
+    // The role that counts lives on the workspace membership (users.role above is informational).
+    // Without one the client has no role: /auth/me falls back to 'viewer', so they get the staff
+    // app instead of the client portal, and every API call fails with "No workspace membership".
+    await db.collection('workspace_members').insertOne({
+      workspaceId: new ObjectId(req.session.workspaceId),
+      userId:      result.insertedId,
+      role:        'customer',
       createdAt:   now,
       updatedAt:   now,
     });

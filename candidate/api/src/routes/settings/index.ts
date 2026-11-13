@@ -64,9 +64,14 @@ export default async function settingsRoutes(app: FastifyInstance) {
     return { url };
   });
 
-  // GET /settings/:key — requireAuth only: individual settings readable by all authenticated users
+  // GET /settings/:key — individual settings readable by all authenticated users.
+  // Keys in PUBLIC_KEYS are also readable anonymously: public pages (login, marketing,
+  // storefront) need the theme and the brand they display.
+  const PUBLIC_KEYS = new Set(['theme.mode', 'brand.name', 'brand.logo']);
   app.get<{ Params: { key: string } }>('/:key', {
-    preHandler: app.requireAuth,
+    preHandler: async (req, reply) => {
+      if (!PUBLIC_KEYS.has(req.params.key)) return app.requireAuth(req, reply);
+    },
     schema: { summary: 'Get a single setting by key' }
   }, async (req, reply) => {
     const s = await app.mongo.db!.collection('settings').findOne({ key: req.params.key });

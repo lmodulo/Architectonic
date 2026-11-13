@@ -126,18 +126,18 @@
   >
     <div
       transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
     >
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200-800 shrink-0">
+      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-300 shrink-0">
         <h2 class="text-lg font-semibold">{event ? 'Edit Event' : 'New Event'}</h2>
-        <button type="button" class="btn-icon hover:preset-tonal" onclick={onClose} aria-label="Close">
+        <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={onClose} aria-label="Close">
           <X class="size-5" />
         </button>
       </header>
 
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         {#if err}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{err}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{err}</aside>
         {/if}
 
         <!-- Title -->
@@ -223,18 +223,18 @@
         </div>
       </div>
 
-      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-surface-200-800 shrink-0">
+      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
         <div>
           {#if event && hasPermission(user, 'calendar_events', 'delete')}
-            <button type="button" class="btn preset-tonal-error" disabled={loading}
+            <button type="button" class="btn btn-error btn-soft" disabled={loading}
               onclick={() => (deletePrompt = true)}>
               Delete
             </button>
           {/if}
         </div>
         <div class="flex gap-3">
-          <button type="button" class="btn preset-tonal" onclick={onClose}>Cancel</button>
-          <button type="button" class="btn preset-filled-primary-500" disabled={loading} onclick={save}>
+          <button type="button" class="btn btn-ghost" onclick={onClose}>Cancel</button>
+          <button type="button" class="btn btn-primary" disabled={loading} onclick={save}>
             {loading ? 'Saving…' : 'Save'}
           </button>
         </div>
@@ -252,7 +252,7 @@
   >
     <div
       transition:scale={{ duration: 250, start: 0.95, easing: cubicOut }}
-      class="card preset-filled-surface-100-900 w-full max-w-sm shadow-xl mx-4"
+      class="card bg-base-200 border border-base-300 rounded-box w-full max-w-sm shadow-xl mx-4"
     >
       <div class="p-6 space-y-3">
         <h2 class="text-lg font-semibold">Delete event?</h2>
@@ -260,12 +260,12 @@
           "<strong>{form.title}</strong>" will be permanently removed. This cannot be undone.
         </p>
         {#if err}
-          <aside class="alert preset-tonal-error p-3 rounded-base text-sm">{err}</aside>
+          <aside class="alert alert-error p-3 rounded text-sm">{err}</aside>
         {/if}
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn preset-tonal" onclick={() => (deletePrompt = false)}>Cancel</button>
-        <button type="button" class="btn preset-filled-error-500" disabled={loading} onclick={confirmDelete}>
+        <button type="button" class="btn btn-ghost" onclick={() => (deletePrompt = false)}>Cancel</button>
+        <button type="button" class="btn btn-error" disabled={loading} onclick={confirmDelete}>
           {loading ? 'Deleting…' : 'Delete'}
         </button>
       </footer>

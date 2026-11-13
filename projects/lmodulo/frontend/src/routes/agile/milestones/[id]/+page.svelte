@@ -151,7 +151,7 @@
     ]} />
 
     <div class="space-y-1 min-w-0">
-      <h1 class="text-2xl font-bold leading-tight">{milestone.title}</h1>
+      <h2 class="text-2xl font-bold leading-tight">{milestone.title}</h2>
       {#if milestone.strategicGoal}
         <p class="text-sm opacity-60">{milestone.strategicGoal}</p>
       {/if}

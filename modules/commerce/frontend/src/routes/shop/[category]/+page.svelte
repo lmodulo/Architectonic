@@ -45,7 +45,7 @@
   {:else}
     <div class="empty-state">
       <p>No products found in this category.</p>
-      <a href="/shop" class="btn preset-tonal-surface btn-sm mt-4">Back to Shop</a>
+      <a href="/shop" class="btn btn-ghost btn-sm mt-4">Back to Shop</a>
     </div>
   {/if}
 </div>
@@ -68,18 +68,18 @@
     font-size: 0.75rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     margin-bottom: 1.5rem;
   }
 
   .breadcrumb a {
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     text-decoration: none;
     transition: color 120ms;
   }
 
   .breadcrumb a:hover {
-    color: var(--color-surface-700);
+    color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
   }
 
   .cat-title {
@@ -87,13 +87,13 @@
     font-weight: 200;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--color-surface-900);
+    color: var(--color-base-content);
     margin: 0 0 0.75rem;
   }
 
   .cat-desc {
     font-size: 0.9375rem;
-    color: var(--color-surface-500);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     margin: 0 0 0.75rem;
     max-width: 48ch;
   }
@@ -102,7 +102,7 @@
     font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     margin: 0;
   }
 
@@ -119,15 +119,15 @@
     padding: 0.25rem 0.75rem;
     font-size: 0.75rem;
     letter-spacing: 0.06em;
-    border: 1px solid var(--color-surface-300);
-    color: var(--color-surface-700);
+    border: var(--border) solid var(--color-base-300);
+    color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
     text-decoration: none;
     transition: border-color 120ms, color 120ms;
   }
 
   .filter-pill:hover {
-    border-color: var(--color-surface-500);
-    color: var(--color-surface-900);
+    border-color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
+    color: var(--color-base-content);
   }
 
   .product-grid {
@@ -146,25 +146,10 @@
   .empty-state {
     text-align: center;
     padding: 6rem 0;
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     font-size: 0.9375rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
-
-  :global(.dark) .cat-title {
-    color: var(--color-surface-100);
-  }
-
-
-  :global(.dark) .filter-pill {
-    border-color: var(--color-surface-700);
-    color: var(--color-surface-300);
-  }
-
-  :global(.dark) .filter-pill:hover {
-    border-color: var(--color-surface-500);
-    color: var(--color-surface-100);
   }
 </style>

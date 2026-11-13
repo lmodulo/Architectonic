@@ -3,6 +3,7 @@
   import { hasPermission } from '$lib/permissions';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import { SettingsIcon } from 'lucide-svelte';
   import LogoIcon from '$lib/components/LogoIcon.svelte';
   import type { PageData } from './$types';
 
@@ -125,7 +126,7 @@
 </script>
 
 <div class="space-y-6">
-  <PageHeader title={m.settings_title()} subtitle={m.settings_subtitle()} />
+  <PageHeader icon={SettingsIcon} title={m.settings_title()} subtitle={m.settings_subtitle()} />
 
   <!-- Brand card -->
   <div class="card bg-base-100 border border-base-200 p-5 space-y-4">

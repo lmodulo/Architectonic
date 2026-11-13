@@ -41,8 +41,8 @@
 
 <style>
   .breadcrumb-bar {
-    border-bottom: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-300) 25%, transparent);
-    background: var(--body-background-color);
+    border-bottom: var(--border) solid var(--color-base-300);
+    background: var(--color-base-100);
   }
 
   .breadcrumb-inner {
@@ -53,48 +53,25 @@
     margin: 0 auto;
     padding: calc(var(--spacing) * 3) calc(var(--spacing) * 8);
     font-size: 0.75rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
   }
 
   .crumb-link {
-    color: var(--color-surface-300);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     text-decoration: none;
     transition: color 120ms;
   }
 
   .crumb-link:hover {
-    color: var(--color-surface-950);
-    text-decoration: var(--anchor-text-decoration-hover);
+    color: var(--color-base-content);
+    text-decoration: underline;
   }
 
   .crumb-sep {
-    color: var(--color-surface-200);
+    color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
     user-select: none;
   }
 
   .crumb-current {
-    color: var(--color-surface-950);
-  }
-
-  :global(.dark) .breadcrumb-bar {
-    background: var(--body-background-color-dark);
-    border-bottom-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
-  }
-
-  :global(.dark) .crumb-link {
-    color: var(--color-surface-100);
-  }
-
-  :global(.dark) .crumb-link:hover {
-    color: var(--color-surface-50);
-  }
-
-  :global(.dark) .crumb-sep {
-    color: var(--color-surface-200);
-  }
-
-  :global(.dark) .crumb-current {
-    color: var(--color-surface-50);
+    color: var(--color-base-content);
   }
 </style>

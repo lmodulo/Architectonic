@@ -1,5 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { slide } from 'svelte/transition';
+  import { KeyRound } from 'lucide-svelte';
   import AuthShell from '$lib/components/AuthShell.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import type { ActionData, PageData } from './$types';
@@ -11,7 +13,7 @@
   <title>{m.auth_forgot_title()}</title>
 </svelte:head>
 
-<AuthShell title={m.auth_forgot_title()} subtitle={m.auth_forgot_subtitle()} brandName={data.brandName} brandLogo={data.brandLogo}>
+<AuthShell icon={KeyRound} title={m.auth_forgot_title()} subtitle={m.auth_forgot_subtitle()} brandName={data.brandName} brandLogo={data.brandLogo}>
 
   {#if form?.sent}
     <div role="alert" class="alert alert-success text-sm">
@@ -19,14 +21,14 @@
     </div>
   {:else}
     {#if form?.error}
-      <div role="alert" class="alert alert-error text-sm">{form.error}</div>
+      <div role="alert" class="alert alert-error text-sm" transition:slide={{ duration: 200 }}>{form.error}</div>
     {/if}
 
     <form method="POST" use:enhance class="space-y-4">
       <label class="flex flex-col gap-1">
-        <span>{m.common_email()}</span>
+        <span class="text-sm font-medium">{m.common_email()}</span>
         <input
-          class="input"
+          class="input w-full"
           type="email"
           name="email"
           required
@@ -35,13 +37,13 @@
         />
       </label>
 
-      <button type="submit" class="btn btn-primary">
+      <button type="submit" class="btn btn-primary w-full">
         {m.auth_forgot_send()}
       </button>
     </form>
   {/if}
 
-  <div class="flex items-center justify-center text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
+  <div class="flex items-center justify-center text-sm text-base-content/70">
     <a href="/login" class="link">{m.common_back_to_sign_in()}</a>
   </div>
 

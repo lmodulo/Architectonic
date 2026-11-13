@@ -4,6 +4,7 @@
   import { SquarePen, Inbox, Send, Archive } from 'lucide-svelte';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import { MailIcon } from 'lucide-svelte';
   import MessageListItem from '$lib/components/MessageListItem.svelte';
   import type { LayoutData } from './$types';
   import type { Snippet } from 'svelte';
@@ -79,7 +80,7 @@
 
   <!-- Header -->
   <div class="shrink-0">
-    <PageHeader title={m.messages_title()} subtitle={m.messages_subtitle()} />
+    <PageHeader icon={MailIcon} title={m.messages_title()} subtitle={m.messages_subtitle()} />
   </div>
 
   <!-- Two-panel shell -->

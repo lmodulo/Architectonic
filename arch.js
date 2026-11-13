@@ -181,7 +181,10 @@ for (const { name: modName, dir: modDir, mod } of loadedModules) {
         const [resource, action] = item.permission.split('.');
         permStr = `, permission: { resource: '${resource}', action: '${action}' }`;
       }
-      const entry = `  { label: '${item.label}', href: '${item.href}', icon: ${icon}${permStr} },`;
+      // matchPrefix: highlight the item on sub-pages too; customerOnly: shown to customers only
+      // (and hidden from staff), see the nav filter in the root +layout.svelte
+      const flagStr = (item.matchPrefix ? ', matchPrefix: true' : '') + (item.customerOnly ? ', customerOnly: true' : '');
+      const entry = `  { label: '${item.label}', href: '${item.href}', icon: ${icon}${permStr}${flagStr} },`;
 
       // Ensure the last existing entry has a trailing comma before inserting
       navContent = navContent.replace(/([}\w'"`])([ \t]*\n[ \t]*\];)/, '$1,$2');
@@ -233,19 +236,43 @@ for (const { name: modName, dir: modDir, mod } of loadedModules) {
 
   // ── Merge permissions ──────────────────────────────────────────────────────
 
+  // Every role gets an explicit row for each module resource:
+  //   - module.json `roles` wins: { "<role>": { "<resource>": ["read", ...] } }
+  //   - otherwise owner and admin get every declared action, viewer gets read
+  //   - other roles (lead, contributor, customer, ...) get nothing, unless the scaffold's
+  //     permissions.json already has a row for that resource, which is kept
+  // Only actions listed in the resource's `actions` can be granted.
+
   if (mod.permissions && mod.permissions.length > 0) {
     const permsPath = path.join(dest, 'api', 'src', 'data', 'permissions.json');
     const perms = JSON.parse(fs.readFileSync(permsPath, 'utf8'));
+    const roleGrants = mod.roles ?? {};
+    const declared = new Map(mod.permissions.map(({ resource, actions }) => [resource, actions]));
+
+    for (const [role, grants] of Object.entries(roleGrants)) {
+      if (!perms[role]) console.warn(`  Warning: module '${modName}' grants permissions to unknown role '${role}' (ignored)`);
+      for (const [resource, actions] of Object.entries(grants)) {
+        const allowed = declared.get(resource);
+        if (!allowed) console.warn(`  Warning: module '${modName}' roles.${role} names undeclared resource '${resource}' (ignored)`);
+        else for (const a of actions) {
+          if (!allowed.includes(a)) console.warn(`  Warning: module '${modName}' roles.${role}.${resource} grants undeclared action '${a}' (ignored)`);
+        }
+      }
+    }
 
     for (const { resource, actions } of mod.permissions) {
-      perms.admin[resource] = {};
-      for (const action of ['create', 'read', 'update', 'delete']) {
-        perms.admin[resource][action] = actions.includes(action);
-      }
-
-      perms.viewer[resource] = {};
-      for (const action of ['create', 'read', 'update', 'delete']) {
-        perms.viewer[resource][action] = action === 'read' && actions.includes('read');
+      for (const role of Object.keys(perms)) {
+        let granted = roleGrants[role]?.[resource];
+        if (!granted) {
+          if (role === 'owner' || role === 'admin') granted = actions;
+          else if (role === 'viewer')               granted = ['read'];
+          else if (perms[role][resource])           continue;
+          else                                      granted = [];
+        }
+        perms[role][resource] = {};
+        for (const action of ['create', 'read', 'update', 'delete']) {
+          perms[role][resource][action] = granted.includes(action) && actions.includes(action);
+        }
       }
     }
 

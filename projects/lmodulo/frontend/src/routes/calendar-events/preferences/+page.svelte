@@ -38,9 +38,12 @@
 </svelte:head>
 
 <div class="space-y-8 max-w-xl">
-  <div class="flex items-center gap-2">
-    <Icon name="Bell" size={20} class="size-5 text-primary" />
-    <h1 class="text-xl font-semibold">Event Notification Preferences</h1>
+  <div class="page-heading flex items-start gap-3">
+    <Icon name="Bell" size={24} class="size-6 shrink-0 mt-0.5" />
+    <div>
+      <h1 class="text-2xl font-bold leading-none">Event Notification Preferences</h1>
+      <p class="text-xs opacity-60 mt-0.5">Choose which events notify you, and how</p>
+    </div>
   </div>
 
   {#if form?.success}

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
+import { callerRole } from '../../lib/vaultRole.js';
 
 const COL = 'vault_folders';
 
@@ -32,7 +33,7 @@ export default async function foldersRoutes(app: FastifyInstance) {
     }
   }, async (req) => {
     const db   = app.mongo.db!;
-    const role = req.session.role as string | undefined;
+    const role = await callerRole(app.mongo.db!, req.session);
     const workspaceId = new ObjectId(req.session.workspaceId!);
 
     const filter: Record<string, unknown> = { workspaceId };

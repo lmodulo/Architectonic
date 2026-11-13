@@ -20,6 +20,10 @@
       "actions": ["create", "read", "update", "delete"]
     }
   ],
+  "roles": {
+    "lead":        { "calendar_events": ["create", "read", "update"] },
+    "contributor": { "calendar_events": ["create", "read", "update"] }
+  },
   "dependencies": {
     "frontend": {},
     "api": {}

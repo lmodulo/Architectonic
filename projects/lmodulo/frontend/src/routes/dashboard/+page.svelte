@@ -469,17 +469,17 @@
 <div class="space-y-10 pb-4">
 
   <!-- Header -->
-  <div class="page-heading flex items-end justify-between gap-4">
+  <div class="page-heading flex items-center justify-between gap-4">
     <div class="flex items-start gap-3">
       <Icon name="CircleGauge" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
-        <h1 class="text-2xl font-bold tracking-tight">{m.dashboard_title()}</h1>
-        <p class="text-sm opacity-50 mt-0.5">
+        <h1 class="text-2xl font-bold leading-none">{m.dashboard_title()}</h1>
+        <p class="text-xs opacity-60 mt-0.5">
           {m.dashboard_welcome({ firstName: data.user?.firstName ?? data.user?.username ?? '' })}
         </p>
       </div>
     </div>
-    <div class="flex items-center gap-3 shrink-0">
+    <div class="flex items-center gap-2 shrink-0">
       <p class="text-xs opacity-25 hidden sm:block">
         {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
       </p>

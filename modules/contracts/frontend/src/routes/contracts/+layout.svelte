@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { FileSignature, LayoutTemplate } from 'lucide-svelte';
   import { page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
@@ -26,13 +27,7 @@
 {:else}
   <div data-no-anim class="flex flex-col gap-6">
     <!-- Page header -->
-    <div class="page-heading flex items-start gap-3">
-      <FileSignature size={24} class="size-6 shrink-0 mt-0.5" />
-      <div>
-        <h1 class="text-2xl font-bold leading-none">{'Contracts'}</h1>
-        <p class="text-xs opacity-60 mt-0.5">{'Agreements · Templates'}</p>
-      </div>
-    </div>
+    <PageHeader icon={FileSignature} title="Contracts" subtitle="Agreements · Templates" />
 
     <!-- Sub-navigation -->
     <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-6">

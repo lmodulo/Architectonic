@@ -1,8 +1,9 @@
 import bcrypt from 'bcryptjs';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import fp from 'fastify-plugin';
+import { isDemoEnabled, type DemoContext, type DemoSeed } from '../lib/demo.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -34,11 +35,19 @@ const DEFAULT_SETTINGS = [
   },
   {
     key: 'theme.mode',
-    value: 'light',
+    value: 'business',
     type: 'select',
-    label: 'Default Theme',
-    description: 'Application color scheme for new sessions',
-    options: ['light', 'dark']
+    label: 'Theme',
+    description: 'DaisyUI color theme for the whole app. Applies immediately for all users.',
+    // Must match the themes enabled in frontend/src/app.css. 'business' is the custom
+    // monochrome theme defined in frontend/lmodulo-theme.css.
+    options: [
+      'business', 'light', 'dark', 'cupcake', 'bumblebee', 'emerald', 'corporate',
+      'synthwave', 'retro', 'cyberpunk', 'valentine', 'halloween', 'garden', 'forest',
+      'aqua', 'lofi', 'pastel', 'fantasy', 'wireframe', 'black', 'luxury', 'dracula',
+      'cmyk', 'autumn', 'acid', 'lemonade', 'night', 'coffee', 'winter', 'dim', 'nord',
+      'sunset'
+    ]
   },
   {
     key: 'chat.enabled',
@@ -195,6 +204,27 @@ export default fp(async function seedPlugin(app: any) {
       const existing = await teamsColl.findOne({ workspaceId: defaultWorkspace?._id, name: t.name });
       if (!existing) {
         await teamsColl.insertOne({ ...t, workspaceId: defaultWorkspace?._id, createdAt: now, updatedAt: now });
+      }
+    }
+
+    // ── Opt-in demo data (SEED_DEMO_DATA=true) ────────────────────────
+    // Runs every module's api/src/seeds/*.ts (.js once compiled). Each seed only inserts
+    // into empty collections, so this is safe on every boot.
+    if (isDemoEnabled()) {
+      const users = Object.fromEntries(allUsers.map((u: any) => [u.username, u._id]));
+      const ctx: DemoContext = { db, now, workspaceId: defaultWorkspace?._id ?? null, users };
+      const seedsDir = join(__dirname, '../seeds');
+      const files = existsSync(seedsDir)
+        ? readdirSync(seedsDir).filter(f => /\.(ts|js)$/.test(f) && !f.endsWith('.d.ts')).sort()
+        : [];
+      for (const file of files) {
+        try {
+          const mod = await import(pathToFileURL(join(seedsDir, file)).href);
+          await (mod.default as DemoSeed)(ctx);
+          app.log.info(`[demo] seeded ${file}`);
+        } catch (err) {
+          app.log.error({ err }, `[demo] seed ${file} failed`);
+        }
       }
     }
   });

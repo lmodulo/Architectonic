@@ -70,7 +70,7 @@
 
   <!-- Header -->
   <div class="space-y-0.5">
-    <h1 class="text-xl font-bold">My Tasks</h1>
+    <h2 class="text-xl font-bold">My Tasks</h2>
     <p class="text-xs opacity-50">Tasks assigned to you across all active sprints</p>
   </div>
 

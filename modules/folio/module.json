@@ -7,6 +7,30 @@
       "href": "/folio",
       "icon": "Receipt",
       "permission": "finance_invoices.read"
+    },
+    {
+      "label": "Invoices",
+      "href": "/client-portal/invoices",
+      "icon": "FileText",
+      "permission": "finance_invoices.read",
+      "matchPrefix": true,
+      "customerOnly": true
+    },
+    {
+      "label": "Estimates",
+      "href": "/client-portal/estimates",
+      "icon": "ClipboardList",
+      "permission": "finance_estimates.read",
+      "matchPrefix": true,
+      "customerOnly": true
+    }
+  ],
+  "widgets": [
+    {
+      "component": "FolioDashboardWidget",
+      "import": "$lib/components/folio/FolioDashboardWidget.svelte",
+      "permission": "finance_invoices.read",
+      "order": 40
     }
   ],
   "permissions": [
@@ -35,6 +59,28 @@
       "actions": ["read"]
     }
   ],
+  "roles": {
+    "lead": {
+      "finance_invoices":      ["read"],
+      "finance_payments":      ["read"],
+      "finance_subscriptions": ["read"],
+      "finance_estimates":     ["read"],
+      "finance_expenses":      ["read"],
+      "finance_reports":       ["read"]
+    },
+    "contributor": {
+      "finance_invoices":      ["read"],
+      "finance_payments":      ["read"],
+      "finance_estimates":     ["read"],
+      "finance_expenses":      ["read"]
+    },
+    "customer": {
+      "finance_invoices":      ["read"],
+      "finance_payments":      ["create", "read"],
+      "finance_subscriptions": ["read"],
+      "finance_estimates":     ["read"]
+    }
+  },
   "dependencies": {
     "frontend": {
       "@stripe/stripe-js": "^9.4.0"

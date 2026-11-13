@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { Milestone, LayoutGrid, KanbanSquare, ClipboardList, GanttChart, CalendarDays, BarChart2, ListChecks, Clock } from 'lucide-svelte';
   import { page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
@@ -37,13 +38,7 @@
 
 <div data-no-anim class="flex flex-col gap-6">
   <!-- Page header -->
-  <div class="page-heading flex items-start gap-3">
-    <Milestone size={24} class="size-6 shrink-0 mt-0.5" />
-    <div>
-      <h1 class="text-2xl font-bold leading-none">{'Agile'}</h1>
-      <p class="text-xs opacity-60 mt-0.5">{'Milestones · Sprints · Jobs · Tasks'}</p>
-    </div>
-  </div>
+  <PageHeader icon={Milestone} title="Agile" subtitle="Milestones · Sprints · Jobs · Tasks" />
 
   <!-- Sub-navigation -->
   {#if hasPermission(data.user, 'agile_milestones', 'read')}

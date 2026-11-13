@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { customerHome } from '$lib/customer-home';
 import type { Actions } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
@@ -33,10 +34,12 @@ export const actions: Actions = {
       });
     }
 
+    let session: string | null = null;
     const setCookieHeader = apiRes.headers.get('set-cookie');
     if (setCookieHeader) {
       const match = setCookieHeader.match(/^session=([^;]+)/);
       if (match) {
+        session = match[1];
         cookies.set('session', match[1], {
           path:     '/',
           httpOnly: true,
@@ -48,6 +51,19 @@ export const actions: Actions = {
     }
 
     const user = await apiRes.json().catch(() => null);
-    redirect(303, user?.role === 'customer' ? '/' : '/dashboard');
+    if (user?.role !== 'customer') redirect(303, '/dashboard');
+
+    // Customers land on their first portal page. The login response has no permissions, so
+    // fetch the full user (as hooks.server.ts does) to pick a page they can actually see.
+    let home = '/';
+    if (session) {
+      try {
+        const meRes = await fetch(`${API_URL}/auth/me`, { headers: { cookie: `session=${session}` } });
+        if (meRes.ok) home = customerHome(await meRes.json());
+      } catch {
+        // API unreachable: fall back to '/'
+      }
+    }
+    redirect(303, home);
   }
 };

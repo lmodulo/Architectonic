@@ -80,7 +80,7 @@
 
 <div class="max-w-2xl mx-auto p-6 space-y-4">
   <div class="flex items-center justify-between">
-    <h1 class="text-lg font-semibold">{m.messages_compose_title()}</h1>
+    <h2 class="text-lg font-semibold">{m.messages_compose_title()}</h2>
     <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label={m.common_cancel()}><X class="size-5" /></a>
   </div>
 

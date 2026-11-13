@@ -1,10 +1,17 @@
-// Change this value to switch the app theme everywhere.
+// The active theme is chosen at runtime in Settings → Theme (the `theme.mode` setting).
+// APP_THEME is only the fallback, used when that setting is missing or the API is unreachable.
 // Built-in DaisyUI themes: light · dark · cupcake · bumblebee · emerald · corporate ·
 //   synthwave · retro · cyberpunk · valentine · halloween · garden · forest · aqua ·
 //   lofi · pastel · fantasy · wireframe · black · luxury · dracula · cmyk · autumn ·
-//   business · acid · lemonade · night · coffee · winter · dim · nord · sunset
-// Custom themes (defined in lmodulo-theme.css): add name to @plugin "daisyui" themes list in app.css
+//   acid · lemonade · night · coffee · winter · dim · nord · sunset
+// Custom themes (defined in lmodulo-theme.css): business. To add a theme, enable it in the
+// @plugin "daisyui" list in app.css and add it to the theme.mode options in api/src/plugins/seed.ts.
 export const APP_THEME = 'business';
+
+// Validates a theme name before it is written into HTML; anything unexpected falls back to APP_THEME.
+export function resolveTheme(value: unknown): string {
+  return typeof value === 'string' && /^[a-z0-9-]{1,40}$/.test(value) ? value : APP_THEME;
+}
 
 export type FontStack = {
   family: string;   // font name as it appears in the CDN, e.g. 'Fraunces'

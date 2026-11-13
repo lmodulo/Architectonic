@@ -1,5 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { slide } from 'svelte/transition';
+  import { UserPlus } from 'lucide-svelte';
   import AuthShell from '$lib/components/AuthShell.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import type { ActionData, PageData } from './$types';
@@ -11,25 +13,25 @@
   <title>{m.auth_register_title()}</title>
 </svelte:head>
 
-<AuthShell title={m.auth_register_title()} subtitle={m.auth_register_subtitle()} brandName={data.brandName} brandLogo={data.brandLogo}>
+<AuthShell icon={UserPlus} title={m.auth_register_title()} subtitle={m.auth_register_subtitle()} brandName={data.brandName} brandLogo={data.brandLogo}>
 
   {#if data.registrationOpen === false}
     <div role="alert" class="alert alert-warning text-sm">
       {m.auth_registration_closed()}
     </div>
-    <div class="flex items-center justify-center text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
+    <div class="flex items-center justify-center text-sm text-base-content/70">
       <a href="/login" class="link">{m.common_back_to_sign_in()}</a>
     </div>
   {:else}
     {#if form?.error}
-      <div role="alert" class="alert alert-error text-sm">{form.error}</div>
+      <div role="alert" class="alert alert-error text-sm" transition:slide={{ duration: 200 }}>{form.error}</div>
     {/if}
 
     <form method="POST" use:enhance class="space-y-4">
       <label class="flex flex-col gap-1">
-        <span>{m.common_username()}</span>
+        <span class="text-sm font-medium">{m.common_username()}</span>
         <input
-          class="input"
+          class="input w-full"
           type="text"
           name="username"
           value={form?.username ?? ''}
@@ -42,9 +44,9 @@
       </label>
 
       <label class="flex flex-col gap-1">
-        <span>{m.common_email()}</span>
+        <span class="text-sm font-medium">{m.common_email()}</span>
         <input
-          class="input"
+          class="input w-full"
           type="email"
           name="email"
           value={form?.email ?? ''}
@@ -55,9 +57,9 @@
       </label>
 
       <label class="flex flex-col gap-1">
-        <span>{m.common_password()}</span>
+        <span class="text-sm font-medium">{m.common_password()}</span>
         <input
-          class="input"
+          class="input w-full"
           type="password"
           name="password"
           required
@@ -67,12 +69,12 @@
         />
       </label>
 
-      <button type="submit" class="btn btn-primary">
+      <button type="submit" class="btn btn-primary w-full">
         {m.auth_register_button()}
       </button>
     </form>
 
-    <div class="flex items-center justify-center gap-1.5 text-[0.8125rem] text-[var(--color-primary-content)] pt-1">
+    <div class="flex items-center justify-center gap-1.5 text-sm text-base-content/70">
       {m.auth_already_have_account()}
       <a href="/login" class="link">{m.auth_sign_in_link()}</a>
     </div>

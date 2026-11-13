@@ -1,13 +1,10 @@
 @import "tailwindcss";
 
-/* ── Active theme ─────────────────────────────────────────────────────────────
-   Change APP_THEME in src/lib/config/theme.ts to switch.
-   Built-in options: light · dark · cupcake · bumblebee · emerald · corporate ·
-     synthwave · retro · cyberpunk · valentine · halloween · garden · forest ·
-     aqua · lofi · pastel · fantasy · wireframe · black · luxury · dracula ·
-     cmyk · autumn · business · acid · lemonade · night · coffee · winter ·
-     dim · nord · sunset
-   Custom options: defined in lmodulo-theme.css (copy to build your own)
+/* ── Themes ───────────────────────────────────────────────────────────────────
+   The active theme is picked at runtime in Settings → Theme (no code change needed).
+   Themes listed here are the ones available; keep this list in sync with the
+   theme.mode options in api/src/plugins/seed.ts.
+   'business' is intentionally not listed: lmodulo-theme.css defines it as a custom theme.
    ─────────────────────────────────────────────────────────────────────────── */
 @plugin "daisyui" {
   themes: light, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro,
@@ -43,8 +40,22 @@
   --font-size: 0.875rem;
 }
 
-/* dark: utilities activate when data-theme="business" is set */
-@custom-variant dark (&:where([data-theme=business], [data-theme=business] *));
+/* dark: utilities activate under any dark theme (DaisyUI themes with color-scheme: dark) */
+@custom-variant dark (&:where(
+  [data-theme=business], [data-theme=business] *,
+  [data-theme=dark], [data-theme=dark] *,
+  [data-theme=synthwave], [data-theme=synthwave] *,
+  [data-theme=halloween], [data-theme=halloween] *,
+  [data-theme=forest], [data-theme=forest] *,
+  [data-theme=aqua], [data-theme=aqua] *,
+  [data-theme=black], [data-theme=black] *,
+  [data-theme=luxury], [data-theme=luxury] *,
+  [data-theme=dracula], [data-theme=dracula] *,
+  [data-theme=night], [data-theme=night] *,
+  [data-theme=coffee], [data-theme=coffee] *,
+  [data-theme=dim], [data-theme=dim] *,
+  [data-theme=sunset], [data-theme=sunset] *
+));
 
 /* Custom project theme (defined in lmodulo-theme.css) */
 @import "../lmodulo-theme.css";

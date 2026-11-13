@@ -3,6 +3,7 @@ import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
 import { storage } from '../../lib/storage.js';
 import { milestoneRollupPipeline } from '../../lib/agile.js';
+import { ownRecordsOnly } from '../../lib/agileRole.js';
 
 const COL = 'agile_milestones';
 
@@ -37,9 +38,10 @@ export default async function milestonesRoutes(app: FastifyInstance) {
     if (search?.trim()) match.$text = { $search: search.trim() };
     if (clientId) match.clientId = parseOid(clientId, app);
 
-    const caller = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    if (caller?.role === 'customer') {
-      if (!caller.companyId) return { milestones: [], total: 0, skip: 0, limit: Number(limit) };
+    // Customers see only their company's milestones (companyId on the user document)
+    if (await ownRecordsOnly(db, req.session)) {
+      const caller = await db.collection('users').findOne({ _id: new ObjectId(userId) }, { projection: { companyId: 1 } });
+      if (!caller?.companyId) return { milestones: [], total: 0, skip: 0, limit: Number(limit) };
       match.clientId = caller.companyId;
     }
 
@@ -117,7 +119,15 @@ export default async function milestonesRoutes(app: FastifyInstance) {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
 
-    const [doc] = await db.collection(COL).aggregate(milestoneRollupPipeline({ _id: oid })).toArray();
+    const match: Record<string, unknown> = { _id: oid };
+    // Customers may only open their company's milestones; others look not found
+    if (await ownRecordsOnly(db, req.session)) {
+      const caller = await db.collection('users').findOne({ _id: new ObjectId(req.session.userId!) }, { projection: { companyId: 1 } });
+      if (!caller?.companyId) return reply.notFound('Milestone not found');
+      match.clientId = caller.companyId;
+    }
+
+    const [doc] = await db.collection(COL).aggregate(milestoneRollupPipeline(match)).toArray();
     if (!doc) return reply.notFound('Milestone not found');
     return mapDoc(doc as Record<string, unknown>);
   });

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import Stripe from 'stripe';
 import { logAudit } from '../../lib/audit.js';
+import { ownRecordsOnly } from '../../lib/folioRole.js';
 import { calcNextDate } from '../../lib/recurringDates.js';
 import { sendInvoiceEmail } from '../../lib/invoiceEmail.js';
 import expensesRoutes      from './expenses.js';
@@ -55,10 +56,10 @@ export default async function financeRoutes(app: FastifyInstance) {
     const db     = app.mongo.db!;
     const userId = req.session.userId!;
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const ownOnly = await ownRecordsOnly(db, req.session);
     const match: Record<string, unknown> = {};
 
-    if (user?.role === 'customer') {
+    if (ownOnly) {
       match.customerId = new ObjectId(userId);
     }
 
@@ -167,8 +168,8 @@ export default async function financeRoutes(app: FastifyInstance) {
     const doc = await db.collection(INV_COL).findOne({ _id: oid });
     if (!doc) return reply.notFound('Invoice not found');
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    if (user?.role === 'customer' && doc.customerId?.toString() !== userId) {
+    const ownOnly = await ownRecordsOnly(db, req.session);
+    if (ownOnly && doc.customerId?.toString() !== userId) {
       return reply.forbidden('Access denied');
     }
 
@@ -283,6 +284,10 @@ export default async function financeRoutes(app: FastifyInstance) {
 
     const invoice = await db.collection(INV_COL).findOne({ _id: oid });
     if (!invoice) return reply.notFound('Invoice not found');
+    // Customers may only pay their own invoices
+    if (await ownRecordsOnly(db, req.session) && invoice.customerId?.toString() !== req.session.userId) {
+      return reply.forbidden('Access denied');
+    }
     if (invoice.status === 'paid') return reply.badRequest('Invoice already paid');
 
     const stripe = getStripe();
@@ -360,12 +365,20 @@ export default async function financeRoutes(app: FastifyInstance) {
   await app.register(subscriptionsRoutes, { prefix: '/subscriptions' });
   await app.register(reportsRoutes,       { prefix: '/reports'       });
 
-  // GET /finance/customers
+  // GET /finance/customers — users with the customer role in the caller's active workspace.
+  // Roles live on workspace_members; self-registered customers have no users.role.
   app.get('/customers', { preHandler: app.requirePermission('users', 'read') }, async (req) => {
     const db = app.mongo.db!;
 
+    // requirePermission has already resolved the session's workspace
+    if (!req.session.workspaceId) return { customers: [] };
+    const customerIds = await db.collection('workspace_members').distinct('userId', {
+      workspaceId: new ObjectId(req.session.workspaceId),
+      role:        'customer',
+    });
+
     const customers = await db.collection('users').aggregate([
-      { $match: { role: 'customer' } },
+      { $match: { _id: { $in: customerIds } } },
       {
         $lookup: {
           from:         'crm_companies',

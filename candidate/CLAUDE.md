@@ -63,6 +63,9 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 - API proxy routes under `api/` — forward session cookie to Fastify, return JSON
 - Layout server loads handle SSR data; client-side fetches for dynamic updates
 - Auth redirect enforced in `hooks.server.ts`
+- Module routes: a module declares public, customer and/or shell-free ("bare") routes by shipping `src/lib/config/module-routes/<module>.ts` (default-export `RouteRule[]`, see `$lib/config/route-rules.ts`). `hooks.server.ts` and the root layout pick these up automatically; no scaffold edits needed (e.g. commerce makes `/shop` public + bare; folio makes `/client-portal/invoices` a `customer` route, open to signed-in customers but not to logged-out visitors)
+- Customers (role `customer`) only see `customerOnly` nav items and may only open `CUSTOMER_ALLOWED_PATHS` plus `customer`/`public` routes. After login, or when they hit a staff page, they go to `customerHome()` (`$lib/customer-home.ts`): the first `customerOnly` nav item they have permission for, else `/`. Module APIs must scope customers by their workspace role (`workspace_members`), never `users.role`, which self-registered users don't have
+- Documentation: `/documentation` is public and shell-free (core rule in `route-rules.ts`). Core pages live in `routes/(docs)/documentation/`; modules add theirs plus a `$lib/config/module-docs/<module>.ts` registry entry (see `$lib/config/docs.ts`)
 
 ### Component locations
 - `$lib/components/` — shared UI components
@@ -72,7 +75,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 
 ### App Name vs Brand
 - **App Name** — static, from `APP_NAME` env var. Used in `<title>`. Read in `+layout.server.ts` via `$env/dynamic/private` and passed as `data.appName`. Falls back to `'Application'`.
-- **Brand** — runtime-configurable MongoDB settings (`brand.name`, `brand.logo`). Used in the app header logo slot. Any combination is allowed; only fields with values display in the nav.
+- **Brand** — runtime-configurable MongoDB settings (`brand.name`, `brand.logo`). Publicly readable (like `theme.mode`) so logged-out pages can show them. Used in the app header logo slot. Any combination is allowed; only fields with values display in the nav.
 
 ### Logo component
 - Use `<Logo brandName={...} brandLogo={...} />` — both props optional, default `''`
@@ -102,12 +105,12 @@ Rendered after the closing `</div>` of the `h-screen overflow-hidden` shell in `
 - Proxied via frontend `/api/chat` route
 
 ## Features Included in Scaffold
-- **Auth:** Login, logout, session management, profile edit; dark-themed `AuthShell` for all auth pages; `(public)/` route group
+- **Auth:** Login, logout, session management, profile edit; `AuthShell` for all auth pages (app-shell look: top bar, `PageHeader` banner, base-200 card, active theme); `(public)/` route group
 - **Avatar:** Photo upload with `AvatarCropper` (canvas crop + zoom); colour picker fallback; `Avatar` component (initials or photo); `POST/DELETE /auth/avatar`
 - **Workspaces:** Multi-tenant isolation; `workspaces` + `workspace_members` collections; session-stored `workspaceId`; `WorkspaceSwitcher` component (hidden for customers and single-workspace users); `/settings/workspaces` (General + Members tabs); `POST /workspaces/:id/switch`
 - **RBAC:** Roles per workspace (stored in `workspace_members`, not on user document): owner, admin, lead, contributor, viewer, customer; `requirePermission` preHandler; `hasPermission()` frontend helper; Manage Users + Roles pages
 - **Messaging:** Full email-style in-app messaging — threads, replies, inbox/sent/archive, unread badge, Tiptap rich-text editor
-- **Dashboard:** Placeholder with charts (pure SVG)
+- **Dashboard:** Calendar + live module widgets (`$lib/config/dashboard-widgets.ts`, merged from module.json `widgets`); no generated data. Opt-in demo data: `SEED_DEMO_DATA=true` runs module `api/src/seeds/*`
 - **Chat assistant:** Ollama-backed, fixed bottom-right panel
-- **Theme toggle:** Dark/light, persisted to localStorage
-- **Layout:** Sidebar-based shell with collapsible nav groups, profile footer, `Avatar` in sidebar; `APP_THEME` data-theme
+- **Theme:** Runtime DaisyUI theme from Settings → Theme (`theme.mode`, publicly readable). Root `+layout.server.ts` loads it; `hooks.server.ts` writes it into `<html data-theme="%app.theme%">`; `APP_THEME` in `$lib/config/theme.ts` is only the fallback. Available themes = `app.css` plugin list + seed options
+- **Layout:** Sidebar-based shell with collapsible nav groups, profile footer, `Avatar` in sidebar; shell `data-theme` bound to `data.theme`

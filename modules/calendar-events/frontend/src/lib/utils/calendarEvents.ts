@@ -60,28 +60,28 @@ export function groupByMonth(events: CalendarEvent[]): MonthGroup[] {
   }, []);
 }
 
-// Known event types → Skeleton preset tonal class
+// Known event types → DaisyUI badge classes
 const TYPE_PRESETS: Record<string, string> = {
-  upcoming_event: 'preset-tonal-primary',
-  announcement:   'preset-tonal-warning',
-  deadline:       'preset-tonal-error',
-  project_scope:  'preset-tonal-secondary',
+  upcoming_event: 'badge-primary badge-outline',
+  announcement:   'badge-warning badge-outline',
+  deadline:       'badge-error badge-outline',
+  project_scope:  'badge-secondary badge-outline',
 };
 
 // Pill background for calendar grid
 const TYPE_PILL_CLASSES: Record<string, string> = {
-  upcoming_event: 'bg-primary-500 hover:bg-primary-600',
-  announcement:   'bg-warning-500 hover:bg-warning-600',
-  deadline:       'bg-error-500 hover:bg-error-600',
-  project_scope:  'bg-secondary-500 hover:bg-secondary-600',
+  upcoming_event: 'bg-primary hover:bg-primary/80',
+  announcement:   'bg-warning hover:bg-warning/80',
+  deadline:       'bg-error hover:bg-error/80',
+  project_scope:  'bg-secondary hover:bg-secondary/80',
 };
 
 export function typePreset(eventType: string): string {
-  return TYPE_PRESETS[eventType] ?? 'preset-tonal-surface';
+  return TYPE_PRESETS[eventType] ?? 'badge-ghost';
 }
 
 export function typePillClass(eventType: string): string {
-  return TYPE_PILL_CLASSES[eventType] ?? 'bg-surface-400-600 hover:bg-surface-500';
+  return TYPE_PILL_CLASSES[eventType] ?? 'bg-neutral hover:bg-neutral/80';
 }
 
 export function typeLabel(eventType: string): string {

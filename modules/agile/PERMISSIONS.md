@@ -1,6 +1,6 @@
 # Agile — role matrix
 
-`arch.js create` only auto-populates the `admin` and `viewer` rows of `api/src/data/permissions.json` from `module.json`'s `permissions` block. Apply the remaining rows below by hand to match the reference implementation (`projects/lmodulo`).
+`arch.js create` writes every row below into `api/src/data/permissions.json`: `owner`, `admin` and `viewer` from its defaults (every action, every action, read), the other roles from the `roles` block in `module.json`. Keep this table and `roles` in sync.
 
 | role        | milestones (c/r/u/d) | sprints (c/r/u/d) | jobs (c/r/u/d) | tasks (c/r/u/d) | comments (c/r/u/d) | time_entries (c/r/u/d) |
 |-------------|--------------------------|------------------------|---------------------|----------------------|--------------------------|-----------------------------|

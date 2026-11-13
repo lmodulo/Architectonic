@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
+import { ownRecordsOnly } from '../../lib/folioRole.js';
 
 const EST_COL = 'finance_estimates';
 const INV_COL = 'finance_invoices';
@@ -31,10 +32,10 @@ export default async function estimatesRoutes(app: FastifyInstance) {
     const db     = app.mongo.db!;
     const userId = req.session.userId!;
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const ownOnly = await ownRecordsOnly(db, req.session);
     const match: Record<string, unknown> = {};
 
-    if (user?.role === 'customer') {
+    if (ownOnly) {
       match.customerId = new ObjectId(userId);
     }
 
@@ -131,8 +132,8 @@ export default async function estimatesRoutes(app: FastifyInstance) {
     const doc = await db.collection(EST_COL).findOne({ _id: oid });
     if (!doc) return reply.notFound('Estimate not found');
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    if (user?.role === 'customer' && doc.customerId?.toString() !== userId) {
+    const ownOnly = await ownRecordsOnly(db, req.session);
+    if (ownOnly && doc.customerId?.toString() !== userId) {
       return reply.forbidden('Access denied');
     }
 
@@ -221,8 +222,8 @@ export default async function estimatesRoutes(app: FastifyInstance) {
     const doc = await db.collection(EST_COL).findOne({ _id: oid });
     if (!doc) return reply.notFound('Estimate not found');
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    if (user?.role === 'customer' && doc.customerId?.toString() !== userId) {
+    const ownOnly = await ownRecordsOnly(db, req.session);
+    if (ownOnly && doc.customerId?.toString() !== userId) {
       return reply.forbidden('Access denied');
     }
     if (doc.status !== 'sent') return reply.badRequest('Only sent estimates can be accepted');
@@ -246,8 +247,8 @@ export default async function estimatesRoutes(app: FastifyInstance) {
     const doc = await db.collection(EST_COL).findOne({ _id: oid });
     if (!doc) return reply.notFound('Estimate not found');
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    if (user?.role === 'customer' && doc.customerId?.toString() !== userId) {
+    const ownOnly = await ownRecordsOnly(db, req.session);
+    if (ownOnly && doc.customerId?.toString() !== userId) {
       return reply.forbidden('Access denied');
     }
     if (doc.status !== 'sent') return reply.badRequest('Only sent estimates can be declined');

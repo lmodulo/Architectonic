@@ -4,6 +4,7 @@
   import { Search, Pencil, Trash2, X, UserPlus, Plus, ChevronDown } from 'lucide-svelte';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import { UsersIcon } from 'lucide-svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import UserNameLink from '$lib/components/UserNameLink.svelte';
@@ -308,7 +309,7 @@
 </svelte:head>
 
 <div class="space-y-6">
-  <PageHeader title={m.user_mgmt_title()} />
+  <PageHeader icon={UsersIcon} title={m.user_mgmt_title()} subtitle={m.user_mgmt_subtitle()} />
 
   {#if data.error}
     <div role="alert" class="alert alert-error text-sm">{data.error}</div>

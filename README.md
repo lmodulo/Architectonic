@@ -76,9 +76,9 @@ docker compose down -v     # stop, delete volumes
 - **Settings** — admin-only key/value config store; `GET /settings`, `PATCH /settings/:key`; typed inputs (string/boolean/number/select)
 - **App branding** — `app.name` setting updates the header and browser title in real time; admins can upload a custom logo image to replace the default SVG icon
 - **Audit log** — fire-and-forget `logAudit()` helper; events across auth/users/roles/messages/settings; `GET /audit` with pagination
-- **Dashboard** — placeholder with pure-SVG charts
+- **Dashboard** — calendar plus live widgets contributed by installed modules (e.g. commerce sales from `/analytics`, module summary counts); empty states when there is no data
 - **Chat assistant** — Ollama-backed fixed panel (`OLLAMA_URL=http://host.docker.internal:11434`); can be disabled via `chat.enabled` setting
-- **Theme toggle** — dark/light, persisted to localStorage
+- **Theme** — any enabled DaisyUI theme, chosen at runtime in Settings → Theme (`theme.mode`); applies immediately for all users, including logged-out pages
 
 ## Project Structure
 
@@ -173,27 +173,61 @@ Documentation routes use `p-8 max-w-4xl` intentionally (optimised for long-form 
 
 ### Page Header
 
-Every route page with a title uses this exact structure:
+Every app page (inside the signed-in shell) opens with the same header as `/crm`: a full-bleed
+accent banner (`.page-heading` in `app.css`) with a 24px icon, the title, and a short subtitle.
+Use the `PageHeader` component, never hand-written markup:
 
 ```svelte
-<div>
-  <h1 class="text-2xl font-bold leading-none">{title}</h1>
-  <p class="text-xs opacity-50 mt-0.5">{subtitle}</p>
+<script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
+  import { UsersIcon } from 'lucide-svelte';   // same icon as the page's nav item
+</script>
+
+<PageHeader icon={UsersIcon} title="Users" subtitle="Users · Roles · Teams" />
+
+<!-- With buttons on the right -->
+<PageHeader icon={PackageIcon} title="Products" subtitle="Catalog · Variants · Pricing">
+  {#snippet actions()}
+    <button class="btn btn-primary btn-sm">New Product</button>
+  {/snippet}
+</PageHeader>
+```
+
+It renders exactly this (projects without the component, like lmodulo, write it inline):
+
+```svelte
+<div class="page-heading flex items-start gap-3">
+  <Icon size={24} class="size-6 shrink-0 mt-0.5" />
+  <div>
+    <h1 class="text-2xl font-bold leading-none">{title}</h1>
+    <p class="text-xs opacity-60 mt-0.5">{subtitle}</p>
+  </div>
 </div>
 ```
+
+With actions, the wrapper becomes `page-heading flex items-center justify-between gap-4`, the icon and
+text sit in `flex items-start gap-3`, and the buttons in `flex items-center gap-2 shrink-0`.
+
+Rules:
+
+- The banner is the page's only `<h1>`. Titles further down the page (an entity name on a detail
+  page, a sub-page title under a section banner) are `<h2>`.
+- Detail pages use the section's icon; a back link goes in `actions` (e.g. `← Orders`).
+- Put the banner outside narrow centered columns (`max-w-3xl mx-auto` …) so it lines up with every
+  other page, and don't add padding above it.
+- Not for public pages (login, marketing, storefront, print, docs): the banner background is clipped
+  by the app shell and would cause sideways scrolling elsewhere.
 
 ---
 
 ### Module Page Layout
 
-Feature modules (Agile, CRM, Folio, Contracts, …) follow this shell:
+Feature modules (Agile, CRM, Folio, Contracts, …) follow this shell; the section banner is the
+only `<h1>` for every page in the section:
 
 ```svelte
-<div class="flex flex-col gap-6">
-  <div>
-    <h1 class="text-2xl font-bold leading-none">Module Name</h1>
-    <p class="text-xs opacity-50 mt-0.5">Section A · Section B · Section C</p>
-  </div>
+<div data-no-anim class="flex flex-col gap-6">
+  <PageHeader icon={Handshake} title="Module Name" subtitle="Section A · Section B · Section C" />
 
   <nav use:dragScroll class="tab-scroll flex gap-1 border-b border-base-300 -mb-2">
     {#each navLinks as link}
@@ -489,7 +523,7 @@ node arch.js info calendar-events                            # module manifest
 `arch.js create` copies `candidate/` to `projects/<name>/`, updates the MongoDB database name, and for each module:
 1. Copies route and frontend files (collision-checked before any write)
 2. Appends nav entries to `frontend/src/lib/config/nav.ts`
-3. Merges resource permissions into `api/src/data/permissions.json`
+3. Merges resource permissions into `api/src/data/permissions.json` for every role (see `roles` below)
 4. Merges `dependencies` into both `package.json` files
 5. Appends env vars to `.env` and `.env.example`
 
@@ -509,6 +543,34 @@ A module is a directory under `modules/` containing `module.json` and optional `
 ```
 
 Icons must be valid [lucide-svelte](https://lucide.dev) component names. The `permission` field is `"resource.action"` (dot-separated).
+A nav item can also set `"matchPrefix": true` (stay highlighted on sub-pages) and `"customerOnly": true` (shown only to
+customers, who see nothing else in the sidebar).
+
+**Role permissions** — by default `owner` and `admin` get every action in `permissions`, `viewer` gets `read`, and other roles
+get nothing. Grant more with `"roles": { "lead": { "my_feature": ["create", "read", "update"] }, "customer": { "my_feature": ["read"] } }`.
+A role listed for a resource replaces its default for that resource. Customer grants only open the API: the module's routes
+must still scope customers to their own records. Look up the caller's role in `workspace_members` (as `vaultRole.ts` does),
+never `users.role`, which self-registered users don't have.
+
+**Dashboard widgets** — add `"widgets": [{ "component": "MyWidget", "import": "$lib/components/my-feature/MyWidget.svelte", "permission": "my_feature.read", "order": 70 }]`.
+`arch.js` merges them into `frontend/src/lib/config/dashboard-widgets.ts`. Widgets render in a grid; give the root element
+`col-span-full` to span the row. For a simple card of live counts, wrap `$lib/components/ModuleStatsWidget.svelte`.
+
+**Public / customer / shell-free routes** — ship `frontend/src/lib/config/module-routes/<module>.ts` exporting `RouteRule[]`
+(see `$lib/config/route-rules.ts`), e.g. `[{ prefix: '/shop', public: true, bare: true }]`. Customers can only open a few
+scaffold pages, so a customer-facing page needs `customer: true` (e.g. `{ prefix: '/client-portal/invoices', customer: true }`).
+That lets signed-in customers in without making the page public. Pair it with a `customerOnly` nav item: after login,
+customers land on the first one they have permission for, or `/` when there is none.
+
+**Demo data** — ship `api/src/seeds/NN-<module>.ts` with a default export `(ctx: DemoContext) => Promise<void>`
+(see `api/src/lib/demo.ts`). Seeds run on boot only when `SEED_DEMO_DATA=true`, in file-name order (`NN` sets the order,
+e.g. CRM before modules that link to CRM records), and must insert only into empty collections. Reference other modules'
+records by name lookup or `demoId(key)`, never by importing their code.
+
+**Documentation** — ship the page at `frontend/src/routes/(docs)/documentation/<slug>/+page.svelte` and register it in
+`frontend/src/lib/config/module-docs/<module>.ts` (`DocsPage[]`, see `$lib/config/docs.ts`). It then appears in the
+`/documentation` sidebar and overview automatically. End the page with the module's API table; the core API page only
+covers scaffold endpoints.
 
 ## Environment Variables
 
@@ -526,6 +588,7 @@ Icons must be valid [lucide-svelte](https://lucide.dev) component names. The `pe
 | `APP_URL`        | `http://localhost:3000`  | Used in password reset links |
 | `OLLAMA_URL`     | `http://host.docker.internal:11434` | Dev overlay only |
 | `CALENDAR_REMINDER_INTERVAL_MS` | `1800000` | `MODULE: calendar-events` — reminder scheduler poll interval |
+| `SEED_DEMO_DATA` | `false` | `true` loads every installed module's demo data on boot (empty collections only). Leave `false` for real projects. |
 
 Generate `SESSION_SECRET`:
 ```bash
@@ -553,4 +616,4 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | Fastify v5 | https://fastify.dev/docs |
 | Nodemailer | https://nodemailer.com |
 
-Build a custom theme: https://daisyui.com/docs/themes/ — set the `data-theme` attribute in `app.html` or configure themes in `tailwind.config.ts`.
+Build a custom theme: https://daisyui.com/docs/themes/ — define its variables under `[data-theme="<name>"]` in `frontend/lmodulo-theme.css` (see the `business` override), enable the name in the `@plugin "daisyui"` list in `app.css` (built-ins only), and add it to the `theme.mode` options in `api/src/plugins/seed.ts`.

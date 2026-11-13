@@ -22,6 +22,7 @@
   import { closeCard } from '$lib/stores/userCard.svelte';
   import { brand } from '$lib/config/logo';
   import { APP_THEME, APP_FONTS } from '$lib/config/theme';
+  import { isBareRoute } from '$lib/config/route-rules';
   import { m } from '$lib/paraglide/messages.js';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -33,6 +34,13 @@
   ].join(';');
 
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
+
+  // Active theme from Settings → Theme. Mirrored onto <html> so a change applies live everywhere.
+  const theme = $derived(data.theme ?? APP_THEME);
+  $effect(() => { document.documentElement.dataset.theme = theme; });
+
+  // Module routes declared `bare` (e.g. the storefront) render without the app shell, even when signed in.
+  const bare = $derived(isBareRoute(page.url.pathname));
 
   let sidebarOpen = $state(false);
   let sidebarExpanded = $state(false);
@@ -134,11 +142,11 @@
   {/if}
 </svelte:head>
 
-{#if data.user}
+{#if data.user && !bare}
 
   <form bind:this={logoutForm} method="POST" action="/logout" class="hidden"></form>
 
-  <div data-theme={APP_THEME} style={fontVars} class="h-screen flex overflow-hidden">
+  <div data-theme={theme} style={fontVars} class="h-screen flex overflow-hidden">
 
     <!-- Mobile overlay -->
     {#if sidebarOpen}
@@ -445,10 +453,10 @@
 
   </div>
 
-  <div data-theme={APP_THEME} style="display:contents"><UserCard /></div>
+  <div data-theme={theme} style="display:contents"><UserCard /></div>
 
   {#if data.chatEnabled}
-    <div data-theme={APP_THEME} style="display:contents"><ChatAssistant /></div>
+    <div data-theme={theme} style="display:contents"><ChatAssistant /></div>
   {/if}
 
 {:else}

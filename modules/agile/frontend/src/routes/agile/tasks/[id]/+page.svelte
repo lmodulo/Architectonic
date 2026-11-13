@@ -128,7 +128,7 @@
     ]} />
 
     <div class="space-y-1 min-w-0">
-      <h1 class="text-2xl font-bold leading-tight">{task.title}</h1>
+      <h2 class="text-2xl font-bold leading-tight">{task.title}</h2>
       <button
         type="button"
         class="flex items-center gap-1 font-mono text-[11px] opacity-30 hover:opacity-60 transition-opacity cursor-copy select-all w-fit"

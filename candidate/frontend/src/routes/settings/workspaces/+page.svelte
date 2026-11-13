@@ -3,6 +3,7 @@
   import { hasPermission } from '$lib/permissions';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import { Building2Icon } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import type { PageData } from './$types';
 
@@ -84,7 +85,7 @@
   }
 </script>
 
-<PageHeader title={m.workspace_settings_title()} />
+<PageHeader icon={Building2Icon} title={m.workspace_settings_title()} subtitle={m.workspace_settings_subtitle()} />
 
 <!-- Tabs -->
 <div class="tabs tabs-bordered mb-6">

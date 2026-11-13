@@ -43,13 +43,15 @@
   }
 </script>
 
-<div class="p-6 max-w-5xl mx-auto">
-  <div class="flex items-center gap-3 mb-6">
-    <Icon name="FolderKanban" size={24} class="w-6 h-6 opacity-60" />
+<div class="max-w-5xl mx-auto">
+  <div class="mb-6">
+  <div class="page-heading flex items-start gap-3">
+    <Icon name="FolderKanban" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-xl font-semibold">Projects</h1>
-      <p class="text-sm opacity-60">Track the progress of your active projects</p>
+      <h1 class="text-2xl font-bold leading-none">Projects</h1>
+      <p class="text-xs opacity-60 mt-0.5">Track the progress of your active projects</p>
     </div>
+  </div>
   </div>
 
   {#if milestones.length === 0}

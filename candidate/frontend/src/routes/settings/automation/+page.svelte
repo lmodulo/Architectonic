@@ -3,6 +3,7 @@
   import { hasPermission } from '$lib/permissions';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import { ZapIcon } from 'lucide-svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -181,12 +182,13 @@
 </script>
 
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <PageHeader title={m.automation_title()} subtitle={m.automation_subtitle()} />
-    {#if canCreate}
-      <button type="button" class="btn btn-primary btn-sm" onclick={openCreate}>{m.automation_new_rule()}</button>
-    {/if}
-  </div>
+  <PageHeader icon={ZapIcon} title={m.automation_title()} subtitle={m.automation_subtitle()}>
+    {#snippet actions()}
+      {#if canCreate}
+        <button type="button" class="btn btn-primary btn-sm" onclick={openCreate}>{m.automation_new_rule()}</button>
+      {/if}
+    {/snippet}
+  </PageHeader>
 
   <!-- Rules table -->
   <div class="card bg-base-100 border border-base-200 overflow-hidden">

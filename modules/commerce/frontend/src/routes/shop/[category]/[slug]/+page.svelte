@@ -108,7 +108,7 @@
         </div>
       {/if}
 
-      <button type="button" class="btn preset-filled-primary-500 add-to-cart" disabled>
+      <button type="button" class="btn btn-primary add-to-cart" disabled>
         Add to Cart
       </button>
       <p class="cart-note">Cart functionality coming soon</p>
@@ -137,8 +137,6 @@
     max-width: 80rem;
     margin: 0 auto;
     padding: calc(var(--spacing) * 10) calc(var(--spacing) * 8) calc(var(--spacing) * 24);
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
   }
 
   .product-split {
@@ -164,7 +162,7 @@
     position: relative;
     overflow: hidden;
     aspect-ratio: 1 / 1;
-    background: color-mix(in oklch, var(--color-surface-950) 5%, transparent);
+    background: color-mix(in oklch, var(--color-base-content) 5%, transparent);
     margin-bottom: calc(var(--spacing) * 3);
   }
 
@@ -177,7 +175,7 @@
   .primary-placeholder {
     width: 100%;
     height: 100%;
-    background: color-mix(in oklch, var(--color-surface-950) 6%, transparent);
+    background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
   }
 
   .sale-badge-lg {
@@ -186,10 +184,8 @@
     right: calc(var(--spacing) * 4);
     padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
     font-size: 0.75rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    background: var(--color-error-500);
-    color: white;
+    background: var(--color-error);
+    color: var(--color-error-content);
   }
 
   .gallery-thumbs {
@@ -202,7 +198,7 @@
     width: calc(var(--spacing) * 18);
     height: calc(var(--spacing) * 18);
     padding: 0;
-    border: var(--default-border-width) solid transparent;
+    border: var(--border) solid transparent;
     cursor: pointer;
     overflow: hidden;
     transition: border-color 120ms;
@@ -211,7 +207,7 @@
   }
 
   .thumb-btn.thumb-active {
-    border-color: var(--color-surface-950);
+    border-color: var(--color-base-content);
   }
 
   .thumb-img {
@@ -226,9 +222,8 @@
 
   .product-name {
     font-size: clamp(1.5rem, 3vw, 2.25rem);
-    font-family: var(--heading-font-family);
-    font-weight: var(--heading-font-weight);
-    color: var(--color-surface-950);
+    font-weight: 400;
+    color: var(--color-base-content);
     margin: 0 0 calc(var(--spacing) * 5);
   }
 
@@ -241,33 +236,25 @@
 
   .price-base {
     font-size: 1.25rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    color: var(--color-surface-700);
+    color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
   }
 
   .price-original {
     font-size: 1.125rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
     text-decoration: line-through;
     opacity: 0.5;
-    color: var(--color-surface-500);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
   }
 
   .price-sale {
     font-size: 1.25rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    color: var(--color-error-600);
+    color: var(--color-error);
   }
 
   .product-desc {
     font-size: 0.9375rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
     line-height: 1.7;
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     margin: 0 0 calc(var(--spacing) * 8);
     white-space: pre-wrap;
   }
@@ -281,14 +268,12 @@
 
   .variant-label {
     font-size: 0.75rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     margin: 0 0 calc(var(--spacing) * 3);
   }
 
   .variant-selected {
-    color: var(--color-surface-300);
+    color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
   }
 
   .variant-options {
@@ -300,45 +285,40 @@
   .variant-btn {
     padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
     font-size: 0.8125rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    border: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 20%, transparent);
+    border: var(--border) solid color-mix(in oklch, var(--color-base-content) 20%, transparent);
     background: transparent;
-    color: var(--color-surface-500);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     cursor: pointer;
     transition: border-color 120ms, color 120ms, background 120ms;
   }
 
   .variant-btn:hover {
-    border-color: color-mix(in oklch, var(--color-surface-950) 50%, transparent);
-    color: var(--color-surface-950);
+    border-color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+    color: var(--color-base-content);
   }
 
   .variant-btn.variant-btn-active {
-    border-color: var(--color-surface-950);
-    background: var(--color-surface-950);
-    color: white;
+    border-color: var(--color-base-content);
+    background: var(--color-base-content);
+    color: var(--color-base-100);
   }
 
   .add-to-cart {
     width: 100%;
     padding: calc(var(--spacing) * 4);
     font-size: 0.875rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
     margin-bottom: calc(var(--spacing) * 2);
   }
 
   .cart-note {
     font-size: 0.75rem;
-    font-family: var(--base-font-family);
-    color: var(--color-surface-200);
+    color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
     text-align: center;
     margin: 0 0 calc(var(--spacing) * 8);
   }
 
   .product-meta {
-    border-top: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 12%, transparent);
+    border-top: var(--border) solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
     padding-top: calc(var(--spacing) * 6);
     display: flex;
     flex-direction: column;
@@ -347,14 +327,12 @@
 
   .stock-info {
     font-size: 0.8125rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    color: var(--color-success-700);
+    color: var(--color-success);
     margin: 0;
   }
 
   .stock-out {
-    color: var(--color-error-500);
+    color: var(--color-error);
   }
 
   .tags-row {
@@ -366,71 +344,14 @@
   .tag-pill {
     padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
     font-size: 0.6875rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    border: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-950) 20%, transparent);
-    color: var(--color-surface-400);
+    border: var(--border) solid color-mix(in oklch, var(--color-base-content) 20%, transparent);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     text-decoration: none;
     transition: border-color 120ms, color 120ms;
   }
 
   .tag-pill:hover {
-    border-color: color-mix(in oklch, var(--color-surface-950) 50%, transparent);
-    color: var(--color-surface-700);
-  }
-
-  :global(.dark) .product-name {
-    color: var(--color-surface-50);
-  }
-
-  :global(.dark) .price-base {
-    color: var(--color-surface-100);
-  }
-
-  :global(.dark) .price-sale {
-    color: var(--color-error-400);
-  }
-
-  :global(.dark) .product-desc {
-    color: var(--color-surface-200);
-  }
-
-  :global(.dark) .gallery-primary,
-  :global(.dark) .primary-placeholder {
-    background: color-mix(in oklch, var(--color-surface-50) 8%, transparent);
-  }
-
-  :global(.dark) .thumb-btn.thumb-active {
-    border-color: var(--color-surface-50);
-  }
-
-  :global(.dark) .variant-btn {
-    border-color: color-mix(in oklch, var(--color-surface-50) 20%, transparent);
-    color: var(--color-surface-200);
-  }
-
-  :global(.dark) .variant-btn:hover {
-    border-color: color-mix(in oklch, var(--color-surface-50) 50%, transparent);
-    color: var(--color-surface-50);
-  }
-
-  :global(.dark) .variant-btn.variant-btn-active {
-    border-color: var(--color-surface-50);
-    background: var(--color-surface-50);
-    color: var(--color-surface-950);
-  }
-
-  :global(.dark) .product-meta {
-    border-top-color: color-mix(in oklch, var(--color-surface-50) 12%, transparent);
-  }
-
-  :global(.dark) .tag-pill {
-    border-color: color-mix(in oklch, var(--color-surface-50) 20%, transparent);
-    color: var(--color-surface-300);
-  }
-
-  :global(.dark) .tag-pill:hover {
-    border-color: color-mix(in oklch, var(--color-surface-50) 50%, transparent);
-    color: var(--color-surface-100);
+    border-color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+    color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
   }
 </style>

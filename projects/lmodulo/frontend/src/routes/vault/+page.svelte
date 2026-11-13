@@ -270,14 +270,14 @@
 <div class="flex flex-col gap-6">
   <!-- Page header -->
   <div class="page-heading flex items-center justify-between gap-4">
-    <div class="flex items-start gap-2.5">
+    <div class="flex items-start gap-3">
       <Icon name="FolderLock" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold leading-none">{m.vault_title()}</h1>
-        <p class="text-xs opacity-50 mt-0.5">{m.vault_subtitle()}</p>
+        <p class="text-xs opacity-60 mt-0.5">{m.vault_subtitle()}</p>
       </div>
     </div>
-    <div class="flex gap-2 shrink-0">
+    <div class="flex items-center gap-2 shrink-0">
       {#if hasPermission(data.user, 'vault_folders', 'create')}
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openFolderCreate}>
           <Icon name="FolderPlus" size={16} class="size-4" /><span class="hidden sm:inline">{m.vault_new_folder()}</span>

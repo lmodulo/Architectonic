@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { Settings } from 'lucide-svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import type { PageData, ActionData } from './$types';
 
@@ -47,10 +48,7 @@
 </svelte:head>
 
 <div class="space-y-8 max-w-xl">
-  <div class="flex items-center gap-2">
-    <Settings class="size-5 text-primary" />
-    <h1 class="text-xl font-semibold">{m.notifications_prefs_title()}</h1>
-  </div>
+  <PageHeader icon={Settings} title={m.notifications_prefs_title()} subtitle={m.notifications_prefs_subtitle()} />
 
   {#if form?.success}
     <div role="alert" class="alert alert-success text-sm">{m.notifications_prefs_saved()}</div>

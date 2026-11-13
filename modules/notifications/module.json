@@ -7,6 +7,11 @@
       "actions": ["create", "read", "update", "delete"]
     }
   ],
+  "roles": {
+    "lead":        { "notifications": ["read"] },
+    "contributor": { "notifications": ["read"] },
+    "customer":    { "notifications": ["read"] }
+  },
   "exclude": [
     "api/src/routes/notifications/index.ts",
     "frontend/src/routes/notifications/+page.server.ts",

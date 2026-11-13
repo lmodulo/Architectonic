@@ -40,16 +40,28 @@
   }
 </script>
 
-<div class="p-6 max-w-3xl mx-auto">
-  <!-- Actions bar (hidden when printing) -->
-  <div class="flex items-center justify-between mb-6 print:hidden">
-    <a href="/client-portal/invoices" class="btn btn-sm btn-ghost gap-1">
-      <Icon name="ArrowLeft" size={16} class="w-4 h-4" /> Back
-    </a>
-    <button class="btn btn-sm btn-ghost gap-1" onclick={() => window.open(`/invoice/${inv.id}`, '_blank')}>
-      <Icon name="Printer" size={16} class="w-4 h-4" /> Print / Save as PDF
-    </button>
+<!-- Header (hidden when printing) -->
+<div class="mb-6 print:hidden">
+  <div class="page-heading flex items-center justify-between gap-4">
+    <div class="flex items-start gap-3">
+      <Icon name="FileText" size={24} class="size-6 shrink-0 mt-0.5" />
+      <div>
+        <h1 class="text-2xl font-bold leading-none">{inv.invoiceNumber}</h1>
+        <p class="text-xs opacity-60 mt-0.5">Invoice</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <a href="/client-portal/invoices" class="btn btn-sm btn-ghost gap-1">
+        <Icon name="ArrowLeft" size={16} class="w-4 h-4" /> Back
+      </a>
+      <button class="btn btn-sm btn-ghost gap-1" onclick={() => window.open(`/invoice/${inv.id}`, '_blank')}>
+        <Icon name="Printer" size={16} class="w-4 h-4" /> Print / Save as PDF
+      </button>
+    </div>
   </div>
+</div>
+
+<div class="max-w-3xl mx-auto">
 
   <div class="card bg-base-100 border border-base-200 shadow-sm">
     <div class="card-body p-8">
@@ -57,7 +69,7 @@
       <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <p class="text-xs opacity-40 uppercase tracking-widest mb-1">Invoice</p>
-          <h1 class="text-2xl font-mono font-semibold">{inv.invoiceNumber}</h1>
+          <h2 class="text-2xl font-mono font-semibold">{inv.invoiceNumber}</h2>
         </div>
         <span class="badge badge-md {STATUS_BADGE[inv.status] ?? 'badge-ghost'}">{inv.status}</span>
       </div>

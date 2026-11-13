@@ -1,29 +1,23 @@
 <script lang="ts">
-  import { onMount, getContext } from 'svelte';
-  import { Sun, Moon } from 'lucide-svelte';
+  import { fade } from 'svelte/transition';
+  import { page } from '$app/state';
   import Logo from '$lib/components/Logo.svelte';
-  import { brand } from '$lib/config/logo';
 
-  const branding = getContext<{ name: string; logo: string }>('appBranding') ?? { name: brand.text, logo: '' };
+  // Brand and user come from the root layout load (Settings → Brand; brand keys are public).
+  const brandName = $derived((page.data.brandName as string | null) ?? '');
+  const brandLogo = $derived((page.data.brandLogo as string | null) ?? '');
+  const wordmark  = $derived((page.data.appName as string | null) || 'Shop');
+  const user      = $derived(page.data.user ?? null);
 
   type Category = { id: string; slug: string; name: string };
   type Meta = { categories: Category[]; variantTypes: string[]; tags: string[] };
 
   let { meta }: { meta: Meta } = $props();
 
-  let isDark = $state(false);
+  // Colors come from the active DaisyUI theme (Settings → Theme), so there is no
+  // per-visitor light/dark toggle here.
   let menuOpen = $state(false);
   let navEl: HTMLElement | null = $state(null);
-
-  onMount(() => {
-    isDark = document.documentElement.classList.contains('dark');
-  });
-
-  function toggleTheme() {
-    isDark = !isDark;
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('color-scheme', isDark ? 'dark' : 'light');
-  }
 
   function handleClickOutside(e: MouseEvent) {
     if (menuOpen && navEl && !navEl.contains(e.target as Node)) {
@@ -42,7 +36,11 @@
   <!-- Left: brand -->
   <div class="nav-brand-zone">
     <a href="/" class="nav-brand" onclick={closeMenu}>
-      <Logo name={branding.name} logo={branding.logo} />
+      {#if brandName || brandLogo}
+        <Logo {brandName} {brandLogo} />
+      {:else}
+        <span class="nav-wordmark">{wordmark}</span>
+      {/if}
     </a>
   </div>
 
@@ -52,7 +50,7 @@
       <a href="/shop" class="nav-link" onclick={closeMenu}>Products</a>
 
       {#if menuOpen}
-        <div class="mega-menu" role="dialog" aria-label="Products menu">
+        <div class="mega-menu" role="dialog" aria-label="Products menu" transition:fade={{ duration: 150 }}>
           <div class="mega-inner">
             <div class="mega-col">
               <p class="mega-heading">Categories</p>
@@ -97,19 +95,13 @@
 
   <!-- Right: controls -->
   <div class="nav-trail-zone">
-    <button
-      type="button"
-      class="theme-toggle"
-      onclick={toggleTheme}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-    >
-      {#if isDark}
-        <Sun class="size-4" />
-      {:else}
-        <Moon class="size-4" />
-      {/if}
-    </button>
-    <a href="/login" class="btn preset-filled-primary-500 btn-sm">Sign In</a>
+    {#if user}
+      <a href={user.role === 'customer' ? '/profile' : '/dashboard'} class="btn btn-primary btn-sm">
+        {user.role === 'customer' ? 'My Account' : 'Dashboard'}
+      </a>
+    {:else}
+      <a href="/login" class="btn btn-primary btn-sm">Sign In</a>
+    {/if}
   </div>
 </nav>
 
@@ -124,11 +116,9 @@
     align-items: center;
     height: 3.5rem;
     padding: 0 calc(var(--spacing) * 4);
-    background: color-mix(in oklch, var(--body-background-color) 94%, transparent);
+    background: color-mix(in oklch, var(--color-base-100) 94%, transparent);
     backdrop-filter: blur(12px);
-    border-bottom: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-300) 25%, transparent);
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
+    border-bottom: var(--border) solid var(--color-base-300);
   }
 
   .nav-brand-zone {
@@ -141,6 +131,13 @@
     align-items: center;
     gap: calc(var(--spacing) * 2);
     text-decoration: none;
+  }
+
+  .nav-wordmark {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--color-base-content);
   }
 
   .nav-center-zone {
@@ -159,16 +156,14 @@
   .nav-link {
     display: block;
     font-size: 0.8125rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
     text-decoration: none;
-    color: var(--color-surface-300);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
     transition: color 150ms;
   }
 
   .nav-link:hover {
-    color: var(--color-surface-950);
+    color: var(--color-base-content);
   }
 
   /* Mega menu */
@@ -178,10 +173,10 @@
     left: 0;
     right: 0;
     z-index: 60;
-    background: color-mix(in oklch, var(--body-background-color) 97%, transparent);
+    background: color-mix(in oklch, var(--color-base-100) 97%, transparent);
     backdrop-filter: blur(16px);
-    border-bottom: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-300) 25%, transparent);
-    box-shadow: 0 calc(var(--spacing) * 8) calc(var(--spacing) * 8) color-mix(in oklch, var(--color-surface-950) 6%, transparent);
+    border-bottom: var(--border) solid var(--color-base-300);
+    box-shadow: 0 calc(var(--spacing) * 8) calc(var(--spacing) * 8) color-mix(in oklch, var(--color-base-content) 6%, transparent);
   }
 
   .mega-inner {
@@ -194,7 +189,7 @@
 
   .mega-col {
     padding: 0 calc(var(--spacing) * 8);
-    border-right: var(--default-border-width) solid color-mix(in oklch, var(--color-surface-300) 20%, transparent);
+    border-right: var(--border) solid var(--color-base-300);
   }
 
   .mega-col:first-child { padding-left: 0; }
@@ -202,9 +197,7 @@
 
   .mega-heading {
     font-size: 0.6875rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    color: var(--color-surface-200);
+    color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
     margin: 0 0 calc(var(--spacing) * 4);
   }
 
@@ -219,79 +212,17 @@
 
   .mega-link {
     font-size: 0.9375rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    color: var(--color-surface-400);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     text-decoration: none;
     transition: color 120ms;
   }
 
   .mega-link:hover {
-    color: var(--color-surface-950);
+    color: var(--color-base-content);
   }
 
   .mega-empty {
     font-size: 0.875rem;
-    font-family: var(--base-font-family);
-    color: var(--color-surface-200);
-  }
-
-  .theme-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: calc(var(--spacing) * 8);
-    height: calc(var(--spacing) * 8);
-    border-radius: var(--radius-base);
-    border: none;
-    background: transparent;
-    color: var(--color-surface-300);
-    cursor: pointer;
-    transition: background 150ms, color 150ms;
-  }
-
-  .theme-toggle:hover {
-    background: color-mix(in oklch, var(--color-surface-300) 15%, transparent);
-    color: var(--color-surface-950);
-  }
-
-  /* Dark overrides */
-  :global(.dark) .storefront-nav {
-    background: color-mix(in oklch, var(--body-background-color-dark) 90%, transparent);
-    border-bottom-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
-  }
-
-  :global(.dark) .nav-link {
-    color: var(--color-surface-100);
-  }
-
-  :global(.dark) .nav-link:hover {
-    color: var(--color-surface-50);
-  }
-
-  :global(.dark) .mega-menu {
-    background: color-mix(in oklch, var(--body-background-color-dark) 95%, transparent);
-    border-bottom-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
-  }
-
-  :global(.dark) .mega-col {
-    border-right-color: color-mix(in oklch, var(--color-surface-700) 40%, transparent);
-  }
-
-  :global(.dark) .mega-link {
-    color: var(--color-surface-100);
-  }
-
-  :global(.dark) .mega-link:hover {
-    color: var(--color-surface-50);
-  }
-
-  :global(.dark) .theme-toggle {
-    color: var(--color-surface-100);
-  }
-
-  :global(.dark) .theme-toggle:hover {
-    background: color-mix(in oklch, var(--color-surface-700) 50%, transparent);
-    color: var(--color-surface-50);
+    color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
   }
 </style>

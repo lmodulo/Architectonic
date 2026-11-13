@@ -204,8 +204,8 @@
     <div class="flex items-start gap-3">
       <Icon name="CalendarRange" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
-        <h1 class="text-2xl font-bold">Calendar Events</h1>
-        <p class="text-sm opacity-60 mt-0.5">Events, announcements, and your personal schedule.</p>
+        <h1 class="text-2xl font-bold leading-none">Calendar Events</h1>
+        <p class="text-xs opacity-60 mt-0.5">Events, announcements, and your personal schedule.</p>
       </div>
     </div>
     <div class="flex items-center gap-2 shrink-0">

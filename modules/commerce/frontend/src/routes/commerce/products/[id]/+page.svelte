@@ -1,4 +1,6 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
+  import { PackageIcon } from 'lucide-svelte';
   import { ArrowLeft, Plus, Trash2, Minus } from 'lucide-svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
@@ -156,62 +158,63 @@
 <svelte:head><title>{data.product.name} — Edit</title></svelte:head>
 
 <div class="space-y-8 max-w-4xl">
-  <div class="flex items-center gap-3">
-    <a href="/commerce/products" class="btn-icon hover:preset-tonal"><ArrowLeft class="size-4" /></a>
-    <h1 class="text-2xl font-bold">{data.product.name}</h1>
-    <span class="badge preset-tonal text-xs font-mono">{data.product.slug}</span>
-  </div>
+  <PageHeader icon={PackageIcon} title={data.product.name}>
+    <span class="font-mono">{data.product.slug}</span>
+    {#snippet actions()}
+      <a href="/commerce/products" class="btn btn-ghost btn-sm"><ArrowLeft class="size-4" /> Products</a>
+    {/snippet}
+  </PageHeader>
 
-  {#if saveError}<aside class="alert preset-tonal-error p-3 rounded-base text-sm">{saveError}</aside>{/if}
-  {#if saveSuccess}<aside class="alert preset-tonal-success p-3 rounded-base text-sm">Saved successfully.</aside>{/if}
+  {#if saveError}<aside class="alert alert-error p-3 rounded text-sm">{saveError}</aside>{/if}
+  {#if saveSuccess}<aside class="alert alert-success p-3 rounded text-sm">Saved successfully.</aside>{/if}
 
   <!-- Basic Info -->
-  <section class="card preset-filled-surface-100-900 p-5 space-y-4">
-    <h2 class="font-semibold text-lg border-b border-surface-200-800 pb-2">Basic Info</h2>
+  <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
+    <h2 class="font-semibold text-lg border-b border-base-300 pb-2">Basic Info</h2>
     <div class="grid grid-cols-2 gap-4">
-      <label class="label col-span-2">
+      <label class="flex flex-col col-span-2">
         <span class="label-text text-sm font-medium">Name</span>
-        <input type="text" class="input mt-1" bind:value={name} maxlength="200" disabled={!canEdit} />
+        <input type="text" class="input mt-1 w-full" bind:value={name} maxlength="200" disabled={!canEdit} />
       </label>
-      <label class="label">
+      <label class="flex flex-col">
         <span class="label-text text-sm font-medium">Base Price (USD)</span>
-        <input type="number" class="input mt-1" bind:value={basePriceDollars} min="0" step="0.01" disabled={!canEdit} />
+        <input type="number" class="input mt-1 w-full" bind:value={basePriceDollars} min="0" step="0.01" disabled={!canEdit} />
       </label>
-      <label class="label">
+      <label class="flex flex-col">
         <span class="label-text text-sm font-medium">Status</span>
-        <select class="select mt-1" bind:value={status} disabled={!canEdit}>
+        <select class="select mt-1 w-full" bind:value={status} disabled={!canEdit}>
           <option value="draft">Draft</option>
           <option value="active">Active</option>
           <option value="archived">Archived</option>
         </select>
       </label>
-      <label class="label">
+      <label class="flex flex-col">
         <span class="label-text text-sm font-medium">Category</span>
-        <select class="select mt-1" bind:value={category} disabled={!canEdit}>
+        <select class="select mt-1 w-full" bind:value={category} disabled={!canEdit}>
           <option value="">None</option>
           {#each data.categories as c}
             <option value={c.id}>{c.name}</option>
           {/each}
         </select>
       </label>
-      <label class="label">
+      <label class="flex flex-col">
         <span class="label-text text-sm font-medium">Tags (comma-separated)</span>
-        <input type="text" class="input mt-1" bind:value={tagsRaw} placeholder="e.g. apparel, summer" disabled={!canEdit} />
+        <input type="text" class="input mt-1 w-full" bind:value={tagsRaw} placeholder="e.g. apparel, summer" disabled={!canEdit} />
       </label>
-      <label class="label col-span-2">
+      <label class="flex flex-col col-span-2">
         <span class="label-text text-sm font-medium">Description</span>
-        <textarea class="textarea mt-1" bind:value={description} rows="3" maxlength="5000" disabled={!canEdit}></textarea>
+        <textarea class="textarea mt-1 w-full" bind:value={description} rows="3" maxlength="5000" disabled={!canEdit}></textarea>
       </label>
     </div>
   </section>
 
   <!-- Images -->
-  <section class="card preset-filled-surface-100-900 p-5 space-y-4">
-    <h2 class="font-semibold text-lg border-b border-surface-200-800 pb-2">Images</h2>
-    {#if imageError}<aside class="alert preset-tonal-error p-3 rounded-base text-sm">{imageError}</aside>{/if}
+  <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
+    <h2 class="font-semibold text-lg border-b border-base-300 pb-2">Images</h2>
+    {#if imageError}<aside class="alert alert-error p-3 rounded text-sm">{imageError}</aside>{/if}
     <div class="flex flex-wrap gap-3">
       {#each images as url}
-        <div class="relative group w-24 h-24 rounded overflow-hidden border border-surface-200-800">
+        <div class="relative group w-24 h-24 rounded overflow-hidden border border-base-300">
           <img src={url} alt="" class="w-full h-full object-cover" />
           {#if canEdit}
             <button
@@ -228,7 +231,7 @@
     {#if canEdit}
       <div class="flex items-center gap-3">
         <input type="file" class="input flex-1" accept="image/*" multiple bind:files={imageFiles} />
-        <button type="button" class="btn preset-tonal shrink-0" disabled={uploading || !imageFiles?.length} onclick={uploadImages}>
+        <button type="button" class="btn btn-ghost shrink-0" disabled={uploading || !imageFiles?.length} onclick={uploadImages}>
           {uploading ? 'Uploading…' : 'Upload'}
         </button>
       </div>
@@ -236,23 +239,23 @@
   </section>
 
   <!-- Variant Options -->
-  <section class="card preset-filled-surface-100-900 p-5 space-y-4">
-    <h2 class="font-semibold text-lg border-b border-surface-200-800 pb-2">Variant Options</h2>
-    <p class="text-sm text-surface-500">Define option axes (e.g. Size, Color), then generate the variant grid below.</p>
+  <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
+    <h2 class="font-semibold text-lg border-b border-base-300 pb-2">Variant Options</h2>
+    <p class="text-sm opacity-60">Define option axes (e.g. Size, Color), then generate the variant grid below.</p>
 
     {#each variantOptions as opt, i}
-      <div class="border border-surface-200-800 rounded-base p-3 space-y-2">
+      <div class="border border-base-300 rounded-box p-3 space-y-2">
         <div class="flex items-center gap-2">
           <input type="text" class="input flex-1" placeholder="Option name (e.g. Size)" bind:value={opt.name} disabled={!canEdit} />
           {#if canEdit}
-            <button type="button" class="btn-icon btn-sm hover:preset-tonal-error" onclick={() => removeOption(i)}>
+            <button type="button" class="btn btn-ghost btn-sm btn-square hover:text-error" onclick={() => removeOption(i)}>
               <Trash2 class="size-4" />
             </button>
           {/if}
         </div>
         <div class="flex flex-wrap gap-2 items-center">
           {#each opt.values as val, vi}
-            <span class="badge preset-tonal text-sm flex items-center gap-1">
+            <span class="badge badge-ghost text-sm flex items-center gap-1">
               {val}
               {#if canEdit}
                 <button type="button" onclick={() => removeValue(i, vi)} class="ml-1 opacity-60 hover:opacity-100">×</button>
@@ -275,11 +278,11 @@
 
     {#if canEdit}
       <div class="flex gap-3">
-        <button type="button" class="btn preset-tonal" onclick={addOption}>
+        <button type="button" class="btn btn-ghost" onclick={addOption}>
           <Plus class="size-4" /><span>Add Option Axis</span>
         </button>
         {#if variantOptions.some(o => o.name && o.values.length > 0)}
-          <button type="button" class="btn preset-filled-secondary-500" onclick={generateVariants}>
+          <button type="button" class="btn btn-secondary" onclick={generateVariants}>
             Generate Variants
           </button>
         {/if}
@@ -289,30 +292,30 @@
 
   <!-- Variants grid -->
   {#if variants.length > 0}
-    <section class="card preset-filled-surface-100-900 overflow-hidden">
-      <div class="px-4 py-3 border-b border-surface-200-800 font-semibold">Variants ({variants.length})</div>
+    <section class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
+      <div class="px-4 py-3 border-b border-base-300 font-semibold">Variants ({variants.length})</div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-surface-200-800">
-              <th class="text-left px-3 py-2 font-semibold text-surface-500">SKU</th>
+            <tr class="border-b border-base-300">
+              <th class="text-left px-3 py-2 font-semibold opacity-60">SKU</th>
               {#each variantOptions.filter(o => o.name) as opt}
-                <th class="text-left px-3 py-2 font-semibold text-surface-500">{opt.name}</th>
+                <th class="text-left px-3 py-2 font-semibold opacity-60">{opt.name}</th>
               {/each}
-              <th class="text-right px-3 py-2 font-semibold text-surface-500">Price Override</th>
-              <th class="text-right px-3 py-2 font-semibold text-surface-500">Stock</th>
-              <th class="text-right px-3 py-2 font-semibold text-surface-500">Low Stock At</th>
+              <th class="text-right px-3 py-2 font-semibold opacity-60">Price Override</th>
+              <th class="text-right px-3 py-2 font-semibold opacity-60">Stock</th>
+              <th class="text-right px-3 py-2 font-semibold opacity-60">Low Stock At</th>
               {#if canEdit}<th class="px-3 py-2"></th>{/if}
             </tr>
           </thead>
           <tbody>
             {#each variants as v, i}
-              <tr class="border-b border-surface-200-800 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035]">
+              <tr class="border-b border-base-300 last:border-0 odd:bg-transparent even:bg-black/[.025] dark:even:bg-white/[.035]">
                 <td class="px-3 py-2">
                   <input type="text" class="input text-xs font-mono w-32" bind:value={v.sku} disabled={!canEdit} />
                 </td>
                 {#each variantOptions.filter(o => o.name) as opt}
-                  <td class="px-3 py-2 text-surface-500">{v.combination[opt.name] ?? '—'}</td>
+                  <td class="px-3 py-2 opacity-60">{v.combination[opt.name] ?? '—'}</td>
                 {/each}
                 <td class="px-3 py-2 text-right">
                   <input
@@ -332,11 +335,11 @@
                 <td class="px-3 py-2 text-right">
                   <div class="flex items-center justify-end gap-1">
                     {#if canEdit}
-                      <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={() => adjustStock(i, -1)} disabled={v.stock <= 0}><Minus class="size-3" /></button>
+                      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => adjustStock(i, -1)} disabled={v.stock <= 0}><Minus class="size-3" /></button>
                     {/if}
                     <input type="number" class="input text-xs w-16 text-center" bind:value={v.stock} min="0" disabled={!canEdit} />
                     {#if canEdit}
-                      <button type="button" class="btn-icon btn-sm hover:preset-tonal" onclick={() => adjustStock(i, 1)}><Plus class="size-3" /></button>
+                      <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => adjustStock(i, 1)}><Plus class="size-3" /></button>
                     {/if}
                   </div>
                 </td>
@@ -345,7 +348,7 @@
                 </td>
                 {#if canEdit}
                   <td class="px-3 py-2">
-                    <button type="button" class="btn-icon btn-sm hover:preset-tonal-error" onclick={() => removeVariant(i)}>
+                    <button type="button" class="btn btn-ghost btn-sm btn-square hover:text-error" onclick={() => removeVariant(i)}>
                       <Trash2 class="size-4" />
                     </button>
                   </td>
@@ -359,59 +362,59 @@
   {/if}
 
   <!-- Discounts -->
-  <section class="card preset-filled-surface-100-900 p-5 space-y-4">
-    <h2 class="font-semibold text-lg border-b border-surface-200-800 pb-2">Discounts</h2>
+  <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
+    <h2 class="font-semibold text-lg border-b border-base-300 pb-2">Discounts</h2>
 
     {#each discounts as d, i}
-      <div class="border border-surface-200-800 rounded-base p-3 space-y-3">
+      <div class="border border-base-300 rounded-box p-3 space-y-3">
         <div class="flex items-center gap-3 flex-wrap">
-          <label class="label w-36">
+          <label class="flex flex-col w-36">
             <span class="label-text text-xs font-medium">Type</span>
-            <select class="select mt-1 text-sm" bind:value={d.type} disabled={!canEdit}>
+            <select class="select mt-1 text-sm w-full" bind:value={d.type} disabled={!canEdit}>
               <option value="percentage">Percentage %</option>
               <option value="fixed">Fixed $</option>
               <option value="quantity_tier">Quantity Tier</option>
             </select>
           </label>
-          <label class="label w-28">
+          <label class="flex flex-col w-28">
             <span class="label-text text-xs font-medium">{d.type === 'percentage' ? 'Percent (%)' : 'Amount ($)'}</span>
-            <input type="number" class="input mt-1 text-sm" bind:value={d.value} min="0" step={d.type === 'percentage' ? '1' : '0.01'} disabled={!canEdit} />
+            <input type="number" class="input mt-1 text-sm w-full" bind:value={d.value} min="0" step={d.type === 'percentage' ? '1' : '0.01'} disabled={!canEdit} />
           </label>
           {#if d.type === 'quantity_tier'}
-            <label class="label w-28">
+            <label class="flex flex-col w-28">
               <span class="label-text text-xs font-medium">Min Qty</span>
-              <input type="number" class="input mt-1 text-sm" bind:value={d.minQuantity} min="1" disabled={!canEdit} />
+              <input type="number" class="input mt-1 text-sm w-full" bind:value={d.minQuantity} min="1" disabled={!canEdit} />
             </label>
           {/if}
-          <label class="label flex-1 min-w-32">
+          <label class="flex flex-col flex-1 min-w-32">
             <span class="label-text text-xs font-medium">Label</span>
-            <input type="text" class="input mt-1 text-sm" bind:value={d.label} placeholder="e.g. 10% off" disabled={!canEdit} />
+            <input type="text" class="input mt-1 text-sm w-full" bind:value={d.label} placeholder="e.g. 10% off" disabled={!canEdit} />
           </label>
-          <label class="label flex items-center gap-2 mt-4">
+          <label class="flex items-center gap-2 mt-4">
             <input type="checkbox" class="checkbox" bind:checked={d.active} disabled={!canEdit} />
             <span class="text-sm">Active</span>
           </label>
           {#if canEdit}
-            <button type="button" class="btn-icon btn-sm hover:preset-tonal-error mt-4" onclick={() => removeDiscount(i)}>
+            <button type="button" class="btn btn-ghost btn-sm btn-square hover:text-error mt-4" onclick={() => removeDiscount(i)}>
               <Trash2 class="size-4" />
             </button>
           {/if}
         </div>
         <div class="flex gap-4">
-          <label class="label flex-1">
+          <label class="flex flex-col flex-1">
             <span class="label-text text-xs font-medium">Start Date</span>
-            <input type="date" class="input mt-1 text-sm" bind:value={d.startDate} disabled={!canEdit} />
+            <input type="date" class="input mt-1 text-sm w-full" bind:value={d.startDate} disabled={!canEdit} />
           </label>
-          <label class="label flex-1">
+          <label class="flex flex-col flex-1">
             <span class="label-text text-xs font-medium">End Date</span>
-            <input type="date" class="input mt-1 text-sm" bind:value={d.endDate} disabled={!canEdit} />
+            <input type="date" class="input mt-1 text-sm w-full" bind:value={d.endDate} disabled={!canEdit} />
           </label>
         </div>
       </div>
     {/each}
 
     {#if canEdit}
-      <button type="button" class="btn preset-tonal" onclick={addDiscount}>
+      <button type="button" class="btn btn-ghost" onclick={addDiscount}>
         <Plus class="size-4" /><span>Add Discount</span>
       </button>
     {/if}
@@ -420,8 +423,8 @@
   <!-- Save -->
   {#if canEdit}
     <div class="flex justify-end gap-3 pb-8">
-      <a href="/commerce/products" class="btn preset-tonal">Cancel</a>
-      <button type="button" class="btn preset-filled-primary-500" disabled={saving} onclick={save}>
+      <a href="/commerce/products" class="btn btn-ghost">Cancel</a>
+      <button type="button" class="btn btn-primary" disabled={saving} onclick={save}>
         {saving ? 'Saving…' : 'Save Product'}
       </button>
     </div>

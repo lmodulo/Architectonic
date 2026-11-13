@@ -2,6 +2,7 @@
   import { invalidateAll } from '$app/navigation';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import { CircleUserIcon } from 'lucide-svelte';
   import Avatar from '$lib/components/Avatar.svelte';
   import AvatarCropper from '$lib/components/AvatarCropper.svelte';
   import type { PageData, ActionData } from './$types';
@@ -101,7 +102,7 @@
 </svelte:head>
 
 <div class="max-w-lg space-y-6">
-  <PageHeader title={m.profile_title()} />
+  <PageHeader icon={CircleUserIcon} title={m.profile_title()} subtitle={m.profile_subtitle()} />
 
   <!-- ── Avatar card ─────────────────────────────────────────────────── -->
   <div class="card bg-base-200 border border-base-300 rounded-box p-6 space-y-5">

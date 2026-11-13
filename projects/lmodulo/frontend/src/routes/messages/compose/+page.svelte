@@ -77,7 +77,7 @@
 
 <div class="p-6 space-y-4">
   <div class="flex items-center justify-between">
-    <h1 class="text-lg font-semibold">{m.messages_compose_title()}</h1>
+    <h2 class="text-lg font-semibold">{m.messages_compose_title()}</h2>
     <a href="/messages" class="btn btn-ghost btn-sm btn-square" aria-label="{m.common_cancel()}"><Icon name="X" size={20} class="size-5" /></a>
   </div>
 

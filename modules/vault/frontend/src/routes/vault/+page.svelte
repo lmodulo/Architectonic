@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { FolderLockIcon } from 'lucide-svelte';
   import { fade, scale, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
@@ -231,9 +232,8 @@
 <svelte:head><title>Vault</title></svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-start justify-between gap-4">
-    <PageHeader title="Vault" subtitle="Documents, policies, and reference materials" />
-    <div class="flex gap-2 shrink-0">
+  <PageHeader icon={FolderLockIcon} title="Vault" subtitle="Documents, policies, and reference materials">
+    {#snippet actions()}
       {#if hasPermission(data.user, 'vault_folders', 'create')}
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openFolderCreate}>
           <FolderPlus class="size-4" /><span class="hidden sm:inline">New Folder</span>
@@ -244,8 +244,8 @@
           <Upload class="size-4" /><span>Upload</span>
         </button>
       {/if}
-    </div>
-  </div>
+    {/snippet}
+  </PageHeader>
 
   <div class="flex gap-4 items-start">
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { Bell } from 'lucide-svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { m } from '$lib/paraglide/messages.js';
   import NotificationItem from '$lib/components/notifications/NotificationItem.svelte';
   import { markRead, setRecentNotifications } from '$lib/stores/notifications.svelte';
@@ -58,20 +59,16 @@
 </svelte:head>
 
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <Bell class="size-5 text-primary" />
-      <h1 class="text-xl font-semibold">{m.notifications_title()}</h1>
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="/notifications/settings" class="text-sm text-primary hover:underline">{m.notifications_preferences()}</a>
+  <PageHeader icon={Bell} title={m.notifications_title()} subtitle={m.notifications_subtitle()}>
+    {#snippet actions()}
+      <a href="/notifications/settings" class="btn btn-ghost btn-sm">{m.notifications_preferences()}</a>
       {#if items.some(n => !n.read)}
-        <button type="button" class="text-sm text-primary hover:underline" onclick={handleMarkAll}>
+        <button type="button" class="btn btn-ghost btn-sm" onclick={handleMarkAll}>
           {m.notifications_mark_all_read()}
         </button>
       {/if}
-    </div>
-  </div>
+    {/snippet}
+  </PageHeader>
 
   <!-- Filter tabs -->
   <div class="flex gap-1 border-b border-base-200">

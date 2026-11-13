@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
+import { callerRole } from '../../lib/vaultRole.js';
 import { storage } from '../../lib/storage.js';
 
 const COL_DOCS = 'vault_documents';
@@ -67,7 +68,7 @@ export default async function documentsRoutes(app: FastifyInstance) {
   }, async (req) => {
     const { folderId, visibility, q, tags, limit = 50, skip = 0 } = req.query;
     const db   = app.mongo.db!;
-    const role = req.session.role as string | undefined;
+    const role = await callerRole(app.mongo.db!, req.session);
     const workspaceId = new ObjectId(req.session.workspaceId!);
 
     const filter: Record<string, unknown> = { workspaceId, ...visibilityFilter(role) };
@@ -196,7 +197,7 @@ export default async function documentsRoutes(app: FastifyInstance) {
     schema: { summary: 'Get a vault document' }
   }, async (req, reply) => {
     const db   = app.mongo.db!;
-    const role = req.session.role as string | undefined;
+    const role = await callerRole(app.mongo.db!, req.session);
     const workspaceId = new ObjectId(req.session.workspaceId!);
     const _id  = new ObjectId(req.params.id);
 
@@ -289,7 +290,7 @@ export default async function documentsRoutes(app: FastifyInstance) {
     schema: { summary: 'Get download URL for current document version' }
   }, async (req, reply) => {
     const db   = app.mongo.db!;
-    const role = req.session.role as string | undefined;
+    const role = await callerRole(app.mongo.db!, req.session);
     const workspaceId = new ObjectId(req.session.workspaceId!);
     const _id  = new ObjectId(req.params.id);
 
@@ -310,7 +311,7 @@ export default async function documentsRoutes(app: FastifyInstance) {
     schema: { summary: 'List version history for a document' }
   }, async (req, reply) => {
     const db   = app.mongo.db!;
-    const role = req.session.role as string | undefined;
+    const role = await callerRole(app.mongo.db!, req.session);
     const workspaceId = new ObjectId(req.session.workspaceId!);
     const _id  = new ObjectId(req.params.id);
 

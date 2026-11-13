@@ -34,6 +34,7 @@ export async function seedDefaultSettings(db: Db): Promise<void> {
     { key: 'app.registration_open', value: true,  type: 'boolean' },
     { key: 'brand.name',            value: '',    type: 'string'  },
     { key: 'brand.logo',            value: '',    type: 'string'  },
+    { key: 'theme.mode',            value: 'business', type: 'select' },
   ];
   for (const s of settings) {
     await db.collection('settings').updateOne({ key: s.key }, { $setOnInsert: s }, { upsert: true });

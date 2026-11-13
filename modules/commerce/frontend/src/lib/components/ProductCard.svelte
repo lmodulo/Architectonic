@@ -51,15 +51,13 @@
     text-decoration: none;
     color: inherit;
     background: transparent;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
   }
 
   .card-image {
     position: relative;
     overflow: hidden;
     aspect-ratio: 3 / 4;
-    background: color-mix(in oklch, var(--color-surface-950) 5%, transparent);
+    background: color-mix(in oklch, var(--color-base-content) 5%, transparent);
   }
 
   .card-img {
@@ -76,7 +74,7 @@
   .card-placeholder {
     width: 100%;
     height: 100%;
-    background: color-mix(in oklch, var(--color-surface-950) 6%, transparent);
+    background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
   }
 
   .sale-badge {
@@ -85,10 +83,8 @@
     right: calc(var(--spacing) * 3);
     padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
     font-size: 0.6875rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    background: var(--color-error-500);
-    color: white;
+    background: var(--color-error);
+    color: var(--color-error-content);
     pointer-events: none;
   }
 
@@ -98,17 +94,13 @@
 
   .card-name {
     font-size: 0.875rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    color: var(--color-surface-950);
+    color: var(--color-base-content);
     margin: 0 0 calc(var(--spacing) * 1);
   }
 
   .card-price {
     font-size: 0.8125rem;
-    font-family: var(--base-font-family);
-    font-weight: var(--base-font-weight);
-    color: var(--color-surface-300);
+    color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     margin: 0;
     display: flex;
     gap: calc(var(--spacing) * 2);
@@ -121,23 +113,6 @@
   }
 
   .price-sale {
-    color: var(--color-error-600);
-  }
-
-
-  :global(.dark) .card-image {
-    background: color-mix(in oklch, var(--color-surface-50) 10%, transparent);
-  }
-
-  :global(.dark) .card-placeholder {
-    background: color-mix(in oklch, var(--color-surface-50) 8%, transparent);
-  }
-
-  :global(.dark) .card-name {
-    color: var(--color-surface-50);
-  }
-
-  :global(.dark) .price-sale {
-    color: var(--color-error-400);
+    color: var(--color-error);
   }
 </style>

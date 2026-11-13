@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { Receipt, LayoutGrid, FileText, ClipboardList, RefreshCw, BarChart2 } from 'lucide-svelte';
   import { page } from '$app/state';
   import { hasPermission } from '$lib/permissions';
@@ -24,13 +25,7 @@
 
 <div data-no-anim class="flex flex-col gap-6">
   <!-- Page header -->
-  <div class="page-heading flex items-start gap-3">
-    <Receipt size={24} class="size-6 shrink-0 mt-0.5" />
-    <div>
-      <h1 class="text-2xl font-bold leading-none">{'Folio'}</h1>
-      <p class="text-xs opacity-60 mt-0.5">{'Invoices · Estimates · Subscriptions · Expenses'}</p>
-    </div>
-  </div>
+  <PageHeader icon={Receipt} title="Folio" subtitle="Invoices · Estimates · Subscriptions · Expenses" />
 
   <!-- Sub-navigation -->
   {#if hasPermission(data.user, 'finance_invoices', 'read')}

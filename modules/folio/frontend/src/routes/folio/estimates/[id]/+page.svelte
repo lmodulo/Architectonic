@@ -155,7 +155,7 @@
   <div class="space-y-4">
     <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Estimates', href: '/folio/estimates' }, { label: estimate.estimateNumber }]} />
     <div class="space-y-1 min-w-0">
-      <h1 class="text-2xl font-bold font-mono leading-tight">{estimate.estimateNumber}</h1>
+      <h2 class="text-2xl font-bold font-mono leading-tight">{estimate.estimateNumber}</h2>
       {#if estimate.title}
         <p class="text-base font-medium">{estimate.title}</p>
       {/if}

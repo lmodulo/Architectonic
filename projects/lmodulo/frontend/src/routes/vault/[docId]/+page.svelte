@@ -239,18 +239,19 @@
 
 <div class="flex flex-col gap-6">
   <!-- Back + actions header -->
-  <div class="page-heading flex items-start justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <a href="/vault" class="btn btn-ghost btn-square btn-sm"><Icon name="ArrowLeft" size={16} class="size-4" /></a>
+  <div class="page-heading flex items-center justify-between gap-4">
+    <div class="flex items-start gap-3">
+      <Icon name="FileText" size={24} class="size-6 shrink-0 mt-0.5" />
       <div>
         <h1 class="text-2xl font-bold leading-none">{doc.name}</h1>
-        <p class="text-xs opacity-50 mt-0.5">
+        <p class="text-xs opacity-60 mt-0.5">
           <span class="badge badge-sm {VISIBILITY_BADGE[doc.visibility] ?? 'badge-ghost'} mr-1">{VISIBILITY_LABEL[doc.visibility] ?? doc.visibility}</span>
           {folderName(doc.folderId)} · Updated {fmtDate(doc.updatedAt)}
         </p>
       </div>
     </div>
-    <div class="flex gap-2 shrink-0">
+    <div class="flex items-center gap-2 shrink-0">
+      <a href="/vault" class="btn btn-ghost btn-sm"><Icon name="ArrowLeft" size={16} class="size-4" /> Vault</a>
       {#if hasPermission(data.user, 'vault_documents', 'update')}
         <button type="button" class="btn btn-ghost btn-sm gap-1" onclick={openVersion}>
           <Icon name="Upload" size={16} class="size-4" /><span class="hidden sm:inline">New Version</span>

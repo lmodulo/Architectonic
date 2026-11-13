@@ -3,6 +3,7 @@ import type { Db } from 'mongodb';
 import { ObjectId } from '@fastify/mongodb';
 import { calcNextDate } from '../../lib/recurringDates.js';
 import { logAudit } from '../../lib/audit.js';
+import { ownRecordsOnly } from '../../lib/folioRole.js';
 
 const SUB_COL     = 'finance_subscriptions';
 const PERIOD_COL  = 'finance_retainer_periods';
@@ -60,10 +61,10 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
       sort = 'nextBillingDate', sortDir = 'asc',
     } = req.query as Record<string, string>;
 
-    const user  = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const ownOnly = await ownRecordsOnly(db, req.session);
     const match: Record<string, unknown> = {};
 
-    if (user?.role === 'customer') {
+    if (ownOnly) {
       match.customerId = new ObjectId(userId);
     } else if (customerId) {
       match.customerId = parseOid(customerId, app);
@@ -178,8 +179,8 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
     const doc = await db.collection(SUB_COL).findOne({ _id: oid });
     if (!doc) return reply.notFound('Subscription not found');
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    if (user?.role === 'customer' && doc.customerId?.toString() !== userId) {
+    const ownOnly = await ownRecordsOnly(db, req.session);
+    if (ownOnly && doc.customerId?.toString() !== userId) {
       return reply.forbidden('Access denied');
     }
 
@@ -253,6 +254,12 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
   app.get('/:id/retainer-current', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
+    // Customers only see their own subscription's retainer
+    if (await ownRecordsOnly(db, req.session)) {
+      const sub = await db.collection(SUB_COL).findOne({ _id: oid }, { projection: { customerId: 1 } });
+      if (sub?.customerId?.toString() !== req.session.userId) return reply.forbidden('Access denied');
+    }
+
     const now = new Date();
 
     const period = await db.collection(PERIOD_COL).findOne({ subscriptionId: oid, status: 'open' });
@@ -285,6 +292,11 @@ export default async function subscriptionRoutes(app: FastifyInstance) {
   app.get('/:id/retainer-history', { preHandler: app.requirePermission('finance_subscriptions', 'read') }, async (req, reply) => {
     const db  = app.mongo.db!;
     const oid = parseOid((req.params as { id: string }).id, app);
+    // Customers only see their own subscription's retainer
+    if (await ownRecordsOnly(db, req.session)) {
+      const sub = await db.collection(SUB_COL).findOne({ _id: oid }, { projection: { customerId: 1 } });
+      if (sub?.customerId?.toString() !== req.session.userId) return reply.forbidden('Access denied');
+    }
 
     const periods = await db.collection(PERIOD_COL)
       .find({ subscriptionId: oid })

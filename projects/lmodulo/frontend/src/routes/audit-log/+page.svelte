@@ -97,8 +97,8 @@
   <div class="page-heading flex items-start gap-3">
     <Icon name="History" size={24} class="size-6 shrink-0 mt-0.5" />
     <div>
-      <h1 class="text-2xl font-bold">Audit Log</h1>
-      <p class="text-sm opacity-60 mt-0.5">Track actions taken by workspace members</p>
+      <h1 class="text-2xl font-bold leading-none">Audit Log</h1>
+      <p class="text-xs opacity-60 mt-0.5">Track actions taken by workspace members</p>
     </div>
   </div>
 

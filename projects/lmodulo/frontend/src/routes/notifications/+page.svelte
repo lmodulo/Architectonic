@@ -72,12 +72,12 @@
         <p class="text-xs opacity-60 mt-0.5">{m.notifications_subtitle()}</p>
       </div>
     </div>
-    <div class="flex items-center gap-3 shrink-0">
+    <div class="flex items-center gap-2 shrink-0">
       <a href="/notifications/settings" class="btn btn-ghost btn-sm">{m.notifications_preferences()}</a>
       {#if items.some(n => !n.read)}
         <button
           type="button"
-          class="text-sm text-primary hover:underline"
+          class="btn btn-ghost btn-sm"
           onclick={handleMarkAll}
         >
           {m.notifications_mark_all_read()}

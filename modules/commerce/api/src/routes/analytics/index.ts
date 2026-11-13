@@ -51,7 +51,7 @@ export default async function analyticsRoutes(app: FastifyInstance) {
       db.collection('orders').aggregate([
         { $match: { status: { $in: ['delivered', 'shipped', 'processing'] } } },
         { $unwind: '$items' },
-        { $group: { _id: '$items.name', revenue: { $sum: '$items.lineTotal' }, units: { $sum: '$items.quantity' } } },
+        { $group: { _id: '$items.productName', revenue: { $sum: '$items.lineTotal' }, units: { $sum: '$items.quantity' } } },
         { $sort: { revenue: -1 } },
         { $limit: 8 }
       ]).toArray(),

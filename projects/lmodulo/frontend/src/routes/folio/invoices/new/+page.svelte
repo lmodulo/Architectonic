@@ -42,7 +42,7 @@
   <div class="space-y-4">
     <Breadcrumb crumbs={[{ label: 'Folio', href: '/folio' }, { label: 'Invoices', href: '/folio/invoices' }, { label: 'New Invoice' }]} />
     <div class="space-y-1 min-w-0">
-      <h1 class="text-2xl font-bold">New Invoice</h1>
+      <h2 class="text-2xl font-bold">New Invoice</h2>
     </div>
   </div>
 
