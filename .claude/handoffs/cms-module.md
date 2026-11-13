@@ -11,7 +11,7 @@ This is the master plan for the module, and it stays the source of truth. Each s
 |---|---------|-------|-----------------|
 | 1 | Scaffold extension points (candidate + friendsofmcrwr sync) | ☑ 2026-11-13 | [session 1](cms-module-session-1.md) |
 | 2 | CMS API + module skeleton + seed | ☑ 2026-11-13 | [session 2](cms-module-session-2.md) |
-| 3 | Public site: routing, site shell, n-deep menu, text blocks, component registry | ☐ | |
+| 3 | Public site: routing, site shell, n-deep menu, text blocks, component registry | ☑ 2026-11-13 | [session 3](cms-module-session-3.md) |
 | 4 | Admin: site tree + block page builder (no images) | ☐ | |
 | 5 | Vault media: picker, aligned images, gallery + lightbox | ☐ | |
 | 6 | Events component, SEO, docs, widget, final test matrix | ☐ | |
@@ -161,6 +161,7 @@ Slugs come from `candidate/api/src/lib/slug.ts` `toSlug()`.
 | GET / PATCH | `/cms/settings` | cms_nodes.read / cms_nodes.update | |
 | GET | `/cms/media`, `/cms/media/folders`, `/cms/media/:id` | cms_pages.update **and** a manual `vault_documents.read` check | see §6. Deferred to S5, together with `cmsRole.ts`. |
 | GET | `/cms/site/menu` | **none** | published, visible, `showInMenu` tree, plus footer |
+| GET | `/cms/site/tree` | **none** | *(S3)* every visible page, component and label (menu-hidden ones flagged with `showInMenu`, links left out), nested; used by the `sitemap` component |
 | GET | `/cms/site/resolve?path=` | **none** | `{ node, page: { blocks, seo }, media: {vaultId → {url,w,h}}, links: {nodeId → path}, breadcrumbs, rest? }`, or `{ redirect }`, or 404. `/` resolves to `homeNodeId`, and the home node's own path redirects to `/`. *(S2)* `rest` is returned for any component node with leftover segments, and the frontend 404s it unless the registry entry has `subpaths`. A label redirects to its first visible page or component, descending through labels and skipping links. `media` stays `{}` until S5. |
 
 - **Sanitize on save** (*new* `api/src/lib/cmsSanitize.ts`):
@@ -206,6 +207,11 @@ Slugs come from `candidate/api/src/lib/slug.ts` `toSlug()`.
   - Call `API_URL` directly. `event.fetch('/api/...')` would re-run `handle`, including its `/auth/me` call, and the
     dev API has a 200 req/min limit.
   - Run component `load`s in parallel, each in try/catch with a timeout. Return `componentData[blockId | 'page']`.
+  - *(S3)* There is also `loadPreview(event, nodeId)`, which forwards the session cookie, for the S4 preview route. A
+    404 from `resolve` becomes a 404; anything else that isn't ok, including a 429 from the API, becomes a 503. `rest`
+    becomes a 404 unless the component entry has `subpaths`. A failed or timed-out load yields `{ unavailable: true }`.
+  - *(S3)* The home loader resolves `/` first and fetches the menu only if a home page is published. An unpublished
+    home therefore costs one API call before the marketing page renders.
 - **`SiteShell`**
   - Brand: `Logo` with `brandName` and `brandLogo` from the root layout data.
   - Desktop: a horizontal menu with dropdowns. Level 2 drops down; level 3 and deeper fly out to the side.
@@ -213,7 +219,17 @@ Slugs come from `candidate/api/src/lib/slug.ts` `toSlug()`.
   - Every open and close uses a transition: `slide` 200 for accordions, `scale` 0.95 for dropdowns, `fade` plus
     `slide x` for the drawer.
   - Keyboard: `aria-expanded`, Esc closes, arrow keys move in menus.
-  - Highlight the active trail.
+  - Highlight the active trail. *(S3)* Use a `bg-base-200` pill plus semibold, **not `text-primary`**: primary is
+    unreadable on several dark themes, including business. Prose links use primary mixed 55% with base-content for
+    the same reason.
+  - *(S3)* Brand: `brandName`/`brandLogo`, else `appName`, else nothing (no placeholder text). Signed-in non-customers
+    also get a "Dashboard" link in the header.
+  - *(S3)* Drawer: a fade backdrop, and `slide` with `axis: 'x'` on an `overflow-hidden` wrapper around a fixed-width
+    panel, so the content slides rather than reflowing. It's a modal dialog: focus is trapped, Esc closes, focus
+    returns to the menu button, the page scroll is locked, and it closes at the `lg` breakpoint.
+  - *(S3)* Hover opens a dropdown, and the click that usually follows it keeps the dropdown open instead of toggling it
+    shut; the next click closes it. Durations go through `ms()` (`lib/cms/motion.ts`), which returns 0 under
+    `prefers-reduced-motion`. Keyboard handling is in `lib/cms/menuKeys.ts`.
   - Optional breadcrumbs, and a footer from `cms_settings.footer`.
   - Use the app's runtime DaisyUI theme (already on `<html data-theme>`).
   - Don't use `PageHeader`; it is for app pages only.
@@ -227,12 +243,19 @@ Slugs come from `candidate/api/src/lib/slug.ts` `toSlug()`.
     - typography
     - `display: flow-root` on blocks so floats stay inside them
     - figure floats, which become full width below about 640px
+  - *(S3)* `CmsPage` (in `render/`) is shared by the catch-all route, the home override and the S4 preview. It
+    renders the node title as the `h1` unless the first block is a hero, in which case the hero title is the `h1`. It
+    also sets `<title>` to `{seo.title || node.title} · {brandName || appName}`; S6 adds the meta tags.
+  - *(S3)* Heroes are full-bleed. Rich text, buttons and dividers sit in a `max-w-3xl` column and component blocks in
+    `max-w-5xl`. Breadcrumbs (shown at depth 2 and below) use the `max-w-3xl` column too.
+  - *(S3)* Until S5, gallery blocks and `cmsImage` nodes render nothing, and a hero image is ignored.
 - **Reserved slugs, per project:** `lib/server/cms/reserved.ts`.
   - Lazy-glob `/src/routes/**/+page.svelte` and `/src/routes/**/+server.ts`, strip `(group)` segments, and take the
     first static segment.
   - **Server only**: a client glob would pull `$env/dynamic/private` into the bundle.
   - The `/api/cms/[...path]` proxy rejects reserved slugs on node POST and PATCH, and the admin page load sends the list
-    to the UI for inline validation.
+    to the UI for inline validation. *(S3)* It also checks moves to the root (fetching the node to get its slug), and a
+    PATCH of a root node's `slug` or `type`. `reservedSlugList()` is exported for S4.
 
 ### 5. Admin UI (`/cms`; Session 4)
 
@@ -347,9 +370,16 @@ proxies.
 - Another module can add an entry later by shipping its own file in this folder. It must match the shape **without
   importing CMS types**, so the module still builds when cms isn't installed.
 - An unknown key renders nothing on the public site and a warning in the admin.
+- *(S3)* The glob lives in `lib/cms/components.ts`, which exports `CMS_COMPONENTS` and
+  `componentFor(key, mode)` (undefined for an unknown key or an unsupported mode). The types (`CmsComponentEntry`,
+  `PropSpec`, `CmsComponentProps`) are in `lib/cms/types.ts`. Every registry component receives
+  `{ props, data, mode, rest }`.
+- *(S3)* **Render the component through a capitalised `$derived`** (`const Entry = $derived(componentFor(...)?.component)`
+  then `<Entry … />`). With Svelte 5.53, `<entry.component>` where `entry` is a `$derived` rendered **nothing** in SSR.
 - With `subpaths: true`, `/events/<slug>` resolves to the longest matching node and passes the remainder as `rest`.
 - **Session 3 proof:** a built-in `sitemap` entry (page and block) that renders the published tree, so no other module
-  is needed.
+  is needed. *(S3)* It loads `/api/cms/site/tree`, and its prop `includeHidden` (boolean, default false) decides whether
+  menu-hidden pages are listed.
 - **Session 6: `events`** (page and block).
   - `load` fetches `/api/calendar-events/public` (that proxy sends no cookie) and returns `{ unavailable: true }` if the
     response isn't ok. With the matcher, a missing module means a plain 404.
@@ -525,6 +555,14 @@ nodes render nothing until Session 5.
 - **Autoload** skips sibling files when a folder has an `index.ts`.
 - **Seed numbers** 10–70 are taken; use `80`.
 - **Server-only globs** (`reserved.ts`, the home loaders) must never be imported by client code.
+- **Production rate limit (found in S3).** The API's global limit (200 req/min) is keyed by IP. Every SSR call comes
+  from the web container, so **all visitors share one bucket**: about 40 anonymous public page views a minute (around
+  5 calls each) exhaust it. After that, site pages answer 503 and signed-in users look logged out. This predates cms
+  but a public site makes it acute. The fix is scaffold-level and awaits the user (session-3 handoff, question 1).
+- **Uppercase or dotted URLs** (`/About`, `/favicon.ico`) don't match `cmspath`. With no route, logged-out visitors are
+  redirected to `/login` (as for any unknown URL) rather than shown the site's 404.
+- **Dev SSR CSS.** `routes/+page.svelte` imports `ScaffoldHome` statically, so its scoped CSS ships on `/` even when the
+  CMS home renders. It's harmless (scoped), but a grep for its class names matches CSS, not markup.
 - **`/uploads/` has no auth.** It is served with no auth (`api/src/server.ts:51`), so any Vault file, `admin_only`
   included, can be fetched by anyone who has its URL. This predates cms. Don't widen it, and report it to the user.
 - **Vault's list endpoint** returns no mimetype or URL, which is why cms runs its own aggregate. lmodulo's fork has a
@@ -574,8 +612,10 @@ nodes render nothing until Session 5.
   - Tear down with `docker compose … down -v --rmi local`, then `rm -rf projects/<name>`.
 - **Seeded logins.** `admin@example.com` / `admin-password`. The demo customer is `client@vertexsystems.io` /
   `ClientPass1!`. The login form uses the `email` field.
-- **Rate limits.** The dev API allows 200 req/min (login 10/min). Space out page sweeps; a 429 on `/auth/me` looks like
-  being logged out.
+- **Rate limits.** The dev API allows 200 req/min (login 10/min), and every SSR call counts: a signed-in public page
+  costs about 9 API calls. Space out page sweeps (about 65s between roles). A 429 on `/auth/me` looks like being logged
+  out, and a 429 on `resolve` makes the site answer 503. Count 429s with
+  `docker logs <api> | grep -c '"statusCode": 429'` (pino-pretty puts a space after the colon).
 - **Tools.** Playwright: `require('/Users/joenicora/.npm/_npx/e41f203b7505f1fb/node_modules/playwright')`. macOS has no
   `timeout`. Run `npx svelte-kit sync` before `npx svelte-check`.
 - **Test scripts.** `.claude/handoffs/cms-tests/` holds the reusable throwaway-project checks (Session 2 API matrix,

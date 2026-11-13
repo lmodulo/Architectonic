@@ -147,3 +147,58 @@ export interface CmsSettings {
   mediaFolderId: string | null;
   updatedAt: string | null;
 }
+
+/** GET /cms/site/tree — every published page (links left out), for sitemaps */
+export interface SiteTreeItem {
+  id: string;
+  type: NodeType;
+  title: string;
+  href: string;
+  showInMenu: boolean;
+  children: SiteTreeItem[];
+}
+
+// ── Custom component registry ($lib/config/cms-components/*.ts) ──────────────────────────────
+// Entries default-export this shape. Another module may add one by shipping its own file there;
+// it must match the shape structurally, without importing these types, so that module still
+// builds when cms isn't installed.
+
+/** An editable prop, shown by the admin's component editor. */
+export interface PropSpec {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'boolean' | 'select';
+  options?: { value: string; label: string }[];
+  default?: unknown;
+  help?: string;
+}
+
+export interface CmsComponentLoadContext {
+  /** SvelteKit's fetch: call this app's /api/... proxies only (entries run on server and client). */
+  fetch: typeof fetch;
+  url: URL;
+  /** leftover path segments, for entries with `subpaths: true` (page mode only) */
+  rest: string | null;
+  props: Record<string, unknown>;
+}
+
+/** Props every registry component receives. */
+export interface CmsComponentProps {
+  props: Record<string, unknown>;
+  /** whatever `load` returned (undefined without a load; `{ unavailable: true }` if it failed) */
+  data: unknown;
+  mode: 'page' | 'block';
+  rest: string | null;
+}
+
+export interface CmsComponentEntry {
+  key: string;
+  label: string;
+  description: string;
+  modes: ('page' | 'block')[];
+  component: import('svelte').Component<CmsComponentProps>;
+  props?: PropSpec[];
+  /** page mode: `/events/<anything>` resolves to this node and passes the remainder as `rest` */
+  subpaths?: boolean;
+  load?: (ctx: CmsComponentLoadContext) => Promise<unknown>;
+}

@@ -45,6 +45,15 @@ export interface MenuItem {
   children: MenuItem[];
 }
 
+export interface SiteTreeItem {
+  id: string;
+  type: NodeType;
+  title: string;
+  href: string;
+  showInMenu: boolean;
+  children: SiteTreeItem[];
+}
+
 export type Resolution =
   | { kind: 'notFound' }
   | { kind: 'redirect'; to: string }
@@ -194,6 +203,21 @@ export class CmsTree {
         items.push(item);
       }
       return items;
+    };
+    return build(this.roots, 0);
+  }
+
+  /**
+   * Every visible node (menu-hidden ones included, flagged), nested, for the sitemap. Links are left
+   * out: a sitemap lists the site's own pages.
+   */
+  publicTree(): SiteTreeItem[] {
+    const build = (nodes: TreeNode[], depth: number): SiteTreeItem[] => {
+      if (depth > 50) return [];
+      return nodes.flatMap(n => {
+        const href = n.visible && n.doc.type !== 'link' ? this.urlOf(n) : null;
+        return href ? [{ id: n.id, type: n.doc.type, title: n.doc.title, href, showInMenu: n.doc.showInMenu, children: build(n.children, depth + 1) }] : [];
+      });
     };
     return build(this.roots, 0);
   }

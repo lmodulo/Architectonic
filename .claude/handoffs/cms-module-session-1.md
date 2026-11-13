@@ -51,13 +51,18 @@ roles test. **PASS.**
 **Throwaway project `s1-check`** (`--modules commerce,vault`, ports 3002 / 4002 / 27020):
 - **Before/after sweep on the same stack.** I swapped HEAD's versions of the changed files into the project, ran a
   31-check curl sweep, restored the new files and ran it again. It covered anonymous, admin, viewer and customer users;
-  status, Location, app shell or bare, and marketing markers; and 0 × 429. The only difference was the intended fix:
+  status, Location, app shell or bare, and marketing markers. The only difference was the intended fix:
   a viewer on `/roles-of-the-board` was sent to `/403` at HEAD and now gets the 404 page. Unchanged:
   - `/` shows the marketing page
   - `/shop` is public and bare
   - `/documentation` is public
   - logged-out `/dashboard` goes to `/login`
   - customer login and `/dashboard` go to `/client-portal/vault`, and customer `/profile` is 200
+
+  *Correction (Session 3):* this handoff first claimed "0 × 429". The grep behind that count used
+  `"statusCode":429`, but the dev API logs through pino-pretty as `"statusCode": 429`, so it could never match. The
+  results still hold: the before/after runs were identical and matched expectations (after a re-run that waited out
+  the rate limit), which a 429 would have broken.
 
   **PASS.**
 - **Probe home.** Files: `a-throws.ts` (throws), `b-null.ts` (returns null), and `probe.ts` + `probe.svelte` (reads

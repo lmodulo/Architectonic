@@ -112,3 +112,15 @@ describe('CmsTree.menu and linkMap', () => {
     expect(t.linkMap([idOf('team')], true)).toEqual({ [idOf('team')]: '/about/team' });
   });
 });
+
+describe('CmsTree.publicTree', () => {
+  it('lists visible pages, components and labels, including menu-hidden ones, without links', () => {
+    const t = site({ history: { status: 'draft' } });
+    const tree = t.publicTree();
+    expect(tree.map(i => i.title)).toEqual(['home', 'about', 'events', 'resources', 'privacy']);
+    expect(tree[0].href).toBe('/');
+    expect(tree[1].children.map(i => i.title)).toEqual(['team']);
+    expect(tree[3].children.map(i => i.title)).toEqual(['sitemap']);
+    expect(tree[4].showInMenu).toBe(false);
+  });
+});

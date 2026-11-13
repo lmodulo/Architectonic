@@ -18,6 +18,11 @@ export default async function siteRoutes(app: FastifyInstance) {
     return { items: tree.menu(), footer: { text: settings.footer.text, links: footerLinks } };
   });
 
+  // GET /cms/site/tree — every published page, nested (menu-hidden ones flagged), for sitemaps
+  app.get('/tree', {
+    schema: { summary: 'Public site tree for sitemaps' },
+  }, async () => ({ items: (await CmsTree.load(db())).publicTree() }));
+
   // GET /cms/site/resolve?path=/about/team — one public page, a redirect, or 404
   app.get<{ Querystring: { path: string } }>('/resolve', {
     schema: {
