@@ -18,6 +18,9 @@ let reconnectDelay = 1000;
 let lastTimestamp: string | null = null;
 let shouldReconnect = true;
 
+// Close code the API uses when the session cookie isn't valid (api/src/routes/notifications)
+const UNAUTHORIZED = 4401;
+
 export const isConnected    = () => connected;
 export const getNotifications = () => notifications;
 export const getUnreadCount  = () => unreadCount;
@@ -44,16 +47,20 @@ function openSocket() {
 
   ws.onopen = () => {
     connected = true;
-    reconnectDelay = 1000;
+    // The backoff resets on the server's 'init' message, not here: a socket can open and then be
+    // closed straight away (an expired session), and resetting here made that loop once a second.
     // Sync any missed notifications since last known
     if (lastTimestamp) {
       ws!.send(JSON.stringify({ type: 'sync', since: lastTimestamp }));
     }
   };
 
-  ws.onclose = () => {
+  ws.onclose = (event) => {
     connected = false;
     ws = null;
+    // 4401: the server doesn't accept this session. Retrying can't help; signing in again
+    // reconnects (the root layout calls connect() when the user changes).
+    if (event.code === UNAUTHORIZED) shouldReconnect = false;
     if (shouldReconnect) scheduleReconnect();
   };
 
@@ -66,6 +73,7 @@ function openSocket() {
     try { msg = JSON.parse(event.data as string); } catch { return; }
 
     if (msg.type === 'init') {
+      reconnectDelay = 1000;
       unreadCount = (msg.unreadCount as number) ?? 0;
 
     } else if (msg.type === 'notification') {

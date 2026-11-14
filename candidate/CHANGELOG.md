@@ -9,6 +9,9 @@ All notable changes to this project are documented here.
 ### Changed
 - **Rate limit per visitor** — the API's limits (200 requests a minute, 10 logins a minute) used to apply to the web server's one address, so all visitors shared them. The web server now sends `INTERNAL_API_SECRET` and the visitor's address with every server-side API call (`$lib/server/api-identity.ts`, installed in `hooks.server.ts`), and the API keys its limits on that address when the secret matches (`api/src/lib/callerKey.ts`). The web server's own calls outside any request aren't limited. New env var `INTERNAL_API_SECRET` (web and api, in `docker-compose.yml` and `render.yaml`); `arch.js` generates one per project. Without it, behaviour is unchanged.
 
+### Fixed
+- **Notifications websocket reconnected every second** — login and register stored the API's session cookie with SvelteKit's default encoding, which encoded the already-encoded value again. Server-side calls decode it and worked, but the browser's websocket sends its copy straight to the API, which refused it (4401); the client reset its backoff on open, so it retried once a second (about 60 API requests a minute per signed-in tab, and no live notifications). The cookie is now stored as the API sent it (`encode: (v) => v`), the client stops retrying on 4401, and its backoff resets only once the server accepts the socket. Sessions created before the fix keep working for pages; their socket gives up until the next sign-in.
+
 ---
 
 ## 2026-05-07 (scaffold sync — backport from lmodulo)
