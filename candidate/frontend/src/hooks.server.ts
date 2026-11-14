@@ -6,10 +6,15 @@ import { resolveTheme } from '$lib/config/theme';
 import { isPublicRoute, isCustomerRoute } from '$lib/config/route-rules';
 import { customerHome } from '$lib/customer-home';
 import { paraglideMiddleware } from '$lib/paraglide/server.js';
+import { installApiIdentity, withVisitor } from '$lib/server/api-identity';
 import type { Handle } from '@sveltejs/kit';
 import type { Action } from '$lib/permissions';
 
 const API_URL = env.API_URL ?? 'http://localhost:4000';
+
+// Server-side calls to the API carry the visitor's address, so the API rate-limits each visitor
+// separately (see $lib/server/api-identity.ts). Needs INTERNAL_API_SECRET; does nothing without it.
+installApiIdentity();
 
 // All paths accessible without authentication. Modules add their own public routes via
 // src/lib/config/module-routes/ (see $lib/config/route-rules.ts); those are customer-accessible too.
@@ -29,6 +34,17 @@ const CUSTOMER_ALLOWED_PATHS = new Set(['/', '/profile', '/logout', '/upcoming-e
 const ROUTE_PERMISSIONS: Record<string, { resource: string; action: Action }> = {
   '/manage-users': { resource: 'users', action: 'read' },
   '/roles':        { resource: 'roles', action: 'read' }
+};
+
+// First in the sequence, so every API call made while handling the request (auth included) knows the visitor
+const visitorHandle: Handle = ({ event, resolve }) => {
+  let address: string | null = null;
+  try {
+    address = event.getClientAddress();
+  } catch {
+    // Not available (e.g. ADDRESS_HEADER is set but the request lacks it): sent as 'unknown'
+  }
+  return withVisitor(address, () => resolve(event));
 };
 
 const paraglideHandle: Handle = ({ event, resolve }) =>
@@ -96,4 +112,4 @@ const themeHandle: Handle = ({ event, resolve }) =>
     transformPageChunk: ({ html }) => html.replace('%app.theme%', resolveTheme(event.locals.theme))
   });
 
-export const handle = sequence(paraglideHandle, authHandle, themeHandle);
+export const handle = sequence(visitorHandle, paraglideHandle, authHandle, themeHandle);

@@ -52,6 +52,11 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d api
 - Cross-route helpers live here, not in route files
 - Example: `lib/users.ts` exports `checkDuplicateUser()` — used by both `auth.ts` and `users.ts`
 
+### Rate limit
+- 200 requests a minute per visitor (`plugins/rateLimitPlugin.ts`), with tighter per-route limits on the auth routes (login 10 a minute)
+- Browsers reach the API only through the web server, so the web server says who the visitor is: `$lib/server/api-identity.ts` (installed by `hooks.server.ts`) wraps the global `fetch` so every server-side call to `API_URL` carries `INTERNAL_API_SECRET` plus the visitor's address, and `api/src/lib/callerKey.ts` keys the limit on that address when the secret matches. Keep calling the API with the global ``fetch(`${API_URL}…`)``; a call made any other way counts against the web server's own, shared address
+- Without `INTERNAL_API_SECRET` (set in `.env`; `arch.js` generates one per project) every visitor shares one limit. Behind a reverse proxy, also set adapter-node's `ADDRESS_HEADER` / `XFF_DEPTH` on the web service
+
 ### Permissions
 - Defined per-role in MongoDB `roles` collection, seeded in `api/src/plugins/seed.ts`
 - Checked on the API with `requirePermission(resource, action)` preHandler
