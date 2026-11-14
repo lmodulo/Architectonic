@@ -9,6 +9,9 @@
   import HeroBlock from '../render/HeroBlock.svelte';
   import ButtonsBlock from '../render/ButtonsBlock.svelte';
   import DividerBlock from '../render/DividerBlock.svelte';
+  import GalleryBlock from '../render/GalleryBlock.svelte';
+  import GalleryEditor from './GalleryEditor.svelte';
+  import { getMediaContext } from '$lib/cms/media.svelte';
   import RichTextEditor from './RichTextEditor.svelte';
   import HeroEditor from './HeroEditor.svelte';
   import ButtonsEditor from './ButtonsEditor.svelte';
@@ -42,7 +45,10 @@
 
   let card: HTMLElement | undefined = $state();
   const label = $derived(BLOCK_LABELS[block.type]);
-  const problems = $derived(blockProblems(block, nodes));
+  const media = getMediaContext();
+  // Images the editor can show: the page's resolved media plus anything picked since
+  const known = $derived(media?.known ?? {});
+  const problems = $derived(blockProblems(block, nodes, media?.known));
 </script>
 
 <!-- Selecting a block: a click anywhere on it, or focus entering it (keyboard), so the click handler
@@ -96,7 +102,7 @@
   {:else if block.type === 'hero'}
     <div class="cms-block overflow-hidden rounded-box" inert>
       <!-- Always an h2 here: the admin's page header holds the h1 -->
-      <HeroBlock data={block.data} {links} heading="h2" />
+      <HeroBlock data={block.data} {links} media={known} heading="h2" />
     </div>
   {:else if block.type === 'buttons'}
     <div class="cms-block w-full max-w-3xl mx-auto px-4 py-2" inert>
@@ -115,10 +121,12 @@
       <ComponentPreview componentKey={block.data.key} props={block.data.props} />
     </div>
   {:else if block.type === 'gallery'}
-    <div class="cms-block w-full max-w-3xl mx-auto px-4 py-2">
-      <p class="rounded-box border border-dashed border-base-300 p-4 text-sm opacity-70">
-        Gallery ({block.data.images.length} image{block.data.images.length === 1 ? '' : 's'}). Galleries are edited with the media picker, which isn't available yet.
-      </p>
+    <div class="cms-block w-full max-w-5xl mx-auto px-4 py-2" inert>
+      {#if block.data.images.some(im => known[im.vaultId])}
+        <GalleryBlock data={block.data} media={known} />
+      {:else}
+        <p class="rounded-box border border-dashed border-base-300 p-6 text-sm text-center opacity-70">Gallery: no images yet.</p>
+      {/if}
     </div>
   {/if}
 
@@ -129,7 +137,7 @@
     </ul>
   {/if}
 
-  {#if active && !readonly && (block.type === 'hero' || block.type === 'buttons' || block.type === 'divider' || block.type === 'component')}
+  {#if active && !readonly && block.type !== 'richText'}
     <div class="mx-2 mt-4 mb-2 rounded-box border border-base-300 bg-base-200/50 p-4" transition:slide={{ duration: ms(200) }}>
       {#if block.type === 'hero'}
         <HeroEditor bind:data={block.data} {nodes} />
@@ -137,6 +145,8 @@
         <ButtonsEditor bind:data={block.data} {nodes} />
       {:else if block.type === 'component'}
         <ComponentEditor bind:data={block.data} />
+      {:else if block.type === 'gallery'}
+        <GalleryEditor bind:data={block.data} />
       {:else if block.type === 'divider'}
         {@const d = block.data}
         <div class="flex flex-wrap items-center gap-x-6 gap-y-3">

@@ -294,7 +294,12 @@ export interface PageContent { blocks: Block[]; seo: Seo }
  * labels), the Vault media its blocks use, nodeId → URL for its internal links, and breadcrumbs.
  * Used by /cms/site/resolve (published content) and /cms/pages/:nodeId/preview (the draft).
  */
-export function pageView(tree: CmsTree, n: TreeNode, content: PageContent | null, opts: { rest?: string; preview?: boolean } = {}) {
+export function pageView(
+  tree: CmsTree,
+  n: TreeNode,
+  content: PageContent | null,
+  opts: { rest?: string; preview?: boolean; media?: Record<string, { url: string }> } = {},
+) {
   const refs = collectRefs(content?.blocks ?? []);
   return {
     node: {
@@ -305,7 +310,8 @@ export function pageView(tree: CmsTree, n: TreeNode, content: PageContent | null
       component: n.doc.type === 'component' ? n.doc.component ?? null : null,
     },
     page:        content,
-    media:       {} as Record<string, { url: string; w?: number; h?: number }>, // filled from Vault in Session 5
+    // vaultId → current URL, only for images that may be shown (lib/cmsMedia.ts resolveMedia)
+    media:       opts.media ?? {},
     links:       tree.linkMap(refs.nodeIds, opts.preview === true),
     breadcrumbs: tree.breadcrumbs(n),
     ...(opts.rest ? { rest: opts.rest } : {}),

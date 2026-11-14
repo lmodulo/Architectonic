@@ -1,17 +1,19 @@
 <script lang="ts">
   // Renders a page's block stack. Heroes are full-bleed; everything else sits in a centered
-  // column (text narrower than components). Gallery blocks render from Session 5.
+  // column (text narrower than components). Images come from `media` (Vault images that may be shown).
   import '$lib/components/cms/cms-prose.css';
   import RichTextRenderer from './RichTextRenderer.svelte';
   import HeroBlock from './HeroBlock.svelte';
   import ButtonsBlock from './ButtonsBlock.svelte';
   import DividerBlock from './DividerBlock.svelte';
   import ComponentBlock from './ComponentBlock.svelte';
-  import type { Block } from '$lib/cms/types';
+  import GalleryBlock from './GalleryBlock.svelte';
+  import type { Block, MediaMap } from '$lib/cms/types';
 
-  let { blocks, links, componentData = {}, firstHeroIsTitle = false }: {
+  let { blocks, links, media = {}, componentData = {}, firstHeroIsTitle = false }: {
     blocks: Block[];
     links: Record<string, string>;
+    media?: MediaMap;
     componentData?: Record<string, unknown>;
     /** the first block is a hero standing in for the page title, so it renders as the h1 */
     firstHeroIsTitle?: boolean;
@@ -22,11 +24,15 @@
   {#each blocks as block, i (block.id)}
     {#if block.type === 'hero'}
       <div class="cms-block cms-block--hero">
-        <HeroBlock data={block.data} {links} heading={firstHeroIsTitle && i === 0 ? 'h1' : 'h2'} />
+        <HeroBlock data={block.data} {links} {media} heading={firstHeroIsTitle && i === 0 ? 'h1' : 'h2'} />
       </div>
     {:else if block.type === 'richText'}
       <div class="cms-block cms-block--richText w-full max-w-3xl mx-auto px-4">
-        <RichTextRenderer doc={block.data.doc} />
+        <RichTextRenderer doc={block.data.doc} {media} />
+      </div>
+    {:else if block.type === 'gallery'}
+      <div class="cms-block cms-block--gallery w-full max-w-5xl mx-auto px-4">
+        <GalleryBlock data={block.data} {media} />
       </div>
     {:else if block.type === 'buttons'}
       <div class="cms-block cms-block--buttons w-full max-w-3xl mx-auto px-4">

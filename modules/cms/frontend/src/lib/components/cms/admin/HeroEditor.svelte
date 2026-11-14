@@ -4,6 +4,7 @@
   import { linkTargets } from '$lib/cms/admin';
   import { ms } from '$lib/cms/motion';
   import LinkPicker from './LinkPicker.svelte';
+  import ImageField from './ImageField.svelte';
   import type { CmsNode, HeroData } from '$lib/cms/types';
 
   let { data = $bindable(), nodes, readonly = false }: { data: HeroData; nodes: CmsNode[]; readonly?: boolean } = $props();
@@ -27,6 +28,16 @@
   <div class="sm:col-span-2 flex flex-col gap-1">
     <label class="text-sm font-medium" for="{uid}-subtitle">Subtitle <span class="font-normal opacity-60">(optional)</span></label>
     <textarea id="{uid}-subtitle" class="textarea textarea-sm w-full" rows="2" bind:value={data.subtitle} maxlength="500" disabled={readonly}></textarea>
+  </div>
+  <div class="sm:col-span-2">
+    <ImageField
+      image={data.image}
+      onchange={im => (data.image = im)}
+      label="Background image"
+      pickerTitle="Choose a background image"
+      help="Shown behind the text under a dark overlay. It's decorative, so it needs no alt text."
+      disabled={readonly}
+    />
   </div>
   <div class="flex flex-col gap-1">
     <span class="text-sm font-medium" id="{uid}-align">Alignment</span>

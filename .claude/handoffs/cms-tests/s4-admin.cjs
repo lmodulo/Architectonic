@@ -207,8 +207,23 @@ async function typeAtEnd(page, text) {
     check('Move up reorders', JSON.stringify(await cardOrder(page)) === JSON.stringify(['Hero', 'Text', 'Divider', 'Buttons', 'Component']));
     await sleep(400); // let the reorder animation (flip, 200 ms) settle before dragging
     const buttonsCard = page.locator('[data-block-id]').nth(3);
+    const textCard = page.locator('[data-block-id]').nth(1);
+    // Centre the target first: a drop point under the sticky top bar makes Playwright scroll between
+    // mouse-down and the drag starting, and Chromium then drags whatever is under the pointer
+    await textCard.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    // …and wait until it stops moving (the app's scroll container may scroll smoothly)
+    let last = '';
+    await until(async () => { const b = JSON.stringify(await textCard.boundingBox()); const still = b === last; last = b; return still; });
+    // Explicit mouse moves rather than dragTo: no auto-scrolling mid-gesture, and several dragover
+    // events like a real drag
     await buttonsCard.hover();
-    await buttonsCard.locator('[draggable="true"]').dragTo(page.locator('[data-block-id]').nth(1), { targetPosition: { x: 40, y: 8 } });
+    const grip = await buttonsCard.locator('[draggable="true"]').boundingBox();
+    const tb = await textCard.boundingBox();
+    await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(tb.x + 40, tb.y + tb.height * 0.25, { steps: 12 });
+    await sleep(100);
+    await page.mouse.up();
     await sleep(400);
     check('drag and drop reorders blocks', JSON.stringify(await cardOrder(page)) === JSON.stringify(['Hero', 'Buttons', 'Text', 'Divider', 'Component']), JSON.stringify(await cardOrder(page)));
     const div = page.locator('[data-block-id]').nth(3);

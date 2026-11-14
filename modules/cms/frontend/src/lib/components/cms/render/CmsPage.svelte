@@ -28,5 +28,5 @@
     <ComponentBlock componentKey={view.node.component?.key} props={view.node.component?.props} data={componentData.page} mode="page" rest={view.rest ?? null} />
   </div>
 {:else}
-  <BlockRenderer {blocks} links={view.links} {componentData} firstHeroIsTitle={heroFirst} />
+  <BlockRenderer {blocks} links={view.links} media={view.media} {componentData} firstHeroIsTitle={heroFirst} />
 {/if}

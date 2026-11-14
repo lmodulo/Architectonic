@@ -1,5 +1,6 @@
 <script lang="ts">
-  // Site settings: which page is the home page, and the footer's text and links.
+  // Site settings: which page is the home page, the footer's text and links, and the Vault folder
+  // that image uploads from the page builder go to.
   import { untrack } from 'svelte';
   import { slide, fade } from 'svelte/transition';
   import { flip } from 'svelte/animate';
@@ -9,6 +10,7 @@
   import { cmsApi, linkProblem, linkTargets, plain } from '$lib/cms/admin';
   import { ms } from '$lib/cms/motion';
   import LinkPicker from '$lib/components/cms/admin/LinkPicker.svelte';
+  import { MEDIA_FOLDER_NAME } from '$lib/cms/media.svelte';
   import type { CmsSettings, FooterLink } from '$lib/cms/types';
   import type { PageData } from './$types';
 
@@ -21,9 +23,10 @@
   // Home page candidates: pages only, in tree order
   const pages = linkTargets(nodes).filter(t => nodes.find(n => n.id === t.id)?.type === 'page');
 
-  interface Form { homeNodeId: string; text: string; links: FooterLink[] }
+  interface Form { homeNodeId: string; text: string; links: FooterLink[]; mediaFolderId: string }
   const fromSettings = (s: CmsSettings | null): Form => ({
     homeNodeId: s?.homeNodeId ?? '',
+    mediaFolderId: s?.mediaFolderId ?? '',
     text: s?.footer.text ?? '',
     // newTab always present: bind:checked would otherwise fill it in and mark the form edited
     links: plain(s?.footer.links ?? []).map(l => ({ ...l, newTab: l.newTab === true })),
@@ -34,6 +37,17 @@
   const linkErrors = $derived(form.links.map(l => (!l.label.trim() ? 'Add a label.' : null) ?? linkProblem(l.link, nodes)));
   const valid = $derived(linkErrors.every(e => !e));
   const home = $derived(nodes.find(n => n.id === form.homeNodeId));
+  const folders = untrack(() => data.folders);
+  // Folders in tree order, indented
+  const folderRows = (() => {
+    const out: { id: string; label: string }[] = [];
+    const walk = (parentId: string | null, depth: number) => {
+      for (const f of (folders ?? []).filter(f => f.parentId === parentId)) { out.push({ id: f.id, label: `${'— '.repeat(depth)}${f.name}` }); walk(f.id, depth + 1); }
+    };
+    walk(null, 0);
+    return out;
+  })();
+  const folderGone = $derived(!!form.mediaFolderId && !!folders && !folders.some(f => f.id === form.mediaFolderId));
 
   let saving = $state(false);
   let error = $state('');
@@ -56,6 +70,7 @@
     error = '';
     const body = {
       homeNodeId: form.homeNodeId || null,
+      ...(folders ? { mediaFolderId: form.mediaFolderId || null } : {}),
       footer: {
         text: form.text,
         links: form.links.map(l => ({ label: l.label.trim(), link: l.link, ...(l.newTab ? { newTab: true } : {}) })),
@@ -149,6 +164,27 @@
         {/if}
       </div>
     </section>
+
+    {#if folders}
+      <section class="flex flex-col gap-3" aria-labelledby="cms-media-heading">
+        <div class="flex items-center gap-2">
+          <span class="w-0.5 h-4 rounded-full bg-primary"></span>
+          <h2 id="cms-media-heading" class="text-sm font-semibold">Images</h2>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium" for="cms-media-folder">Vault folder for uploads</label>
+          <select id="cms-media-folder" class="select select-sm w-full max-w-md" bind:value={form.mediaFolderId} disabled={!canEdit}>
+            <option value="">"{MEDIA_FOLDER_NAME}" (found or created on the next upload)</option>
+            {#if folderGone}<option value={form.mediaFolderId}>A folder that no longer exists</option>{/if}
+            {#each folderRows as f (f.id)}<option value={f.id}>{f.label}</option>{/each}
+          </select>
+          <span class="text-xs opacity-60">Images uploaded from the page builder are stored here in Vault. Images placed on pages are publicly visible.</span>
+          {#if folderGone}
+            <p class="text-xs text-warning" transition:slide={{ duration: ms(200) }}>That folder was deleted. The next upload creates "{MEDIA_FOLDER_NAME}" again.</p>
+          {/if}
+        </div>
+      </section>
+    {/if}
 
     {#if error}<div role="alert" class="alert alert-error text-sm py-2" transition:slide={{ duration: ms(200) }}>{error}</div>{/if}
 

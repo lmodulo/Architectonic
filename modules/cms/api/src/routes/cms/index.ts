@@ -3,6 +3,7 @@ import nodesRoutes    from './nodes.js';
 import pagesRoutes    from './pages.js';
 import settingsRoutes from './settings.js';
 import siteRoutes     from './site.js';
+import mediaRoutes    from './media.js';
 
 // Autoload mounts this file at /cms and ignores its sibling files, so they are registered here.
 // There is one public site per deployment (like settings and the storefront): cms data is not
@@ -23,4 +24,5 @@ export default async function cmsRoutes(app: FastifyInstance) {
   app.register(pagesRoutes,    { prefix: '/pages' });
   app.register(settingsRoutes, { prefix: '/settings' });
   app.register(siteRoutes,     { prefix: '/site' });
+  app.register(mediaRoutes,    { prefix: '/media' });
 }

@@ -94,10 +94,26 @@ export type BlockType = Block['type'];
 export interface Seo { title?: string; description?: string; image?: ImageRef; noindex?: boolean }
 export interface PageContent { blocks: Block[]; seo: Seo }
 
+/** vaultId → current file, for images that may be shown (others are left out of the map). */
+export type MediaMap = Record<string, { url: string }>;
+
+/** GET /cms/media items: a Vault web image (PNG, JPEG, GIF, WebP, AVIF; never SVG or admin-only). */
+export interface MediaItem {
+  id: string;
+  name: string;
+  url: string;
+  mimetype: string;
+  size: number | null;
+  folderId: string | null;
+  updatedAt: string;
+}
+
 /** GET /cms/pages/:nodeId */
 export interface PageDraft {
   nodeId: string;
   draft: PageContent;
+  /** current URLs of the draft's images that can be shown; anything missing is flagged in the editor */
+  media: MediaMap;
   rev: number;
   status: NodeStatus;
   publishedAt: string | null;
@@ -111,8 +127,8 @@ export interface PageView {
   node: { id: string; type: NodeType; title: string; path: string | null; component: ComponentRef | null };
   /** null for component nodes */
   page: PageContent | null;
-  /** vaultId → current file (Session 5) */
-  media: Record<string, { url: string; w?: number; h?: number }>;
+  /** vaultId → current file; images not in it aren't shown */
+  media: MediaMap;
   /** nodeId → public URL, for LinkRefs; links to unpublished pages are missing */
   links: Record<string, string>;
   breadcrumbs: { id: string; title: string; path: string | null }[];

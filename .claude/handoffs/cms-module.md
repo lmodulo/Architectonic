@@ -13,7 +13,7 @@ This is the master plan for the module, and it stays the source of truth. Each s
 | 2 | CMS API + module skeleton + seed | ☑ 2026-11-13 | [session 2](cms-module-session-2.md) |
 | 3 | Public site: routing, site shell, n-deep menu, text blocks, component registry | ☑ 2026-11-13 | [session 3](cms-module-session-3.md) |
 | 4 | Admin: site tree + block page builder (no images) | ☑ 2026-11-13 | [session 4](cms-module-session-4.md) |
-| 5 | Vault media: picker, aligned images, gallery + lightbox | ☐ | |
+| 5 | Vault media: picker, aligned images, gallery + lightbox | ☑ 2026-11-13 | [session 5](cms-module-session-5.md) |
 | 6 | Events component, SEO, docs, widget, final test matrix | ☐ | |
 
 ## Goal
@@ -384,6 +384,46 @@ proxies.
     close.
   - Counter and caption; the neighboring images are preloaded.
   - Body scroll is locked while open; `prefers-reduced-motion` is respected.
+- *(S5) As built:*
+  - **Allowed images.** PNG, JPEG, GIF, WebP and AVIF, checked by MIME type **and** by the file URL's extension
+    (`lib/cmsMedia.ts` `isWebImage`). This is stricter than "`^image/` minus SVG": an SVG renamed `.png`, or any
+    `image/*` type that isn't a web image, is never listed or shown. The URL must be `/uploads/…` or http(s).
+  - **Search** (`q`) is a case-insensitive substring match on name and tags, not Mongo `$text`, which only matches whole
+    words.
+  - **Workspace guard on save.** `PUT /cms/pages/:nodeId/draft` strips images whose Vault document belongs to another
+    workspace (`foreignImageIds` + `stripImages`) and counts them in `removed`. The picker only offers the editor's own
+    workspace, so this only stops hand-made requests. Read-time resolution can't scope by workspace (the site has
+    none).
+  - **The `media` map is `{ vaultId → { url } }`.** Width and height come from the stored `ImageRef`, read with
+    `naturalWidth` at pick time. They are layout hints only: images use `height: auto`, so a new version with another
+    shape still renders correctly. `GET /cms/pages/:nodeId` also returns `media` (for the draft), so the editor shows
+    current versions and flags unavailable images. `editable()` swaps stored `src` values for current URLs on load.
+  - **Access** is decided on the client (`lib/cms/media.svelte.ts` `mediaAccess`):
+    - Vault is "installed" when the user's permissions have a `vault_documents` key.
+    - **Pick** needs `vault_documents.read` and `cms_pages.update`. **Upload** needs `vault_documents.create`, plus
+      `vault_folders.create` to make the folder.
+    - Without access, image actions are hidden or disabled with the reason ("Install the Vault module to add images",
+      or "You need access to Vault to add images"). Gallery stays in the block list as an `aria-disabled` entry with
+      the reason, so keyboard users hear why.
+  - **Uploads.**
+    - The "Website Media" folder is created with visibility `staff`. Its id is saved in the settings only if the editor
+      has `cms_nodes.update` (the folder is still used for that upload otherwise).
+    - Uploads are tagged `website`.
+    - Settings has an "Images" section to pick the folder (shown when Vault is installed and readable).
+  - **Picker** (`admin/MediaPicker.svelte`): one instance per builder page; components call `media.pick()`.
+    - "Show more" appends the next 24.
+    - Phones get a folder `<select>` instead of the sidebar.
+    - Double-click picks in single mode.
+    - Alt text is asked only for images in text (heroes are decorative, galleries edit alt per image).
+  - **Rich text images.**
+    - A new image goes centred at 50% and is selected so its toolbar opens.
+    - An image that ends the text gets an empty paragraph after it (`trailingNode` is off).
+    - Pasted or dropped image files upload and land at the drop point; other files are refused with a message.
+    - Unavailable images get a dashed warning outline (`data-missing`, set through `CmsImage.configure({ isMissing })`).
+  - **Hero image** is decorative (`alt=""`) under a dark scrim, with white text. The page settings panel also takes a
+    **share image** (`seo.image`; S6 renders `og:image`).
+  - **Lightbox** cross-fades between images (stacked in one grid cell). A click on the dark area closes it, except the
+    click that ends a mouse swipe.
 - **Read-time resolution.**
   - `resolve` collects every `vaultId` in the published blocks and runs one `$in` lookup.
   - An image renders only if its document exists, isn't `admin_only`, and its current version is `image/*`. Otherwise
@@ -622,6 +662,16 @@ nodes render nothing until Session 5.
 - **Playwright and Svelte transitions (found in S4).** Elements that are transitioning out stay in the DOM, marked
   `inert`, for the duration. Count live elements only (`!el.closest('[inert]')`) and poll rather than sleeping. Wait
   for a `flip` reorder to settle before starting another drag.
+- **Playwright HTML5 drags (found in S5).** `locator.dragTo` can scroll the page between mouse-down and the drag
+  starting when the drop point is near a sticky bar; Chromium then drags whatever is under the pointer. Use explicit
+  `mouse.move` / `down` / `move({ steps })` / `up` on precomputed points instead. Playwright also refuses to click an
+  `aria-disabled` element without `{ force: true }`.
+- **Vault's demo seed has no images (found in S5).** Use `cms-tests/s5-seed.sh` to put PNGs, a JPEG, an SVG and an
+  admin-only image into Vault through its own API.
+- **Vault trusts the browser's MIME type.** Vault stores the multipart part's declared type. cms adds the extension
+  check above; `/uploads/` serves by extension, so a mislabelled file isn't served as HTML. This predates cms.
+- **No thumbnails.** The picker grid and `imageSize()` load full images (lazy). That's fine for typical sites, but slow
+  with many very large files. Thumbnails stay out of scope (sharp).
 - **Global search** in candidate is a stub with no module registry, so cms can't register search content. That is out
   of scope.
 - **Existing marketing page bugs.** `+page.svelte` reads a `brand.text` that doesn't exist, and doesn't pass the runtime

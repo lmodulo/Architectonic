@@ -2,14 +2,26 @@
   // Renders sanitized Tiptap JSON by walking it with snippets. Only whitelisted nodes and marks
   // render; anything else is skipped. Nothing is rendered as raw HTML: text is always escaped, and link
   // hrefs are re-checked even though the API sanitized them on save.
-  // cmsImage nodes render nothing until Session 5 (they need the page's Vault media map).
+  // Images (cmsImage) render from the page's media map, which holds only Vault images that may be
+  // shown: one that is missing from it (deleted, admin-only, no longer an image) is left out.
   import '$lib/components/cms/cms-prose.css';
   import { safeHref } from '$lib/cms/links';
-  import type { TiptapNode } from '$lib/cms/types';
+  import type { CmsImageAttrs, MediaMap, TiptapNode } from '$lib/cms/types';
 
   type Mark = NonNullable<TiptapNode['marks']>[number];
 
-  let { doc }: { doc: TiptapNode | undefined } = $props();
+  let { doc, media = {} }: { doc: TiptapNode | undefined; media?: MediaMap } = $props();
+
+  const ALIGNS = ['left', 'right', 'center', 'full'];
+  const WIDTHS = [25, 33, 50, 100];
+  function image(n: TiptapNode) {
+    const a = (n.attrs ?? {}) as Partial<CmsImageAttrs>;
+    const url = a.vaultId ? media[a.vaultId]?.url : undefined;
+    if (!url) return null;
+    const align = ALIGNS.includes(a.align as string) ? a.align! : 'center';
+    const width = align === 'full' ? 100 : WIDTHS.includes(a.width as number) ? a.width! : 50;
+    return { url, align, width, alt: a.alt ?? '', caption: a.caption || null, w: a.w || undefined, h: a.h || undefined };
+  }
 
   const level = (n: TiptapNode) => {
     const l = n.attrs?.level;
@@ -33,6 +45,14 @@
   {:else if n.type === 'blockquote'}<blockquote>{@render children(n.content)}</blockquote>
   {:else if n.type === 'horizontalRule'}<hr />
   {:else if n.type === 'hardBreak'}<br />
+  {:else if n.type === 'cmsImage'}
+    {@const img = image(n)}
+    {#if img}
+      <figure class="cms-fig cms-fig--{img.align}" data-width={img.width}>
+        <img src={img.url} alt={img.alt} width={img.w} height={img.h} loading="lazy" decoding="async" />
+        {#if img.caption}<figcaption>{img.caption}</figcaption>{/if}
+      </figure>
+    {/if}
   {:else if n.type === 'text' && n.text}{@render marked(n.text, n.marks ?? [], 0)}
   {/if}
 {/snippet}

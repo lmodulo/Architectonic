@@ -3,7 +3,7 @@
 // session cookie and passes the API's status and message through.
 import { safeHref } from './links';
 import { CMS_COMPONENTS, componentFor } from './components';
-import type { Block, BlockType, CmsNode, LinkRef, PropSpec, Seo } from './types';
+import type { Block, BlockType, CmsNode, ImageRef, LinkRef, MediaMap, PropSpec, Seo, TiptapNode } from './types';
 
 // ── API ─────────────────────────────────────────────────────────────────────────────────────
 
@@ -156,9 +156,22 @@ export function newBlock(type: BlockType): Block {
  * Fills optional fields the editors bind to. Svelte's `bind:` writes an input's value back when the
  * bound field is undefined, which would make a page look edited the moment it opens.
  */
-export function editable(content: { blocks: Block[]; seo: Seo }): { blocks: Block[]; seo: Seo } {
-  const blocks = plain(content.blocks).map(b => (b.type === 'hero' ? { ...b, data: { ...b.data, subtitle: b.data.subtitle ?? '' } } : b));
-  const seo = { ...plain(content.seo ?? {}), title: content.seo?.title ?? '', description: content.seo?.description ?? '', noindex: content.seo?.noindex === true };
+export function editable(content: { blocks: Block[]; seo: Seo }, media: MediaMap = {}): { blocks: Block[]; seo: Seo } {
+  // Images show their current Vault version in the editor (the stored src is only a preview hint)
+  const fresh = <T extends ImageRef>(r: T): T => (media[r.vaultId] ? { ...r, src: media[r.vaultId].url } : r);
+  const walk = (n: TiptapNode): TiptapNode => ({
+    ...n,
+    ...(n.type === 'cmsImage' && n.attrs ? { attrs: fresh(n.attrs as unknown as ImageRef) as unknown as Record<string, unknown> } : {}),
+    ...(n.content ? { content: n.content.map(walk) } : {}),
+  });
+  const blocks = plain(content.blocks).map((b): Block => {
+    if (b.type === 'hero') return { ...b, data: { ...b.data, subtitle: b.data.subtitle ?? '', ...(b.data.image ? { image: fresh(b.data.image) } : {}) } };
+    if (b.type === 'gallery') return { ...b, data: { ...b.data, images: b.data.images.map(fresh) } };
+    if (b.type === 'richText') return { ...b, data: { doc: walk(b.data.doc) } };
+    return b;
+  });
+  const s = plain(content.seo ?? {});
+  const seo: Seo = { ...s, title: s.title ?? '', description: s.description ?? '', noindex: s.noindex === true, ...(s.image ? { image: fresh(s.image) } : {}) };
   return { blocks, seo };
 }
 
@@ -172,11 +185,31 @@ export const duplicateBlock = (b: Block): Block => ({ ...plain(b), id: blockId()
  * Problems in a block. `errors` are parts the API would drop on save (an empty button label, a bad
  * URL); `warnings` save fine but need attention (an unknown component, an empty hero heading).
  */
-export function blockProblems(b: Block, nodes: CmsNode[]): { errors: string[]; warnings: string[] } {
+export function blockProblems(b: Block, nodes: CmsNode[], known?: MediaMap): { errors: string[]; warnings: string[] } {
   const errors: string[] = [];
   const warnings: string[] = [];
+  // Images: unavailable in Vault (only checked when the media map is known), and missing alt text
+  const images = (refs: { vaultId: string; alt?: string }[], altMatters: boolean) => {
+    const missing = known ? refs.filter(r => !known[r.vaultId]).length : 0;
+    const noAlt = altMatters ? refs.filter(r => !r.alt?.trim()).length : 0;
+    if (missing) warnings.push(`${missing} image${missing === 1 ? ' is' : 's are'} no longer available in Vault (deleted, admin-only, or not a web image), so ${missing === 1 ? 'it doesn\'t' : 'they don\'t'} show on the site.`);
+    if (noAlt) warnings.push(`${noAlt} image${noAlt === 1 ? ' has' : 's have'} no alt text. A short description helps people who can't see ${noAlt === 1 ? 'it' : 'them'}.`);
+  };
+  if (b.type === 'richText') {
+    const found: { vaultId: string; alt?: string }[] = [];
+    const walk = (n: TiptapNode) => {
+      if (n.type === 'cmsImage' && n.attrs) found.push(n.attrs as { vaultId: string; alt?: string });
+      n.content?.forEach(walk);
+    };
+    walk(b.data.doc);
+    images(found, true);
+  } else if (b.type === 'gallery') {
+    if (!b.data.images.length) warnings.push('Add some images.');
+    images(b.data.images, true);
+  }
   if (b.type === 'hero') {
     if (!b.data.title.trim()) warnings.push('The heading is empty.');
+    if (b.data.image) images([b.data.image], false);
     if (b.data.cta) {
       if (!b.data.cta.label.trim()) errors.push('The button needs a label.');
       const p = linkProblem(b.data.cta.link, nodes);

@@ -3,8 +3,9 @@
   import { scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { tick } from 'svelte';
-  import { Plus, Type, RectangleHorizontal, MousePointerClick, SeparatorHorizontal, Puzzle } from 'lucide-svelte';
+  import { Plus, Type, RectangleHorizontal, MousePointerClick, SeparatorHorizontal, Puzzle, LayoutGrid } from 'lucide-svelte';
   import { blockComponents } from '$lib/cms/admin';
+  import { getMediaContext } from '$lib/cms/media.svelte';
   import { ms } from '$lib/cms/motion';
   import type { BlockType } from '$lib/cms/types';
 
@@ -15,10 +16,18 @@
     label?: string;
   } = $props();
 
-  // Galleries arrive with Vault media (Session 5)
-  const types: { type: BlockType; label: string; description: string; icon: typeof Plus }[] = [
-    { type: 'richText', label: 'Text', description: 'Paragraphs, headings, lists, quotes and links', icon: Type },
-    { type: 'hero', label: 'Hero', description: 'A large banner heading with an optional button', icon: RectangleHorizontal },
+  // Galleries need Vault: without it (or without access) the entry stays, disabled, saying why
+  const media = getMediaContext();
+  const types: { type: BlockType; label: string; description: string; icon: typeof Plus; disabled?: boolean }[] = [
+    { type: 'richText', label: 'Text', description: 'Paragraphs, headings, lists, quotes, links and images', icon: Type },
+    { type: 'hero', label: 'Hero', description: 'A large banner heading with an optional button and image', icon: RectangleHorizontal },
+    {
+      type: 'gallery',
+      label: 'Gallery',
+      description: media?.access.canPick ? 'A grid of images that open full screen' : media?.access.reason ?? 'Install the Vault module to add images.',
+      icon: LayoutGrid,
+      disabled: !media?.access.canPick,
+    },
     { type: 'buttons', label: 'Buttons', description: 'One or more call-to-action buttons', icon: MousePointerClick },
     { type: 'divider', label: 'Divider', description: 'A line or empty space between blocks', icon: SeparatorHorizontal },
     ...(blockComponents().length
@@ -105,8 +114,9 @@
         <button
           type="button"
           role="menuitem"
-          class="flex items-start gap-3 w-full text-left rounded-field px-2.5 py-2 hover:bg-base-200 focus:bg-base-200 outline-none"
-          onclick={() => pick(t.type)}
+          class="flex items-start gap-3 w-full text-left rounded-field px-2.5 py-2 hover:bg-base-200 focus:bg-base-200 outline-none aria-disabled:opacity-60 aria-disabled:cursor-not-allowed"
+          aria-disabled={t.disabled ? 'true' : undefined}
+          onclick={() => { if (!t.disabled) pick(t.type); }}
         >
           <t.icon class="size-4 mt-0.5 shrink-0 opacity-70" />
           <span class="min-w-0">

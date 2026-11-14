@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { CmsTree, getSiteSettings, pageView, type PageContent } from '../../lib/cmsTree.js';
+import { pageImageIds, resolveMedia } from '../../lib/cmsMedia.js';
 
 // Public endpoints (no session needed): they only ever return published, visible content.
 
@@ -47,6 +48,7 @@ export default async function siteRoutes(app: FastifyInstance) {
       if (!page?.published) return reply.notFound('Page not found');
       content = page.published;
     }
-    return pageView(tree, node, content, { rest });
+    const media = await resolveMedia(db(), pageImageIds(content));
+    return pageView(tree, node, content, { rest, media });
   });
 }

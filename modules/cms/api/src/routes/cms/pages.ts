@@ -3,9 +3,10 @@ import { ObjectId } from '@fastify/mongodb';
 import { logAudit } from '../../lib/audit.js';
 import { CmsTree, pageView, type CmsNodeDoc, type PageContent, type TreeNode } from '../../lib/cmsTree.js';
 import { collectRefs, sanitizePage } from '../../lib/cmsSanitize.js';
+import { foreignImageIds, missingCount, pageImageIds, resolveMedia, stripImages } from '../../lib/cmsMedia.js';
 
 // Structural types: this repo's Fastify generics don't resolve standalone FastifyRequest/FastifyReply
-type AuditReq = { session: { userId?: string; username?: string }; ip: string };
+type AuditReq = { session: { userId?: string; username?: string; workspaceId?: string }; ip: string };
 
 // Draft and published content live on one document, so publishing is a single-document update
 // (compose runs a standalone mongo with no transactions). `rev` is the optimistic lock for drafts.
@@ -58,6 +59,8 @@ export default async function pagesRoutes(app: FastifyInstance) {
     return {
       nodeId:      found.node.id,
       draft:       page.draft,
+      // Current URLs of the draft's images that can be shown; the editor flags the rest
+      media:       await resolveMedia(db(), pageImageIds(page.draft)),
       rev:         page.rev,
       status:      found.node.doc.status,
       publishedAt: page.publishedAt,
@@ -89,8 +92,12 @@ export default async function pagesRoutes(app: FastifyInstance) {
     if (!found || found.node.doc.type !== 'page') return reply.notFound('Page not found');
     const nodeId = found.node.doc._id;
 
-    const { blocks, seo, removed } = sanitizePage(req.body);
-    const draft: PageContent = { blocks, seo };
+    const clean = sanitizePage(req.body);
+    // Images must come from the editor's own workspace in Vault
+    const foreign = await foreignImageIds(db(), pageImageIds(clean), req.session.workspaceId);
+    const stripped = stripImages({ blocks: clean.blocks, seo: clean.seo }, foreign);
+    const draft: PageContent = stripped.content;
+    const removed = clean.removed + stripped.removed;
     if (JSON.stringify(draft).length > MAX_PAGE_BYTES) return reply.badRequest('This page is too large to save. Split it into several pages.');
 
     await ensurePage(nodeId);
@@ -170,6 +177,9 @@ export default async function pagesRoutes(app: FastifyInstance) {
       const ids = [...collectRefs(page?.published?.blocks ?? []).nodeIds];
       const broken = ids.filter(id => !tree.linkMap([id])[id]).length;
       if (broken) warnings.push(`${broken} link${broken === 1 ? '' : 's'} on this page lead${broken === 1 ? 's' : ''} to an item that isn't published or no longer exists.`);
+      const imageIds = pageImageIds(page?.published);
+      const missing = missingCount(imageIds, await resolveMedia(db(), imageIds));
+      if (missing) warnings.push(`${missing} image${missing === 1 ? ' is' : 's are'} no longer available in Vault (deleted, admin-only, or not a web image), so ${missing === 1 ? 'it doesn\'t' : 'they don\'t'} show on the site.`);
     }
 
     audit(req, 'cms_node.publish', node.id, { title: node.doc.title, type: node.doc.type });
@@ -210,6 +220,7 @@ export default async function pagesRoutes(app: FastifyInstance) {
     if (!found || found.node.doc.type === 'link') return reply.notFound('Item not found');
     const { tree, node } = found;
     const content = node.doc.type === 'page' ? (await ensurePage(node.doc._id)).draft : null;
-    return pageView(tree, node, content, { preview: true });
+    const media = await resolveMedia(db(), pageImageIds(content));
+    return pageView(tree, node, content, { preview: true, media });
   });
 }

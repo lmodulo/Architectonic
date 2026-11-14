@@ -12,6 +12,9 @@
   import { blockProblems, cmsApi, editable, editorLinkMap, linkTargets } from '$lib/cms/admin';
   import { ms } from '$lib/cms/motion';
   import BlockEditor from '$lib/components/cms/admin/BlockEditor.svelte';
+  import MediaPicker from '$lib/components/cms/admin/MediaPicker.svelte';
+  import ImageField from '$lib/components/cms/admin/ImageField.svelte';
+  import { MediaContext, mediaAccess, setMediaContext } from '$lib/cms/media.svelte';
   import type { Block, CmsNode, NodeStatus, PageDraft, Seo } from '$lib/cms/types';
   import type { PageData } from './$types';
 
@@ -26,7 +29,9 @@
   const links = $derived(editorLinkMap(nodes));
   const pagePaths = $derived(linkTargets(nodes).map(t => ({ path: t.path, title: t.label.replace(/^(— )+/, '') })));
 
-  const initial = untrack(() => editable(data.page.draft));
+  // Vault images: what may be picked or uploaded, and which of the page's images can be shown
+  const media = setMediaContext(untrack(() => new MediaContext(mediaAccess(page.data.user), data.page.media ?? {})));
+  const initial = untrack(() => editable(data.page.draft, data.page.media));
   let blocks = $state<Block[]>(initial.blocks);
   let seo = $state<Seo>(initial.seo);
   let rev = untrack(() => data.page.rev);
@@ -123,7 +128,8 @@
     reloading = false;
     if (!res.ok || !res.data) { saveError = res.message; return; }
     clearTimeout(timer);
-    const latest = editable(res.data.draft);
+    media.known = { ...media.known, ...(res.data.media ?? {}) };
+    const latest = editable(res.data.draft, res.data.media);
     blocks = latest.blocks;
     seo = latest.seo;
     savedJson = JSON.stringify({ blocks, seo });
@@ -275,6 +281,14 @@
         <input type="checkbox" class="checkbox checkbox-sm mt-0.5" bind:checked={seo.noindex} disabled={!canEdit} />
         <span>Ask search engines not to list this page</span>
       </label>
+      <ImageField
+        image={seo.image}
+        onchange={im => (seo.image = im)}
+        label="Share image"
+        pickerTitle="Choose a share image"
+        help="Shown when the page is shared on social media."
+        disabled={!canEdit}
+      />
     </div>
   </div>
 {/snippet}
@@ -370,6 +384,8 @@
     </div>
   </div>
 {/if}
+
+{#if media.access.canPick}<MediaPicker />{/if}
 
 {#if saveState === 'conflict' && !leaveTo}
   <Modal label="This page was changed elsewhere" size="sm" z={60}>

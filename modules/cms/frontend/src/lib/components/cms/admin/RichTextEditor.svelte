@@ -2,6 +2,8 @@
   // The text block editor: plain Tiptap 3, configured to produce only what the API's sanitizer keeps
   // (no code, headings 2–4, safe link URLs), so nothing is silently dropped on save. Content is
   // stored as Tiptap JSON (getJSON), never HTML. The toolbar shows while the block is selected.
+  // Vault images (cmsImage) float left or right with the text wrapping round them; a second toolbar
+  // row edits the selected image. Pasted or dropped image files upload to Vault's Website Media.
   import { onMount, onDestroy } from 'svelte';
   import { slide, fade } from 'svelte/transition';
   import { Editor } from '@tiptap/core';
@@ -9,12 +11,14 @@
   import Placeholder from '@tiptap/extension-placeholder';
   import {
     Bold, Italic, Underline, Strikethrough, List, ListOrdered, TextQuote, Minus, Undo2, Redo2,
-    Link2, Link2Off, Pilcrow, Heading2, Heading3, Heading4,
+    Link2, Link2Off, Pilcrow, Heading2, Heading3, Heading4, ImagePlus,
   } from 'lucide-svelte';
   import '$lib/components/cms/cms-prose.css';
   import { safeHref } from '$lib/cms/links';
   import { ms } from '$lib/cms/motion';
-  import type { TiptapNode } from '$lib/cms/types';
+  import { getMediaContext } from '$lib/cms/media.svelte';
+  import { CmsImage } from '$lib/cms/tiptap/CmsImage';
+  import type { CmsImageAttrs, ImageRef, TiptapNode } from '$lib/cms/types';
 
   let { doc, onchange, active = false, readonly = false, pagePaths = [], toolbarTop = '0px' }: {
     doc: TiptapNode;
@@ -29,6 +33,7 @@
   } = $props();
 
   const uid = $props.id();
+  const media = getMediaContext();
   let element: HTMLDivElement | undefined = $state();
   let editor: Editor | null = null;
   // Bumped on every transaction so the toolbar's active states re-render (the editor isn't reactive)
@@ -48,11 +53,35 @@
     noticeTimer = setTimeout(() => (notice = ''), 5000);
   }
 
-  /** Pasted or dropped files are refused (images come from the media picker). */
-  function refuseFiles(dt: DataTransfer | null | undefined): boolean {
-    if (!dt?.files?.length) return false;
-    say('Files can\'t be pasted or dropped into text.');
+  /** Pasted or dropped files: images upload to Vault and land at `pos`; anything else is refused. */
+  function takeFiles(dt: DataTransfer | null | undefined, pos: number | null): boolean {
+    const files = [...(dt?.files ?? [])];
+    if (!files.length) return false;
+    if (readonly) return true;
+    if (!media?.access.canUpload) {
+      say(media?.access.canPick ? 'You can\'t upload to Vault. Use the image button to choose an existing image.' : 'Files can\'t be pasted or dropped into text.');
+      return true;
+    }
+    insertUploads(files, pos);
     return true;
+  }
+
+  async function insertUploads(files: File[], pos: number | null) {
+    if (!media) return;
+    const { images, errors } = await media.uploadFiles(files);
+    if (!editor) return;
+    if (images.length) {
+      const nodes = images.map(r => ({ type: 'cmsImage', attrs: { ...r, caption: null, align: 'center', width: 50 } }));
+      const at = pos ?? editor.state.selection.from;
+      if (pos !== null) editor.chain().insertContentAt(pos, nodes).run();
+      else editor.chain().insertContent(nodes).run();
+      roomAfterImage();
+      selectImage(images[0].vaultId, at);
+    }
+    say([
+      images.length ? `Added ${images.length} image${images.length === 1 ? '' : 's'}. Select ${images.length === 1 ? 'it' : 'each one'} to add alt text.` : '',
+      ...errors,
+    ].filter(Boolean).join(' '));
   }
 
   onMount(() => {
@@ -77,12 +106,18 @@
           },
         }),
         Placeholder.configure({ placeholder: 'Write something…' }),
+        CmsImage.configure({ isMissing: id => media?.isMissing(id) ?? false }),
       ],
       content: doc,
       editorProps: {
         attributes: { class: 'cms-prose cms-editor outline-none', 'aria-label': 'Text', 'aria-multiline': 'true', role: 'textbox' },
-        handlePaste: (_view, event) => refuseFiles(event.clipboardData),
-        handleDrop: (_view, event) => refuseFiles((event as DragEvent).dataTransfer),
+        handlePaste: (_view, event) => takeFiles(event.clipboardData, null),
+        // `moved`: an image dragged within the text, which ProseMirror handles itself
+        handleDrop: (view, event, _slice, moved) => {
+          if (moved) return false;
+          const e = event as DragEvent;
+          return takeFiles(e.dataTransfer, view.posAtCoords({ left: e.clientX, top: e.clientY })?.pos ?? null);
+        },
       },
       onTransaction: () => { version++; },
       onUpdate: ({ editor: e }) => onchange(e.getJSON() as TiptapNode),
@@ -137,6 +172,56 @@
     linkOpen = false;
     editor.view.focus();
   }
+
+  // ── Images ──────────────────────────────────────────────────────────────────────────────
+  const imageAttrs = (): CmsImageAttrs => { void version; return (editor?.getAttributes('cmsImage') ?? {}) as CmsImageAttrs; };
+  const setImage = (attrs: Partial<CmsImageAttrs>) => editor?.chain().updateAttributes('cmsImage', attrs).run();
+
+  async function insertImage() {
+    const picked = await media?.pick({ withAlt: true, title: 'Insert an image' });
+    const r: ImageRef | undefined = picked?.[0];
+    if (r && editor) {
+      const at = editor.state.selection.from;
+      editor.chain().focus().insertCmsImage({ ...r, w: r.w ?? null, h: r.h ?? null }).run();
+      roomAfterImage();
+      selectImage(r.vaultId, at);
+    }
+  }
+
+  /**
+   * An image that ends the text leaves nowhere to type after it (trailingNode is off), so add an
+   * empty paragraph after it.
+   */
+  function roomAfterImage() {
+    if (!editor || editor.state.doc.lastChild?.type.name !== 'cmsImage') return;
+    editor.chain().insertContentAt(editor.state.doc.content.size, { type: 'paragraph' }).run();
+  }
+
+  /** Selects the image with this id nearest `near`, so its toolbar opens for alt text and position. */
+  function selectImage(vaultId: string, near: number) {
+    if (!editor) return;
+    let best = -1;
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name === 'cmsImage' && node.attrs.vaultId === vaultId && (best < 0 || Math.abs(pos - near) < Math.abs(best - near))) best = pos;
+    });
+    if (best >= 0) editor.commands.setNodeSelection(best);
+  }
+
+  async function replaceImage() {
+    const current = imageAttrs();
+    const picked = await media?.pick({ withAlt: true, title: 'Replace the image' });
+    const r = picked?.[0];
+    if (r) setImage({ vaultId: r.vaultId, src: r.src, w: r.w ?? null, h: r.h ?? null, alt: r.alt || current.alt });
+  }
+
+  function removeImage() {
+    editor?.chain().focus().deleteSelection().run();
+  }
+
+  const ALIGNS: { v: CmsImageAttrs['align']; l: string }[] = [
+    { v: 'left', l: 'Left' }, { v: 'right', l: 'Right' }, { v: 'center', l: 'Centre' }, { v: 'full', l: 'Full width' },
+  ];
+  const WIDTHS: CmsImageAttrs['width'][] = [25, 33, 50, 100];
 
   function onKeydown(e: KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !readonly) {
@@ -196,10 +281,38 @@
         {@render tool('Numbered list', ListOrdered, is('orderedList'), e => e.chain().focus().toggleOrderedList().run())}
         {@render tool('Quote', TextQuote, is('blockquote'), e => e.chain().focus().toggleBlockquote().run())}
         {@render tool('Horizontal line', Minus, false, e => e.chain().focus().setHorizontalRule().run())}
+        {#if media?.access.canPick}
+          {@render tool('Image', ImagePlus, false, () => insertImage())}
+        {/if}
         <span class="w-px h-4 bg-base-content/20 mx-1" aria-hidden="true"></span>
         {@render tool('Undo', Undo2, false, e => e.chain().focus().undo().run(), can(e => e.can().undo()))}
         {@render tool('Redo', Redo2, false, e => e.chain().focus().redo().run(), can(e => e.can().redo()))}
       </div>
+
+      {#if is('cmsImage')}
+        {@const a = imageAttrs()}
+        <div class="flex flex-wrap items-center gap-2 px-2 py-2 border-t border-base-300" role="group" aria-label="Image settings" transition:slide={{ duration: ms(200) }}>
+          <div class="join" role="group" aria-label="Image position">
+            {#each ALIGNS as al (al.v)}
+              <button type="button" class="btn btn-xs join-item {a.align === al.v ? 'btn-neutral' : ''}" aria-pressed={a.align === al.v} onmousedown={e => e.preventDefault()} onclick={() => setImage({ align: al.v, ...(al.v === 'full' ? { width: 100 } : a.width === 100 && al.v !== 'center' ? { width: 50 } : {}) })}>{al.l}</button>
+            {/each}
+          </div>
+          <div class="join" role="group" aria-label="Image width">
+            {#each WIDTHS as w (w)}
+              <button type="button" class="btn btn-xs join-item {a.width === w && a.align !== 'full' ? 'btn-neutral' : ''}" aria-pressed={a.width === w && a.align !== 'full'} disabled={a.align === 'full'} onmousedown={e => e.preventDefault()} onclick={() => setImage({ width: w })}>{w}%</button>
+            {/each}
+          </div>
+          <input class="input input-xs flex-1 min-w-36" aria-label="Alt text" placeholder="Alt text (describe the image)" maxlength="500" value={a.alt ?? ''} oninput={e => setImage({ alt: e.currentTarget.value })} />
+          <input class="input input-xs flex-1 min-w-36" aria-label="Caption" placeholder="Caption (optional)" maxlength="500" value={a.caption ?? ''} oninput={e => setImage({ caption: e.currentTarget.value || null })} />
+          {#if media?.access.canPick}
+            <button type="button" class="btn btn-ghost btn-xs" onclick={replaceImage}>Replace</button>
+          {/if}
+          <button type="button" class="btn btn-ghost btn-xs text-error" onclick={removeImage}>Remove</button>
+          {#if a.vaultId && media?.isMissing(a.vaultId)}
+            <p class="basis-full text-xs text-warning">This image is no longer available in Vault, so it doesn't show on the site. Replace or remove it.</p>
+          {/if}
+        </div>
+      {/if}
 
       {#if linkOpen}
         <!-- Escape anywhere in the link form closes it and returns to the text -->
@@ -239,6 +352,11 @@
 
   <div bind:this={element}></div>
 
+  {#if media?.uploading}
+    <p class="mt-2 text-xs opacity-70 inline-flex items-center gap-2" role="status" transition:fade={{ duration: ms(150) }}>
+      <span class="loading loading-spinner loading-xs"></span>Uploading {media.uploading} image{media.uploading === 1 ? '' : 's'} to Vault…
+    </p>
+  {/if}
   {#if notice}
     <p class="mt-2 text-xs text-warning" role="status" transition:fade={{ duration: ms(150) }}>{notice}</p>
   {/if}
@@ -254,4 +372,7 @@
     color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
   }
   :global(.cms-editor .ProseMirror-selectednode) { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+  :global(.cms-editor figure[data-cms-image]) { cursor: pointer; }
+  :global(.cms-editor figure[data-missing]) { outline: 2px dashed var(--color-warning); outline-offset: 2px; }
+  :global(.cms-editor figure[data-missing] img) { opacity: 0.35; }
 </style>
