@@ -9,6 +9,13 @@ let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { ok ? pass++ : fail++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${!ok && detail ? `  -- ${detail}` : ''}`); };
 const focused = (p) => p.evaluate(() => (document.activeElement?.getAttribute('aria-label') || document.activeElement?.textContent || '').trim());
 // Svelte 5 runs transitions with the Web Animations API, so a running animation proves one is used
+// Polls until no live (non-inert) element matches: closing elements stay in the DOM, inert, while they animate out
+async function gone(p, sel, ms = 3000) {
+  const end = Date.now() + ms;
+  const none = () => p.evaluate(s => [...document.querySelectorAll(s)].filter(e => !e.closest('[inert]')).length === 0, sel);
+  while (Date.now() < end) { if (await none()) return true; await p.waitForTimeout(100); }
+  return none();
+}
 const animating = (p, sel) => p.evaluate(s => { const el = document.querySelector(s); return !!el && el.getAnimations().length > 0; }, sel);
 
 (async () => {
@@ -38,8 +45,9 @@ const animating = (p, sel) => p.evaluate(s => { const el = document.querySelecto
   check('hovering Team opens a flyout with Board', await page.locator('a[href="/about/team/board"]').isVisible());
   await page.screenshot({ path: `${SHOTS}/s3-flyout.png` });
   await page.mouse.move(1200, 700);
-  await page.waitForTimeout(500);
-  check('moving away closes the dropdown', (await page.locator(dropSel).count()) === 0);
+  // 180 ms close delay plus the scale-out
+  check('moving away closes the dropdown', await gone(page, dropSel));
+  await page.waitForTimeout(300);
 
   // keyboard
   await page.locator('button[aria-label="About submenu"]').focus();
@@ -58,7 +66,7 @@ const animating = (p, sel) => p.evaluate(s => { const el = document.querySelecto
   check('ArrowLeft closes the flyout and refocuses its toggle', (await focused(page)) === 'Team submenu', await focused(page));
   await page.keyboard.press('Escape');
   await page.waitForTimeout(250);
-  check('Escape closes the dropdown and refocuses the About toggle', (await focused(page)) === 'About submenu' && (await page.locator(dropSel).count()) === 0, await focused(page));
+  check('Escape closes the dropdown and refocuses the About toggle', (await focused(page)) === 'About submenu' && await gone(page, dropSel), await focused(page));
   await page.keyboard.press('ArrowRight');
   check('ArrowRight moves along the top row', ['Events'].includes(await focused(page)), await focused(page));
 
@@ -69,7 +77,7 @@ const animating = (p, sel) => p.evaluate(s => { const el = document.querySelecto
   check('label opens on click; external link opens in a new tab', (await donate.getAttribute('target')) === '_blank' && (await donate.getAttribute('rel')) === 'noopener noreferrer');
   await page.mouse.click(5, 790);
   await page.waitForTimeout(250);
-  check('clicking outside closes it', (await page.locator(dropSel).count()) === 0);
+  check('clicking outside closes it', await gone(page, dropSel));
 
   // active trail + breadcrumbs on a level-3 page
   await page.goto(`${BASE}/about/team/board`); await page.waitForLoadState('networkidle');
@@ -103,7 +111,7 @@ const animating = (p, sel) => p.evaluate(s => { const el = document.querySelecto
   check('Resources expands to show Sitemap', await m.locator('#cms-mobile-menu a[href="/resources/sitemap"]').isVisible());
   await m.keyboard.press('Escape');
   await m.waitForTimeout(350);
-  check('Escape closes the drawer and refocuses the menu button', (await m.locator('#cms-mobile-menu').count()) === 0 && (await focused(m)) === 'Open menu', await focused(m));
+  check('Escape closes the drawer and refocuses the menu button', (await gone(m, '#cms-mobile-menu')) && (await focused(m)) === 'Open menu', await focused(m));
   check('scroll lock released', (await m.evaluate(() => document.documentElement.style.overflow)) === '');
   await m.locator('button[aria-label="Open menu"]').click();
   await m.waitForTimeout(350);
@@ -111,7 +119,7 @@ const animating = (p, sel) => p.evaluate(s => { const el = document.querySelecto
   await m.waitForTimeout(300);
   await m.locator('#cms-mobile-menu a[href="/resources/sitemap"]').click();
   await m.waitForURL('**/resources/sitemap'); await m.waitForTimeout(400);
-  check('following a drawer link navigates and closes the drawer', (await m.locator('#cms-mobile-menu').count()) === 0);
+  check('following a drawer link navigates and closes the drawer', await gone(m, '#cms-mobile-menu'));
   await m.screenshot({ path: `${SHOTS}/s3-sitemap-mobile.png`, fullPage: true });
 
   check('no page errors', errors.length === 0, errors.join(' | '));

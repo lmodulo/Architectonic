@@ -12,7 +12,7 @@ This is the master plan for the module, and it stays the source of truth. Each s
 | 1 | Scaffold extension points (candidate + friendsofmcrwr sync) | ☑ 2026-11-13 | [session 1](cms-module-session-1.md) |
 | 2 | CMS API + module skeleton + seed | ☑ 2026-11-13 | [session 2](cms-module-session-2.md) |
 | 3 | Public site: routing, site shell, n-deep menu, text blocks, component registry | ☑ 2026-11-13 | [session 3](cms-module-session-3.md) |
-| 4 | Admin: site tree + block page builder (no images) | ☐ | |
+| 4 | Admin: site tree + block page builder (no images) | ☑ 2026-11-13 | [session 4](cms-module-session-4.md) |
 | 5 | Vault media: picker, aligned images, gallery + lightbox | ☐ | |
 | 6 | Events component, SEO, docs, widget, final test matrix | ☐ | |
 
@@ -291,6 +291,44 @@ a tab bar (`dragScroll`, `tab-scroll`) and `data-no-anim`. Browser calls go thro
   - Store `getJSON()`, never HTML.
   - Block pasted or dropped files, or route them to the upload flow.
 - **Settings** at `/cms/settings`: home page (page nodes only), footer text and links, and the Website Media folder.
+  *(S4)* The Website Media folder field is deferred to S5, with the rest of the Vault work.
+- *(S4) As built:*
+  - **Layout.** `routes/cms/+layout.server.ts` requires `cms_nodes.read`. The preview is `preview/[nodeId]/+page@.svelte`
+    (reset to the root layout, so no admin chrome) and checks `cms_pages.read` itself.
+  - **Tree state** lives in `admin/tree.svelte.ts` (`TreeState`, shared by context). Every write goes to the API, then
+    the whole node list is reloaded, so the tree always shows the stored paths, order and visibility.
+  - **The detail panel opens inline under the selected row** (an accordion, `slide`), not in a side column: the app
+    container is only `max-w-5xl`, and inline works the same on phones. Only one panel is open at a time; switching away
+    from unsaved panel edits asks with `confirm()`.
+  - **Drop zones** are the top 30%, middle and bottom 30% of a row; a link row has no "inside". Keyboard moves are
+    Alt + ↑ ↓ → ← on the row button, plus Move buttons in the panel; focus returns to the moved row and an `aria-live`
+    line announces the new position.
+  - **Slugs.** A draft item's slug follows its title until edited by hand. Changing a published item's slug shows a
+    broken-links warning. Inline validation uses `reservedSlugList()`, which is now this project's routes **plus the
+    API's fixed list** (kept in sync by hand in `reserved.ts`); the Shadowed badge uses `routeSlugList()`, the project's
+    routes only.
+  - The panel also has **Make home page** (pages) and Publish/Unpublish for every type. Publishing a page there
+    publishes its saved draft.
+  - **Builder canvas.** Blocks render with the public `render/` components. Text is edited in place; hero, buttons,
+    divider and component blocks show a live preview (`inert`, so its links can't be followed) with their settings form
+    sliding open underneath while selected. Component blocks run their registry `load` in the browser for the preview.
+    The admin's `PageHeader` holds the page's `h1`, so the canvas renders the page title and a leading hero as `h2`.
+  - **No gallery in the palette until S5**; an existing gallery block shows a placeholder card.
+  - **Autosave**: 1.2 s after the last change, at most 10 s after the first unsaved one. The page compares the JSON it
+    last *sent* (not the sanitized reply) to decide what's unsaved. Fields that editors `bind:` to are filled in on load
+    (`editable()` in `lib/cms/admin.ts`), because `bind:` writes defaults into undefined fields and would make every
+    page look edited on open.
+  - **409**: a modal offers "Load the newer version" (remounts the canvas) or "Replace with my version" (re-saves with
+    the `rev` from the 409 body). Publish sends `rev` too and gets the same prompt.
+  - **Leaving**: `beforeNavigate` cancels, saves, then navigates; if the save fails it asks. Closing or reloading the tab
+    gets the browser's own prompt. Preview opens its tab first (so it isn't blocked as a popup), saves, then loads it.
+  - **Blocks with problems.** `blockProblems()` lists what the sanitizer would drop (an empty button label, a bad URL)
+    in red and warnings in amber, under the block. If a save reports `removed > 0`, a banner says so.
+  - **RichTextEditor** also sets `trailingNode: false` (it appended a paragraph on open, which looked like an edit) and
+    stores links with `target: null` unless "New tab" is ticked. The link form (Ctrl/Cmd + K) offers the site's paths in
+    a `datalist`. After applying, focus goes back with `editor.view.focus()` synchronously: Tiptap's `focus()` waits a
+    frame, and keys typed meanwhile went to the closing form.
+  - **Deleting a block** offers Undo for 8 seconds.
 
 ### 6. Vault media (Session 5)
 
@@ -576,6 +614,14 @@ nodes render nothing until Session 5.
   - Playwright on the dev server: `waitForLoadState('networkidle')` before filling or clicking.
   - curl against form actions: send `accept: text/html`, plus `Origin` for multipart.
   - When switching a project to the prod compose, use `--no-deps`.
+- **Admin API cost (found in S4).** Each proxy call from the browser runs `hooks.server.ts` first, so it costs two API
+  requests (`/auth/me` plus the call). An autosave is 2 and a tree change about 4 (the write, then the list reload).
+  Back-to-back Playwright runs hit the dev limit; `s4-admin.cjs` waits for it to drain.
+- **Rich-text links are plain paths (S4).** Text links store `href: "/about"`, so moving a page breaks links to it from
+  inside text (buttons, heroes and footer links store `{ nodeId }` and follow). Open question for the user.
+- **Playwright and Svelte transitions (found in S4).** Elements that are transitioning out stay in the DOM, marked
+  `inert`, for the duration. Count live elements only (`!el.closest('[inert]')`) and poll rather than sleeping. Wait
+  for a `flip` reorder to settle before starting another drag.
 - **Global search** in candidate is a stub with no module registry, so cms can't register search content. That is out
   of scope.
 - **Existing marketing page bugs.** `+page.svelte` reads a `brand.text` that doesn't exist, and doesn't pass the runtime

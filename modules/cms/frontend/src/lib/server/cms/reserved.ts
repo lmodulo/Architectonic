@@ -21,5 +21,19 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   ...Object.keys(routeFiles).map(firstStaticSegment).filter((s): s is string => s !== null),
 ]);
 
-/** Sorted, for the admin UI's inline validation. */
-export const reservedSlugList = (): string[] => [...RESERVED_SLUGS].sort();
+/**
+ * The API's fixed baseline (api/src/routes/cms/nodes.ts RESERVED_SLUGS). The packages can't share
+ * code, so keep the two lists in sync. The API refuses these even when the module isn't installed.
+ */
+const API_RESERVED_SLUGS = [
+  'api', 'uploads', '_app', 'login', 'register', 'logout', 'forgot-password', 'reset-password',
+  'accept-invite', 'dashboard', 'settings', 'profile', 'messages', 'notifications', 'audit-log',
+  'user-management', 'manage-users', 'roles', '403', 'upcoming-events', 'documentation', 'cms',
+  'shop', 'client-portal', 'vault', 'crm', 'agile', 'folio', 'contracts', 'calendar-events', 'commerce',
+];
+
+/** Every slug a top-level item may not use (this project's routes plus the API's list), sorted, for inline validation. */
+export const reservedSlugList = (): string[] => [...new Set([...RESERVED_SLUGS, ...API_RESERVED_SLUGS])].sort();
+
+/** Top-level segments this project's routes actually serve: a root item with one of these slugs is shadowed. */
+export const routeSlugList = (): string[] => [...RESERVED_SLUGS].filter(s => s !== '_app' && s !== 'api' && s !== 'uploads').sort();

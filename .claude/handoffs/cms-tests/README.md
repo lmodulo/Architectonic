@@ -18,6 +18,16 @@ Run these against a **throwaway** project only (never friendsofmcrwr): they crea
     `frontend/src/routes/s3probe/+page.svelte`
   - deletes what it created
 
+- `s4-admin.cjs [web] [shots] [phases]`: the Session 4 admin exit checks in Playwright, 81 checks in about 6 minutes.
+  - Phases: tree, builder, preview, conflict, guard, moves, settings, roles, mobile, cleanup. They always run in that
+    order, and `tree` first removes a test branch left by an interrupted run.
+  - It builds Programs › Youth › Mentoring from the UI and deletes it in `cleanup`.
+  - It needs `s4viewer`, `s4contrib` and `s4lead` @example.com (roles viewer, contributor and lead), created like the
+    S2 users.
+  - It waits for the rate limit to drain before starting and before each role's login.
+- `s4-shadow.cjs [web] [api]`: project-only reserved slugs and the tree's Shadowed badge. It needs a throwaway route
+  `frontend/src/routes/s4probe/+page.svelte`.
+
 The dev API allows 200 requests and 10 logins per minute, and every SSR call counts (a signed-in page costs about 9).
 Wait about 65 seconds between runs. To count rate-limit hits, use `docker logs <api> | grep -c '"statusCode": 429'`
 (note the space).
