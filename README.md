@@ -520,7 +520,8 @@ node arch.js list                                            # available modules
 node arch.js info calendar-events                            # module manifest
 ```
 
-`arch.js create` copies `candidate/` to `projects/<name>/`, updates the MongoDB database name, and for each module:
+`arch.js create` copies `candidate/` to `projects/<name>/`, updates the MongoDB database name, writes a fresh
+`SESSION_SECRET` and `INTERNAL_API_SECRET` into the project's `.env`, and for each module:
 1. Copies route and frontend files (collision-checked before any write)
 2. Appends nav entries to `frontend/src/lib/config/nav.ts`
 3. Merges resource permissions into `api/src/data/permissions.json` for every role (see `roles` below)
@@ -586,6 +587,7 @@ covers scaffold endpoints.
 | Variable         | Default                  | Notes |
 |------------------|--------------------------|-------|
 | `SESSION_SECRET` | —                        | Required. 64-char hex. |
+| `INTERNAL_API_SECRET` | _(blank)_         | Shared by web and api: the web server sends it with each API call, plus the visitor's address, so the API rate-limits every visitor separately. Blank → all visitors share one limit. At least 32 chars. |
 | `MONGO_DB`       | `appdb`                  | |
 | `WEB_PORT`       | `3000`                   | |
 | `API_PORT`       | `4000`                   | |
@@ -599,7 +601,9 @@ covers scaffold endpoints.
 | `CALENDAR_REMINDER_INTERVAL_MS` | `1800000` | `MODULE: calendar-events` — reminder scheduler poll interval |
 | `SEED_DEMO_DATA` | `false` | `true` loads every installed module's demo data on boot (empty collections only). Leave `false` for real projects. |
 
-Generate `SESSION_SECRET`:
+`node arch.js create` generates a fresh `SESSION_SECRET` and `INTERNAL_API_SECRET` for each new project (and creates
+`.env` from `.env.example` if `candidate/` has no `.env`). For `candidate/` itself, or to rotate a secret, generate one
+with:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
