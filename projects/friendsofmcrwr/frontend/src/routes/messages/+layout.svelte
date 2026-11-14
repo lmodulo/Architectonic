@@ -76,7 +76,9 @@
   }
 </script>
 
-<div class="flex flex-col h-full overflow-hidden gap-4">
+<!-- No overflow-hidden here: it would crop PageHeader's full-width banner to the content column. The
+     two-panel shell below clips its own panels. -->
+<div class="flex flex-col h-full gap-4">
 
   <!-- Header -->
   <div class="shrink-0">
