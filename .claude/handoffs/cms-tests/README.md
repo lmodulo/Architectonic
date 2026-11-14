@@ -68,6 +68,10 @@ Run these against a **throwaway** project only (never friendsofmcrwr): they crea
   session cookie and notifications websocket (new and pre-fix sessions), and the calendar feed around today's date.
   Phases: `idle` (wait first), `direct`, `web`, `ws`, `calendar`; 29 checks in about 5 minutes. It also works against
   the production compose (`direct,web`).
+- `prodws-checks.cjs <web> <api> <compose-project>` (2026-11-14): the production websocket pass-through
+  (`frontend/server.js`) on a calendar-events project started with the production compose only: connect and stay
+  open, a live notification (subscribe admin, create an event), a pre-fix cookie, Origin and path refusals, the
+  handshake counted per visitor, and a prompt `docker stop`. 11 checks in about 2 minutes.
 
 The dev API allows 200 requests and 10 logins per minute **per visitor** (since the 2026-11-14 follow-up; the visitor
 is the address the web server sees, so a test script and its browser share one budget). Every SSR call counts (a

@@ -6,6 +6,9 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Added
+- **Live notifications in production** — adapter-node doesn't handle websocket upgrades, so in production `/notifications/ws` never connected (only Vite's dev proxy passed it through). The production image now runs `frontend/server.js`, which starts adapter-node's own server unchanged and passes `/notifications/ws` through to the API with `INTERNAL_API_SECRET` and the visitor's address. Other upgrade paths get 404 and another site's `Origin` 403 (when `ORIGIN` is set). Open sockets are closed on SIGTERM/SIGINT so shutdown isn't held up.
+
 ### Changed
 - **Rate limit per visitor** — the API's limits (200 requests a minute, 10 logins a minute) used to apply to the web server's one address, so all visitors shared them. The web server now sends `INTERNAL_API_SECRET` and the visitor's address with every server-side API call (`$lib/server/api-identity.ts`, installed in `hooks.server.ts`), and the API keys its limits on that address when the secret matches (`api/src/lib/callerKey.ts`). The web server's own calls outside any request aren't limited. New env var `INTERNAL_API_SECRET` (web and api, in `docker-compose.yml` and `render.yaml`); `arch.js` generates one per project. Without it, behaviour is unchanged.
 
