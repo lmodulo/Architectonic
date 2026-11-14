@@ -63,8 +63,14 @@ Run these against a **throwaway** project only (never friendsofmcrwr): they crea
   With Vault it uses an image from `s5-seed.sh`. It needs the `s5viewer` user. Its test pages are titled "S6 …" and
   are removed at the end (and at the start, if a run was interrupted).
 
-The dev API allows 200 requests and 10 logins per minute, and every SSR call counts (a signed-in page costs about 9).
-Wait about 65 seconds between runs, and run the browser suites one at a time per project: in dev every signed-in
-tab also spends about 60 requests a minute on a reconnecting notifications websocket (a scaffold bug; see the Session 6
-handoff). To count rate-limit hits, use `docker logs <api> | grep -c '"statusCode": 429'`
-(note the space).
+- `followup-checks.cjs <project-dir> [web] [api] [compose-project] [phases]` (follow-up, 2026-11-14): the per-visitor
+  rate limit (direct to the API and through the web server, using a second container as another visitor), the
+  session cookie and notifications websocket (new and pre-fix sessions), and the calendar feed around today's date.
+  Phases: `idle` (wait first), `direct`, `web`, `ws`, `calendar`; 29 checks in about 5 minutes. It also works against
+  the production compose (`direct,web`).
+
+The dev API allows 200 requests and 10 logins per minute **per visitor** (since the 2026-11-14 follow-up; the visitor
+is the address the web server sees, so a test script and its browser share one budget). Every SSR call counts (a
+signed-in page costs about 9). Wait about 65 seconds between runs that each use much of it. The websocket reconnect
+loop that used to add about 60 requests a minute per signed-in tab is fixed. To count rate-limit hits, use
+`docker logs <api> | grep -c '"statusCode": 429'` (note the space).

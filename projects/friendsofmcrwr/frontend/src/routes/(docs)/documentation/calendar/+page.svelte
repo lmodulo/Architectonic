@@ -20,7 +20,7 @@
       <table class="table table-sm w-full">
         <thead><tr class="bg-base-200"><th>Route</th><th>Who</th><th>What it does</th></tr></thead>
         <tbody>
-          <tr><td class="font-mono text-xs">/calendar-events</td><td class="text-sm">Signed-in users</td><td class="text-sm opacity-70">Upcoming events grouped by month, filterable by type, with the notification subscription panel.</td></tr>
+          <tr><td class="font-mono text-xs">/calendar-events</td><td class="text-sm">Signed-in users</td><td class="text-sm opacity-70">Current and upcoming events grouped by month, filterable by type, with the notification subscription panel.</td></tr>
           <tr><td class="font-mono text-xs">/calendar-events/admin</td><td class="text-sm"><code class="bg-base-300 px-1 rounded text-xs">calendar_events.create</code></td><td class="text-sm opacity-70">"Manage Events": month grid or list view, search, type/status filters, and a modal to create, edit, or delete events.</td></tr>
         </tbody>
       </table>
@@ -76,7 +76,7 @@
       <table class="table table-sm w-full">
         <thead><tr class="bg-base-200"><th>Method</th><th>Path</th><th>Access</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/calendar-events/public</td><td class="text-sm">Public</td><td class="text-sm opacity-70">Active, public events (for public pages).</td></tr>
+          <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/calendar-events/public</td><td class="text-sm">Public</td><td class="text-sm opacity-70">Active, public events that haven't ended, up to a year ahead, soonest first (for public pages). Events have no time zone, so one stays listed until its last day is over everywhere.</td></tr>
           <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/calendar-events</td><td class="text-sm">calendar_events.read</td><td class="text-sm opacity-70">List events. Query: type, status, visibility, search, from, to, limit, skip.</td></tr>
           <tr><td><span class="badge badge-sm badge-success">POST</span></td><td class="font-mono text-xs">/calendar-events</td><td class="text-sm">calendar_events.create</td><td class="text-sm opacity-70">Create an event. Body: title, content, eventType, startDate, endDate, singleDay, allDay, location, tags, status, visibility.</td></tr>
           <tr><td><span class="badge badge-sm">GET</span></td><td class="font-mono text-xs">/calendar-events/:id</td><td class="text-sm">calendar_events.read</td><td class="text-sm opacity-70">Get one event.</td></tr>

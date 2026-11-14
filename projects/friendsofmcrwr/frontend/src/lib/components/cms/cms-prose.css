@@ -1,0 +1,77 @@
+/* Shared styles for CMS content: the public site and the page builder's canvas (Session 4) both use
+   this file, so editors see what visitors see. Plain CSS on DaisyUI's theme variables, so it follows
+   the runtime theme. Tailwind's preflight resets margins and list styles; everything is restored here. */
+
+/* Each block contains its own floats (images wrapped by text, Session 5) */
+.cms-block { display: flow-root; }
+
+.cms-prose {
+  color: var(--color-base-content);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+}
+.cms-prose > * + * { margin-top: 1em; }
+
+.cms-prose h2,
+.cms-prose h3,
+.cms-prose h4 { font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
+.cms-prose h2 { font-size: 1.75rem; margin-top: 1.8em; }
+.cms-prose h3 { font-size: 1.375rem; margin-top: 1.6em; }
+.cms-prose h4 { font-size: 1.125rem; margin-top: 1.4em; }
+.cms-prose > :first-child { margin-top: 0; }
+.cms-prose :is(h2, h3, h4) + * { margin-top: 0.6em; }
+
+.cms-prose ul { list-style: disc; padding-left: 1.5em; }
+.cms-prose ol { list-style: decimal; padding-left: 1.5em; }
+.cms-prose li + li { margin-top: 0.35em; }
+.cms-prose li > * + * { margin-top: 0.35em; }
+.cms-prose li::marker { color: color-mix(in oklab, var(--color-base-content) 55%, transparent); }
+
+.cms-prose blockquote {
+  border-left: 4px solid var(--color-primary);
+  padding: 0.25em 0 0.25em 1em;
+  font-style: italic;
+  color: color-mix(in oklab, var(--color-base-content) 85%, transparent);
+}
+.cms-prose blockquote > * + * { margin-top: 0.75em; }
+
+.cms-prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-base-300);
+  margin: 2.25em 0;
+}
+
+/* Primary mixed toward the text colour: plain --color-primary is too dark to read on several dark
+   themes (e.g. business), and this stays recognisably tinted on light ones */
+.cms-prose a {
+  color: color-mix(in oklab, var(--color-primary) 55%, var(--color-base-content));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.cms-prose a:hover { text-decoration-thickness: 2px; }
+.cms-prose strong { font-weight: 700; }
+
+/* Images inside rich text (cmsImage, rendered from Session 5). Floats become full width on phones. */
+.cms-fig { margin: 1.5em 0; }
+.cms-fig img { display: block; width: 100%; height: auto; border-radius: var(--radius-box, 0.75rem); }
+.cms-fig figcaption {
+  margin-top: 0.5em;
+  font-size: 0.875rem;
+  color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+}
+.cms-fig--left  { float: left;  margin: 0.35em 1.5em 1em 0; }
+.cms-fig--right { float: right; margin: 0.35em 0 1em 1.5em; }
+.cms-fig--center { margin-left: auto; margin-right: auto; }
+.cms-fig--full { width: 100%; }
+.cms-fig[data-width='25']  { width: 25%; }
+.cms-fig[data-width='33']  { width: 33.333%; }
+.cms-fig[data-width='50']  { width: 50%; }
+.cms-fig[data-width='100'] { width: 100%; }
+
+@media (max-width: 640px) {
+  .cms-fig--left,
+  .cms-fig--right,
+  .cms-fig[data-width] { float: none; width: 100%; margin: 1.5em 0; }
+}

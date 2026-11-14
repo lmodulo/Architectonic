@@ -15,6 +15,7 @@ This is the master plan for the module, and it stays the source of truth. Each s
 | 4 | Admin: site tree + block page builder (no images) | ☑ 2026-11-13 | [session 4](cms-module-session-4.md) |
 | 5 | Vault media: picker, aligned images, gallery + lightbox | ☑ 2026-11-13 | [session 5](cms-module-session-5.md) |
 | 6 | Events component, SEO, docs, widget, final test matrix | ☑ 2026-11-14 | [session 6](cms-module-session-6.md) |
+| — | Follow-up: merged to `main`; scaffold rate limit + websocket fixes; calendar feed; cms installed in friendsofmcrwr | ☑ 2026-11-14 | [follow-up](cms-module-followup.md) |
 
 ## Goal
 
@@ -38,7 +39,7 @@ website rendered by the same SvelteKit app:
 3. **Block-stack builder** in the Gutenberg/Sanity style: an ordered list of blocks, a "+" inserter between blocks,
    drag to reorder, and editing in place.
 4. **Module only.** Build and verify in throwaway projects. Do **not** install cms into friendsofmcrwr; the user decides
-   that later.
+   that later. *(Done 2026-11-14 at the user's choice, by hand; see the follow-up handoff.)*
 5. **Scaffold edits are synced to friendsofmcrwr** (the byte-identical convention). That is not a cms install: copy the
    changed scaffold files only.
 
@@ -506,8 +507,9 @@ proxies.
   - **Default component.** A new component block or item starts with the first registry entry that has no
     `requires` (`defaultComponent` in `lib/cms/admin.ts`). The registry is in file-name order, so without this the
     default became Events once `events.ts` sorted before `sitemap.ts`, even on sites without the Calendar.
-  - **Same-day gap.** Because events are stored at UTC midnight and the feed wants `startDate > now`, an event also
-    drops off on its own day (from 00:00 UTC), not only once it is in progress.
+  - **Same-day gap (fixed 2026-11-14).** The feed used to want `startDate > now`, so an event dropped off on its own day
+    (from 00:00 UTC) and once it was in progress. calendar-events now lists events until their last day is over
+    everywhere (`endDate > now − 36 h`); cms needed no change.
 
 ### 8. Permissions (`module.json` `roles`, mirrored in `PERMISSIONS.md`)
 
@@ -682,7 +684,8 @@ nodes render nothing until Session 5.
 - **Production rate limit (found in S3).** The API's global limit (200 req/min) is keyed by IP. Every SSR call comes
   from the web container, so **all visitors share one bucket**: about 40 anonymous public page views a minute (around
   5 calls each) exhaust it. After that, site pages answer 503 and signed-in users look logged out. This predates cms
-  but a public site makes it acute. The fix is scaffold-level and awaits the user (session-3 handoff, question 1).
+  but a public site makes it acute. **Fixed 2026-11-14 (scaffold):** the web server sends `INTERNAL_API_SECRET` and
+  the visitor's address, and the API limits each visitor separately (see the follow-up handoff).
 - **Uppercase or dotted URLs** (`/About`, `/favicon.ico`) don't match `cmspath`. With no route, logged-out visitors are
   redirected to `/login` (as for any unknown URL) rather than shown the site's 404.
 - **Dev SSR CSS.** `routes/+page.svelte` imports `ScaffoldHome` statically, so its scoped CSS ships on `/` even when the
@@ -705,13 +708,14 @@ nodes render nothing until Session 5.
   Back-to-back Playwright runs hit the dev limit; `s4-admin.cjs` waits for it to drain.
 - **Rich-text links were plain paths (S4; fixed in S6).** Text links now store `nodeId` too and follow moves. Links
   written before S6 gain their id the next time their page is saved in the builder; until then they are plain paths.
-- **Calendar feed gap (S6).** `/calendar-events/public` returns events with `startDate > now` only, so in-progress
-  events and today's events (stored at UTC midnight) are not listed. A fix belongs in calendar-events; raised with the
-  user.
+- **Calendar feed gap (S6; fixed 2026-11-14).** `/calendar-events/public` returned events with `startDate > now` only,
+  so in-progress and same-day events were missing. It now lists events until they end.
 - **Notifications websocket loop in dev (found in S6; scaffold, not cms).** The browser's session cookie is
   double-encoded by SvelteKit's `cookies.set`, so `/notifications/ws` gets 4401 and the client reconnects every second
   (about 60 API requests a minute per signed-in tab). It is the main reason browser suites hit the dev rate limit when
-  run together. Reported to the user (session-6 handoff); run the Playwright suites one at a time until it's fixed.
+  run together. **Fixed 2026-11-14 (scaffold):** login and register store the cookie as the API sent it, and the
+  client stops on 4401. Sessions created before the fix still work for pages; their socket gives up until the next
+  sign-in.
 - **Canonical URLs need `ORIGIN` (S6).** They use `page.url.origin`, which adapter-node takes from `ORIGIN`
   (`http://localhost:<WEB_PORT>` in the compose file). A production deployment must set it to the public address.
 - **Playwright and Svelte transitions (found in S4).** Elements that are transitioning out stay in the DOM, marked
@@ -735,8 +739,9 @@ nodes render nothing until Session 5.
 
 ## Conventions you must follow in this repo
 
-- **Three copies stay byte-identical:** `candidate/`, `modules/<m>/` and `projects/friendsofmcrwr/`. The cms module
-  itself is **not** installed in friendsofmcrwr (decision 4). Scaffold edits are synced to it (decision 5).
+- **Three copies stay byte-identical:** `candidate/`, `modules/<m>/` and `projects/friendsofmcrwr/`. Since 2026-11-14
+  the cms module **is** installed in friendsofmcrwr, so cms changes are synced there too. Scaffold edits are synced to
+  it (decision 5).
   - Intentional friendsofmcrwr-only differences: `frontend/src/lib/config/nav.ts`,
     `frontend/src/lib/config/dashboard-widgets.ts`, `frontend/src/routes/+layout.svelte`, `docker-compose.yml`, `.env*`,
     and `api/src/data/permissions.json`.

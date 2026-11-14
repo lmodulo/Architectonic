@@ -5,6 +5,7 @@ import AgileDashboardWidget from '$lib/components/agile/AgileDashboardWidget.sve
 import FolioDashboardWidget from '$lib/components/folio/FolioDashboardWidget.svelte';
 import ContractsDashboardWidget from '$lib/components/contracts/ContractsDashboardWidget.svelte';
 import VaultDashboardWidget from '$lib/components/vault/VaultDashboardWidget.svelte';
+import CmsDashboardWidget from '$lib/components/cms/admin/CmsDashboardWidget.svelte';
 
 export interface DashboardWidget {
   component: Component;
@@ -20,4 +21,5 @@ export const dashboardWidgets: DashboardWidget[] = [
   { component: FolioDashboardWidget, permission: { resource: 'finance_invoices', action: 'read' }, order: 40 },
   { component: ContractsDashboardWidget, permission: { resource: 'contracts', action: 'read' }, order: 50 },
   { component: VaultDashboardWidget, permission: { resource: 'vault_documents', action: 'read' }, order: 60 },
+  { component: CmsDashboardWidget, permission: { resource: 'cms_nodes', action: 'read' }, order: 80 },
 ];

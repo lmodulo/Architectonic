@@ -209,6 +209,24 @@
       "read": true,
       "update": true,
       "delete": true
+    },
+    "cms_nodes": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    },
+    "cms_pages": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    },
+    "cms_publish": {
+      "create": false,
+      "read": false,
+      "update": true,
+      "delete": false
     }
   },
   "admin": {
@@ -421,6 +439,24 @@
       "read": true,
       "update": true,
       "delete": true
+    },
+    "cms_nodes": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    },
+    "cms_pages": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": true
+    },
+    "cms_publish": {
+      "create": false,
+      "read": false,
+      "update": true,
+      "delete": false
     }
   },
   "lead": {
@@ -631,6 +667,24 @@
     "vault_folders": {
       "create": true,
       "read": true,
+      "update": true,
+      "delete": false
+    },
+    "cms_nodes": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": false
+    },
+    "cms_pages": {
+      "create": true,
+      "read": true,
+      "update": true,
+      "delete": false
+    },
+    "cms_publish": {
+      "create": false,
+      "read": false,
       "update": true,
       "delete": false
     }
@@ -845,6 +899,24 @@
       "read": true,
       "update": false,
       "delete": false
+    },
+    "cms_nodes": {
+      "create": false,
+      "read": true,
+      "update": false,
+      "delete": false
+    },
+    "cms_pages": {
+      "create": false,
+      "read": true,
+      "update": true,
+      "delete": false
+    },
+    "cms_publish": {
+      "create": false,
+      "read": false,
+      "update": false,
+      "delete": false
     }
   },
   "viewer": {
@@ -1057,6 +1129,24 @@
       "read": true,
       "update": false,
       "delete": false
+    },
+    "cms_nodes": {
+      "create": false,
+      "read": true,
+      "update": false,
+      "delete": false
+    },
+    "cms_pages": {
+      "create": false,
+      "read": true,
+      "update": false,
+      "delete": false
+    },
+    "cms_publish": {
+      "create": false,
+      "read": false,
+      "update": false,
+      "delete": false
     }
   },
   "customer": {
@@ -1265,6 +1355,24 @@
       "delete": false
     },
     "agile_comments": {
+      "create": false,
+      "read": false,
+      "update": false,
+      "delete": false
+    },
+    "cms_nodes": {
+      "create": false,
+      "read": false,
+      "update": false,
+      "delete": false
+    },
+    "cms_pages": {
+      "create": false,
+      "read": false,
+      "update": false,
+      "delete": false
+    },
+    "cms_publish": {
       "create": false,
       "read": false,
       "update": false,

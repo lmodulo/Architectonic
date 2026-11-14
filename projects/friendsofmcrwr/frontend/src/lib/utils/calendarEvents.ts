@@ -29,7 +29,9 @@ export function fmtDateRange(ev: { startDate: string; endDate: string; singleDay
   }
   const end = new Date(ev.endDate + 'T00:00:00');
   if (start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()) {
-    return `${start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { day: 'numeric', year: 'numeric' })}`;
+    // "Wednesday, November 11 – 15, 2026". Intl can't format a day and year without the month (it gave
+    // "2026 (day: 15)"), so the end is put together by hand.
+    return `${start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} – ${end.getDate()}, ${end.getFullYear()}`;
   }
   return `${start.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
 }

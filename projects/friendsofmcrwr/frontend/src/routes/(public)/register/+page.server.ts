@@ -57,6 +57,9 @@ export const actions: Actions = {
       const match = setCookieHeader.match(/^session=([^;]+)/);
       if (match) {
         cookies.set('session', match[1], {
+          // Stored exactly as the API sent it (already URL-encoded). Encoding it again broke the
+          // notifications websocket, which sends the browser's copy straight to the API.
+          encode:   (v) => v,
           path:     '/',
           httpOnly: true,
           sameSite: 'lax',

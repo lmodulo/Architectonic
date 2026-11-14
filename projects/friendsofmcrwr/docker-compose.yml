@@ -10,6 +10,8 @@ services:
       - API_URL=http://api:4000
       # adapter-node rejects request bodies over 512K by default; match the API's 10 MB upload limit
       - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT:-10M}
+      # Shared with the api service: lets the API rate-limit each visitor instead of the web server as a whole
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-}
       - PUBLIC_STRIPE_PUBLISHABLE_KEY=${PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
     depends_on:
       api:
@@ -27,6 +29,7 @@ services:
       - PORT=4000
       - MONGO_URI=mongodb://mongo:27017/${MONGO_DB:-appdb}
       - SESSION_SECRET=${SESSION_SECRET}
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-}
       - FRONTEND_ORIGIN=http://localhost:${WEB_PORT:-3000}
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-587}

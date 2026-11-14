@@ -13,6 +13,7 @@ import { Receipt } from 'lucide-svelte';
 import { FileText } from 'lucide-svelte';
 import { ClipboardList } from 'lucide-svelte';
 import { FolderLock } from 'lucide-svelte';
+import { LayoutTemplate } from 'lucide-svelte';
 import { Files } from 'lucide-svelte';
 import type { Component } from 'svelte';
 import { m } from '$lib/paraglide/messages.js';
@@ -50,6 +51,7 @@ export const navItems: NavEntry[] = [
   { label: m.nav_dashboard(),     href: '/dashboard',           icon: House },
   // { label: m.nav_messages(),      href: '/messages',            icon: Mail,  matchPrefix: true },
   { label: m.nav_audit_log(),     href: '/audit-log',           icon: History,    permission: { resource: 'audit',      action: 'read' } },
+  { label: 'Content', href: '/cms', icon: LayoutTemplate, permission: { resource: 'cms_nodes', action: 'read' }, matchPrefix: true },
   // { label: 'Agile', href: '/agile', icon: Milestone, permission: { resource: 'agile_milestones', action: 'read' } },
   { label: 'Projects', href: '/client-portal/projects', icon: FolderKanban, permission: { resource: 'agile_milestones', action: 'read' }, matchPrefix: true, customerOnly: true },
   { label: 'Calendar', href: '/calendar-events', icon: CalendarDays },
