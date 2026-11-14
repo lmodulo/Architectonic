@@ -12,7 +12,7 @@ function mapEvent(d: Record<string, unknown>) {
 
 export default async function calendarEventsRoutes(app: FastifyInstance) {
 
-  // GET /calendar-events/public — no auth, upcoming public events
+  // GET /calendar-events/public — no auth, public events that haven't ended yet, soonest first
   // Must be registered before /:id
   app.get('/public', async (req) => {
     const db  = app.mongo.db!;
@@ -23,8 +23,21 @@ export default async function calendarEventsRoutes(app: FastifyInstance) {
     const filter: Record<string, unknown> = {
       status:     'active',
       visibility: 'public',
-      startDate:  { $gt: from ? new Date(from) : now, $lt: to ? new Date(to) : max },
+      startDate:  { $lt: to ? new Date(to) : max },
     };
+    if (from) {
+      // An explicit range: events starting after `from`
+      (filter.startDate as Record<string, unknown>).$gt = new Date(from);
+    } else {
+      // Events are date-only, stored at UTC midnight with no time zone, so an event stays listed until its
+      // last day is over everywhere ("anywhere on Earth", UTC-12): 36 hours after that day's UTC midnight.
+      // In-progress and same-day events therefore stay listed; nobody sees one drop off before its day ends.
+      const ended = new Date(now.getTime() - 36 * 60 * 60 * 1000);
+      filter.$or = [
+        { endDate: { $gt: ended } },
+        { endDate: null, startDate: { $gt: ended } },
+      ];
+    }
     if (type) filter.eventType = type;
 
     const docs = await db.collection(COL).find(filter).sort({ startDate: 1 }).toArray();

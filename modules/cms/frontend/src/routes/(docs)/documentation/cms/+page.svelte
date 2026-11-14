@@ -116,7 +116,7 @@
       </table>
     </div>
     <p class="text-sm opacity-70 leading-relaxed">
-      The events list comes from the Calendar's public feed, which only includes events that are active, public and start after the current moment. An event that has already started, including one on today's date, is not listed.
+      The events list comes from the Calendar's public feed: active, public events up to a year ahead that haven't ended. Today's events and events already under way are listed too. Events have no time zone, so one stays listed until its last day is over everywhere.
     </p>
     <p class="text-sm opacity-70 leading-relaxed">Another module can add a component by shipping its own file in that folder. The entry's shape:</p>
     <pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto leading-relaxed"><code>export default &#123;
