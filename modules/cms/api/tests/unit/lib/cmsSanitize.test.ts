@@ -26,6 +26,14 @@ describe('sanitizeDoc', () => {
     expect(out.content![0].content![0].marks).toEqual([{ type: 'link', attrs: { href: '/a', target: '_blank' } }]);
   });
 
+  it('keeps a valid page nodeId on links and drops an invalid one', () => {
+    const mark = (attrs: Record<string, unknown>) => sanitizeDoc(doc(para({ type: 'text', text: 'x', marks: [{ type: 'link', attrs }] }))).content![0].content![0].marks;
+    expect(mark({ href: '/about', nodeId: 'b'.repeat(24) })).toEqual([{ type: 'link', attrs: { href: '/about', target: null, nodeId: 'b'.repeat(24) } }]);
+    expect(mark({ href: '/about', nodeId: 'not-an-id' })).toEqual([{ type: 'link', attrs: { href: '/about', target: null } }]);
+    // A nodeId doesn't excuse an unsafe href: the mark is still dropped
+    expect(mark({ href: 'javascript:alert(1)', nodeId: 'b'.repeat(24) })).toBeUndefined();
+  });
+
   it('drops unknown nodes and marks', () => {
     const out = sanitizeDoc(doc(
       { type: 'iframe', attrs: { src: 'https://x' } },
@@ -133,9 +141,10 @@ describe('collectRefs', () => {
       { type: 'buttons', data: { items: [{ label: 'b', link: { nodeId: '3'.repeat(24) } }] } },
       { type: 'richText', data: { doc: doc({ type: 'cmsImage', attrs: { vaultId: '4'.repeat(24), src: '/b' } }) } },
       { type: 'gallery', data: { images: [{ vaultId: '5'.repeat(24), src: '/c' }] } },
+      { type: 'richText', data: { doc: doc(para({ type: 'text', text: 'y', marks: [{ type: 'bold' }, { type: 'link', attrs: { href: '/d', nodeId: '6'.repeat(24) } }] }, linked('/plain'))) } },
     ] });
     const refs = collectRefs(blocks);
-    expect([...refs.nodeIds].sort()).toEqual(['1'.repeat(24), '3'.repeat(24)]);
+    expect([...refs.nodeIds].sort()).toEqual(['1'.repeat(24), '3'.repeat(24), '6'.repeat(24)]);
     expect([...refs.vaultIds].sort()).toEqual(['2'.repeat(24), '4'.repeat(24), '5'.repeat(24)]);
   });
 });

@@ -1,5 +1,6 @@
 // Session 5 exit checks: Vault images in the CMS (throwaway project with --modules cms,vault only).
-// Usage: node s5-media.cjs [web] [api] [image-dir] [screenshot-dir]
+// Usage: node s5-media.cjs [web] [api] [image-dir] [screenshot-dir] [mongo-container]
+// (mongo-container defaults to s5-check-mongo-1; with `docker compose -p <name>` it is <name>-mongo-1)
 // Needs s5-seed.sh to have run (Photos folder, River…Portrait, Wide hero, an SVG, an admin-only image)
 // and the users s5lead / s5contrib / s5viewer @example.com. Creates a top-level page /photo-test and
 // deletes it at the end. It deletes Park from Vault and re-uploads it at the end; its other Vault
@@ -11,7 +12,7 @@ const WEB = process.argv[2] || 'http://localhost:3002';
 const API = process.argv[3] || 'http://localhost:4002';
 const IMG = process.argv[4] || '.';
 const SHOTS = process.argv[5] || require('os').tmpdir();
-const MONGO = 's5-check-mongo-1';
+const MONGO = process.argv[6] || 's5-check-mongo-1';
 let pass = 0, fail = 0;
 const check = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${n}${!ok && d ? `  -- ${d}` : ''}`); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -350,7 +351,9 @@ const longText = n => Array.from({ length: n }, (_, i) => `Sentence ${i + 1} abo
   const vr = await fetch(`${API}/cms/media`, { headers: { cookie: viewer.headers.get('set-cookie').split(';')[0] } });
   check('API: a viewer can\'t browse media (no cms_pages.update)', vr.status === 403, vr.status);
 
-  // Settings: the Website Media folder field
+  // Settings: the Website Media folder field. The role logins above each land on the dashboard, which on a project
+  // with many modules spends dozens of API calls: let the dev rate-limit window pass first.
+  await sleep(60000);
   await go(page, '/cms/settings');
   check('settings show the upload folder', (await page.getByLabel('Vault folder for uploads').inputValue()) === site.id);
 

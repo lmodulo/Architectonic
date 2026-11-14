@@ -1,7 +1,7 @@
 #!/bin/bash
 # Session 2 web-side checks: the /api/cms proxy and the placeholder /cms page.
 BASE=http://localhost:3002
-SP=${TMPDIR:-/tmp}/cms-s2-web; mkdir -p $SP
+SP=${TMPDIR:-/tmp}/cms-s2-web-${BASE##*:}; mkdir -p $SP
 J=$SP/jars2; mkdir -p $J
 login() { rm -f $J/$2.txt; curl -s -o /dev/null -c $J/$2.txt -X POST "$BASE/login" -H "Origin: $BASE" -H 'accept: text/html' \
   -H 'content-type: application/x-www-form-urlencoded' --data-urlencode "email=$1" --data-urlencode "password=$3" -w "login $2 -> %{http_code} %{redirect_url}\n"; }

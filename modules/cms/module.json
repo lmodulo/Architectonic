@@ -10,6 +10,14 @@
       "matchPrefix": true
     }
   ],
+  "widgets": [
+    {
+      "component": "CmsDashboardWidget",
+      "import": "$lib/components/cms/admin/CmsDashboardWidget.svelte",
+      "permission": "cms_nodes.read",
+      "order": 80
+    }
+  ],
   "permissions": [
     {
       "resource": "cms_nodes",

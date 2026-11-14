@@ -9,7 +9,7 @@
   import { ArrowLeft, Eye, Check, CloudOff, SlidersHorizontal, ExternalLink, TriangleAlert } from 'lucide-svelte';
   import Modal from '$lib/components/Modal.svelte';
   import { hasPermission } from '$lib/permissions';
-  import { blockProblems, cmsApi, editable, editorLinkMap, linkTargets } from '$lib/cms/admin';
+  import { blockProblems, cmsApi, editable, editorLinkMap, pageLinks } from '$lib/cms/admin';
   import { ms } from '$lib/cms/motion';
   import BlockEditor from '$lib/components/cms/admin/BlockEditor.svelte';
   import MediaPicker from '$lib/components/cms/admin/MediaPicker.svelte';
@@ -27,11 +27,11 @@
   let nodes = $state.raw<CmsNode[]>(untrack(() => data.nodes));
   const node = $derived(nodes.find(n => n.id === nodeId));
   const links = $derived(editorLinkMap(nodes));
-  const pagePaths = $derived(linkTargets(nodes).map(t => ({ path: t.path, title: t.label.replace(/^(— )+/, '') })));
+  const pagePaths = $derived(pageLinks(nodes));
 
   // Vault images: what may be picked or uploaded, and which of the page's images can be shown
   const media = setMediaContext(untrack(() => new MediaContext(mediaAccess(page.data.user), data.page.media ?? {})));
-  const initial = untrack(() => editable(data.page.draft, data.page.media));
+  const initial = untrack(() => editable(data.page.draft, data.page.media, data.nodes));
   let blocks = $state<Block[]>(initial.blocks);
   let seo = $state<Seo>(initial.seo);
   let rev = untrack(() => data.page.rev);
@@ -129,7 +129,7 @@
     if (!res.ok || !res.data) { saveError = res.message; return; }
     clearTimeout(timer);
     media.known = { ...media.known, ...(res.data.media ?? {}) };
-    const latest = editable(res.data.draft, res.data.media);
+    const latest = editable(res.data.draft, res.data.media, nodes);
     blocks = latest.blocks;
     seo = latest.seo;
     savedJson = JSON.stringify({ blocks, seo });

@@ -16,7 +16,9 @@ const text = (t: string, marks?: string[]): TiptapNode => ({ type: 'text', text:
 const p = (...parts: (string | TiptapNode)[]): TiptapNode => ({ type: 'paragraph', content: parts.map(x => typeof x === 'string' ? text(x) : x) });
 const h = (level: 2 | 3, t: string): TiptapNode => ({ type: 'heading', attrs: { level }, content: [text(t)] });
 const ul = (...items: string[]): TiptapNode => ({ type: 'bulletList', content: items.map(i => ({ type: 'listItem', content: [p(i)] })) });
-const link = (t: string, href: string): TiptapNode => ({ type: 'text', text: t, marks: [{ type: 'link', attrs: { href, target: null } }] });
+// A text link; with `nodeId` it points at a site page and follows it if the page moves
+const link = (t: string, href: string, nodeId?: ObjectId): TiptapNode =>
+  ({ type: 'text', text: t, marks: [{ type: 'link', attrs: { href, target: null, ...(nodeId ? { nodeId: nodeId.toString() } : {}) } }] });
 const richText = (...content: TiptapNode[]) => ({ id: randomUUID(), type: 'richText', data: { doc: { type: 'doc', content } } });
 
 export default async function seed({ db, now, users }: DemoContext): Promise<void> {
@@ -60,7 +62,7 @@ export default async function seed({ db, now, users }: DemoContext): Promise<voi
           h(2, 'What we do'),
           p('We are a volunteer-led charity. Every pound raised and every hour given stays in Riverbend.'),
           ul('A weekly community pantry, open to everyone', 'Homework clubs in three primary schools', 'Tree planting and the riverside clean-up'),
-          p('New volunteers are always welcome. ', link('Read our story', '/about/history'), ' or come along to an event.'),
+          p('New volunteers are always welcome. ', link('Read our story', '/about/history', id.history), ' or come along to an event.'),
         ),
         { id: randomUUID(), type: 'divider', data: { style: 'space', size: 'md' } },
         { id: randomUUID(), type: 'buttons', data: { align: 'center', items: [

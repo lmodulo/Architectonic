@@ -1,7 +1,10 @@
 <script lang="ts">
   // Settings for a component block: which registry entry, and its props.
   import { TriangleAlert } from 'lucide-svelte';
-  import { blockComponents, defaultProps } from '$lib/cms/admin';
+  import { slide } from 'svelte/transition';
+  import { page } from '$app/state';
+  import { blockComponents, defaultProps, missingModule, missingModuleText } from '$lib/cms/admin';
+  import { ms } from '$lib/cms/motion';
   import { CMS_COMPONENTS } from '$lib/cms/components';
   import PropsEditor from './PropsEditor.svelte';
   import type { ComponentData } from '$lib/cms/types';
@@ -12,6 +15,7 @@
   const entries = blockComponents();
   const entry = $derived(CMS_COMPONENTS[data.key]);
   const usable = $derived(!!entry && entry.modes.includes('block'));
+  const missing = $derived(usable ? missingModule(entry, page.data.user) : null);
 
   function choose(key: string) {
     data.key = key;
@@ -28,6 +32,9 @@
     </select>
     {#if entry}<p class="text-xs opacity-60">{entry.description}</p>{/if}
   </div>
+  {#if missing}
+    <p class="text-sm text-warning flex items-start gap-2" transition:slide={{ duration: ms(200) }}><TriangleAlert class="size-4 shrink-0 mt-0.5" />{missingModuleText(entry?.label ?? data.key, missing)}</p>
+  {/if}
   {#if !entries.length}
     <p class="text-sm opacity-70 flex items-start gap-2"><TriangleAlert class="size-4 shrink-0 mt-0.5" />No components that can be placed on a page are installed.</p>
   {/if}

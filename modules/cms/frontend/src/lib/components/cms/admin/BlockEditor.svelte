@@ -4,7 +4,7 @@
   import { tick } from 'svelte';
   import { slide, fade } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { duplicateBlock, newBlock, type BlockAction } from '$lib/cms/admin';
+  import { duplicateBlock, newBlock, type BlockAction, type PageLink } from '$lib/cms/admin';
   import { ms } from '$lib/cms/motion';
   import BlockCard from './BlockCard.svelte';
   import BlockInserter from './BlockInserter.svelte';
@@ -16,7 +16,7 @@
     readonly: boolean;
     nodes: CmsNode[];
     links: Record<string, string>;
-    pagePaths: { path: string; title: string }[];
+    pagePaths: PageLink[];
     toolbarTop: string;
     pageTitle: string;
   } = $props();

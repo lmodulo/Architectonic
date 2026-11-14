@@ -34,7 +34,7 @@ Run these against a **throwaway** project only (never friendsofmcrwr): they crea
   - an admin-only image
 
   Make the images with Pillow (snippet in the Session 5 handoff).
-- `s5-media.cjs [web] [api] [image-dir] [shots]`: the Session 5 exit checks, 65 in about 4 minutes, on a
+- `s5-media.cjs [web] [api] [image-dir] [shots] [mongo-container]` (the container defaults to `s5-check-mongo-1`): the Session 5 exit checks, 65 in about 5 minutes, on a
   `--modules cms,vault` project after `s5-seed.sh`. It covers:
   - what the API lists, and the crafted-reference guards
   - picker uploads and limits
@@ -48,7 +48,23 @@ Run these against a **throwaway** project only (never friendsofmcrwr): they crea
   the end, so it can run again.
 - `s5-novault.cjs [web] [api]`: a `--modules cms` project without Vault: image actions are hidden with the install
   hint, and everything else works (14 checks).
+- `s6-checks.cjs [web] [api] [shots] [phases]`: the Session 6 checks, in about 7 minutes (it waits 60 s between
+  phases for the rate limit). It detects whether
+  calendar-events and Vault are installed and checks the matching behaviour (54 checks with both, 41 with neither).
+  Phases: `links`, `events`, `seo`, `docs`, `widget`.
+  - links: text links store the page id, follow a move without republishing, go plain when the page is unpublished
+    or deleted, and old path-only links pick up the id on the next save; clicking a link in the editor stays put
+  - events: the public page and blocks (limit, type filter, month headings, plain-text descriptions), the same dates
+    after client navigation in a UTC+14 browser, the admin preview; without the Calendar module, the "unavailable"
+    text and the admin warning
+  - seo: description (and its fallback), robots, canonical, `og:*` and the share image, previews, client navigation
+  - docs and widget: the documentation page and index, the dashboard counts for admin and viewer
+
+  With Vault it uses an image from `s5-seed.sh`. It needs the `s5viewer` user. Its test pages are titled "S6 …" and
+  are removed at the end (and at the start, if a run was interrupted).
 
 The dev API allows 200 requests and 10 logins per minute, and every SSR call counts (a signed-in page costs about 9).
-Wait about 65 seconds between runs. To count rate-limit hits, use `docker logs <api> | grep -c '"statusCode": 429'`
+Wait about 65 seconds between runs, and run the browser suites one at a time per project: in dev every signed-in
+tab also spends about 60 requests a minute on a reconnecting notifications websocket (a scaffold bug; see the Session 6
+handoff). To count rate-limit hits, use `docker logs <api> | grep -c '"statusCode": 429'`
 (note the space).

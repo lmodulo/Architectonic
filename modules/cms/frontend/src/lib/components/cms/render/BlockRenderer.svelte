@@ -28,7 +28,7 @@
       </div>
     {:else if block.type === 'richText'}
       <div class="cms-block cms-block--richText w-full max-w-3xl mx-auto px-4">
-        <RichTextRenderer doc={block.data.doc} {media} />
+        <RichTextRenderer doc={block.data.doc} {media} {links} />
       </div>
     {:else if block.type === 'gallery'}
       <div class="cms-block cms-block--gallery w-full max-w-5xl mx-auto px-4">

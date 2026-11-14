@@ -18,6 +18,8 @@
   import { ms } from '$lib/cms/motion';
   import { getMediaContext } from '$lib/cms/media.svelte';
   import { CmsImage } from '$lib/cms/tiptap/CmsImage';
+  import { LinkNode } from '$lib/cms/tiptap/LinkNode';
+  import { pageForHref, type PageLink } from '$lib/cms/admin';
   import type { CmsImageAttrs, ImageRef, TiptapNode } from '$lib/cms/types';
 
   let { doc, onchange, active = false, readonly = false, pagePaths = [], toolbarTop = '0px' }: {
@@ -26,8 +28,8 @@
     /** the block is selected: show the toolbar */
     active?: boolean;
     readonly?: boolean;
-    /** site paths offered in the link field */
-    pagePaths?: { path: string; title: string }[];
+    /** site pages offered in the link field; a link to one stores its nodeId and follows it when it moves */
+    pagePaths?: PageLink[];
     /** sticky offset for the toolbar (below the builder's own sticky bar) */
     toolbarTop?: string;
   } = $props();
@@ -46,6 +48,10 @@
   let linkNewTab = $state(false);
   let linkError = $state('');
   let linkInput: HTMLInputElement | undefined = $state();
+  /** the page an existing link pointed at when the form opened, and the URL shown for it */
+  let linkWas = $state<{ nodeId: string; shown: string } | null>(null);
+  // The page the typed URL means, if any (the link then stores its nodeId)
+  const linkPage = $derived(linkOpen ? (linkWas && linkUrl.trim() === linkWas.shown ? pagePaths.find(p => p.id === linkWas!.nodeId) : pageForHref(linkUrl.trim(), pagePaths)) : undefined);
 
   function say(message: string) {
     notice = message;
@@ -106,12 +112,21 @@
           },
         }),
         Placeholder.configure({ placeholder: 'Write something…' }),
+        LinkNode,
         CmsImage.configure({ isMissing: id => media?.isMissing(id) ?? false }),
       ],
       content: doc,
       editorProps: {
         attributes: { class: 'cms-prose cms-editor outline-none', 'aria-label': 'Text', 'aria-multiline': 'true', role: 'textbox' },
         handlePaste: (_view, event) => takeFiles(event.clipboardData, null),
+        // Links in the text are for editing, not following: SvelteKit's router handles any click on
+        // an <a> (contenteditable or not) unless the click was cancelled, and would leave the builder
+        handleDOMEvents: {
+          click: (_view, event) => {
+            if ((event.target as Element | null)?.closest?.('a[href]')) event.preventDefault();
+            return false;
+          },
+        },
         // `moved`: an image dragged within the text, which ProseMirror handles itself
         handleDrop: (view, event, _slice, moved) => {
           if (moved) return false;
@@ -139,7 +154,10 @@
   function openLink() {
     if (!editor) return;
     const attrs = editor.getAttributes('link');
-    linkUrl = typeof attrs.href === 'string' ? attrs.href : '';
+    // A link to a site page shows the page's current path
+    const current = typeof attrs.nodeId === 'string' ? pagePaths.find(p => p.id === attrs.nodeId) : undefined;
+    linkUrl = current?.path ?? (typeof attrs.href === 'string' ? attrs.href : '');
+    linkWas = typeof attrs.nodeId === 'string' ? { nodeId: attrs.nodeId, shown: linkUrl } : null;
     linkNewTab = attrs.target === '_blank';
     linkError = '';
     linkOpen = true;
@@ -153,13 +171,20 @@
     const href = safeHref(linkUrl);
     if (!href) { linkError = 'Enter a URL starting with https://, http://, mailto:, tel:, / or #.'; return; }
     const target = linkNewTab ? '_blank' : null;
+    // An unchanged link keeps its page even if that page has since been deleted (the block warns)
+    const nodeId = linkPage?.id ?? (linkWas && href === linkWas.shown ? linkWas.nodeId : null);
+    const attrs = { href, target, nodeId };
     if (editor.state.selection.empty && !editor.isActive('link')) {
-      editor.chain().insertContent({ type: 'text', text: href, marks: [{ type: 'link', attrs: { href, target } }] }).run();
+      editor.chain().insertContent({ type: 'text', text: linkPage?.title ?? href, marks: [{ type: 'link', attrs }] }).run();
     } else {
       // Then put the caret after the link: left selected, the next keystroke would replace it
-      editor.chain().extendMarkRange('link').setLink({ href, target }).run();
+      // (setLink's type only lists href, target, rel and class; nodeId is added by LinkNode)
+      editor.chain().extendMarkRange('link').setLink(attrs as { href: string }).run();
       editor.commands.setTextSelection(editor.state.selection.to);
     }
+    // The link mark is inclusive (autolink needs that), so without this the next words typed would
+    // join the link. With an empty selection unsetMark only drops it from the marks being typed.
+    editor.commands.unsetMark('link');
     linkOpen = false;
     // Synchronously: Tiptap's focus() waits a frame, and keys typed meanwhile would land in the closing form
     editor.view.focus();
@@ -335,7 +360,7 @@
             aria-invalid={!!linkError}
           />
           <datalist id="{uid}-paths">
-            {#each pagePaths as p (p.path)}<option value={p.path}>{p.title}</option>{/each}
+            {#each pagePaths as p (p.id)}<option value={p.path}>{p.title}</option>{/each}
           </datalist>
           <label class="flex items-center gap-1.5 text-xs cursor-pointer">
             <input type="checkbox" class="checkbox checkbox-xs" bind:checked={linkNewTab} /> New tab
@@ -345,6 +370,9 @@
             <button type="button" class="btn btn-ghost btn-xs" onclick={removeLink}><Link2Off class="size-3.5" />Remove</button>
           {/if}
           {#if linkError}<p class="basis-full text-xs text-error" transition:slide={{ duration: ms(200) }}>{linkError}</p>{/if}
+          {#if linkPage}
+            <p class="basis-full text-xs opacity-70" transition:slide={{ duration: ms(200) }}>Links to the page “{linkPage.title}”. The link follows it if the page moves.</p>
+          {/if}
         </form>
       {/if}
     </div>

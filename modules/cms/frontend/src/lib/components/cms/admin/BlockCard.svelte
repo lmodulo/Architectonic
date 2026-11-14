@@ -4,7 +4,7 @@
   // delete) appears on hover, on focus, and while the block is selected.
   import { slide } from 'svelte/transition';
   import { GripVertical, ArrowUp, ArrowDown, Copy, Trash2, CircleAlert, TriangleAlert } from 'lucide-svelte';
-  import { BLOCK_LABELS, blockProblems, type BlockAction } from '$lib/cms/admin';
+  import { BLOCK_LABELS, blockProblems, type BlockAction, type PageLink } from '$lib/cms/admin';
   import { ms } from '$lib/cms/motion';
   import HeroBlock from '../render/HeroBlock.svelte';
   import ButtonsBlock from '../render/ButtonsBlock.svelte';
@@ -31,7 +31,7 @@
     nodes: CmsNode[];
     /** nodeId → URL for every item, so the canvas shows links to drafts too */
     links: Record<string, string>;
-    pagePaths: { path: string; title: string }[];
+    pagePaths: PageLink[];
     toolbarTop: string;
     dropZone: 'before' | 'after' | null;
     dragging: boolean;

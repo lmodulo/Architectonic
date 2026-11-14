@@ -3,7 +3,7 @@
   // until it is edited by hand; reserved and duplicate slugs are flagged before anything is sent.
   import { onMount } from 'svelte';
   import { slide } from 'svelte/transition';
-  import { cmsApi, defaultProps, pageComponents, pathFor, slugProblem } from '$lib/cms/admin';
+  import { cmsApi, defaultComponent, defaultProps, pageComponents, pathFor, slugProblem } from '$lib/cms/admin';
   import { safeHref, toSlug } from '$lib/cms/links';
   import { ms } from '$lib/cms/motion';
   import { getTreeState } from './tree.svelte';
@@ -22,7 +22,7 @@
   let slugEdited = $state(false);
   let url = $state('');
   let newTab = $state(false);
-  let componentKey = $state(components[0]?.key ?? '');
+  let componentKey = $state(defaultComponent(components)?.key ?? '');
   let error = $state('');
   let saving = $state(false);
   let touched = $state(false);

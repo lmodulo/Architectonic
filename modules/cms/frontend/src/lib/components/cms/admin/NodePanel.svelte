@@ -6,7 +6,8 @@
   import {
     ArrowUp, ArrowDown, ListIndentIncrease, ListIndentDecrease, Pencil, Eye, ExternalLink, House, Trash2, TriangleAlert,
   } from 'lucide-svelte';
-  import { cmsApi, defaultProps, pageComponents, pathFor, slugProblem, type TreeItem } from '$lib/cms/admin';
+  import { page } from '$app/state';
+  import { cmsApi, defaultComponent, defaultProps, missingModule, missingModuleText, pageComponents, pathFor, slugProblem, type TreeItem } from '$lib/cms/admin';
   import { CMS_COMPONENTS } from '$lib/cms/components';
   import { safeHref, toSlug } from '$lib/cms/links';
   import { ms } from '$lib/cms/motion';
@@ -54,6 +55,7 @@
   const valid = $derived(!titleError && !slugError && !urlError && !componentError);
   const entry = $derived(form.type === 'component' ? CMS_COMPONENTS[form.componentKey] : undefined);
   const unknownComponent = $derived(form.type === 'component' && !!form.componentKey && !entry);
+  const missing = $derived(missingModule(entry, page.data.user));
   const slugChanged = $derived(node.status === 'published' && node.type !== 'link' && form.slug !== saved.slug);
 
   function onTitle(v: string) {
@@ -64,9 +66,10 @@
   function onType(t: NodeType) {
     form.type = t;
     if (t !== 'link' && !form.slug) { form.slug = toSlug(form.title); slugFollows = node.status === 'draft'; }
-    if (t === 'component' && !form.componentKey && components[0]) {
-      form.componentKey = components[0].key;
-      form.props = defaultProps(components[0].props);
+    const first = defaultComponent(components);
+    if (t === 'component' && !form.componentKey && first) {
+      form.componentKey = first.key;
+      form.props = defaultProps(first.props);
     }
   }
 
@@ -227,6 +230,9 @@
       </div>
       {#if unknownComponent}
         <p class="text-sm text-warning flex items-start gap-2"><TriangleAlert class="size-4 shrink-0 mt-0.5" />No component called "{form.componentKey}" is installed, so this page shows only its title on the site.</p>
+      {/if}
+      {#if entry && missing}
+        <p class="text-sm text-warning flex items-start gap-2" transition:slide={{ duration: ms(200) }}><TriangleAlert class="size-4 shrink-0 mt-0.5" />{missingModuleText(entry.label, missing)}</p>
       {/if}
       {#if entry?.props?.length}
         <PropsEditor specs={entry.props} props={form.props} disabled={readonly} onchange={p => (form.props = p)} />

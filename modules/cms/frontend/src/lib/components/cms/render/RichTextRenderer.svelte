@@ -4,13 +4,21 @@
   // hrefs are re-checked even though the API sanitized them on save.
   // Images (cmsImage) render from the page's media map, which holds only Vault images that may be
   // shown: one that is missing from it (deleted, admin-only, no longer an image) is left out.
+  // A link to a site page (a `nodeId` on the link) takes its URL from the page's `links` map, so it
+  // follows the page when it moves; if the page isn't public, the text shows without a link.
   import '$lib/components/cms/cms-prose.css';
   import { safeHref } from '$lib/cms/links';
   import type { CmsImageAttrs, MediaMap, TiptapNode } from '$lib/cms/types';
 
   type Mark = NonNullable<TiptapNode['marks']>[number];
 
-  let { doc, media = {} }: { doc: TiptapNode | undefined; media?: MediaMap } = $props();
+  let { doc, media = {}, links = {} }: { doc: TiptapNode | undefined; media?: MediaMap; links?: Record<string, string> } = $props();
+
+  /** The href for a link mark: a page's current URL, else the stored URL; undefined renders no link. */
+  function hrefOf(m: Mark): string | undefined {
+    const id = m.attrs?.nodeId;
+    return typeof id === 'string' ? safeHref(links[id]) : safeHref(m.attrs?.href);
+  }
 
   const ALIGNS = ['left', 'right', 'center', 'full'];
   const WIDTHS = [25, 33, 50, 100];
@@ -58,6 +66,6 @@
 {/snippet}
 
 <!-- Marks nest outermost-first, as Tiptap stores them -->
-{#snippet marked(text: string, marks: Mark[], i: number)}{#if i >= marks.length}{text}{:else if marks[i].type === 'bold'}<strong>{@render marked(text, marks, i + 1)}</strong>{:else if marks[i].type === 'italic'}<em>{@render marked(text, marks, i + 1)}</em>{:else if marks[i].type === 'underline'}<u>{@render marked(text, marks, i + 1)}</u>{:else if marks[i].type === 'strike'}<s>{@render marked(text, marks, i + 1)}</s>{:else if marks[i].type === 'link' && safeHref(marks[i].attrs?.href)}{@const blank = marks[i].attrs?.target === '_blank'}<a href={safeHref(marks[i].attrs?.href)} target={blank ? '_blank' : undefined} rel={blank ? 'noopener noreferrer' : undefined}>{@render marked(text, marks, i + 1)}</a>{:else}{@render marked(text, marks, i + 1)}{/if}{/snippet}
+{#snippet marked(text: string, marks: Mark[], i: number)}{#if i >= marks.length}{text}{:else if marks[i].type === 'bold'}<strong>{@render marked(text, marks, i + 1)}</strong>{:else if marks[i].type === 'italic'}<em>{@render marked(text, marks, i + 1)}</em>{:else if marks[i].type === 'underline'}<u>{@render marked(text, marks, i + 1)}</u>{:else if marks[i].type === 'strike'}<s>{@render marked(text, marks, i + 1)}</s>{:else if marks[i].type === 'link' && hrefOf(marks[i])}{@const blank = marks[i].attrs?.target === '_blank'}<a href={hrefOf(marks[i])} target={blank ? '_blank' : undefined} rel={blank ? 'noopener noreferrer' : undefined}>{@render marked(text, marks, i + 1)}</a>{:else}{@render marked(text, marks, i + 1)}{/if}{/snippet}
 
 <div class="cms-prose">{@render children(doc?.content)}</div>

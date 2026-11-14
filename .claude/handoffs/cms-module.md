@@ -14,7 +14,7 @@ This is the master plan for the module, and it stays the source of truth. Each s
 | 3 | Public site: routing, site shell, n-deep menu, text blocks, component registry | ☑ 2026-11-13 | [session 3](cms-module-session-3.md) |
 | 4 | Admin: site tree + block page builder (no images) | ☑ 2026-11-13 | [session 4](cms-module-session-4.md) |
 | 5 | Vault media: picker, aligned images, gallery + lightbox | ☑ 2026-11-13 | [session 5](cms-module-session-5.md) |
-| 6 | Events component, SEO, docs, widget, final test matrix | ☐ | |
+| 6 | Events component, SEO, docs, widget, final test matrix | ☑ 2026-11-14 | [session 6](cms-module-session-6.md) |
 
 ## Goal
 
@@ -133,6 +133,9 @@ workspace-scoped.
   ```
   The `cmsImage` node inside rich text has the attributes
   `{ vaultId, src, alt, caption?, align: 'left'|'right'|'center'|'full', width: 25|33|50|100, w, h }`.
+  *(S6)* A `link` mark inside rich text is `{ href, target, nodeId? }`. With `nodeId` it points at a site page: the
+  public URL comes from the page's `links` map, so it follows moves like a `LinkRef`, and `href` is only the editor's
+  copy of the path.
 
 ### 3. API (`modules/cms/api/src/routes/cms/`; Fastify autoload)
 
@@ -174,6 +177,8 @@ Slugs come from `candidate/api/src/lib/slug.ts` `toSlug()`.
   - Cap document depth and size.
   - Link hrefs must match `^(https?:|mailto:|tel:|\/(?![/\\])|#)` (case-insensitive) with no whitespace or control
     characters, otherwise the link mark is removed. *(S2)* This also rejects `/\host`, which browsers treat as `//host`.
+    *(S6)* A link mark keeps `nodeId` when it is a 24-hex id (a bad one is dropped silently, the href stays), and
+    `collectRefs` gathers text links' nodeIds too, so `resolve`, previews and the publish warnings cover them.
   - Image attributes must match the `cmsImage` schema.
 - **Reserved slugs, API baseline:** `api, uploads, _app, login, register, logout, forgot-password, reset-password,
   accept-invite, dashboard, settings, profile, messages, notifications, audit-log, user-management, manage-users, roles,
@@ -246,6 +251,14 @@ Slugs come from `candidate/api/src/lib/slug.ts` `toSlug()`.
   - *(S3)* `CmsPage` (in `render/`) is shared by the catch-all route, the home override and the S4 preview. It
     renders the node title as the `h1` unless the first block is a hero, in which case the hero title is the `h1`. It
     also sets `<title>` to `{seo.title || node.title} · {brandName || appName}`; S6 adds the meta tags.
+  - *(S6) Head tags* (`lib/cms/seo.ts` `pageMeta`): `description` (the SEO description, else the first hero's
+    subtitle, else the start of the first text block, clipped at a word to 160), `robots: noindex` when hidden from
+    search engines, `canonical` and `og:url` (`page.url.origin` + the node's public path, so production needs the web
+    service's `ORIGIN` set to the public address), `og:type/title/site_name/description`, `og:image` (+ alt, width,
+    height) from `view.media[seo.image.vaultId]` made absolute, and `twitter:card` (`summary_large_image` with an
+    image). Previews have no canonical and keep their own single `noindex, nofollow`.
+  - *(S6)* `RichTextRenderer` takes `links`: a link mark with `nodeId` uses `links[nodeId]`, and renders as plain text
+    when the page isn't public (buttons are left out in that case).
   - *(S3)* Heroes are full-bleed. Rich text, buttons and dividers sit in a `max-w-3xl` column and component blocks in
     `max-w-5xl`. Breadcrumbs (shown at depth 2 and below) use the `max-w-3xl` column too.
   - *(S3)* Until S5, gallery blocks and `cmsImage` nodes render nothing, and a hero image is ignored.
@@ -329,6 +342,16 @@ a tab bar (`dragScroll`, `tab-scroll`) and `data-no-anim`. Browser calls go thro
     a `datalist`. After applying, focus goes back with `editor.view.focus()` synchronously: Tiptap's `focus()` waits a
     frame, and keys typed meanwhile went to the closing form.
   - **Deleting a block** offers Undo for 8 seconds.
+  - *(S6) Text links to pages.* `LinkNode` (`lib/cms/tiptap/LinkNode.ts`) adds a `nodeId` attribute to StarterKit's
+    link mark through `addGlobalAttributes`. The link form matches the typed path against the site's pages
+    (`pageForHref`; `/` stays a plain URL, meaning "the home page"), says "Links to the page “About”. The link follows
+    it if the page moves.", and stores the id. A new link typed with nothing selected is inserted with the page's
+    title. An existing link shows its page's current path. `editable(content, media, nodes)` refreshes those paths on
+    load and gives older path-only links their page id, so they follow from the next save. A link whose page was
+    deleted gets a block warning.
+  - *(S6) Two editor fixes.* Clicks on links inside the editor are cancelled (SvelteKit's router followed them and
+    left the builder). After applying a link, the link mark is dropped from the typing marks, so the next words don't
+    join it (the mark is inclusive because of autolink).
 
 ### 6. Vault media (Session 5)
 
@@ -465,6 +488,26 @@ proxies.
   - Block props: `limit` and `eventType`.
   - **Known gap:** the endpoint filters `status: 'active', visibility: 'public', startDate > now`, so events already in
     progress are skipped. Raise this with the user; any fix belongs in the calendar-events module.
+- *(S6) As built:*
+  - **Files.** `lib/config/cms-components/events.ts` (the entry), `lib/cms/events.ts` (`loadEvents`, `htmlToText`,
+    date formatting, `EVENT_TYPES`) and `site/EventsComponent.svelte`.
+  - **Data.** The load keeps id, title, a plain-text summary (tags stripped, entities decoded, 600 characters), type,
+    start and end days (`YYYY-MM-DD`) and location, sorts by start then title, and applies `limit` (1–50, default 10).
+    `eventType` is passed to the feed as `?type=`; the options are the Calendar's four built-in types plus "Every type".
+  - **Dates are formatted in UTC.** Calendar events are date-only (`<input type="date">`, stored as UTC midnight), so
+    UTC shows the date the editor chose and renders the same on the server and in any browser time zone.
+  - **Layout.** As a page: month headings (`h2`) over lists of events (`h3` titles); as a block, one list (summaries
+    clamped to two lines). Each event has a date badge (decorative), the date range (`<time datetime>`), location,
+    summary, and its type unless it's a plain event. The list is `max-w-[46rem]`, the content width of the title and
+    text column.
+  - **`requires`.** Registry entries may declare `requires: { resource, module }`. The admin's component editor and the
+    tree item panel warn when the signed-in user's permissions don't list `resource` (the same "installed" test as
+    Vault): `"Events" needs the Calendar module, which isn't installed, so it says it's unavailable on the site.`
+  - **Default component.** A new component block or item starts with the first registry entry that has no
+    `requires` (`defaultComponent` in `lib/cms/admin.ts`). The registry is in file-name order, so without this the
+    default became Events once `events.ts` sorted before `sitemap.ts`, even on sites without the Calendar.
+  - **Same-day gap.** Because events are stored at UTC midnight and the feed wants `startDate > now`, an event also
+    drops off on its own day (from 00:00 UTC), not only once it is in progress.
 
 ### 8. Permissions (`module.json` `roles`, mirrored in `PERMISSIONS.md`)
 
@@ -485,7 +528,9 @@ If needed, set viewer explicitly. Public pages need no permissions.
 
 `module.json`:
 - nav: `[{ "label": "Content", "href": "/cms", "icon": "LayoutTemplate", "permission": "cms_nodes.read", "matchPrefix": true }]`
-- widgets: `CmsDashboardWidget` (Session 6, wraps `ModuleStatsWidget`), `order` 80
+- widgets: `CmsDashboardWidget` (Session 6, wraps `ModuleStatsWidget`), `order` 80. *(S6)* It lives in
+  `components/cms/admin/`, needs `cms_nodes.read`, and shows "Live pages" and "Not live" (page and component items,
+  by `visible`), both counted from `/api/cms/nodes`.
 - dependencies: none expected; Tiptap is already in candidate
 - seed: `api/src/seeds/80-cms.ts`
 
@@ -503,6 +548,7 @@ modules/cms/
   api/tests/unit/lib/{cmsSanitize,cmsTree}.test.ts      (S2; copied into projects' api/tests)
   frontend/src/params/cmspath.ts
   frontend/src/lib/cms/{types.ts, tiptap/CmsImage.ts}
+  frontend/src/lib/cms/{admin,components,links,media.svelte,menuKeys,motion,events,seo}.ts   tiptap/LinkNode.ts   (S3–S6)
   frontend/src/lib/config/module-routes/cms.ts
   frontend/src/lib/config/module-docs/cms.ts
   frontend/src/lib/config/module-home/cms.svelte
@@ -657,8 +703,17 @@ nodes render nothing until Session 5.
 - **Admin API cost (found in S4).** Each proxy call from the browser runs `hooks.server.ts` first, so it costs two API
   requests (`/auth/me` plus the call). An autosave is 2 and a tree change about 4 (the write, then the list reload).
   Back-to-back Playwright runs hit the dev limit; `s4-admin.cjs` waits for it to drain.
-- **Rich-text links are plain paths (S4).** Text links store `href: "/about"`, so moving a page breaks links to it from
-  inside text (buttons, heroes and footer links store `{ nodeId }` and follow). Open question for the user.
+- **Rich-text links were plain paths (S4; fixed in S6).** Text links now store `nodeId` too and follow moves. Links
+  written before S6 gain their id the next time their page is saved in the builder; until then they are plain paths.
+- **Calendar feed gap (S6).** `/calendar-events/public` returns events with `startDate > now` only, so in-progress
+  events and today's events (stored at UTC midnight) are not listed. A fix belongs in calendar-events; raised with the
+  user.
+- **Notifications websocket loop in dev (found in S6; scaffold, not cms).** The browser's session cookie is
+  double-encoded by SvelteKit's `cookies.set`, so `/notifications/ws` gets 4401 and the client reconnects every second
+  (about 60 API requests a minute per signed-in tab). It is the main reason browser suites hit the dev rate limit when
+  run together. Reported to the user (session-6 handoff); run the Playwright suites one at a time until it's fixed.
+- **Canonical URLs need `ORIGIN` (S6).** They use `page.url.origin`, which adapter-node takes from `ORIGIN`
+  (`http://localhost:<WEB_PORT>` in the compose file). A production deployment must set it to the public address.
 - **Playwright and Svelte transitions (found in S4).** Elements that are transitioning out stay in the DOM, marked
   `inert`, for the duration. Count live elements only (`!el.closest('[inert]')`) and poll rather than sleeping. Wait
   for a `flip` reorder to settle before starting another drag.
@@ -716,6 +771,9 @@ nodes render nothing until Session 5.
   `timeout`. Run `npx svelte-kit sync` before `npx svelte-check`.
 - **Test scripts.** `.claude/handoffs/cms-tests/` holds the reusable throwaway-project checks (Session 2 API matrix,
   web/proxy checks); see its README. Add each session's scripts there.
+  - *(S6)* Two projects can be tested at once (they have separate APIs and rate limits). The shell sweeps keep their
+    files in a folder per port; Playwright contexts are isolated anyway. Expect more rate-limit waits on a project
+    with many modules: its dashboard alone spends dozens of API calls.
 - **Known noise.** The `candidate/api` roles test logs one `ERR_HTTP_HEADERS_SENT`. The friendsofmcrwr API `tsc` has
   about 598 baseline errors, so compare counts rather than expecting zero.
 

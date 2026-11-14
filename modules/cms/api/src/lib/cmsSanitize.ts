@@ -151,7 +151,10 @@ function sanitizeMarks(marks: unknown, report: Report): TiptapNode['marks'] {
       const attrs = isObj(m.attrs) ? m.attrs : {};
       const href = safeHref(attrs.href);
       if (!href) { report.drop(); continue; }
-      out.push({ type: 'link', attrs: { href, target: attrs.target === '_blank' ? '_blank' : null } });
+      // `nodeId`: a link to a site page. The public URL comes from the page's `links` map at read
+      // time, so it follows the page when it moves; `href` is only the editor's copy of the path.
+      const nodeId = typeof attrs.nodeId === 'string' && OBJECT_ID.test(attrs.nodeId) ? attrs.nodeId : null;
+      out.push({ type: 'link', attrs: { href, target: attrs.target === '_blank' ? '_blank' : null, ...(nodeId ? { nodeId } : {}) } });
     } else {
       out.push({ type: m.type });
     }
@@ -351,7 +354,10 @@ export function sanitizePage(input: { blocks?: unknown; seo?: unknown }): { bloc
   return { blocks, seo, removed: report.removed };
 }
 
-/** Every `{ nodeId }` link and every Vault image id referenced by a page, for read-time resolution. */
+/**
+ * Every `{ nodeId }` link (buttons, hero buttons, and links inside text) and every Vault image id
+ * referenced by a page, for read-time resolution.
+ */
 export function collectRefs(blocks: Block[]): { nodeIds: Set<string>; vaultIds: Set<string> } {
   const nodeIds = new Set<string>();
   const vaultIds = new Set<string>();
@@ -359,6 +365,7 @@ export function collectRefs(blocks: Block[]): { nodeIds: Set<string>; vaultIds: 
   const img = (i: unknown) => { if (isObj(i) && typeof i.vaultId === 'string') vaultIds.add(i.vaultId); };
   const walkDoc = (n: TiptapNode) => {
     if (n.type === 'cmsImage') img(n.attrs);
+    n.marks?.forEach(m => { if (m.type === 'link') link(m.attrs); });
     n.content?.forEach(walkDoc);
   };
   for (const b of blocks) {

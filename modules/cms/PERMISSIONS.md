@@ -21,3 +21,7 @@ Notes:
 - `cms_pages.create` and `cms_pages.delete` are declared for completeness; page documents are created and removed
   with their tree item (`cms_nodes.create` / `cms_nodes.delete`).
 - The public site (`/cms/site/*`) needs no permissions and only returns published content.
+- Images come from the Vault module and also need its permissions: choosing images needs `vault_documents.read`
+  (plus `cms_pages.update`), uploading needs `vault_documents.create`, and creating the "Website Media" folder needs
+  `vault_folders.create`. Without them the image actions are hidden or say why.
+- The `events` component reads the Calendar module's public feed, which needs no permissions.

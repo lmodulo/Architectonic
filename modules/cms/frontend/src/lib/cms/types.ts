@@ -216,5 +216,10 @@ export interface CmsComponentEntry {
   props?: PropSpec[];
   /** page mode: `/events/<anything>` resolves to this node and passes the remainder as `rest` */
   subpaths?: boolean;
+  /**
+   * Another module the component reads from. The admin warns when it isn't installed, judged by
+   * whether the signed-in user's permissions list `resource` (as for Vault).
+   */
+  requires?: { resource: string; module: string };
   load?: (ctx: CmsComponentLoadContext) => Promise<unknown>;
 }

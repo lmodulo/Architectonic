@@ -3,7 +3,7 @@
 // session cookie and passes the API's status and message through.
 import { safeHref } from './links';
 import { CMS_COMPONENTS, componentFor } from './components';
-import type { Block, BlockType, CmsNode, ImageRef, LinkRef, MediaMap, PropSpec, Seo, TiptapNode } from './types';
+import type { Block, BlockType, CmsComponentEntry, CmsNode, ImageRef, LinkRef, MediaMap, PropSpec, Seo, TiptapNode } from './types';
 
 // ── API ─────────────────────────────────────────────────────────────────────────────────────
 
@@ -110,6 +110,22 @@ export function editorLinkMap(nodes: CmsNode[]): Record<string, string> {
   return Object.fromEntries(nodes.filter(n => n.type !== 'link' && n.href).map(n => [n.id, n.href!]));
 }
 
+/** A site page a text link can point at: `path` is its current public URL ('/' for the home page). */
+export interface PageLink { id: string; path: string; title: string }
+
+/** Pages for the text link field, in tree order. */
+export function pageLinks(nodes: CmsNode[]): PageLink[] {
+  return linkTargets(nodes).map(t => ({ id: t.id, path: t.path, title: t.label.replace(/^(— )+/, '') }));
+}
+
+/**
+ * The page a typed URL means, so the link stores its nodeId and follows the page when it moves.
+ * `/` is left as a plain URL: it means "the home page", whichever page that is.
+ */
+export function pageForHref(href: string, pages: PageLink[]): PageLink | undefined {
+  return href === '/' ? undefined : pages.find(p => p.path === href);
+}
+
 export function linkProblem(link: LinkRef | undefined, nodes: CmsNode[]): string | null {
   if (!link) return 'Choose a page or enter a URL.';
   if ('nodeId' in link) {
@@ -133,6 +149,26 @@ export function blockId(): string {
 export const blockComponents = () => Object.values(CMS_COMPONENTS).filter(e => e.modes.includes('block'));
 export const pageComponents = () => Object.values(CMS_COMPONENTS).filter(e => e.modes.includes('page'));
 
+/**
+ * The component a new block or item starts with: the first that needs no other module (it works on
+ * every site), else the first. The registry is in file-name order, so this keeps it from depending on
+ * which optional components happen to sort first.
+ */
+export const defaultComponent = (list: CmsComponentEntry[]): CmsComponentEntry | undefined => list.find(e => !e.requires) ?? list[0];
+
+/**
+ * The module a registry entry needs but this site doesn't have, judged by the signed-in user's
+ * permissions (a module's resources are listed there once it's installed), or null.
+ */
+export function missingModule(entry: CmsComponentEntry | undefined, user: { permissions?: Record<string, unknown> } | null | undefined): string | null {
+  if (!entry?.requires) return null;
+  return entry.requires.resource in (user?.permissions ?? {}) ? null : entry.requires.module;
+}
+
+/** The admin's warning for a component whose module is missing. */
+export const missingModuleText = (label: string, module: string) =>
+  `"${label}" needs the ${module} module, which isn't installed, so it says it's unavailable on the site.`;
+
 export function defaultProps(specs: PropSpec[] | undefined): Record<string, unknown> {
   return Object.fromEntries((specs ?? []).filter(s => s.default !== undefined).map(s => [s.name, s.default]));
 }
@@ -146,7 +182,7 @@ export function newBlock(type: BlockType): Block {
     case 'divider':  return { id, type, data: { style: 'line', size: 'md' } };
     case 'gallery':  return { id, type, data: { images: [], columns: 3, aspect: 'square', gap: 'md' } };
     case 'component': {
-      const entry = blockComponents()[0];
+      const entry = defaultComponent(blockComponents());
       return { id, type, data: { key: entry?.key ?? '', props: defaultProps(entry?.props) } };
     }
   }
@@ -156,12 +192,21 @@ export function newBlock(type: BlockType): Block {
  * Fills optional fields the editors bind to. Svelte's `bind:` writes an input's value back when the
  * bound field is undefined, which would make a page look edited the moment it opens.
  */
-export function editable(content: { blocks: Block[]; seo: Seo }, media: MediaMap = {}): { blocks: Block[]; seo: Seo } {
+export function editable(content: { blocks: Block[]; seo: Seo }, media: MediaMap = {}, nodes: CmsNode[] = []): { blocks: Block[]; seo: Seo } {
   // Images show their current Vault version in the editor (the stored src is only a preview hint)
   const fresh = <T extends ImageRef>(r: T): T => (media[r.vaultId] ? { ...r, src: media[r.vaultId].url } : r);
+  // Text links to site pages show the page's current path. Older links that are a plain copy of a
+  // page's path get its nodeId, so they follow the page from the next save on.
+  const pages = pageLinks(nodes);
+  const link = (attrs: Record<string, unknown>): Record<string, unknown> => {
+    const id = typeof attrs.nodeId === 'string' ? attrs.nodeId : null;
+    const target = id ? pages.find(p => p.id === id) : typeof attrs.href === 'string' ? pageForHref(attrs.href, pages) : undefined;
+    return target ? { ...attrs, href: target.path, nodeId: target.id } : attrs;
+  };
   const walk = (n: TiptapNode): TiptapNode => ({
     ...n,
     ...(n.type === 'cmsImage' && n.attrs ? { attrs: fresh(n.attrs as unknown as ImageRef) as unknown as Record<string, unknown> } : {}),
+    ...(n.marks ? { marks: n.marks.map(m => (m.type === 'link' && m.attrs ? { ...m, attrs: link(m.attrs) } : m)) } : {}),
     ...(n.content ? { content: n.content.map(walk) } : {}),
   });
   const blocks = plain(content.blocks).map((b): Block => {
@@ -197,12 +242,18 @@ export function blockProblems(b: Block, nodes: CmsNode[], known?: MediaMap): { e
   };
   if (b.type === 'richText') {
     const found: { vaultId: string; alt?: string }[] = [];
+    const lost = new Set<string>();
     const walk = (n: TiptapNode) => {
       if (n.type === 'cmsImage' && n.attrs) found.push(n.attrs as { vaultId: string; alt?: string });
+      for (const m of n.marks ?? []) {
+        const id = m.type === 'link' ? m.attrs?.nodeId : undefined;
+        if (typeof id === 'string' && !nodes.some(x => x.id === id && x.type !== 'link')) lost.add(id);
+      }
       n.content?.forEach(walk);
     };
     walk(b.data.doc);
     images(found, true);
+    if (lost.size) warnings.push(`${lost.size === 1 ? 'A link' : `${lost.size} links`} in this text ${lost.size === 1 ? 'points' : 'point'} to a page that no longer exists, so ${lost.size === 1 ? 'it shows' : 'they show'} as plain text on the site. Edit or remove ${lost.size === 1 ? 'it' : 'them'}.`);
   } else if (b.type === 'gallery') {
     if (!b.data.images.length) warnings.push('Add some images.');
     images(b.data.images, true);

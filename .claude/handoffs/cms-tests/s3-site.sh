@@ -3,7 +3,8 @@
 # Needs the cms demo seed and two extra users, s3viewer@example.com / s3customer@example.com,
 # whose password hash is copied from admin@example.com.
 BASE=${1:-http://localhost:3002}
-SP=${TMPDIR:-/tmp}/cms-s3-site; mkdir -p $SP
+# One work folder per port: cookie jars ignore the port, so parallel runs must not share them
+SP=${TMPDIR:-/tmp}/cms-s3-site-${BASE##*:}; mkdir -p $SP
 J=$SP/jars; mkdir -p $J
 pass=0; fail=0
 

@@ -5,7 +5,8 @@
 # The reserved check expects a throwaway route at frontend/src/routes/s3probe/+page.svelte.
 WEB=${1:-http://localhost:3002}; API=${2:-http://localhost:4002}; SHOTS=${3:-${TMPDIR:-/tmp}}
 HERE=$(cd "$(dirname "$0")" && pwd)
-SP=${TMPDIR:-/tmp}/cms-s3-extra; mkdir -p $SP
+# One work folder per port: cookie jars ignore the port, so parallel runs must not share them
+SP=${TMPDIR:-/tmp}/cms-s3-extra-${WEB##*:}; mkdir -p $SP
 pass=0; fail=0
 ok() { if [ "$2" = "$3" ]; then pass=$((pass+1)); echo "PASS  $1"; else fail=$((fail+1)); echo "FAIL  $1  -- got '$2', want '$3'"; fi; }
 jget() { python3 -c "import json,sys; d=json.load(sys.stdin); print(eval(sys.argv[1]))" "$1"; }
