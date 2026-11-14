@@ -139,11 +139,41 @@ On production, the first `direct` run counted 198 instead of 201 because the rea
 host's budget (by design); the rerun from an idle minute passed 9/9. Typing the two new rate-limit callbacks with
 `FastifyRequest` added errors (the scaffold's Fastify types don't resolve), so they use a small structural type.
 
-## Still open
+## Still open (when this handoff was first written)
 
-1. Merge `post-cms-fixes` into `main` (and push either branch)? Not done without asking.
-2. Live notifications in production need the websocket proxied (adapter-node doesn't). Pre-existing.
-3. `arch.js` copies `SESSION_SECRET` from `candidate/.env` into every project; it could generate one, as it now does
-   for `INTERNAL_API_SECRET`.
-4. From before: `ORIGIN` must be the public address in production (canonical URLs); the prod uploads permission bug
-   (user fixing separately); `/uploads/` has no auth; no thumbnails.
+1. ~~Merge `post-cms-fixes` into `main`~~: done, see below.
+2. ~~Live notifications in production~~: done, see below.
+3. ~~`arch.js` copies `SESSION_SECRET`~~: done, see below.
+4. From before: `ORIGIN` must be the public address in production (canonical URLs, and now the websocket's Origin
+   check); the prod uploads permission bug (user fixing separately); `/uploads/` has no auth; no thumbnails.
+5. Nothing is pushed.
+
+## Addendum (same day): the user said yes to all three
+
+- **Merged:** `main` fast-forwarded to `900cacc` (`post-cms-fixes`). Not pushed.
+- **Branch `prod-ws-and-session-secret`** (from `main`; not merged, not pushed):
+
+| Commit | What |
+|---|---|
+| `00e2971` | scaffold: live notifications in production (websocket pass-through) |
+| `d21ec79` | arch.js: generate `SESSION_SECRET` per project |
+
+**Production websocket.** `candidate/frontend/server.js` imports adapter-node's `build/index.js` (which exports its
+server; so `PORT`, `HOST`, `ORIGIN`, `ADDRESS_HEADER`, graceful shutdown etc. are unchanged) and handles `upgrade`
+for `/notifications/ws` only: it forwards the handshake to `API_URL` with `INTERNAL_API_SECRET` and the visitor's
+address (worked out as adapter-node does), relays the 101 and pipes both ways. Other paths get 404; an `Origin` that
+isn't `ORIGIN` gets 403 (skipped when `ORIGIN` is unset or the client sends none); a non-101 answer from the API
+(e.g. 429) is passed on; open sockets are destroyed on SIGTERM/SIGINT. The Dockerfile copies it and runs
+`node server.js`. Dev still uses Vite's proxy. Synced to friendsofmcrwr, which runs the dev compose, so nothing
+changed there at runtime and it wasn't restarted.
+
+**`arch.js` secrets.** Each new project gets a fresh `SESSION_SECRET` and `INTERNAL_API_SECRET`. With no
+`candidate/.env` (a fresh clone), it creates the project's `.env` from `.env.example` first. README updated.
+
+**Tests** (throwaway `pws-test`, `--modules calendar-events`, production compose only; torn down):
+
+| Check | Result |
+|---|---|
+| `prodws-checks.cjs` | 11/11 on the first run: connects and stays open; a notification for a newly created event arrives live and the bell updates without a reload; a pre-fix cookie is refused once, not retried; foreign Origin 403, own Origin 101, other path 404; with the host's budget used up its handshake gets 429 while another container's gets 101; `docker stop` with a socket open takes 0.2 s; the web container comes back after `docker start` |
+| `arch.js` on this repo | the project's `SESSION_SECRET` is fresh (not `candidate/.env`'s), both secrets 64-hex, each once |
+| `arch.js` on a fresh clone (copy without `candidate/.env`) | `.env` created from `.env.example`; both secrets filled; the module's env var still appended; no placeholder left |

@@ -16,6 +16,7 @@ This is the master plan for the module, and it stays the source of truth. Each s
 | 5 | Vault media: picker, aligned images, gallery + lightbox | ☑ 2026-11-13 | [session 5](cms-module-session-5.md) |
 | 6 | Events component, SEO, docs, widget, final test matrix | ☑ 2026-11-14 | [session 6](cms-module-session-6.md) |
 | — | Follow-up: merged to `main`; scaffold rate limit + websocket fixes; calendar feed; cms installed in friendsofmcrwr | ☑ 2026-11-14 | [follow-up](cms-module-followup.md) |
+| — | Follow-up 2: live notifications in production; `arch.js` session secret (branch `prod-ws-and-session-secret`) | ☑ 2026-11-14 | [follow-up, addendum](cms-module-followup.md#addendum-same-day-the-user-said-yes-to-all-three) |
 
 ## Goal
 
