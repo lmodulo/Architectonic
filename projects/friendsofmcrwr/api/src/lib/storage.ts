@@ -1,4 +1,5 @@
-import { mkdir, writeFile, unlink } from 'fs/promises';
+import { createReadStream } from 'fs';
+import { copyFile, mkdir, stat, writeFile, unlink } from 'fs/promises';
 import { join, dirname, extname, basename } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -7,17 +8,32 @@ const UPLOADS_ROOT = join(__dirname, '../../uploads');
 
 interface StorageProvider {
   save(filename: string, buffer: Buffer, mimetype: string, folder?: string): Promise<string>;
+  /** As save, from a file on disk (a large upload put together in a temp file), without reading it into memory */
+  saveFile(filename: string, path: string, mimetype: string, folder?: string): Promise<string>;
   remove(url: string): Promise<void>;
+}
+
+/** The stored name: the original's safe characters behind a timestamp */
+function storedName(filename: string): string {
+  const safe = basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
+  const ext  = extname(safe) || '.bin';
+  return `${Date.now()}-${safe.replace(ext, '')}${ext}`;
 }
 
 class LocalStorage implements StorageProvider {
   async save(filename: string, buffer: Buffer, _mimetype: string, folder = 'products'): Promise<string> {
     const dir  = join(UPLOADS_ROOT, folder);
     await mkdir(dir, { recursive: true });
-    const safe = basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
-    const ext  = extname(safe) || '.bin';
-    const name = `${Date.now()}-${safe.replace(ext, '')}${ext}`;
+    const name = storedName(filename);
     await writeFile(join(dir, name), buffer);
+    return `/uploads/${folder}/${name}`;
+  }
+
+  async saveFile(filename: string, path: string, _mimetype: string, folder = 'products'): Promise<string> {
+    const dir  = join(UPLOADS_ROOT, folder);
+    await mkdir(dir, { recursive: true });
+    const name = storedName(filename);
+    await copyFile(path, join(dir, name));
     return `/uploads/${folder}/${name}`;
   }
 
@@ -66,14 +82,28 @@ class S3Storage implements StorageProvider {
   async save(filename: string, buffer: Buffer, mimetype: string, folder = 'products'): Promise<string> {
     const { PutObjectCommand } = await import('@aws-sdk/client-s3');
     const client = await this.getClient();
-    const safe   = basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
-    const ext    = extname(safe) || '.bin';
-    const key    = `${folder}/${Date.now()}-${safe.replace(ext, '')}${ext}`;
+    const key    = `${folder}/${storedName(filename)}`;
     await client.send(new PutObjectCommand({
       Bucket:      this.bucket,
       Key:         key,
       Body:        buffer,
       ContentType: mimetype
+    }));
+    return `${this.baseUrl}/${key}`;
+  }
+
+  async saveFile(filename: string, path: string, mimetype: string, folder = 'products'): Promise<string> {
+    const { PutObjectCommand } = await import('@aws-sdk/client-s3');
+    const client = await this.getClient();
+    const key    = `${folder}/${storedName(filename)}`;
+    // A stream needs its length up front (S3 won't take one of unknown length)
+    const { size } = await stat(path);
+    await client.send(new PutObjectCommand({
+      Bucket:        this.bucket,
+      Key:           key,
+      Body:          createReadStream(path),
+      ContentLength: size,
+      ContentType:   mimetype
     }));
     return `${this.baseUrl}/${key}`;
   }

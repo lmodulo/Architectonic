@@ -181,7 +181,16 @@
   "profile_photo_removed": "Foto eliminada.",
   "profile_color_saved": "Color guardado.",
   "profile_my_teams": "Mis equipos",
-  "profile_members_count": "{count, plural, one {# miembro} other {# miembros}}",
+  "profile_members_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} miembro",
+        "countPlural=*": "{count} miembros"
+      }
+    }
+  ],
   "profile_account_info": "Información de la cuenta",
   "profile_updated": "Perfil actualizado correctamente.",
 
@@ -262,7 +271,16 @@
   "messages_sent": "Enviados",
   "messages_archive": "Archivo",
   "messages_none": "Sin mensajes",
-  "messages_count": "{count, plural, one {# mensaje} other {# mensajes}}",
+  "messages_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} mensaje",
+        "countPlural=*": "{count} mensajes"
+      }
+    }
+  ],
   "messages_reply_required": "El cuerpo de la respuesta es obligatorio",
   "messages_reply": "Responder",
   "messages_compose_title": "Nuevo mensaje",

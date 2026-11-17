@@ -24,12 +24,13 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
 /**
  * The API's fixed baseline (api/src/routes/cms/nodes.ts RESERVED_SLUGS). The packages can't share
  * code, so keep the two lists in sync. The API refuses these even when the module isn't installed.
+ * friendsofmcrwr has no 'shop': its storefront is a Content page, so that page may be /shop.
  */
 const API_RESERVED_SLUGS = [
   'api', 'uploads', '_app', 'login', 'register', 'logout', 'forgot-password', 'reset-password',
   'accept-invite', 'dashboard', 'settings', 'profile', 'messages', 'notifications', 'audit-log',
   'user-management', 'manage-users', 'roles', '403', 'upcoming-events', 'documentation', 'cms',
-  'shop', 'client-portal', 'vault', 'crm', 'agile', 'folio', 'contracts', 'calendar-events', 'commerce',
+  'client-portal', 'vault', 'crm', 'agile', 'folio', 'contracts', 'calendar-events', 'commerce',
 ];
 
 /** Every slug a top-level item may not use (this project's routes plus the API's list), sorted, for inline validation. */

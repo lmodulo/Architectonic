@@ -28,14 +28,14 @@
       The inbox at <code class="bg-base-300 px-1 rounded text-xs">/messages</code> shows all non-archived, non-deleted threads where the current user is a recipient. Threads are listed in reverse chronological order of their last message. Unread threads are visually highlighted.
     </p>
     <p class="text-sm opacity-70 leading-relaxed">
-      The sidebar layout of the messages section shows the thread list on the left and the selected thread on the right. On mobile, the panels stack vertically.
+      On a wide screen the thread list (Inbox, Sent and Archive tabs) sits on the left and the selected thread on the right, each scrolling on its own. On a phone one panel shows at a time: the list, then the thread with a back link to the tab you opened it from.
     </p>
   </div>
 
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">Composing a Message</h2>
     <p class="text-sm opacity-70 leading-relaxed">
-      Navigate to <code class="bg-base-300 px-1 rounded text-xs">/messages/compose</code> or press the compose button in the messages sidebar. Required fields:
+      Press <strong>Compose</strong> at the top of the messages page (or go to <code class="bg-base-300 px-1 rounded text-xs">/messages/compose</code>) to open the New Message form. Required fields:
     </p>
     <div class="overflow-x-auto">
       <table class="table table-sm w-full">

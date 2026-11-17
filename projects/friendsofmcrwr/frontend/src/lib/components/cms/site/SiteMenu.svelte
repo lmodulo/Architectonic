@@ -13,7 +13,13 @@
   import SiteMenuItem from './SiteMenuItem.svelte';
   import type { MenuItem } from '$lib/cms/types';
 
-  let { items, trail, currentId }: { items: MenuItem[]; trail: Set<string>; currentId: string | null } = $props();
+  let { items, trail, currentId, class: navClass = 'hidden lg:block' }: {
+    items: MenuItem[];
+    trail: Set<string>;
+    currentId: string | null;
+    /** Classes for the <nav>; the default shows the row from the lg breakpoint (the drawer serves below it) */
+    class?: string;
+  } = $props();
 
   let openId = $state<string | null>(null);
   let nav: HTMLElement;
@@ -83,7 +89,7 @@
     `px-3 py-2 rounded-field text-sm font-medium transition-colors hover:bg-base-200 focus-visible:bg-base-200 outline-none ${trail.has(item.id) ? 'bg-base-200 font-semibold' : ''}`;
 </script>
 
-<nav bind:this={nav} aria-label="Main" class="hidden lg:block" onfocusout={onFocusOut}>
+<nav bind:this={nav} aria-label="Main" class={navClass} onfocusout={onFocusOut}>
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions (keydown is delegated from the focusable links and buttons inside) -->
   <ul class="flex items-center gap-1" onkeydown={onTopKeydown}>
     {#each items as item (item.id)}

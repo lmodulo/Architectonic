@@ -42,9 +42,11 @@ export function clip(text: string, max = DESCRIPTION_MAX): string {
 export function pageMeta(view: PageView, origin: string, siteName: string): PageMeta {
   const seo = view.page?.seo ?? {};
   const blocks = view.page?.blocks ?? [];
-  const title = [seo.title || view.node.title, siteName].filter(Boolean).join(' · ');
+  // A component page's subpath (a shop's product, say) describes itself
+  const sub = view.subpage;
+  const title = [sub?.title || seo.title || view.node.title, siteName].filter(Boolean).join(' · ');
 
-  let description = seo.description?.trim() ?? '';
+  let description = sub ? sub.description?.trim() ?? '' : seo.description?.trim() ?? '';
   if (!description) {
     const hero = blocks.find(b => b.type === 'hero');
     const text = blocks.find(b => b.type === 'richText');
@@ -58,7 +60,7 @@ export function pageMeta(view: PageView, origin: string, siteName: string): Page
   return {
     title,
     description: clip(description),
-    canonical: view.preview || !view.node.path ? null : absolute(view.node.path),
+    canonical: view.preview || !(sub?.path ?? view.node.path) ? null : absolute(sub?.path ?? view.node.path!),
     image: imageUrl && seo.image ? { url: imageUrl, alt: seo.image.alt ?? '', w: seo.image.w, h: seo.image.h } : null,
     noindex: seo.noindex === true && !view.preview,
     siteName,

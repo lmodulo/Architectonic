@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import eventsRoutes       from './events.js';
 import subscriptionsRoutes from './subscriptions.js';
+import mediaRoutes        from './media.js';
 import { startRemindersScheduler } from './scheduler.js';
 
 export default async function calendarEventsPlugin(app: FastifyInstance) {
@@ -18,6 +19,9 @@ export default async function calendarEventsPlugin(app: FastifyInstance) {
       { weights: { title: 10, tags: 5, content: 1 } },
     );
 
+    await db.collection('calendar_event_media').createIndex({ eventId: 1 });
+    await db.collection('calendar_event_media').createIndex({ createdAt: 1 });
+
     await db.collection('event_subscriptions').createIndex({ userId: 1 }, { unique: true });
     await db.collection('event_subscriptions').createIndex({
       'notifyOn.reminder': 1, 'notifyOn.reminderDays': 1,
@@ -26,7 +30,8 @@ export default async function calendarEventsPlugin(app: FastifyInstance) {
     startRemindersScheduler(app);
   });
 
-  // subscriptions must be registered before /:id to avoid routing collision
+  // subscriptions and media must be registered before /:id to avoid routing collision
   app.register(subscriptionsRoutes, { prefix: '/subscriptions' });
+  app.register(mediaRoutes, { prefix: '/media' });
   app.register(eventsRoutes);
 }

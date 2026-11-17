@@ -1,6 +1,7 @@
 <script lang="ts">
   let {
     threadId,
+    href = `/messages/${threadId}`,
     subject,
     latestFrom,
     latestAt,
@@ -8,6 +9,7 @@
     active = false,
   }: {
     threadId: string;
+    href?: string;
     subject: string;
     latestFrom: string;
     latestAt: string | Date;
@@ -26,7 +28,7 @@
 </script>
 
 <a
-  href="/messages/{threadId}"
+  {href}
   class="flex items-start gap-3 px-4 py-3 border-b border-base-200 transition-colors cursor-pointer
     {active ? 'bg-primary/10 text-primary' : 'hover:bg-base-200'}"
 >

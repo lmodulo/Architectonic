@@ -9,8 +9,10 @@
   const wordmark  = $derived((page.data.appName as string | null) || 'Shop');
   const user      = $derived(page.data.user ?? null);
 
+  // The storefront's menu: categories (/shop/<category>) and tags (/shop?tag=…), from GET /storefront/meta.
+  // Its links are the URLs ShopComponent's storefront serves (routes/shop/[...rest]).
   type Category = { id: string; slug: string; name: string };
-  type Meta = { categories: Category[]; variantTypes: string[]; tags: string[] };
+  type Meta = { categories: Category[]; tags: string[] };
 
   let { meta }: { meta: Meta } = $props();
 
@@ -60,18 +62,6 @@
                 {/each}
                 {#if meta.categories.length === 0}
                   <li class="mega-empty">No categories yet</li>
-                {/if}
-              </ul>
-            </div>
-
-            <div class="mega-col">
-              <p class="mega-heading">Shop by Type</p>
-              <ul>
-                {#each meta.variantTypes as vt (vt)}
-                  <li><a href="/shop?variant={encodeURIComponent(vt)}" class="mega-link" onclick={closeMenu}>{vt}</a></li>
-                {/each}
-                {#if meta.variantTypes.length === 0}
-                  <li class="mega-empty">—</li>
                 {/if}
               </ul>
             </div>
@@ -181,8 +171,8 @@
 
   .mega-inner {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    max-width: 72rem;
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 48rem;
     margin: 0 auto;
     padding: calc(var(--spacing) * 10) calc(var(--spacing) * 8);
   }

@@ -1,3 +1,13 @@
+/** A photo or MP4 video on an event (uploaded in the event form; see the API's routes/calendar-events/media.ts) */
+export type EventMedia = {
+  id: string;
+  kind: 'image' | 'video';
+  /** /uploads/… (or the storage bucket's https URL) */
+  url: string;
+  /** the uploader's file name; admin views only (the public list leaves it out) */
+  name?: string;
+};
+
 export type CalendarEvent = {
   id: string;
   title: string;
@@ -7,8 +17,14 @@ export type CalendarEvent = {
   endDate: string;
   singleDay: boolean;
   allDay: boolean;
+  /** "HH:MM" (24-hour) on the start date, or '' (all day, or no time set). Wall-clock at the event, no time zone. */
+  startTime: string;
+  /** "HH:MM" on the end date, or '' (optional: an event can just have a start time) */
+  endTime: string;
   location: string;
   tags: string[];
+  /** photos and videos, in the editor's order */
+  media: EventMedia[];
   status?: string;
   visibility?: string;
   createdAt?: string;
@@ -45,9 +61,41 @@ export function fmtShortRange(ev: { startDate: string; endDate: string; singleDa
   return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }
 
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** "9:30 AM" from "09:30" */
+export function fmtTime(t: string): string {
+  if (!TIME.test(t)) return '';
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
+/**
+ * The event's times, or '' when it's all day or has none: "10:00 AM – 2:00 PM" or "7:00 PM" for one day;
+ * "Starts 10:00 AM, ends 3:00 PM" over several (the start time is on the first day, the end time on the last).
+ */
+export function fmtTimes(ev: Pick<CalendarEvent, 'allDay' | 'startTime' | 'endTime' | 'startDate' | 'endDate' | 'singleDay'>): string {
+  const start = ev.allDay ? '' : fmtTime(ev.startTime);
+  if (!start) return '';
+  const end = fmtTime(ev.endTime);
+  if (ev.singleDay || ev.endDate <= ev.startDate) return end ? `${start} – ${end}` : start;
+  return end ? `Starts ${start}, ends ${end}` : `Starts ${start}`;
+}
+
+/** Sort key within a day: all-day and untimed events first, then by start time */
+const timeKey = (e: CalendarEvent) => (e.allDay ? '' : e.startTime);
+
 export function eventsForDay(events: CalendarEvent[], year: number, month: number, day: number): CalendarEvent[] {
   const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  return events.filter(e => e.startDate <= dateStr && dateStr <= e.endDate);
+  return events
+    .filter(e => e.startDate <= dateStr && dateStr <= e.endDate)
+    .sort((a, b) => timeKey(a).localeCompare(timeKey(b)));
+}
+
+/** A calendar pill's tooltip: the title, and the times when there are any */
+export function eventTooltip(ev: CalendarEvent): string {
+  const times = fmtTimes(ev);
+  return times ? `${ev.title} · ${times}` : ev.title;
 }
 
 type MonthGroup = { month: string; items: CalendarEvent[] };
@@ -90,6 +138,28 @@ export function typeLabel(eventType: string): string {
   return eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
+/** An event's photos and videos from the API, keeping only well-formed entries with a URL we serve */
+export function normalizeMedia(v: unknown): EventMedia[] {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((m): EventMedia[] => {
+    if (typeof m !== 'object' || m === null) return [];
+    const { id, kind, url, name } = m as Record<string, unknown>;
+    if (typeof id !== 'string' || (kind !== 'image' && kind !== 'video')) return [];
+    if (typeof url !== 'string' || !/^(\/uploads\/|https:\/\/)/.test(url)) return [];
+    return [{ id, kind, url, ...(typeof name === 'string' ? { name } : {}) }];
+  });
+}
+
+/** "3 photos · 1 video", or '' */
+export function mediaCount(media: EventMedia[]): string {
+  const photos = media.filter(m => m.kind === 'image').length;
+  const videos = media.length - photos;
+  return [
+    photos ? `${photos} photo${photos === 1 ? '' : 's'}` : '',
+    videos ? `${videos} video${videos === 1 ? '' : 's'}` : '',
+  ].filter(Boolean).join(' · ');
+}
+
 export function normalizeEvent(e: Record<string, unknown>): CalendarEvent {
   return {
     id:         String(e.id ?? ''),
@@ -100,8 +170,11 @@ export function normalizeEvent(e: Record<string, unknown>): CalendarEvent {
     endDate:    toDateStr(e.endDate),
     singleDay:  Boolean(e.singleDay),
     allDay:     Boolean(e.allDay),
+    startTime:  !e.allDay && typeof e.startTime === 'string' && TIME.test(e.startTime) ? e.startTime : '',
+    endTime:    !e.allDay && typeof e.startTime === 'string' && typeof e.endTime === 'string' && TIME.test(e.endTime) ? e.endTime : '',
     location:   String(e.location ?? ''),
     tags:       Array.isArray(e.tags) ? e.tags.map(String) : [],
+    media:      normalizeMedia(e.media),
     status:     e.status ? String(e.status) : undefined,
     visibility: e.visibility ? String(e.visibility) : undefined,
     createdAt:  e.createdAt ? String(e.createdAt) : undefined,

@@ -181,7 +181,16 @@
   "profile_photo_removed": "Photo removed.",
   "profile_color_saved": "Color saved.",
   "profile_my_teams": "My Teams",
-  "profile_members_count": "{count, plural, one {# member} other {# members}}",
+  "profile_members_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} member",
+        "countPlural=*": "{count} members"
+      }
+    }
+  ],
   "profile_account_info": "Account Information",
   "profile_updated": "Profile updated successfully.",
 
@@ -262,7 +271,16 @@
   "messages_sent": "Sent",
   "messages_archive": "Archive",
   "messages_none": "No messages",
-  "messages_count": "{count, plural, one {# message} other {# messages}}",
+  "messages_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} message",
+        "countPlural=*": "{count} messages"
+      }
+    }
+  ],
   "messages_reply_required": "Reply body is required",
   "messages_reply": "Reply",
   "messages_compose_title": "New Message",

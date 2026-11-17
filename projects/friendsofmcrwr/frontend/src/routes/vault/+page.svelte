@@ -5,6 +5,7 @@
   import { goto } from '$app/navigation';
   import { Search, Plus, Trash2, FolderPlus, FolderOpen, Folder, X, ChevronRight, Upload, FileText, FileImage, File } from 'lucide-svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import VaultUploadModal from '$lib/components/vault/VaultUploadModal.svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
@@ -85,9 +86,9 @@
   const paged = $derived(filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
   $effect(() => { query; selectedFolderId; currentPage = 1; });
 
+  // Every folder's documents, as the page loads them: the folder tree filters them here (`filtered`)
   async function reloadDocs() {
-    const qs = new URLSearchParams({ limit: '200' });
-    if (selectedFolderId) qs.set('folderId', selectedFolderId);
+    const qs = new URLSearchParams({ limit: '100' }); // the API's maximum
     const res = await fetch(`/api/vault/documents?${qs}`);
     if (res.ok) {
       const d = await res.json();
@@ -109,47 +110,13 @@
   }
 
   // ── Upload document modal ──────────────────────────────────────────────────
-  let uploadOpen   = $state(false);
-  let uploadFile   = $state<File | null>(null);
-  let uploadForm   = $state({ name: '', description: '', visibility: 'staff', ownerId: '', folderId: selectedFolderId ?? '', tags: '', note: '' });
-  let uploading    = $state(false);
-  let uploadError  = $state('');
+  let uploadOpen = $state(false);
+  /** The tags already in use, offered while tagging a new upload */
+  const knownTags = $derived([...new Set(documents.flatMap(d => (d.tags ?? []) as string[]))].sort((a, b) => a.localeCompare(b)));
 
-  function openUpload() {
-    uploadFile  = null;
-    uploadError = '';
-    uploadForm  = { name: '', description: '', visibility: 'staff', ownerId: data.user?.id ?? '', folderId: selectedFolderId ?? '', tags: '', note: '' };
-    uploadOpen  = true;
-  }
-
-  function onFileChange(e: Event) {
-    const f = (e.target as HTMLInputElement).files?.[0] ?? null;
-    uploadFile = f;
-    if (f && !uploadForm.name) uploadForm.name = f.name.replace(/\.[^.]+$/, '');
-  }
-
-  async function submitUpload() {
-    if (!uploadFile)           { uploadError = 'Select a file'; return; }
-    if (!uploadForm.name.trim()) { uploadError = 'Name is required'; return; }
-    uploading = true; uploadError = '';
-    try {
-      const fd = new FormData();
-      fd.append('file', uploadFile);
-      fd.append('name', uploadForm.name.trim());
-      fd.append('description', uploadForm.description);
-      fd.append('visibility', uploadForm.visibility);
-      fd.append('ownerId', uploadForm.ownerId || (data.user?.id ?? ''));
-      fd.append('folderId', uploadForm.folderId || '');
-      fd.append('tags', uploadForm.tags);
-      fd.append('note', uploadForm.note);
-      const res = await fetch('/api/vault/documents', { method: 'POST', body: fd });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); uploadError = (b as any).message ?? 'Upload failed'; return; }
-      const created = await res.json();
-      uploadOpen = false;
-      await reloadDocs();
-      goto(`/vault/${created.id}`);
-    } catch { uploadError = 'Network error'; }
-    finally { uploading = false; }
+  function uploaded(id: string) {
+    uploadOpen = false;
+    goto(`/vault/${id}`);
   }
 
   // ── Create folder modal ────────────────────────────────────────────────────
@@ -240,7 +207,7 @@
         </button>
       {/if}
       {#if hasPermission(data.user, 'vault_documents', 'create')}
-        <button type="button" class="btn btn-primary btn-sm gap-1" onclick={openUpload}>
+        <button type="button" class="btn btn-primary btn-sm gap-1" onclick={() => (uploadOpen = true)}>
           <Upload class="size-4" /><span>Upload</span>
         </button>
       {/if}
@@ -420,72 +387,16 @@
 
 <!-- Upload document modal -->
 {#if uploadOpen}
-  <div transition:fade={{ duration: 200 }} class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true">
-    <div transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }} class="card bg-base-100 w-full max-w-lg shadow-xl">
-      <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-200">
-        <h2 class="text-lg font-semibold">Upload Document</h2>
-        <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={() => (uploadOpen = false)}><X class="size-5" /></button>
-      </div>
-      <div class="p-6 space-y-4">
-        {#if uploadError}<div role="alert" class="alert alert-error text-sm">{uploadError}</div>{/if}
-
-        <div class="form-control gap-1">
-          <span class="label-text font-medium">File <span class="text-error">*</span></span>
-          <input type="file" class="file-input file-input-bordered w-full" onchange={onFileChange} />
-        </div>
-
-        <div class="form-control gap-1">
-          <span class="label-text font-medium">Display Name <span class="text-error">*</span></span>
-          <input type="text" class="input input-bordered" bind:value={uploadForm.name} maxlength="200" placeholder="e.g. Safety Policy 2024" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div class="form-control gap-1">
-            <span class="label-text font-medium">Folder</span>
-            <select class="select select-bordered" bind:value={uploadForm.folderId}>
-              <option value="">None (root)</option>
-              {#each folders as f}
-                <option value={f.id}>{f.name}</option>
-              {/each}
-            </select>
-          </div>
-          <div class="form-control gap-1">
-            <span class="label-text font-medium">Visibility</span>
-            <select class="select select-bordered" bind:value={uploadForm.visibility}>
-              <option value="staff">Staff</option>
-              <option value="admin_only">Admin only</option>
-              <option value="customer">Customer-visible</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-control gap-1">
-          <span class="label-text font-medium">Owner</span>
-          <select class="select select-bordered" bind:value={uploadForm.ownerId}>
-            {#each data.users as u}
-              <option value={u.id}>{u.firstName ? `${u.firstName} ${u.lastName ?? ''}`.trim() : u.username}</option>
-            {/each}
-          </select>
-        </div>
-
-        <div class="form-control gap-1">
-          <span class="label-text font-medium">Tags</span>
-          <input type="text" class="input input-bordered" bind:value={uploadForm.tags} placeholder="comma-separated: policy, hr, onboarding" />
-        </div>
-
-        <div class="form-control gap-1">
-          <span class="label-text font-medium">Description</span>
-          <textarea class="textarea textarea-bordered" bind:value={uploadForm.description} rows="2" placeholder="Optional description…"></textarea>
-        </div>
-      </div>
-      <div class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn btn-ghost" onclick={() => (uploadOpen = false)}>Cancel</button>
-        <button type="button" class="btn btn-primary" disabled={uploading} onclick={submitUpload}>
-          {uploading ? 'Uploading…' : 'Upload'}
-        </button>
-      </div>
-    </div>
-  </div>
+  <VaultUploadModal
+    {folders}
+    users={data.users}
+    userId={data.user?.id ?? ''}
+    role={data.user?.role ?? ''}
+    folderId={selectedFolderId}
+    tagSuggestions={knownTags}
+    onclose={(cancelled) => { uploadOpen = false; if (cancelled) void reloadDocs(); /* it may have arrived anyway */ }}
+    onuploaded={uploaded}
+  />
 {/if}
 
 <!-- Create folder modal -->

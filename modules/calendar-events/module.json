@@ -36,7 +36,9 @@
     "frontend/src/routes/api/calendar-events/$types.d.ts",
     "frontend/src/routes/api/calendar-events/[id]/$types.d.ts",
     "frontend/src/routes/api/calendar-events/public/$types.d.ts",
-    "frontend/src/routes/api/calendar-events/subscriptions/$types.d.ts"
+    "frontend/src/routes/api/calendar-events/subscriptions/$types.d.ts",
+    "frontend/src/routes/api/calendar-events/media/$types.d.ts",
+    "frontend/src/routes/api/calendar-events/media/[id]/$types.d.ts"
   ],
   "env": [
     {

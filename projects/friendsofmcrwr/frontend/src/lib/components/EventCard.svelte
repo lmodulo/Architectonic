@@ -1,7 +1,8 @@
 <script lang="ts">
   import EventTypeBadge from './EventTypeBadge.svelte';
-  import { fmtDateRange, fmtShortRange, typePreset, type CalendarEvent } from '$lib/utils/calendarEvents';
-  import { MapPin } from 'lucide-svelte';
+  import EventMediaGallery from './EventMediaGallery.svelte';
+  import { fmtDateRange, fmtShortRange, fmtTimes, mediaCount, typePreset, type CalendarEvent } from '$lib/utils/calendarEvents';
+  import { Images, MapPin } from 'lucide-svelte';
 
   let {
     event,
@@ -14,6 +15,8 @@
   } = $props();
 
   const startDate = $derived(new Date(event.startDate + 'T00:00:00'));
+  const times = $derived(fmtTimes(event));
+  const hasContent = $derived(Boolean(event.content && event.content !== '<p></p>'));
 </script>
 
 <article class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
@@ -33,11 +36,19 @@
           <EventTypeBadge type={event.eventType} />
         {/if}
       </div>
-      <p class="text-sm opacity-60">{compact ? fmtShortRange(event) : fmtDateRange(event)}</p>
+      <p class="text-sm opacity-60">
+        {compact ? fmtShortRange(event) : fmtDateRange(event)}{#if times}<span aria-hidden="true">{' · '}</span><span class="sr-only">{', '}</span>{times}{/if}
+      </p>
       {#if event.location}
         <p class="text-xs opacity-50 flex items-center gap-1">
           <MapPin class="size-3" />
           {event.location}
+        </p>
+      {/if}
+      {#if compact && event.media.length}
+        <p class="text-xs opacity-50 flex items-center gap-1">
+          <Images class="size-3" />
+          {mediaCount(event.media)}
         </p>
       {/if}
       {#if event.tags.length > 0 && !compact}
@@ -50,9 +61,15 @@
     </div>
   </div>
 
-  {#if !compact && event.content && event.content !== '<p></p>'}
+  {#if !compact && hasContent}
     <div class="px-6 py-5 prose prose-sm dark:prose-invert max-w-none">
       {@html event.content}
+    </div>
+  {/if}
+
+  {#if !compact && event.media.length}
+    <div class="px-6 {hasContent ? 'pb-5' : 'py-5'}">
+      <EventMediaGallery media={event.media} title={event.title} />
     </div>
   {/if}
 </article>

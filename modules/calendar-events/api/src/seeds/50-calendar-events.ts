@@ -14,6 +14,10 @@ export default async function seed({ db, now, users }: DemoContext): Promise<voi
     return dt;
   };
   const by = users.owner ?? users.admin ?? null;
+  // Wall-clock times beside the dates, as the Calendar's form saves them; an end time only when it's after the
+  // start on a one-day event (a deadline at 17:00 has none)
+  const hhmm = (hour: number) => `${String(hour).padStart(2, '0')}:00`;
+  const endTime = (hour: number, endHour: number, oneDay: boolean) => (oneDay && endHour <= hour ? null : hhmm(endHour));
 
   const event = (
     title: string, eventType: string, startDays: number, endDays: number, opts: {
@@ -28,6 +32,8 @@ export default async function seed({ db, now, users }: DemoContext): Promise<voi
     endDate:    at(endDays, opts.endHour ?? (opts.hour ?? 9) + 1),
     singleDay:  startDays === endDays,
     allDay:     opts.allDay ?? false,
+    startTime:  opts.allDay ? null : hhmm(opts.hour ?? 9),
+    endTime:    opts.allDay ? null : endTime(opts.hour ?? 9, opts.endHour ?? (opts.hour ?? 9) + 1, startDays === endDays),
     location:   opts.location ?? '',
     tags:       opts.tags ?? [],
     status:     opts.status ?? 'active',

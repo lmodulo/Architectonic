@@ -54,11 +54,11 @@
 
   // --- Quick-create modal ---
   let newOpen  = $state(false);
-  let newForm  = $state({ name: '', basePriceDollars: '', status: 'draft', category: '' });
+  let newForm  = $state({ name: '', basePriceDollars: '', status: 'draft', category: '', trackInventory: true });
   let creating = $state(false);
   let newError = $state('');
 
-  function openNew() { newForm = { name: '', basePriceDollars: '', status: 'draft', category: '' }; newError = ''; newOpen = true; }
+  function openNew() { newForm = { name: '', basePriceDollars: '', status: 'draft', category: '', trackInventory: true }; newError = ''; newOpen = true; }
 
   async function submitNew() {
     if (!newForm.name.trim()) { newError = 'Name is required'; return; }
@@ -69,7 +69,7 @@
       const res = await fetch('/api/commerce/products', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: newForm.name.trim(), basePrice, status: newForm.status, category: newForm.category || undefined })
+        body: JSON.stringify({ name: newForm.name.trim(), basePrice, status: newForm.status, category: newForm.category || undefined, trackInventory: newForm.trackInventory })
       });
       if (!res.ok) { const b = await res.json().catch(() => ({})); newError = b.message ?? 'Create failed'; return; }
       const created = await res.json();
@@ -153,7 +153,7 @@
             <td class="px-4 py-3"><span class="badge {STATUS_BADGE[p.status] ?? 'badge-ghost'} text-xs capitalize">{p.status}</span></td>
             <td class="px-4 py-3 opacity-60">{categoryName(p.category)}</td>
             <td class="px-4 py-3 text-right font-medium">{fmt(p.basePrice ?? 0)}</td>
-            <td class="px-4 py-3 text-right opacity-60">{totalStock(p)}</td>
+            <td class="px-4 py-3 text-right opacity-60">{#if p.trackInventory === false}<span class="text-xs">Not tracked</span>{:else}{totalStock(p)}{/if}</td>
             <td class="px-4 py-3 text-right opacity-60">{(p.variants ?? []).length}</td>
             <td class="px-4 py-3">
               {#if hasPermission(data.user, 'commerce_products', 'delete') && p.status !== 'archived'}
@@ -219,6 +219,13 @@
             </select>
           </label>
         </div>
+        <label class="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" class="toggle toggle-primary toggle-sm mt-0.5 shrink-0" bind:checked={newForm.trackInventory} />
+          <span class="flex flex-col gap-0.5">
+            <span class="label-text text-sm font-medium">Track inventory</span>
+            <span class="text-xs opacity-60">Turn off for donations, memberships and anything else that can't run out. It's then always in stock and stays out of the low-stock report.</span>
+          </span>
+        </label>
         <p class="text-xs opacity-60">Variants, images, and discounts can be added after creation.</p>
       </div>
       <footer class="flex justify-end gap-3 px-6 pb-5">

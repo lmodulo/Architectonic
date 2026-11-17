@@ -143,15 +143,15 @@
           <input type="text" class="input w-full" bind:value={form.lastName} />
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Email</label>
-          <input type="email" class="input w-full" bind:value={form.email} />
-        </div>
-        <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Phone</label>
-          <PhoneInput bind:value={form.phone} bind:valid={editPhoneValid} name="" />
-        </div>
+      <!-- Email and Phone get a full row each: PhoneInput's country picker is w-44, so in a half-width column
+           the number box was left only ~70px wide. -->
+      <div class="space-y-1">
+        <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Email</label>
+        <input type="email" class="input w-full" bind:value={form.email} />
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs font-medium opacity-60 uppercase tracking-wide">Phone</label>
+        <PhoneInput bind:value={form.phone} bind:valid={editPhoneValid} name="" />
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-1">

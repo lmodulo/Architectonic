@@ -21,7 +21,7 @@
     // Debounced, so typing in a prop field doesn't fire a request per keystroke
     const timer = setTimeout(async () => {
       try {
-        const d = await e.load!({ fetch, url: new URL(window.location.href), rest: null, props: p });
+        const d = await e.load!({ fetch, url: new URL(window.location.href), rest: null, base: null, props: p });
         if (mine === seq) data = d;
       } catch {
         if (mine === seq) data = { unavailable: true };

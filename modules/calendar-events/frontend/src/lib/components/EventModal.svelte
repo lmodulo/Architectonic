@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { fade, scale } from 'svelte/transition';
+  import { fade, scale, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { X } from 'lucide-svelte';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import EventMediaEditor from './EventMediaEditor.svelte';
   import { hasPermission } from '$lib/permissions';
   import { typeLabel, type CalendarEvent } from '$lib/utils/calendarEvents';
+  import { EventMediaUploads } from '$lib/utils/eventMediaUploads.svelte';
 
   const KNOWN_TYPES = [
     'upcoming_event',
@@ -39,6 +41,8 @@
     endDate:    today,
     singleDay:  true,
     allDay:     false,
+    startTime:  '',
+    endTime:    '',
     location:   '',
     tags:       '',
     status:     'active',
@@ -48,9 +52,15 @@
   let loading      = $state(false);
   let err          = $state('');
   let deletePrompt = $state(false);
+  /** The form's photos and videos; a fresh list each time the modal opens */
+  let media        = $state<EventMediaUploads | null>(null);
 
-  // Populate form when event prop changes
-  $effect(() => {
+  // Fill the form each time the modal opens, and if the event changes while it's open. Keyed on `open` as well as
+  // `event`: opening New twice in a row passes null both times, and an event-only effect kept the last form's values.
+  // `.pre` so the form is filled before the modal renders: the description editor (Tiptap) reads its content once,
+  // when it's created, and a plain $effect ran after that, leaving the description empty when editing.
+  $effect.pre(() => {
+    if (!open) return;
     if (event) {
       form = {
         title:      event.title,
@@ -60,6 +70,8 @@
         endDate:    event.endDate,
         singleDay:  event.singleDay,
         allDay:     event.allDay,
+        startTime:  event.startTime,
+        endTime:    event.endTime,
         location:   event.location,
         tags:       event.tags.join(', '),
         status:     event.status ?? 'active',
@@ -68,21 +80,49 @@
     } else {
       form = {
         title: '', content: '', eventType: 'upcoming_event',
-        startDate: today, endDate: today, singleDay: true, allDay: false,
+        startDate: today, endDate: today, singleDay: true, allDay: false, startTime: '', endTime: '',
         location: '', tags: '', status: 'active', visibility: 'public',
       };
     }
     err          = '';
     deletePrompt = false;
+    // Closing (or switching events) stops this form's uploads and deletes any its save didn't take
+    const uploads = new EventMediaUploads(event?.media ?? [], event?.id ?? null);
+    media = uploads;
+    return () => uploads.dispose();
   });
 
   $effect(() => {
     if (form.singleDay) form.endDate = form.startDate;
   });
 
+  // Times are wall-clock "HH:MM" at the event, with no time zone: the start time is on the start date, the end
+  // time on the end date. The end time is optional ("starts at 7 PM").
+  const oneDay = $derived(form.singleDay || !form.endDate || form.endDate <= form.startDate);
+  const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const hhmm = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`;
+
+  // Moving the start time keeps the event's length on a one-day event, and the first start time chosen gets an
+  // end an hour later (both stop at 11:59 PM), as calendar apps do. Clearing the end time leaves it cleared.
+  function setStartTime(value: string) {
+    const before = form.startTime;
+    form.startTime = value;
+    if (!value || !oneDay) return;
+    if (!before && !form.endTime) {
+      form.endTime = hhmm(Math.min(minutes(value) + 60, 23 * 60 + 59));
+    } else if (before && form.endTime && minutes(form.endTime) > minutes(before)) {
+      form.endTime = hhmm(Math.min(minutes(value) + minutes(form.endTime) - minutes(before), 23 * 60 + 59));
+    }
+  }
+
   async function save() {
     if (!form.title.trim()) { err = 'Title is required'; return; }
     if (!form.startDate)    { err = 'Start date is required'; return; }
+    if (!form.allDay && !form.startTime) { err = 'Choose a start time, or tick All day'; return; }
+    if (!form.allDay && form.endTime && oneDay && form.endTime <= form.startTime) {
+      err = 'End time must be after the start time'; return;
+    }
+    if (media?.busy) { err = 'Wait for the uploads to finish'; return; }
     loading = true; err = '';
     const body = {
       title:      form.title.trim(),
@@ -92,14 +132,20 @@
       endDate:    form.singleDay ? form.startDate : (form.endDate || form.startDate),
       singleDay:  form.singleDay,
       allDay:     form.allDay,
+      startTime:  form.allDay ? null : form.startTime,
+      endTime:    form.allDay ? null : form.endTime || null,
       location:   form.location,
       tags:       form.tags.split(',').map(t => t.trim()).filter(Boolean),
       status:     form.status,
       visibility: form.visibility,
+      media:      media?.ids ?? [],
     };
+    // The parent closes the modal when the save succeeds, which disposes the uploads: these are now the event's
+    media?.keep(body.media);
     try {
       await onSave(body);
     } catch (e: unknown) {
+      media?.keep([]);
       err = e instanceof Error ? e.message : 'Save failed';
     } finally {
       loading = false;
@@ -110,6 +156,7 @@
     loading = true; err = '';
     try {
       await onDelete();
+      deletePrompt = false; // the prompt sits outside {#if open}, so closing the modal doesn't close it
     } catch (e: unknown) {
       err = e instanceof Error ? e.message : 'Delete failed';
     } finally {
@@ -192,6 +239,23 @@
           </label>
         </div>
 
+        <!-- Times (not for an all-day event): lined up under the dates they belong to -->
+        {#if !form.allDay}
+          <div class="grid grid-cols-2 gap-4" transition:slide={{ duration: 200 }}>
+            <div class="space-y-1">
+              <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start-time">Start Time</label>
+              <input id="ev-start-time" type="time" class="input w-full" required
+                value={form.startTime} oninput={(e) => setStartTime(e.currentTarget.value)} />
+            </div>
+            <div class="space-y-1">
+              <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end-time">End Time</label>
+              <input id="ev-end-time" type="time" class="input w-full" aria-describedby="ev-end-time-hint"
+                bind:value={form.endTime} min={oneDay && form.startTime ? form.startTime : undefined} />
+              <p id="ev-end-time-hint" class="text-xs opacity-60">{oneDay ? 'Optional.' : 'Optional. On the end date.'}</p>
+            </div>
+          </div>
+        {/if}
+
         <!-- Visibility -->
         <div class="space-y-1">
           <label class="label text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-vis">Visibility</label>
@@ -221,6 +285,11 @@
           <p class="text-xs font-medium opacity-60 uppercase tracking-wide">Description</p>
           <MessageEditor bind:html={form.content} placeholder="Event description…" />
         </div>
+
+        <!-- Photos and videos -->
+        {#if media}
+          <EventMediaEditor uploads={media} />
+        {/if}
       </div>
 
       <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-base-300 shrink-0">
@@ -234,8 +303,8 @@
         </div>
         <div class="flex gap-3">
           <button type="button" class="btn btn-ghost" onclick={onClose}>Cancel</button>
-          <button type="button" class="btn btn-primary" disabled={loading} onclick={save}>
-            {loading ? 'Saving…' : 'Save'}
+          <button type="button" class="btn btn-primary" disabled={loading || media?.busy} onclick={save}>
+            {loading ? 'Saving…' : media?.busy ? 'Uploading…' : 'Save'}
           </button>
         </div>
       </footer>

@@ -2,6 +2,7 @@
   // The public website's chrome: brand, desktop menu or mobile drawer, optional breadcrumbs and
   // the footer. It renders inside the root layout's bare branch (no app shell) and uses the app's
   // runtime DaisyUI theme, which is already on <html data-theme>. Not for app pages (no PageHeader).
+  // A project can replace all of it with its own design ($lib/config/site-design.ts).
   import { page } from '$app/state';
   import { afterNavigate } from '$app/navigation';
   import { Menu as MenuIcon, ChevronRight } from 'lucide-svelte';
@@ -9,6 +10,7 @@
   import SiteMenu from './SiteMenu.svelte';
   import SiteMobileMenu from './SiteMobileMenu.svelte';
   import SiteFooter from './SiteFooter.svelte';
+  import { SITE_DESIGN } from '$lib/config/site-design';
   import type { MenuItem, PageView, SiteMenu as SiteMenuData } from '$lib/cms/types';
   import type { Snippet } from 'svelte';
 
@@ -44,7 +46,10 @@
     return { trail, currentId };
   });
 
-  const crumbs = $derived(breadcrumbs && breadcrumbs.length > 1 ? breadcrumbs : null);
+  // A project's own design; a plain const (not $derived) so it also renders during SSR
+  const Custom = SITE_DESIGN.Shell;
+  // A design's PageTitle shows breadcrumbs itself
+  const crumbs = $derived(!SITE_DESIGN.PageTitle && breadcrumbs && breadcrumbs.length > 1 ? breadcrumbs : null);
 
   let drawerOpen = $state(false);
   let menuButton: HTMLButtonElement | undefined = $state();
@@ -70,6 +75,9 @@
   {/if}
 {/snippet}
 
+{#if Custom}
+<Custom {menu} {breadcrumbs}>{@render children()}</Custom>
+{:else}
 <div class="min-h-screen flex flex-col bg-base-100 text-base-content">
   <a href="#cms-main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] btn btn-sm btn-primary">Skip to content</a>
 
@@ -121,3 +129,4 @@
 
   <SiteFooter footer={menu.footer} {brand} />
 </div>
+{/if}

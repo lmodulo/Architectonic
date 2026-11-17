@@ -104,21 +104,20 @@
   <div class="space-y-4">
     <h2 class="text-xl font-semibold">Custom Components</h2>
     <p class="text-sm opacity-70 leading-relaxed">
-      A component is a Svelte component that can be a whole page (a {@render c('component')} item), a block, or both. Each one is a file in {@render c('src/lib/config/cms-components/')} that default-exports an entry; the registry picks the files up automatically. Content ships two:
+      A component is a Svelte component that can be a whole page (a {@render c('component')} item), a block, or both. Each one is a file in {@render c('src/lib/config/cms-components/')} that default-exports an entry; the registry picks the files up automatically. Content ships one:
     </p>
     <div class="overflow-x-auto">
       <table class="table table-sm w-full">
         <thead><tr class="bg-base-200"><th>Key</th><th>Shows</th><th>Settings</th></tr></thead>
         <tbody>
           <tr><td class="font-mono text-xs">sitemap</td><td class="text-sm opacity-70">Every published page as a nested list.</td><td class="text-sm opacity-70">Include pages hidden from the menu.</td></tr>
-          <tr><td class="font-mono text-xs">events</td><td class="text-sm opacity-70">Upcoming public events from the Calendar module, soonest first: date, title, location and a plain-text description. As a page they are grouped by month. Without the Calendar module it says events are unavailable, and the admin warns.</td><td class="text-sm opacity-70">How many to show (1–50, default 10); which event type.</td></tr>
         </tbody>
       </table>
     </div>
     <p class="text-sm opacity-70 leading-relaxed">
-      The events list comes from the Calendar's public feed: active, public events up to a year ahead that haven't ended. Today's events and events already under way are listed too. Events have no time zone, so one stays listed until its last day is over everywhere.
+      The other types come from the modules whose data they show, and are described in those modules' documentation: the Calendar module adds {@render c('events')} (upcoming public events, as a page or a block) and the Commerce module adds {@render c('shop')} (a Shop page with a page for each category and product under its own URL).
     </p>
-    <p class="text-sm opacity-70 leading-relaxed">Another module can add a component by shipping its own file in that folder. The entry's shape:</p>
+    <p class="text-sm opacity-70 leading-relaxed">Another module adds a component by shipping its own file in that folder. The entry's shape:</p>
     <pre class="bg-base-300 rounded-box p-4 text-sm overflow-x-auto leading-relaxed"><code>export default &#123;
   key: 'my-widget',                 // lowercase letters, numbers, dashes
   label: 'My widget',
@@ -129,13 +128,30 @@
     &#123; name: 'limit', label: 'How many', type: 'number', default: 5 &#125;,
   ],
   subpaths: false,                  // page mode: /widget/anything resolves here, with rest = 'anything'
+  subpage: (data, rest) => (&#123; title, path, description, crumbs &#125;),   // optional, with subpaths: null = 404
   requires: &#123; resource: 'my_items', module: 'My module' &#125;,   // optional: admin warns if missing
-  load: async (&#123; fetch, url, rest, props &#125;) => (await fetch('/api/my-module/public')).json(),
+  load: async (&#123; fetch, url, rest, base, props &#125;) => (await fetch('/api/my-module/public')).json(),
 &#125;;</code></pre>
     <ul class="list-disc pl-5 space-y-1 text-sm opacity-70 leading-relaxed">
       <li>{@render c('load')} runs on the server for the public page and in the browser for the admin preview, so it may only use the {@render c('fetch')} it is given, against this app's {@render c('/api/...')} routes, and must never import {@render c('$env/dynamic/private')}. It has five seconds; a failure gives the component {@render c('data = { unavailable: true }')}.</li>
+      <li>{@render c('base')} is the page's own URL in page mode (for links to its subpaths), and null for blocks and the admin preview.</li>
+      <li>{@render c('subpage')} says what a subpath shows, from the load's data, so the page heading, {@render c('<title>')}, breadcrumbs and canonical link describe it rather than the page: a title, its URL, an optional description, and the crumbs to add after the page's own (the last is the subpath). Returning null makes the URL a 404. It runs on the server, and not when the load failed.</li>
       <li>Match the shape without importing Content's types, so the module still builds when Content isn't installed. An unknown key renders nothing on the site and a warning in the admin.</li>
       <li>Render text only, never raw HTML: data from other modules may contain markup.</li>
+      <li>For text styled like the site's rich text, give its container the {@render c('cms-prose')} class. The page around the component loads those styles, so don't import Content's stylesheet.</li>
+    </ul>
+  </div>
+
+  <!-- Site design -->
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold">Your Own Site Design</h2>
+    <p class="text-sm opacity-70 leading-relaxed">
+      Out of the box the site uses a plain header, menu and footer in the app's theme. A project can give it its own design without editing Content's files: ship {@render c('src/lib/config/site-design/<name>.ts')} default-exporting {@render c('{ Shell, PageTitle }')} (both optional; see {@render c('$lib/config/site-design.ts')}).
+    </p>
+    <ul class="list-disc pl-5 space-y-2 text-sm opacity-70 leading-relaxed">
+      <li>{@render c('Shell')} replaces the header, menu and footer on every public page, previews and 404s included. It gets the menu and wraps the page. It can reuse Content's {@render c('SiteMenu')} and {@render c('SiteMobileMenu')} for the n-deep menu: {@render c('SiteMenu')} takes a {@render c('class')} for when its row shows, and {@render c('SiteMobileMenu')} with {@render c('breakpoint')} set to {@render c('null')} makes the drawer usable at any width.</li>
+      <li>{@render c('PageTitle')} replaces the title above each page's blocks, and shows breadcrumbs when it wants them. It is rendered for pages that open with a hero too ({@render c('heroFirst')}), where the hero carries the heading.</li>
+      <li>To keep the site in its own theme whatever Settings → Theme says, add a route rule with a {@render c('theme')} for the site's routes ({@render c("'/(site)/[...path=cmspath]'")}, {@render c("'/'")}, {@render c("'/cms/preview'")}).</li>
     </ul>
   </div>
 

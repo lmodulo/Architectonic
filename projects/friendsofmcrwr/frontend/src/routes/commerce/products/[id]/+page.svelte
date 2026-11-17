@@ -1,7 +1,11 @@
 <script lang="ts">
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import RichTextView from '$lib/components/commerce/RichTextView.svelte';
+  import { isRichTextEmpty, toEditorHtml } from '$lib/utils/richText';
   import { PackageIcon } from 'lucide-svelte';
-  import { ArrowLeft, Plus, Trash2, Minus } from 'lucide-svelte';
+  import { ArrowLeft, Plus, Trash2, Minus, X } from 'lucide-svelte';
+  import { fade, scale, slide } from 'svelte/transition';
   import { hasPermission } from '$lib/permissions';
   import type { PageData } from './$types';
 
@@ -11,11 +15,14 @@
 
   // ---- Basic info ----
   let name        = $state(data.product.name ?? '');
-  let description = $state(data.product.description ?? '');
+  // Rich text from the base editor; descriptions saved before it had one were plain text, and open as paragraphs
+  let description = $state(toEditorHtml(data.product.description));
   let basePriceDollars = $state(((data.product.basePrice ?? 0) / 100).toFixed(2));
   let status      = $state(data.product.status ?? 'draft');
   let category    = $state(data.product.category ?? '');
   let tagsRaw     = $state((data.product.tags ?? []).join(', '));
+  // Missing on older products, which all kept stock
+  let trackInventory = $state(data.product.trackInventory !== false);
 
   // ---- Images ----
   let images = $state([...(data.product.images ?? [])]);
@@ -49,22 +56,32 @@
 
   // ---- Variant options (axes) ----
   type VariantOption = { name: string; values: string[] };
-  let variantOptions = $state<VariantOption[]>(
-    (data.product.variantOptions ?? []).map((o: any) => ({ name: o.name, values: [...o.values] }))
+  // `draft` is what's typed in the option's value box and not yet a value; `key` keeps each row's transitions
+  // with the right row. Neither is saved. Values are the keys of their own list, so exact repeats (which the old
+  // form allowed, and which would only make duplicate variants) are dropped on load.
+  type OptionRow = VariantOption & { draft: string; key: number };
+  let nextKey = 0;
+  let variantOptions = $state<OptionRow[]>(
+    (data.product.variantOptions ?? []).map((o: any) => ({ name: o.name, values: [...new Set<string>(o.values ?? [])], draft: '', key: nextKey++ }))
   );
 
-  function addOption() { variantOptions = [...variantOptions, { name: '', values: [] }]; }
+  function addOption() { variantOptions = [...variantOptions, { name: '', values: [], draft: '', key: nextKey++ }]; }
   function removeOption(i: number) { variantOptions = variantOptions.filter((_, idx) => idx !== i); }
-  function addValue(i: number, val: string) {
-    if (!val.trim()) return;
-    variantOptions = variantOptions.map((o, idx) =>
-      idx === i ? { ...o, values: [...o.values, val.trim()] } : o
-    );
+  /** Turn what's typed in an option's value box into values: commas separate them, blanks and repeats are skipped */
+  function commitDraft(i: number) {
+    const o = variantOptions[i];
+    if (!o?.draft.trim()) return;
+    const values = [...o.values];
+    for (const v of o.draft.split(',').map(t => t.trim()).filter(Boolean)) {
+      if (!values.some(x => x.toLowerCase() === v.toLowerCase())) values.push(v);
+    }
+    o.values = values;
+    o.draft = '';
   }
+  // Saving and generating take anything still in a value box, so a value typed without Enter isn't lost
+  function commitAllDrafts() { variantOptions.forEach((_, i) => commitDraft(i)); }
   function removeValue(i: number, vi: number) {
-    variantOptions = variantOptions.map((o, idx) =>
-      idx === i ? { ...o, values: o.values.filter((_, vidx) => vidx !== vi) } : o
-    );
+    variantOptions[i].values = variantOptions[i].values.filter((_, idx) => idx !== vi);
   }
 
   // ---- Variants (generated grid) ----
@@ -79,8 +96,6 @@
     }))
   );
 
-  let newValue = $state<string[]>([]);
-
   function cartesian(opts: VariantOption[]): Record<string, string>[] {
     if (opts.length === 0) return [{}];
     const [first, ...rest] = opts;
@@ -91,6 +106,7 @@
   }
 
   function generateVariants() {
+    commitAllDrafts();
     const combos = cartesian(variantOptions.filter(o => o.name && o.values.length > 0));
     const existingBySku = new Map(variants.map(v => [v.sku, v]));
 
@@ -137,6 +153,7 @@
   let saveSuccess = $state(false);
 
   async function save() {
+    commitAllDrafts();
     saving = true; saveError = ''; saveSuccess = false;
     const basePrice = Math.round(parseFloat(basePriceDollars) * 100);
     if (isNaN(basePrice)) { saveError = 'Invalid price'; saving = false; return; }
@@ -145,7 +162,7 @@
       const res = await fetch(`/api/commerce/products/${data.product.id}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name, description, basePrice, status, category: category || undefined, tags, variantOptions, variants, discounts })
+        body: JSON.stringify({ name, description: isRichTextEmpty(description) ? '' : description, basePrice, status, category: category || undefined, tags, trackInventory, variantOptions: variantOptions.map(({ name, values }) => ({ name, values })), variants, discounts })
       });
       if (!res.ok) { const b = await res.json().catch(() => ({})); saveError = b.message ?? 'Save failed'; return; }
       saveSuccess = true;
@@ -201,10 +218,25 @@
         <span class="label-text text-sm font-medium">Tags (comma-separated)</span>
         <input type="text" class="input mt-1 w-full" bind:value={tagsRaw} placeholder="e.g. apparel, summer" disabled={!canEdit} />
       </label>
-      <label class="flex flex-col col-span-2">
-        <span class="label-text text-sm font-medium">Description</span>
-        <textarea class="textarea mt-1 w-full" bind:value={description} rows="3" maxlength="5000" disabled={!canEdit}></textarea>
+      <label class="col-span-2 flex items-start gap-3 cursor-pointer">
+        <input type="checkbox" class="toggle toggle-primary toggle-sm mt-0.5 shrink-0" bind:checked={trackInventory} disabled={!canEdit} />
+        <span class="flex flex-col gap-0.5">
+          <span class="label-text text-sm font-medium">Track inventory</span>
+          <span class="text-xs opacity-60">Turn off for donations, memberships and anything else that can't run out. It's then always in stock and stays out of the low-stock report.</span>
+        </span>
       </label>
+      <div class="flex flex-col col-span-2">
+        <span class="label-text text-sm font-medium">Description</span>
+        <div class="mt-1">
+          {#if canEdit}
+            <MessageEditor bind:html={description} placeholder="Describe the product…" />
+          {:else if isRichTextEmpty(description)}
+            <p class="text-sm opacity-60">No description.</p>
+          {:else}
+            <RichTextView html={description} class="prose prose-sm dark:prose-invert max-w-none rounded-lg border border-base-300 p-3" />
+          {/if}
+        </div>
+      </div>
     </div>
   </section>
 
@@ -241,48 +273,72 @@
   <!-- Variant Options -->
   <section class="card bg-base-200 border border-base-300 rounded-box p-5 space-y-4">
     <h2 class="font-semibold text-lg border-b border-base-300 pb-2">Variant Options</h2>
-    <p class="text-sm opacity-60">Define option axes (e.g. Size, Color), then generate the variant grid below.</p>
+    <p class="text-sm opacity-60">
+      Each option (e.g. Size) has a list of values (e.g. Small, Medium, Large). Generate Variants makes one variant
+      for every combination of values.
+    </p>
 
-    {#each variantOptions as opt, i}
-      <div class="border border-base-300 rounded-box p-3 space-y-2">
-        <div class="flex items-center gap-2">
-          <input type="text" class="input flex-1" placeholder="Option name (e.g. Size)" bind:value={opt.name} disabled={!canEdit} />
+    {#each variantOptions as opt, i (opt.key)}
+      <div class="border border-base-300 rounded-box p-3 space-y-3" transition:slide={{ duration: 200 }}>
+        <div class="flex items-end gap-2">
+          <label class="flex flex-col flex-1 min-w-0">
+            <span class="label-text text-xs font-medium">Option name</span>
+            <input type="text" class="input mt-1 text-sm w-full" placeholder="e.g. Size" bind:value={opt.name} disabled={!canEdit} />
+          </label>
           {#if canEdit}
-            <button type="button" class="btn btn-ghost btn-sm btn-square hover:text-error" onclick={() => removeOption(i)}>
+            <button type="button" class="btn btn-ghost btn-square hover:text-error shrink-0" aria-label="Remove option" title="Remove option" onclick={() => removeOption(i)}>
               <Trash2 class="size-4" />
             </button>
           {/if}
         </div>
-        <div class="flex flex-wrap gap-2 items-center">
-          {#each opt.values as val, vi}
-            <span class="badge badge-ghost text-sm flex items-center gap-1">
-              {val}
-              {#if canEdit}
-                <button type="button" onclick={() => removeValue(i, vi)} class="ml-1 opacity-60 hover:opacity-100">×</button>
-              {/if}
-            </span>
-          {/each}
+
+        <div>
+          <span class="label-text text-xs font-medium" id="option-values-{opt.key}">Values</span>
+          <!-- Always present (no height while empty), so the first value added animates in like the rest -->
+          <ul class="flex flex-wrap gap-x-2" aria-labelledby="option-values-{opt.key}">
+            {#each opt.values as val, vi (val)}
+              <li class="badge badge-ghost h-auto min-h-7 py-1 gap-1 text-sm max-w-full mt-1.5" transition:scale={{ duration: 150, start: 0.85 }}>
+                <span class="break-all">{val}</span>
+                {#if canEdit}
+                  <button type="button" class="btn btn-ghost btn-circle btn-xs -mr-1 opacity-60 hover:opacity-100" aria-label="Remove {val}" title="Remove {val}" onclick={() => removeValue(i, vi)}>
+                    <X class="size-3" />
+                  </button>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+          {#if !canEdit && !opt.values.length}
+            <p class="text-sm opacity-60 mt-1">No values</p>
+          {/if}
           {#if canEdit}
-            <input
-              type="text"
-              class="input w-28 text-sm"
-              placeholder="Add value…"
-              value={newValue[i] ?? ''}
-              oninput={(e) => { newValue[i] = (e.target as HTMLInputElement).value; }}
-              onkeydown={(e) => { if (e.key === 'Enter') { addValue(i, newValue[i] ?? ''); newValue[i] = ''; } }}
-            />
+            <div class="flex gap-2 mt-2">
+              <input
+                type="text"
+                class="input text-sm flex-1 min-w-0"
+                placeholder="e.g. Small, Medium, Large"
+                aria-labelledby="option-values-{opt.key}"
+                aria-describedby="option-values-hint-{opt.key}"
+                bind:value={opt.draft}
+                onkeydown={(e) => { if ((e.key === 'Enter' || e.key === ',') && !e.isComposing) { e.preventDefault(); commitDraft(i); } }}
+                onblur={() => commitDraft(i)}
+              />
+              <button type="button" class="btn btn-ghost shrink-0" disabled={!opt.draft.trim()} onclick={() => commitDraft(i)}>
+                <Plus class="size-4" /><span>Add</span>
+              </button>
+            </div>
+            <p class="text-xs opacity-60 mt-1" id="option-values-hint-{opt.key}">Separate values with commas, or press Enter after each.</p>
           {/if}
         </div>
       </div>
     {/each}
 
     {#if canEdit}
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-3">
         <button type="button" class="btn btn-ghost" onclick={addOption}>
           <Plus class="size-4" /><span>Add Option Axis</span>
         </button>
-        {#if variantOptions.some(o => o.name && o.values.length > 0)}
-          <button type="button" class="btn btn-secondary" onclick={generateVariants}>
+        {#if variantOptions.some(o => o.name && (o.values.length > 0 || o.draft.trim()))}
+          <button type="button" class="btn btn-secondary" onclick={generateVariants} transition:fade={{ duration: 150 }}>
             Generate Variants
           </button>
         {/if}
@@ -293,7 +349,12 @@
   <!-- Variants grid -->
   {#if variants.length > 0}
     <section class="card bg-base-200 border border-base-300 rounded-box overflow-hidden">
-      <div class="px-4 py-3 border-b border-base-300 font-semibold">Variants ({variants.length})</div>
+      <div class="px-4 py-3 border-b border-base-300 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <span class="font-semibold">Variants ({variants.length})</span>
+        {#if !trackInventory}
+          <span class="text-xs opacity-60" transition:fade={{ duration: 150 }}>Inventory isn't tracked: every variant is always in stock.</span>
+        {/if}
+      </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
@@ -303,8 +364,10 @@
                 <th class="text-left px-3 py-2 font-semibold opacity-60">{opt.name}</th>
               {/each}
               <th class="text-right px-3 py-2 font-semibold opacity-60">Price Override</th>
-              <th class="text-right px-3 py-2 font-semibold opacity-60">Stock</th>
-              <th class="text-right px-3 py-2 font-semibold opacity-60">Low Stock At</th>
+              {#if trackInventory}
+                <th class="text-right px-3 py-2 font-semibold opacity-60" transition:fade={{ duration: 150 }}>Stock</th>
+                <th class="text-right px-3 py-2 font-semibold opacity-60" transition:fade={{ duration: 150 }}>Low Stock At</th>
+              {/if}
               {#if canEdit}<th class="px-3 py-2"></th>{/if}
             </tr>
           </thead>
@@ -332,7 +395,8 @@
                     disabled={!canEdit}
                   />
                 </td>
-                <td class="px-3 py-2 text-right">
+                {#if trackInventory}
+                <td class="px-3 py-2 text-right" transition:fade={{ duration: 150 }}>
                   <div class="flex items-center justify-end gap-1">
                     {#if canEdit}
                       <button type="button" class="btn btn-ghost btn-sm btn-square" onclick={() => adjustStock(i, -1)} disabled={v.stock <= 0}><Minus class="size-3" /></button>
@@ -343,9 +407,10 @@
                     {/if}
                   </div>
                 </td>
-                <td class="px-3 py-2 text-right">
+                <td class="px-3 py-2 text-right" transition:fade={{ duration: 150 }}>
                   <input type="number" class="input text-xs w-16 text-right" bind:value={v.lowStockThreshold} min="0" placeholder="5" disabled={!canEdit} />
                 </td>
+                {/if}
                 {#if canEdit}
                   <td class="px-3 py-2">
                     <button type="button" class="btn btn-ghost btn-sm btn-square hover:text-error" onclick={() => removeVariant(i)}>

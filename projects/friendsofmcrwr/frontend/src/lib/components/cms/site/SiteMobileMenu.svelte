@@ -10,14 +10,22 @@
   import type { MenuItem } from '$lib/cms/types';
   import type { Snippet } from 'svelte';
 
-  let { open, items, trail, currentId, onclose, brand }: {
+  let { open, items, trail, currentId, onclose, brand, breakpoint = 'lg' }: {
     open: boolean;
     items: MenuItem[];
     trail: Set<string>;
     currentId: string | null;
     onclose: () => void;
     brand: Snippet;
+    /**
+     * 'lg': the drawer is for small screens only; it's hidden, and closes itself, from the lg breakpoint up
+     * (where SiteMenu's row takes over). null: usable at any width, for a shell that switches to the drawer
+     * whenever its menu row doesn't fit.
+     */
+    breakpoint?: 'lg' | null;
   } = $props();
+
+  const smallOnly = $derived(breakpoint === 'lg' ? 'lg:hidden' : '');
 
   let expanded = $state<Record<string, boolean>>({});
   let panel: HTMLElement | undefined = $state();
@@ -33,7 +41,7 @@
     tick().then(() => closeButton?.focus());
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onclose(); } };
     const wide = window.matchMedia('(min-width: 1024px)');
-    const onWide = () => { if (wide.matches) onclose(); };
+    const onWide = () => { if (breakpoint === 'lg' && wide.matches) onclose(); };
     window.addEventListener('keydown', onKey);
     wide.addEventListener('change', onWide);
     return () => {
@@ -101,14 +109,14 @@
 {#if open}
   <button
     type="button"
-    class="fixed inset-0 z-40 bg-black/50 lg:hidden"
+    class="fixed inset-0 z-40 bg-black/50 {smallOnly}"
     aria-label="Close menu"
     tabindex="-1"
     onclick={onclose}
     transition:fade={{ duration: ms(200) }}
   ></button>
   <div
-    class="fixed inset-y-0 left-0 z-50 overflow-hidden lg:hidden shadow-2xl"
+    class="fixed inset-y-0 left-0 z-50 overflow-hidden {smallOnly} shadow-2xl"
     transition:slide={{ axis: 'x', duration: ms(250) }}
   >
     <div

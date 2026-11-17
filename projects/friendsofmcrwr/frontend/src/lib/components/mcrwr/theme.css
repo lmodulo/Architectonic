@@ -1,0 +1,170 @@
+/* Friends of Mid-Columbia River Wildlife Refuges: the public website's look.
+   Loaded by the site shell and the landing page. The `mcrwr` theme is pinned to the public pages by a route
+   rule ($lib/config/module-routes/site.ts), so Settings → Theme keeps styling only the staff app.
+
+   Palette, from the landscape: warm paper and basalt ink, Columbia River blue (primary), shrub-steppe sage
+   (secondary) and sunset ochre (accent, for Join/Donate). Type: Source Serif 4 headings (close to the logo's
+   serif), Inter body (already loaded by app.html). */
+
+:root[data-theme='mcrwr'],
+[data-theme='mcrwr'] {
+  color-scheme: light;
+  --color-base-100: oklch(98.3% 0.008 85);
+  --color-base-200: oklch(95.4% 0.014 85);
+  --color-base-300: oklch(89.5% 0.021 85);
+  --color-base-content: oklch(26% 0.02 225);
+  --color-primary: oklch(44% 0.08 232);
+  --color-primary-content: oklch(98.5% 0.004 232);
+  --color-secondary: oklch(49% 0.05 135);
+  --color-secondary-content: oklch(98.5% 0.004 135);
+  --color-accent: oklch(72% 0.135 68);
+  --color-accent-content: oklch(23% 0.035 60);
+  --color-neutral: oklch(27% 0.024 225);
+  --color-neutral-content: oklch(93% 0.012 85);
+  --color-info: oklch(64% 0.09 235);
+  --color-info-content: oklch(20% 0.03 235);
+  --color-success: oklch(54% 0.09 145);
+  --color-success-content: oklch(98.5% 0.01 145);
+  --color-warning: oklch(79% 0.13 80);
+  --color-warning-content: oklch(25% 0.04 70);
+  --color-error: oklch(52% 0.15 35);
+  --color-error-content: oklch(98.5% 0.01 35);
+  --radius-selector: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+  /* app.css applies these to body and h1–h6 */
+  --display: 'Source Serif 4', ui-serif, Georgia, serif;
+  --body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+.mw-site {
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.mw-site :is(h1, h2, h3, h4) { font-family: var(--display); letter-spacing: -0.01em; text-wrap: balance; }
+
+/* ── Type scale ───────────────────────────────────────────────────────────────
+   app.css sizes h1–h6 outside any CSS layer, which beats Tailwind's text-* utilities on headings. These
+   classes are more specific than its element rules, so headings take them. */
+.mw-display { font-size: clamp(2.6rem, 5.5vw + 1rem, 5.25rem); line-height: 1.02; font-weight: 600; letter-spacing: -0.025em; }
+.mw-h1      { font-size: clamp(2rem, 3.2vw + 1.1rem, 3.75rem); line-height: 1.06; font-weight: 600; letter-spacing: -0.02em; }
+.mw-h2      { font-size: clamp(1.85rem, 2.2vw + 1rem, 2.9rem); line-height: 1.1; font-weight: 600; letter-spacing: -0.015em; }
+.mw-h3      { font-size: 1.3rem; line-height: 1.25; font-weight: 600; }
+.mw-lede    { font-size: clamp(1.075rem, 0.5vw + 0.95rem, 1.3rem); line-height: 1.6; }
+.mw-eyebrow,
+.mw-site .mw-eyebrow {
+  font-family: var(--body);
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* CMS content inside the site (blocks are the cms module's, styled here for this brand) */
+.mw-site .cms-hero :is(h1, h2) { font-size: clamp(2.2rem, 3.6vw + 1rem, 4rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.02em; }
+.mw-site .cms-prose { font-size: 1.0625rem; }
+.mw-site .cms-prose :is(h2, h3, h4) { font-weight: 600; }
+.mw-site .cms-prose h2 { font-size: clamp(1.6rem, 1vw + 1.25rem, 2rem); }
+.mw-site .cms-prose blockquote {
+  border-left-color: var(--color-accent);
+  font-family: var(--display);
+  font-size: 1.2em;
+  line-height: 1.5;
+}
+.mw-site .cms-block--buttons .btn,
+.mw-btn { border-radius: 999px; }
+
+/* ── Header ───────────────────────────────────────────────────────────────────
+   Over the landing page's photo the header is transparent with white text until the page scrolls. The cms
+   menu's hover and active-trail pills are light (base-200), so they're swapped for translucent white there,
+   and its dropdowns (paper background) get the normal ink colour back. */
+/* One line per item, so a row with too many items overflows (and the shell switches to the drawer) instead
+   of wrapping labels onto two lines */
+.mw-header nav [data-top] { font-size: 0.9375rem; white-space: nowrap; }
+.mw-header nav ul ul { color: var(--color-base-content); }
+.mw-header[data-transparent='true'] nav [data-top]:is(:hover, :focus-visible),
+.mw-header[data-transparent='true'] nav [data-top].bg-base-200 { background-color: rgb(255 255 255 / 0.16); }
+.mw-header[data-transparent='true'] nav [data-top].btn:hover { background-color: rgb(255 255 255 / 0.16); border-color: transparent; }
+.mw-header[data-transparent='true'] { text-shadow: 0 1px 12px rgb(0 0 0 / 0.25); }
+.mw-header[data-transparent='true'] nav ul ul { text-shadow: none; }
+
+/* ── Sky placeholders ─────────────────────────────────────────────────────────
+   Where a photo goes (SkyImage.svelte): a big sky over a basalt-rimrock horizon and the river. Variants vary
+   the light so a page of placeholders doesn't look like one picture repeated. */
+.mw-sky { overflow: hidden; background: var(--mw-sky-bg); isolation: isolate; }
+.mw-sky--dawn  { --mw-sky-bg: linear-gradient(180deg, #7FA9CB 0%, #B5CEE0 34%, #EBD8BF 70%, #E7B68A 100%); --mw-far: #9AA6B4; --mw-mid: #6F7681; --mw-near: #3E4A4C; --mw-water: #F3DCC0; --mw-cloud: 0.55; --mw-sun: rgb(255 226 186 / 0.75); }
+.mw-sky--day   { --mw-sky-bg: linear-gradient(180deg, #3F7FB4 0%, #79AAD3 40%, #C6DDEB 78%, #E6ECE3 100%); --mw-far: #93A9B5; --mw-mid: #7C8A72; --mw-near: #4C5A3E; --mw-water: #A9CBE0; --mw-cloud: 0.7;  --mw-sun: rgb(255 250 230 / 0.35); }
+.mw-sky--dusk  { --mw-sky-bg: linear-gradient(180deg, #24345C 0%, #4F5585 30%, #B27470 66%, #EAAA74 100%); --mw-far: #6A5A78; --mw-mid: #3F3A55; --mw-near: #1F2433; --mw-water: #E9A97A; --mw-cloud: 0.25; --mw-sun: rgb(255 196 140 / 0.7); }
+.mw-sky--storm { --mw-sky-bg: linear-gradient(180deg, #46525F 0%, #76838F 42%, #B3BCBE 78%, #D8D3C6 100%); --mw-far: #8C969C; --mw-mid: #66706E; --mw-near: #3A4340; --mw-water: #C9CDCB; --mw-cloud: 0.5;  --mw-sun: rgb(255 255 255 / 0.25); }
+.mw-sky--sage  { --mw-sky-bg: linear-gradient(180deg, #6D9CC2 0%, #A7C6DC 40%, #DCE5DA 76%, #E4DFC8 100%); --mw-far: #A5AE9C; --mw-mid: #8A9670; --mw-near: #5C6B44; --mw-water: #BCD3DF; --mw-cloud: 0.6;  --mw-sun: rgb(255 244 214 / 0.45); }
+
+.mw-sky__clouds {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 28% 7% at 20% 24%, rgb(255 255 255 / var(--mw-cloud)), transparent 70%),
+    radial-gradient(ellipse 18% 5% at 30% 21%, rgb(255 255 255 / var(--mw-cloud)), transparent 70%),
+    radial-gradient(ellipse 34% 8% at 70% 14%, rgb(255 255 255 / calc(var(--mw-cloud) * 0.8)), transparent 70%),
+    radial-gradient(ellipse 20% 5% at 82% 30%, rgb(255 255 255 / calc(var(--mw-cloud) * 0.6)), transparent 70%),
+    radial-gradient(circle at 76% 70%, var(--mw-sun), transparent 32%);
+}
+.mw-sky__ridge { position: absolute; inset: auto 0 0 0; width: 100%; height: 34%; z-index: -1; }
+.mw-sky__ridge .far   { fill: var(--mw-far); opacity: 0.75; }
+.mw-sky__ridge .mid   { fill: var(--mw-mid); }
+.mw-sky__ridge .water { fill: var(--mw-water); opacity: 0.8; }
+.mw-sky__ridge .near  { fill: var(--mw-near); }
+.mw-sky__label {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgb(20 28 32 / 0.45);
+  color: rgb(255 255 255 / 0.92);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* A CMS hero block without a photo: the brand's pale dawn sky over the same horizon as the placeholders, kept
+   light so the hero's dark text reads over it (the cms default is a plain gradient) */
+.mw-site .cms-hero:not(:has(> img)) {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'%3E%3Cpath fill='%2393A3B0' fill-opacity='.28' d='M0 196 C 120 168 250 150 360 164 S 600 118 760 140 S 1040 108 1180 134 S 1380 150 1440 138 V320 H0 Z'/%3E%3Cpath fill='%23707A73' fill-opacity='.3' d='M0 238 L150 234 L178 206 L338 200 L362 226 L528 230 L566 192 L768 186 L796 216 L984 222 L1014 198 L1214 192 L1242 224 L1440 228 V320 H0 Z'/%3E%3Cpath fill='%234C5A4E' fill-opacity='.35' d='M0 292 C 180 280 320 302 520 292 S 900 284 1100 296 S 1340 288 1440 294 V320 H0 Z'/%3E%3C/svg%3E") bottom / 100% 32% no-repeat,
+    radial-gradient(circle at 78% 72%, rgb(255 226 186 / 0.55), transparent 35%),
+    linear-gradient(180deg, #B9D0E2 0%, #DCE6EC 45%, #F3E7D6 85%, #EED9BE 100%);
+}
+
+/* The shop's product photo placeholder (cms ShopComponent): the pale dawn sky and horizon of the image-less hero */
+.mw-site .cms-shop .cms-shop__ph {
+  color: rgb(255 255 255 / 0.85);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120' preserveAspectRatio='none'%3E%3Cpath fill='%2393A3B0' fill-opacity='.45' d='M0 58 C 40 46 80 40 120 46 S 200 30 260 38 S 340 28 400 36 V120 H0 Z'/%3E%3Cpath fill='%23707A73' fill-opacity='.5' d='M0 84 L60 82 L72 68 L138 66 L148 80 L214 82 L230 64 L300 62 L312 78 L400 80 V120 H0 Z'/%3E%3Cpath fill='%234C5A4E' fill-opacity='.55' d='M0 108 C 60 102 120 112 200 106 S 330 104 400 108 V120 H0 Z'/%3E%3C/svg%3E") bottom / 100% 34% no-repeat,
+    radial-gradient(circle at 72% 64%, rgb(255 226 186 / 0.6), transparent 38%),
+    linear-gradient(180deg, #A9C4DA 0%, #CFDDE6 45%, #EFE3D2 85%, #EAD3B6 100%);
+}
+.mw-site .cms-shop .cms-shop__ph > svg { filter: drop-shadow(0 1px 6px rgb(0 0 0 / 0.2)); }
+
+/* Interior page banner: the sky darkened at the bottom so the white title reads on any photo */
+.mw-banner__scrim { background: linear-gradient(180deg, rgb(15 22 30 / 0.15) 0%, rgb(15 22 30 / 0.1) 40%, rgb(15 22 30 / 0.6) 100%); }
+
+/* Horizontal card rail on phones (the refuges); snaps card by card */
+.mw-rail { scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.mw-rail::-webkit-scrollbar { display: none; }
+.mw-rail > * { scroll-snap-align: start; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mw-site *, .mw-site *::before, .mw-site *::after { scroll-behavior: auto !important; }
+}

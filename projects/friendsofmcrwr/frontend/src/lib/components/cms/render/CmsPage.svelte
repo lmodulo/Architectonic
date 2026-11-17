@@ -6,6 +6,7 @@
   import BlockRenderer from './BlockRenderer.svelte';
   import ComponentBlock from './ComponentBlock.svelte';
   import { pageMeta } from '$lib/cms/seo';
+  import { SITE_DESIGN } from '$lib/config/site-design';
   import type { PageView } from '$lib/cms/types';
 
   let { view, componentData = {} }: { view: PageView; componentData?: Record<string, unknown> } = $props();
@@ -15,6 +16,8 @@
   const heroFirst = $derived(blocks[0]?.type === 'hero');
   const brand = $derived((page.data.brandName as string | null) || (page.data.appName as string | null) || '');
   const meta = $derived(pageMeta(view, page.url.origin, brand));
+  // A project's own title block ($lib/config/site-design.ts); a plain const so it renders during SSR
+  const PageTitle = SITE_DESIGN.PageTitle;
 </script>
 
 <svelte:head>
@@ -38,14 +41,17 @@
   <meta name="twitter:card" content={meta.image ? 'summary_large_image' : 'summary'} />
 </svelte:head>
 
-{#if !heroFirst}
+{#if PageTitle}
+  <PageTitle {view} {heroFirst} />
+{:else if !heroFirst}
   <div class="w-full max-w-3xl mx-auto px-4 pt-12 pb-8">
-    <h1 class="text-4xl font-bold tracking-tight leading-tight text-balance">{view.node.title}</h1>
+    <h1 class="text-4xl font-bold tracking-tight leading-tight text-balance">{view.subpage?.title ?? view.node.title}</h1>
   </div>
 {/if}
 
 {#if view.node.type === 'component'}
-  <div class="w-full max-w-5xl mx-auto px-4 pb-16">
+  <!-- The same column as text blocks and the title, so every kind of page lines up (site designs' PageTitle too) -->
+  <div class="w-full max-w-3xl mx-auto px-4 pb-16">
     <ComponentBlock componentKey={view.node.component?.key} props={view.node.component?.props} data={componentData.page} mode="page" rest={view.rest ?? null} />
   </div>
 {:else}

@@ -1,8 +1,9 @@
 <script lang="ts">
+  // Commerce's standalone storefront shell: StorefrontNav above the page, without the app shell
+  // (module-routes/commerce.ts makes /shop public and bare). Each page shows its own heading and breadcrumbs.
   import type { LayoutData } from './$types';
   import type { Snippet } from 'svelte';
   import StorefrontNav from '$lib/components/StorefrontNav.svelte';
-  import ShopBreadcrumb from '$lib/components/ShopBreadcrumb.svelte';
 
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
 </script>
@@ -10,8 +11,7 @@
 <StorefrontNav meta={data.meta} />
 
 <div class="shop-shell">
-  <ShopBreadcrumb categories={data.meta.categories} />
-  <main class="shop-main">
+  <main>
     {@render children()}
   </main>
 </div>

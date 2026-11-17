@@ -564,6 +564,8 @@ That lets signed-in customers in without making the page public. Pair it with a 
 customers land on the first one they have permission for, or `/` when there is none. A rule can match an exact SvelteKit
 route id instead of a prefix, for routes whose URLs aren't known up front: `{ routeId: '/(site)/[...path]', public: true }`
 covers every URL that catch-all serves, and nothing else. If a rule sets both `prefix` and `routeId`, both must match.
+A rule can also pin a DaisyUI `theme` for the pages it covers, whatever Settings → Theme says, e.g. a public website with
+its own brand: `{ routeId: '/', theme: 'acme' }`. The theme's `[data-theme='acme']` variables must be in CSS those pages load.
 
 **Home page override** — a module can replace `/` with its own page. Ship a server loader at
 `frontend/src/lib/server/module-home/<key>.ts` that default-exports `(event) => Promise<object | null>`, and a component at

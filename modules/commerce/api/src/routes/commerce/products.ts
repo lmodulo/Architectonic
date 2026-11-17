@@ -71,6 +71,8 @@ export default async function productsRoutes(app: FastifyInstance) {
       status?: string;
       category?: string;
       tags?: string[];
+      /** false: never runs out (donations, memberships); no stock kept. Missing means tracked. */
+      trackInventory?: boolean;
       variantOptions?: { name: string; values: string[] }[];
       variants?: {
         sku: string;
@@ -89,11 +91,13 @@ export default async function productsRoutes(app: FastifyInstance) {
         required: ['name', 'basePrice'],
         properties: {
           name:           { type: 'string', minLength: 1, maxLength: 200 },
-          description:    { type: 'string', maxLength: 5000 },
+          // Rich text (HTML) from the product page's editor
+          description:    { type: 'string', maxLength: 20000 },
           basePrice:      { type: 'integer', minimum: 0 },
           status:         { type: 'string', enum: [...STATUS_VALUES], default: 'draft' },
           category:       { type: 'string' },
           tags:           { type: 'array', items: { type: 'string' } },
+          trackInventory: { type: 'boolean', default: true },
           variantOptions: {
             type: 'array',
             items: {
@@ -125,7 +129,7 @@ export default async function productsRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const {
       name, description = '', basePrice, status = 'draft',
-      category = '', tags = [], variantOptions = [], variants = []
+      category = '', tags = [], trackInventory = true, variantOptions = [], variants = []
     } = req.body;
     const db  = app.mongo.db!;
     const now = new Date();
@@ -139,6 +143,7 @@ export default async function productsRoutes(app: FastifyInstance) {
       category,
       images:         [] as string[],
       tags,
+      trackInventory,
       variantOptions,
       variants,
       discounts:      [] as unknown[],
@@ -184,6 +189,8 @@ export default async function productsRoutes(app: FastifyInstance) {
       status?: string;
       category?: string;
       tags?: string[];
+      /** false: never runs out (donations, memberships); no stock kept. Missing means tracked. */
+      trackInventory?: boolean;
       variantOptions?: { name: string; values: string[] }[];
       variants?: {
         sku: string;
@@ -214,16 +221,20 @@ export default async function productsRoutes(app: FastifyInstance) {
     const _id = new ObjectId(req.params.id);
     const {
       name, description, basePrice, status, category,
-      tags, variantOptions, variants, discounts
+      tags, trackInventory, variantOptions, variants, discounts
     } = req.body;
 
     const $set: Record<string, unknown> = { updatedAt: new Date() };
     if (name !== undefined)           { $set.name = name; $set.slug = toSlug(name); }
-    if (description !== undefined)    $set.description = description;
+    if (description !== undefined) {
+      if (typeof description !== 'string' || description.length > 20000) return reply.badRequest('Description is too long');
+      $set.description = description;
+    }
     if (basePrice !== undefined)      $set.basePrice = basePrice;
     if (status !== undefined)         $set.status = status;
     if (category !== undefined)       $set.category = category;
     if (tags !== undefined)           $set.tags = tags;
+    if (typeof trackInventory === 'boolean') $set.trackInventory = trackInventory;
     if (variantOptions !== undefined) $set.variantOptions = variantOptions;
     if (variants !== undefined)       $set.variants = variants;
     if (discounts !== undefined)      $set.discounts = discounts;
@@ -357,8 +368,8 @@ export default async function productsRoutes(app: FastifyInstance) {
     const { sku }    = req.params;
     const { adjustment } = req.body;
 
-    // Build update: only apply if stock won't go negative
-    const filter: Record<string, unknown> = { _id, 'variants.sku': sku };
+    // Build update: only apply if stock won't go negative, and only to products that keep stock
+    const filter: Record<string, unknown> = { _id, 'variants.sku': sku, trackInventory: { $ne: false } };
     if (adjustment < 0) {
       filter['variants.stock'] = { $gte: -adjustment };
     }
@@ -373,6 +384,7 @@ export default async function productsRoutes(app: FastifyInstance) {
       // Determine whether product/SKU exists or stock was insufficient
       const product = await db.collection(COL).findOne({ _id, 'variants.sku': sku });
       if (!product) return reply.notFound('Product or SKU not found');
+      if (product.trackInventory === false) return reply.conflict("This product doesn't track inventory");
       return reply.conflict('Insufficient stock for this adjustment');
     }
 

@@ -22,7 +22,7 @@
   import { closeCard } from '$lib/stores/userCard.svelte';
   import { brand } from '$lib/config/logo';
   import { APP_THEME, APP_FONTS } from '$lib/config/theme';
-  import { isBareRoute } from '$lib/config/route-rules';
+  import { isBareRoute, routeTheme } from '$lib/config/route-rules';
   import { m } from '$lib/paraglide/messages.js';
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types';
@@ -35,8 +35,9 @@
 
   let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
-  // Active theme from Settings → Theme. Mirrored onto <html> so a change applies live everywhere.
-  const theme = $derived(data.theme ?? APP_THEME);
+  // Active theme from Settings → Theme, unless a route rule pins one for this page (route-rules.ts).
+  // Mirrored onto <html> so a change applies live everywhere.
+  const theme = $derived(routeTheme(page.url.pathname, page.route.id) ?? data.theme ?? APP_THEME);
   $effect(() => { document.documentElement.dataset.theme = theme; });
 
   // Module routes declared `bare` (e.g. the storefront) render without the app shell, even when signed in.

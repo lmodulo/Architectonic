@@ -9,6 +9,7 @@
 //     { prefix: '/shop', public: true, bare: true },        // storefront, open to everyone
 //     { prefix: '/client-portal/orders', customer: true },  // signed-in customers' own page
 //     { routeId: '/(site)/[...path]', public: true },       // a catch-all whose URLs aren't known up front
+//     { routeId: '/', theme: 'acme' },                      // always this theme, whatever Settings → Theme says
 //   ] satisfies RouteRule[];
 
 export interface RouteRule {
@@ -26,6 +27,12 @@ export interface RouteRule {
   customer?: boolean;
   /** Rendered without the app shell (sidebar/header), even for signed-in users. */
   bare?: boolean;
+  /**
+   * DaisyUI theme these pages always render in, instead of the runtime theme from Settings → Theme
+   * (which keeps styling everything else), e.g. a public website with its own brand. The theme's
+   * `[data-theme='…']` variables must be in CSS those pages load. The first matching rule wins.
+   */
+  theme?: string;
 }
 
 // Scaffold's own rules: the documentation site is public and has its own shell.
@@ -61,4 +68,9 @@ export function isCustomerRoute(path: string, routeId?: string | null): boolean 
 
 export function isBareRoute(path: string, routeId?: string | null): boolean {
   return MODULE_ROUTE_RULES.some(r => r.bare && applies(r, path, routeId));
+}
+
+/** The theme a rule pins for this page, or null to use the runtime theme (Settings → Theme). */
+export function routeTheme(path: string, routeId?: string | null): string | null {
+  return MODULE_ROUTE_RULES.find(r => r.theme && applies(r, path, routeId))?.theme ?? null;
 }

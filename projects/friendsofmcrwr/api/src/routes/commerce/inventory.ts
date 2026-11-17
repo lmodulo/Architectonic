@@ -11,9 +11,10 @@ export default async function inventoryRoutes(app: FastifyInstance) {
   }, async () => {
     const db = app.mongo.db!;
 
-    // Fetch active products that have at least one low-stock variant
+    // Fetch active products that keep stock (not donations and the like) and have variants
     const products = await db.collection('products').find({
       status: 'active',
+      trackInventory: { $ne: false },
       variants: { $exists: true, $not: { $size: 0 } }
     }, {
       projection: { _id: 1, name: 1, slug: 1, category: 1, variants: 1 }

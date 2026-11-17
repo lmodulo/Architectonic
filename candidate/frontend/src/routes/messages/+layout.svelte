@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { goto, invalidateAll } from '$app/navigation';
-  import { SquarePen, Inbox, Send, Archive } from 'lucide-svelte';
+  import { SquarePen, Inbox, Send, Archive, ChevronLeft } from 'lucide-svelte';
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import { MailIcon } from 'lucide-svelte';
@@ -67,6 +67,8 @@
   }
 
   const currentThreadId = $derived(page.params.threadId ?? null);
+  // The list page itself; a thread or compose is open otherwise. Phones show one panel at a time.
+  const isIndex = $derived(page.url.pathname === '/messages');
 
   function resolveFrom(userId: string) {
     const u = data.allUsers.find((x: { id: string }) => x.id === userId);
@@ -76,20 +78,24 @@
   }
 </script>
 
-<!-- No overflow-hidden here: it would crop PageHeader's full-width banner to the content column. The
-     two-panel shell below clips its own panels. -->
-<div class="flex flex-col h-full gap-4">
+<!-- Fills the space under the app's top bar exactly, so the list and the open message scroll inside their
+     panels instead of the whole page scrolling: 100vh (the shell is h-screen) minus the top bar (h-16, 4rem) and
+     the content column's bottom padding (pb-6, 1.5rem), both in routes/+layout.svelte.
+     No overflow-hidden here: it would crop PageHeader's full-width banner to the content column. The two-panel
+     shell below clips its own panels. -->
+<div class="flex flex-col h-[calc(100vh-5.5rem)] gap-4">
 
   <!-- Header -->
   <div class="shrink-0">
     <PageHeader icon={MailIcon} title={m.messages_title()} subtitle={m.messages_subtitle()} />
   </div>
 
-  <!-- Two-panel shell -->
-  <div class="flex flex-1 overflow-hidden border border-base-300 rounded-box">
+  <!-- Two-panel shell. Below md only one panel shows: the list on /messages, otherwise the open thread or
+       compose form with a link back. min-h-80: on a very short screen the page scrolls instead of squashing it. -->
+  <div class="flex flex-1 min-h-80 overflow-hidden border border-base-300 rounded-box">
 
   <!-- Left panel — message list -->
-  <aside class="w-72 shrink-0 flex flex-col border-r border-base-300 overflow-hidden">
+  <aside class="{isIndex ? 'flex' : 'hidden'} md:flex w-full md:w-72 shrink-0 flex-col md:border-r border-base-300 overflow-hidden">
 
     <!-- Compose button -->
     <div class="px-3 py-3 border-b border-base-300">
@@ -149,9 +155,20 @@
   </aside>
 
   <!-- Right panel -->
-  <main class="flex-1 overflow-y-auto">
-    {@render children()}
-  </main>
+  <section class="{isIndex ? 'hidden' : 'flex'} md:flex flex-1 min-w-0 flex-col overflow-hidden">
+    {#if !isIndex}
+      <a
+        href="/messages"
+        class="md:hidden flex items-center gap-1 px-4 py-2.5 text-sm font-medium border-b border-base-300 shrink-0 hover:bg-base-200 transition-colors"
+      >
+        <ChevronLeft class="size-4" />
+        {m.messages_inbox()}
+      </a>
+    {/if}
+    <div class="flex-1 min-h-0 overflow-y-auto">
+      {@render children()}
+    </div>
+  </section>
 
   </div><!-- end two-panel shell -->
 

@@ -3,13 +3,13 @@
   import { m } from '$lib/paraglide/messages.js';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import { HouseIcon } from 'lucide-svelte';
-  import { Search, ChevronLeft, ChevronRight, Plus, X, Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw } from 'lucide-svelte';
-  import { fade, scale } from 'svelte/transition';
-  import { cubicOut } from 'svelte/easing';
+  import { Search, ChevronLeft, ChevronRight, Plus, Eye, EyeOff, GripVertical, LayoutDashboard, Check, RotateCcw } from 'lucide-svelte';
+  import { fade } from 'svelte/transition';
   import type { PageData } from './$types';
   import { dashboardWidgets } from '$lib/config/dashboard-widgets';
   import { hasPermission } from '$lib/permissions';
-  import MessageEditor from '$lib/components/MessageEditor.svelte';
+  import EventModal from '$lib/components/EventModal.svelte';
+  import { eventTooltip, eventsForDay as eventsOnDay, normalizeEvent, type CalendarEvent } from '$lib/utils/calendarEvents';
 
   let { data }: { data: PageData } = $props();
 
@@ -87,40 +87,14 @@
 
 
   // ── Events ────────────────────────────────────────────────────────
-  type CalEvent = {
-    id: string;
-    title: string;
-    content: string;
-    startDate: string;
-    endDate: string;
-    singleDay: boolean;
-  };
+  // Calendar-events module events (see +page.server.ts). New/edit use the module's EventModal, the same modal and
+  // the same /api/calendar-events calls as /calendar-events/admin.
+  let events = $state<CalendarEvent[]>(data.events ?? []);
 
-  function toDateStr(val: unknown): string {
-    if (!val) return '';
-    const d = new Date(val as string);
-    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
-  }
-
-  let events = $state<CalEvent[]>(
-    ((data.events ?? []) as Record<string, unknown>[]).map(e => ({
-      id:        String(e.id ?? ''),
-      title:     String(e.title ?? ''),
-      content:   String(e.content ?? ''),
-      startDate: toDateStr(e.startDate),
-      endDate:   toDateStr(e.endDate),
-      singleDay: Boolean(e.singleDay),
-    }))
-  );
-
-  let eventQuery         = $state('');
-  let eventSearchOpen    = $state(false);
-  let eventModalOpen     = $state(false);
-  let eventDeleteConfirm = $state(false);
-  let editingEventId     = $state<string | null>(null);
-  let eventForm = $state({ title: '', content: '', startDate: '', endDate: '', singleDay: true });
-  let eventLoading  = $state(false);
-  let eventError    = $state('');
+  let eventQuery      = $state('');
+  let eventSearchOpen = $state(false);
+  let eventModalOpen  = $state(false);
+  let editingEvent    = $state<CalendarEvent | null>(null);
 
   const eventMatches = $derived(
     eventQuery.trim().length > 0
@@ -128,105 +102,61 @@
       : []
   );
 
-  $effect(() => { if (eventForm.singleDay) eventForm.endDate = eventForm.startDate; });
-
-  function eventsForDay(year: number, month: number, day: number): CalEvent[] {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return events.filter(e => e.startDate <= dateStr && dateStr <= e.endDate);
+  // A day's events, all-day ones first and the rest by start time
+  function eventsForDay(year: number, month: number, day: number): CalendarEvent[] {
+    return eventsOnDay(events, year, month, day);
   }
 
-  function selectEventFromSearch(ev: CalEvent) {
+  function selectEventFromSearch(ev: CalendarEvent) {
     eventQuery = '';
     eventSearchOpen = false;
     openEditEvent(ev);
   }
 
   function openNewEvent() {
-    editingEventId = null;
-    const todayStr = today.toISOString().slice(0, 10);
-    eventForm = { title: '', content: '', startDate: todayStr, endDate: todayStr, singleDay: true };
-    eventError = '';
+    editingEvent = null;
     eventModalOpen = true;
   }
 
-  function openEditEvent(ev: CalEvent) {
-    editingEventId = ev.id;
-    eventForm = { title: ev.title, content: ev.content, startDate: ev.startDate, endDate: ev.endDate, singleDay: ev.singleDay };
-    eventError = '';
+  function openEditEvent(ev: CalendarEvent) {
+    editingEvent = ev;
     eventModalOpen = true;
   }
 
-  async function saveEvent() {
-    if (!eventForm.title.trim()) { eventError = m.errors_title_required(); return; }
-    if (!eventForm.startDate)    { eventError = m.errors_start_date_required(); return; }
-    eventLoading = true;
-    eventError   = '';
-    const body = {
-      title:     eventForm.title.trim(),
-      content:   eventForm.content,
-      startDate: eventForm.startDate,
-      endDate:   eventForm.singleDay ? eventForm.startDate : (eventForm.endDate || eventForm.startDate),
-      singleDay: eventForm.singleDay,
-    };
-    try {
-      let res: Response;
-      if (editingEventId) {
-        res = await fetch(`/api/events/${editingEventId}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-      } else {
-        res = await fetch('/api/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-      }
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        eventError = (d as { message?: string }).message ?? m.errors_save_failed();
-        return;
-      }
-      const saved = await res.json();
-      const normalized: CalEvent = {
-        id:        editingEventId ?? String(saved.id ?? saved._id ?? ''),
-        title:     String(saved.title ?? body.title),
-        content:   String(saved.content ?? body.content),
-        startDate: toDateStr(saved.startDate) || body.startDate,
-        endDate:   toDateStr(saved.endDate)   || body.endDate,
-        singleDay: Boolean(saved.singleDay ?? body.singleDay),
-      };
-      if (editingEventId) {
-        events = events.map(e => e.id === editingEventId ? normalized : e);
-      } else {
-        events = [...events, normalized];
-      }
-      eventModalOpen = false;
-    } catch {
-      eventError = m.errors_network_error();
-    } finally {
-      eventLoading = false;
+  // EventModal shows the error from a thrown Error and stays open; it closes when these return.
+  async function saveEvent(body: Record<string, unknown>) {
+    const editing = editingEvent;
+    const res = await fetch(editing ? `/api/calendar-events/${editing.id}` : '/api/calendar-events', {
+      method: editing ? 'PATCH' : 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error((d as { message?: string }).message ?? m.errors_save_failed());
     }
+
+    if (editing) {
+      // PATCH doesn't return the event; reload it, falling back to the values just sent.
+      const fresh = await fetch(`/api/calendar-events/${editing.id}`);
+      const updated = fresh.ok ? normalizeEvent(await fresh.json()) : normalizeEvent({ ...editing, ...body });
+      events = events.map(e => e.id === editing.id ? updated : e);
+    } else {
+      events = [...events, normalizeEvent(await res.json())];
+    }
+    eventModalOpen = false;
   }
 
-  async function confirmDeleteEvent() {
-    if (!editingEventId) return;
-    eventLoading = true;
-    try {
-      const res = await fetch(`/api/events/${editingEventId}`, { method: 'DELETE' });
-      if (res.status !== 204 && !res.ok) {
-        const d = await res.json().catch(() => ({}));
-        eventError = (d as { message?: string }).message ?? m.errors_delete_failed();
-        return;
-      }
-      events = events.filter(e => e.id !== editingEventId);
-      eventDeleteConfirm = false;
-      eventModalOpen     = false;
-    } catch {
-      eventError = m.errors_network_error();
-    } finally {
-      eventLoading = false;
+  async function deleteEvent() {
+    const editing = editingEvent;
+    if (!editing) return;
+    const res = await fetch(`/api/calendar-events/${editing.id}`, { method: 'DELETE' });
+    if (res.status !== 204 && !res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error((d as { message?: string }).message ?? m.errors_delete_failed());
     }
-  }
-
-  function fmtEventDate(ev: CalEvent): string {
-    const start = new Date(ev.startDate + 'T00:00:00');
-    if (ev.singleDay) return start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const end = new Date(ev.endDate + 'T00:00:00');
-    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    events = events.filter(e => e.id !== editing.id);
+    eventModalOpen = false;
   }
 
   // ── Dashboard widgets ──────────────────────────────────────────────
@@ -481,7 +411,7 @@
                     </div>
                   {/if}
                 </div>
-                {#if hasPermission(data.user, 'events', 'create')}
+                {#if hasPermission(data.user, 'calendar_events', 'create')}
                   <button type="button" class="btn btn-primary whitespace-nowrap" onclick={openNewEvent}>
                     <Plus class="size-4" /> {m.dashboard_new_event()}
                   </button>
@@ -516,7 +446,7 @@
                             type="button"
                             class="mt-1 w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate bg-accent text-accent-content hover:opacity-90 transition-opacity"
                             onclick={() => openEditEvent(ev)}
-                            title={ev.title}
+                            title={eventTooltip(ev)}
                           >{ev.title}</button>
                         {/each}
                       {/if}
@@ -551,94 +481,12 @@
 
 </div>
 
-<!-- ── Event Modal ───────────────────────────────────────────────── -->
-{#if eventModalOpen}
-  <div
-    transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-    role="dialog" aria-modal="true" aria-label={editingEventId ? m.dashboard_event_edit_title() : m.dashboard_new_event()}
-  >
-    <div
-      transition:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
-      class="card bg-base-100 border border-base-200 w-full max-w-2xl shadow-xl mx-4 flex flex-col max-h-[90vh]"
-    >
-      <header class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-base-200 shrink-0">
-        <h2 class="text-lg font-semibold">{editingEventId ? m.dashboard_event_edit_title() : m.dashboard_new_event()}</h2>
-        <button type="button" class="btn btn-ghost btn-square btn-sm" onclick={() => (eventModalOpen = false)} aria-label="Close">
-          <X class="size-5" />
-        </button>
-      </header>
-      <div class="p-6 space-y-4 overflow-y-auto flex-1">
-        {#if eventError}
-          <div role="alert" class="alert alert-error text-sm">{eventError}</div>
-        {/if}
-        <div class="space-y-1">
-          <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-title">{m.dashboard_event_field_title()}</label>
-          <input id="ev-title" type="text" class="input input-bordered w-full" placeholder={m.dashboard_event_title_placeholder()} bind:value={eventForm.title} maxlength="200" />
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-start">{m.dashboard_event_field_start()}</label>
-            <input id="ev-start" type="date" class="input input-bordered w-full" bind:value={eventForm.startDate} />
-          </div>
-          <div class="space-y-1">
-            <label class="text-xs font-medium opacity-60 uppercase tracking-wide" for="ev-end">{m.dashboard_event_field_end()}</label>
-            <input id="ev-end" type="date" class="input input-bordered w-full" bind:value={eventForm.endDate}
-              disabled={eventForm.singleDay} min={eventForm.startDate} />
-          </div>
-        </div>
-        <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input type="checkbox" class="checkbox" bind:checked={eventForm.singleDay} />
-          <span class="text-sm">{m.dashboard_event_single_day()}</span>
-        </label>
-        <div class="space-y-1">
-          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.dashboard_event_field_desc()}</p>
-          <MessageEditor bind:html={eventForm.content} placeholder={m.dashboard_event_desc_placeholder()} />
-        </div>
-      </div>
-      <footer class="flex items-center justify-between px-6 pb-5 pt-3 border-t border-base-200 shrink-0">
-        <div>
-          {#if editingEventId && hasPermission(data.user, 'events', 'delete')}
-            <button type="button" class="btn btn-outline btn-error" disabled={eventLoading} onclick={() => (eventDeleteConfirm = true)}>
-              {m.dashboard_event_delete_btn()}
-            </button>
-          {/if}
-        </div>
-        <div class="flex gap-3">
-          <button type="button" class="btn btn-ghost" onclick={() => (eventModalOpen = false)}>{m.common_cancel()}</button>
-          <button type="button" class="btn btn-primary" disabled={eventLoading} onclick={saveEvent}>
-            {eventLoading ? m.common_saving() : m.common_save()}
-          </button>
-        </div>
-      </footer>
-    </div>
-  </div>
-{/if}
-
-<!-- ── Delete Confirm Modal ──────────────────────────────────────── -->
-{#if eventDeleteConfirm}
-  <div
-    transition:fade={{ duration: 150 }}
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-    role="dialog" aria-modal="true" aria-label="Confirm delete"
-  >
-    <div
-      transition:scale={{ duration: 250, start: 0.95, easing: cubicOut }}
-      class="card bg-base-100 border border-base-200 w-full max-w-sm shadow-xl mx-4"
-    >
-      <div class="p-6 space-y-3">
-        <h2 class="text-lg font-semibold">{m.dashboard_event_confirm_delete()}</h2>
-        <p class="text-sm opacity-70">{m.dashboard_event_confirm_delete_body({ title: eventForm.title })}</p>
-        {#if eventError}
-          <div role="alert" class="alert alert-error text-sm">{eventError}</div>
-        {/if}
-      </div>
-      <footer class="flex justify-end gap-3 px-6 pb-5">
-        <button type="button" class="btn btn-ghost" onclick={() => (eventDeleteConfirm = false)}>{m.common_cancel()}</button>
-        <button type="button" class="btn btn-error" disabled={eventLoading} onclick={confirmDeleteEvent}>
-          {eventLoading ? m.common_deleting() : m.common_delete()}
-        </button>
-      </footer>
-    </div>
-  </div>
-{/if}
+<!-- ── Event Modal (the calendar-events module's, as on /calendar-events/admin) ── -->
+<EventModal
+  event={editingEvent}
+  open={eventModalOpen}
+  user={data.user}
+  onSave={saveEvent}
+  onDelete={deleteEvent}
+  onClose={() => (eventModalOpen = false)}
+/>

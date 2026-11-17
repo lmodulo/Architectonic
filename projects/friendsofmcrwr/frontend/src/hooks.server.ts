@@ -3,7 +3,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { env } from '$env/dynamic/private';
 import { hasPermission } from '$lib/permissions';
 import { resolveTheme } from '$lib/config/theme';
-import { isPublicRoute, isCustomerRoute } from '$lib/config/route-rules';
+import { isPublicRoute, isCustomerRoute, routeTheme } from '$lib/config/route-rules';
 import { customerHome } from '$lib/customer-home';
 import { paraglideMiddleware } from '$lib/paraglide/server.js';
 import { installApiIdentity, withVisitor } from '$lib/server/api-identity';
@@ -106,10 +106,12 @@ const authHandle: Handle = async ({ event, resolve }) => {
 
 // Writes the active theme into <html data-theme="%app.theme%"> so every page, public ones
 // included, renders server-side in the right theme. The value is set on locals by the root
-// +layout.server.ts load, which has finished by the time HTML is rendered.
+// +layout.server.ts load, which has finished by the time HTML is rendered. A route rule's
+// `theme` (route-rules.ts) takes precedence for the pages it covers.
 const themeHandle: Handle = ({ event, resolve }) =>
   resolve(event, {
-    transformPageChunk: ({ html }) => html.replace('%app.theme%', resolveTheme(event.locals.theme))
+    transformPageChunk: ({ html }) =>
+      html.replace('%app.theme%', resolveTheme(routeTheme(event.url.pathname, event.route.id) ?? event.locals.theme))
   });
 
 export const handle = sequence(visitorHandle, paraglideHandle, authHandle, themeHandle);

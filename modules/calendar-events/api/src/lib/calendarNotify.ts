@@ -11,6 +11,10 @@ export interface CalendarEventDoc {
   startDate: Date;
   endDate: Date;
   singleDay: boolean;
+  allDay?: boolean;
+  /** "HH:MM" wall-clock, null when all day or untimed (see routes/calendar-events/events.ts) */
+  startTime?: string | null;
+  endTime?: string | null;
   visibility: string;
 }
 
@@ -39,6 +43,19 @@ function fmtDate(d: Date): string {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+function fmtTime(t: string): string {
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
+/** The start date, with the time when the event has one: "Friday, November 27, 2026, 10:00 AM – 2:00 PM" */
+function fmtWhen(e: CalendarEventDoc): string {
+  const date = fmtDate(e.startDate);
+  if (e.allDay || !e.startTime) return date;
+  const oneDay = !e.endDate || e.endDate.getTime() <= e.startDate.getTime();
+  return `${date}, ${fmtTime(e.startTime)}${e.endTime && oneDay ? ` – ${fmtTime(e.endTime)}` : ''}`;
+}
+
 export async function notifyNewEvent(
   app: FastifyInstance,
   event: CalendarEventDoc,
@@ -47,7 +64,7 @@ export async function notifyNewEvent(
   if (recipientIds.length === 0) return;
 
   const db      = app.mongo.db!;
-  const dateStr = fmtDate(event.startDate);
+  const dateStr = fmtWhen(event);
   const label   = event.eventType.replace(/_/g, ' ');
 
   await dispatch(app, {
@@ -85,7 +102,7 @@ export async function notifyEventReminder(
   if (recipientIds.length === 0) return;
 
   const db      = app.mongo.db!;
-  const dateStr = fmtDate(event.startDate);
+  const dateStr = fmtWhen(event);
   const when    = reminderDays === 0 ? 'is today' : `in ${reminderDays} day${reminderDays !== 1 ? 's' : ''}`;
 
   for (const userId of recipientIds) {

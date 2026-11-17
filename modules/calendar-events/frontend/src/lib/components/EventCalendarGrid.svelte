@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ChevronLeft, ChevronRight } from 'lucide-svelte';
-  import { eventsForDay, typePillClass, type CalendarEvent } from '$lib/utils/calendarEvents';
+  import { eventTooltip, eventsForDay, typePillClass, type CalendarEvent } from '$lib/utils/calendarEvents';
 
   let {
     events,
@@ -77,12 +77,12 @@
                 type="button"
                 class="mt-1 w-full text-left text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate text-white transition-colors {typePillClass(ev.eventType)}"
                 onclick={() => onEventClick(ev)}
-                title={ev.title}
+                title={eventTooltip(ev)}
               >{ev.title}</button>
             {:else}
               <span
                 class="mt-1 block w-full text-[9px] font-medium leading-tight px-1.5 py-0.5 rounded-sm truncate text-white {typePillClass(ev.eventType)}"
-                title={ev.title}
+                title={eventTooltip(ev)}
               >{ev.title}</span>
             {/if}
           {/each}

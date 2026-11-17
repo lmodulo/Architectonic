@@ -56,9 +56,9 @@ export default async function analyticsRoutes(app: FastifyInstance) {
         { $limit: 8 }
       ]).toArray(),
 
-      // Stock by product
+      // Stock by product (only products that keep stock)
       db.collection('products').aggregate([
-        { $match: { status: 'active' } },
+        { $match: { status: 'active', trackInventory: { $ne: false } } },
         { $project: {
           name: 1,
           totalStock: { $sum: '$variants.stock' }

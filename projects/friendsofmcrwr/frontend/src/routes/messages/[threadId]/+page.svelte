@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidate, invalidateAll } from '$app/navigation';
   import { onMount } from 'svelte';
+  import { slide } from 'svelte/transition';
   import { Reply } from 'lucide-svelte';
   import { m } from '$lib/paraglide/messages.js';
   import MessageEditor from '$lib/components/MessageEditor.svelte';
@@ -18,31 +19,27 @@
     createdAt: string | Date;
   };
 
-  let messages = $state<Message[]>(data.messages as Message[]);
+  const messages = $derived(data.messages as Message[]);
+  const threadId = $derived(messages[0]?.threadId ?? '');
+  const subject  = $derived(messages[0]?.subject ?? '');
+
   let replyOpen = $state(false);
   let replyBody = $state('');
-  let sending = $state(false);
-  let error = $state('');
+  let sending   = $state(false);
+  let error     = $state('');
 
-  // Refresh badge when thread opens (API marks messages read on GET)
+  // The API marks the thread read on GET: refresh the header badge and the list's unread dots
   onMount(() => { invalidate('app:unread'); });
 
-  // Update messages when route changes
-  $effect(() => {
-    messages = data.messages as Message[];
+  function formatDate(d: string | Date) {
+    return new Date(d).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function closeReply() {
     replyOpen = false;
     replyBody = '';
     error = '';
-  });
-
-  function formatDate(d: string | Date) {
-    return new Date(d).toLocaleString([], {
-      month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
   }
-
-  const threadId = $derived(messages[0]?.threadId ?? '');
 
   async function sendReply() {
     if (!replyBody.trim() || replyBody === '<p></p>') { error = m.messages_reply_required(); return; }
@@ -58,8 +55,7 @@
         error = (d as { message?: string }).message ?? m.errors_send_failed();
         return;
       }
-      replyBody = '';
-      replyOpen = false;
+      closeReply();
       await Promise.all([invalidate('app:unread'), invalidateAll()]);
     } catch {
       error = m.errors_network_error();
@@ -69,73 +65,73 @@
   }
 </script>
 
-<div class="flex flex-col h-full">
+<svelte:head><title>{subject || m.messages_title()}</title></svelte:head>
 
-  <!-- Thread subject header -->
-  {#if messages.length > 0}
-    <div class="px-6 py-3 border-b border-base-300 shrink-0">
-      <h2 class="text-base font-semibold truncate">{messages[0].subject}</h2>
-      <p class="text-xs opacity-50 mt-0.5">{m.messages_count({ count: messages.length })}</p>
-    </div>
-  {/if}
+<!-- Phones: one column that scrolls with the page. md and up: fills the panel, messages scroll, reply stays put. -->
+<div class="flex-1 min-h-0 flex flex-col">
 
-  <!-- Messages -->
-  <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-    {#each messages as msg (msg.id)}
-      <div class="flex gap-3">
-        <Avatar user={{ username: msg.from.username }} size="md" />
-
-        <div class="flex-1 min-w-0">
-          <div class="flex items-baseline gap-2 mb-1">
-            <span class="text-sm font-medium">{msg.from.name}</span>
-            <span class="text-[11px] opacity-40">{formatDate(msg.createdAt)}</span>
-          </div>
-          <!-- Rendered HTML body -->
-          <div class="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
-            <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-            {@html msg.body}
-          </div>
-        </div>
-      </div>
-    {/each}
+  <div class="px-4 md:px-6 py-3 border-b border-base-300 shrink-0">
+    <h2 class="text-lg font-semibold leading-snug break-words">{subject}</h2>
+    <p class="text-xs opacity-50 mt-0.5">{m.messages_count({ count: messages.length })}</p>
   </div>
 
-  <!-- Reply area -->
-  <div class="shrink-0 border-t border-base-300 px-6 py-4">
-    {#if error}
-      <aside class="alert alert-error p-3 rounded text-sm mb-3">{error}</aside>
-    {/if}
+  <ol class="md:flex-1 md:min-h-0 md:overflow-y-auto divide-y divide-base-300">
+    {#each messages as msg (msg.id)}
+      <li class="px-4 md:px-6 py-4">
+        <div class="flex items-center gap-3">
+          <Avatar user={{ username: msg.from.username }} size="md" />
+          <div class="min-w-0 flex flex-wrap items-baseline gap-x-2">
+            <span class="text-sm font-medium truncate">{msg.from.name}</span>
+            <time class="text-xs opacity-50" datetime={new Date(msg.createdAt).toISOString()}>{formatDate(msg.createdAt)}</time>
+          </div>
+        </div>
+        <!-- Full width under the sender on phones; lined up with the name (avatar 2rem + gap 0.75rem) from md -->
+        <div class="message-body mt-2 md:pl-11 text-sm leading-relaxed">
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+          {@html msg.body}
+        </div>
+      </li>
+    {/each}
+  </ol>
 
+  <div class="shrink-0 border-t border-base-300 px-4 md:px-6 py-4">
     {#if replyOpen}
-      <div class="space-y-3">
-        <MessageEditor bind:html={replyBody} />
-        <div class="flex gap-2 justify-end">
-          <button
-            type="button"
-            class="btn btn-ghost"
-            onclick={() => { replyOpen = false; replyBody = ''; error = ''; }}
-          >{m.common_cancel()}</button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            disabled={sending}
-            onclick={sendReply}
-          >
+      <div transition:slide={{ duration: 200 }} class="space-y-4">
+        {#if error}
+          <aside class="alert alert-error p-3 rounded text-sm">{error}</aside>
+        {/if}
+        <div class="space-y-1">
+          <p class="text-xs font-medium opacity-60 uppercase tracking-wide">{m.messages_reply()}</p>
+          <MessageEditor bind:html={replyBody} />
+        </div>
+        <div class="flex justify-end gap-3">
+          <button type="button" class="btn btn-ghost" onclick={closeReply}>{m.common_cancel()}</button>
+          <button type="button" class="btn btn-primary" disabled={sending} onclick={sendReply}>
             <Reply class="size-4" />
             {sending ? m.common_sending() : m.messages_reply()}
           </button>
         </div>
       </div>
     {:else}
-      <button
-        type="button"
-        class="btn btn-ghost w-full text-sm opacity-70 hover:opacity-100"
-        onclick={() => (replyOpen = true)}
-      >
-        <Reply class="size-4" />
-        {m.messages_reply()}
-      </button>
+      <div transition:slide={{ duration: 200 }} class="flex justify-end">
+        <button type="button" class="btn btn-primary w-full sm:w-auto" onclick={() => (replyOpen = true)}>
+          <Reply class="size-4" />
+          {m.messages_reply()}
+        </button>
+      </div>
     {/if}
   </div>
 
 </div>
+
+<style>
+  /* Message bodies are Tiptap HTML. Tailwind's preflight strips paragraph spacing and list markers and there is no
+     typography plugin, so the editor's own formatting is restored here (MessageEditor styles only `.tiptap`). */
+  .message-body { overflow-wrap: anywhere; }
+  .message-body :global(* + *) { margin-top: 0.75em; }
+  .message-body :global(ul) { list-style: disc; padding-left: 1.5rem; }
+  .message-body :global(ol) { list-style: decimal; padding-left: 1.5rem; }
+  .message-body :global(li + li) { margin-top: 0.25em; }
+  .message-body :global(blockquote) { border-left: 3px solid var(--color-primary); padding-left: 0.75rem; opacity: 0.8; }
+  .message-body :global(a) { text-decoration: underline; }
+</style>

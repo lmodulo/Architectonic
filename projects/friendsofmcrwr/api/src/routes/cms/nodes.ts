@@ -15,12 +15,14 @@ const COL = 'cms_nodes';
 /**
  * First URL segments a root node may not use: the scaffold's and the known modules' top-level
  * routes. The frontend proxy adds a second check against the project's real route list.
+ * friendsofmcrwr: no 'shop'. The storefront here is a Content page (the Shop component), not
+ * Commerce's /shop routes, so editors may call that page /shop.
  */
 export const RESERVED_SLUGS = new Set([
   'api', 'uploads', '_app', 'login', 'register', 'logout', 'forgot-password', 'reset-password',
   'accept-invite', 'dashboard', 'settings', 'profile', 'messages', 'notifications', 'audit-log',
   'user-management', 'manage-users', 'roles', '403', 'upcoming-events', 'documentation', 'cms',
-  'shop', 'client-portal', 'vault', 'crm', 'agile', 'folio', 'contracts', 'calendar-events', 'commerce',
+  'client-portal', 'vault', 'crm', 'agile', 'folio', 'contracts', 'calendar-events', 'commerce',
 ]);
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

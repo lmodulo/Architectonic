@@ -134,6 +134,8 @@ export interface PageView {
   breadcrumbs: { id: string; title: string; path: string | null }[];
   /** remaining path segments, for components that accept subpaths */
   rest?: string;
+  /** what a component page shows at `rest`, from its entry's `subpage` (the breadcrumbs already include it) */
+  subpage?: { title: string; path: string; description?: string };
   preview?: true;
 }
 
@@ -195,7 +197,21 @@ export interface CmsComponentLoadContext {
   url: URL;
   /** leftover path segments, for entries with `subpaths: true` (page mode only) */
   rest: string | null;
+  /** page mode: the page's own public URL, for links to its subpaths (null for blocks and the admin preview) */
+  base: string | null;
   props: Record<string, unknown>;
+}
+
+/** What a component page shows at a subpath (CmsComponentEntry.subpage). */
+export interface SubpageInfo {
+  /** the page heading and <title> */
+  title: string;
+  /** the subpath's public URL (canonical link) */
+  path: string;
+  /** for search and sharing tags */
+  description?: string;
+  /** added after the page's own breadcrumbs; the last one is the subpath itself */
+  crumbs: { id: string; title: string; path: string | null }[];
 }
 
 /** Props every registry component receives. */
@@ -216,6 +232,12 @@ export interface CmsComponentEntry {
   props?: PropSpec[];
   /** page mode: `/events/<anything>` resolves to this node and passes the remainder as `rest` */
   subpaths?: boolean;
+  /**
+   * With `subpaths`: what the page shows at `rest`, from the load's data, so its heading, breadcrumbs and search
+   * tags describe that instead of the page itself. Return null when there's nothing at `rest`: the page is a 404.
+   * Runs on the server, and not when the load failed.
+   */
+  subpage?: (data: unknown, rest: string) => SubpageInfo | null;
   /**
    * Another module the component reads from. The admin warns when it isn't installed, judged by
    * whether the signed-in user's permissions list `resource` (as for Vault).
