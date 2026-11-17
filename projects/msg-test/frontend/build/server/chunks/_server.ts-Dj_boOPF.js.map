@@ -1,0 +1,1 @@
+{"version":3,"file":"_server.ts-Dj_boOPF.js","sources":["../../../.svelte-kit/adapter-node/entries/endpoints/api/search/_server.ts.js"],"sourcesContent":["const GET = async () => {\n  return Response.json({});\n};\nexport {\n  GET\n};\n"],"names":[],"mappings":"AAAK,MAAC,GAAG,GAAG,YAAY;AACxB,EAAE,OAAO,QAAQ,CAAC,IAAI,CAAC,EAAE,CAAC;AAC1B;;;;"}

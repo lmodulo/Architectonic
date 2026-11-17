@@ -1,0 +1,1 @@
+import"../chunks/Bzak7iHL.js";import{t as e,a as m,c as s,d as i,r as p}from"../chunks/CU8pdfgK.js";import{s as d}from"../chunks/_EuocV3h.js";import{s as f}from"../chunks/BZXFFT53.js";import{A as n}from"../chunks/BHzCrAbO.js";var c=s("<div><!></div>");function A(a,r){var t=c(),o=i(t);d(o,()=>r.children),p(t),e(()=>f(t,"data-theme",n)),m(a,t)}export{A as component};

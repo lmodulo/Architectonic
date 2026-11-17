@@ -1,0 +1,1 @@
+{"version":3,"file":"logo2-Fq0IzxFi.js","sources":["../../../.svelte-kit/adapter-node/chunks/logo2.js"],"sourcesContent":["const brand = {\n  description: \"Build faster. Ship smarter.\"\n};\nexport {\n  brand as b\n};\n"],"names":[],"mappings":"AAAK,MAAC,KAAK,GAAG;AACd,EAAE,WAAW,EAAE;AACf;;;;"}

@@ -1,0 +1,1 @@
+const s="business",a={display:{family:"ui-serif",fallback:"ui-serif, Georgia, serif"},body:{family:"ui-sans-serif",fallback:"ui-sans-serif, system-ui, sans-serif"},mono:{family:"ui-monospace",fallback:"ui-monospace, SFMono-Regular, monospace"}};export{s as A,a};
